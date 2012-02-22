@@ -37,6 +37,12 @@
 
 int OnMetaAttach()
 {
+	if (!IS_DEDICATED_SERVER())
+	{
+		print_srvconsole("[WEAPONMOD] Only dedicated server supports.\n");
+		return 0;
+	}
+
 	pDbase = GetModuleHandleA("hl.dll");
 
 	if (pDbase == NULL) 
@@ -46,6 +52,11 @@ int OnMetaAttach()
 	}
 
 	REG_SVR_COMMAND("wpnmod", WpnModCommand);
+
+	print_srvconsole("\n   Half-Life Weapon Mod version %s Copyright (c) 2012 AGHL.RU Dev Team. \n"
+					 "   Weapon Mod comes with ABSOLUTELY NO WARRANTY; for details type `wpnmod gpl'.\n", Plugin_info.version);
+	print_srvconsole("   This is free software and you are welcome to redistribute it under \n"
+					 "   certain conditions; type 'wpnmod gpl' for details.\n  \n");
 
 	print_srvconsole("[WEAPONMOD] Found hl.dll at %p\n", pDbase);
 	return 1;
@@ -120,4 +131,27 @@ int FN_DispatchSpawn(edict_t *pent)
 	}
 
 	RETURN_META_VALUE(MRES_IGNORED, 0);
+}
+
+void FN_ClientCommand(edict_t *pEntity)
+{
+	const char* cmd = CMD_ARGV(0);
+
+	if (cmd && stricmp(cmd, "wpnmod") == 0)
+	{
+		// Print version
+		static char buf[1024];
+		size_t len = 0;
+			
+		sprintf(buf, "\n%s %s\n", Plugin_info.name, Plugin_info.version);
+		CLIENT_PRINT(pEntity, print_console, buf);
+		len = sprintf(buf, "Author: \n         KORD_12.7\n");
+		len += sprintf(&buf[len], "Credits: \n         Lev\n");
+		len += sprintf(&buf[len], "Compiled: %s\nURL: http://www.aghl.ru/ - Russian Half-Life and Adrenaline Gamer Community.\n\n", __DATE__ ", " __TIME__);
+		CLIENT_PRINT(pEntity, print_console, buf);
+
+		RETURN_META(MRES_SUPERCEDE);
+	}
+
+	RETURN_META(MRES_IGNORED);
 }

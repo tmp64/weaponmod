@@ -77,10 +77,13 @@
 	#define XTRA_OFS_PLAYER						5
 	
 	#define ADDRESS_SET_ANIMATION				0x10FF9C
+	#define ADDRESS_RADIUS_DAMAGE				0x189B0 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	#define ADDRESS_PRECAHE_OTHER_WEAPON		0x14076C
 
     #define PrivateToEdict(pPrivate) (*(entvars_t **)pPrivate)->pContainingEntity
 #endif
+
+#define CLIENT_PRINT							(*g_engfuncs.pfnClientPrintf)
 
 #define m_flStartThrow							XTRA_OFS_WEAPON + 16
 #define m_flReleaseThrow						XTRA_OFS_WEAPON + 17

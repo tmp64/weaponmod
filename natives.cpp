@@ -97,8 +97,19 @@ int PvDataOffsets[Offset_End] =
 		return 0; \
 	}\
 
+#define CHECK_PARAMS(x) \
+	cell count = params[0] / sizeof(cell); \
+	if (count != x) \
+	{ \
+		MF_LogError(amx, AMX_ERR_NATIVE, "Expected %d parameters, got %d.", x, count); \
+		return 0; \
+	}\
+
+
 static cell AMX_NATIVE_CALL wpnmod_register_weapon(AMX *amx, cell *params)
 {
+	CHECK_PARAMS(10)
+
 	if (g_iWeaponIndex >= MAX_WEAPONS)
 	{
 		MF_LogError(amx, AMX_ERR_NATIVE, "Weapon limit reached.");
