@@ -1,6 +1,8 @@
 /*
  * Half-Life Weapon Mod
  * Copyright (c) 2012 AGHL.RU Dev Team
+ * 
+ * http://aghl.ru/forum/ - Russian Half-Life and Adrenaline Gamer Community
  *
  *
  *    This program is free software; you can redistribute it and/or modify it
@@ -34,6 +36,7 @@
 
 short g_sModelIndexBloodDrop; // holds the sprite index for blood drops
 short g_sModelIndexBloodSpray; // holds the sprite index for blood spray (bigger)
+
 
 BOOL UTIL_ShouldShowBlood( int color )
 {
@@ -78,7 +81,24 @@ void UTIL_BloodDrips(const Vector &origin, int color, int amount)
 	MESSAGE_END();
 }
 
-void UTIL_DecalGunshot( TraceResult *pTrace)
+void UTIL_EjectBrass(const Vector &vecOrigin, const Vector &vecVelocity, float rotation, int model, int soundtype)
+{
+	MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, vecOrigin );
+		WRITE_BYTE( TE_MODEL);
+		WRITE_COORD( vecOrigin.x);
+		WRITE_COORD( vecOrigin.y);
+		WRITE_COORD( vecOrigin.z);
+		WRITE_COORD( vecVelocity.x);
+		WRITE_COORD( vecVelocity.y);
+		WRITE_COORD( vecVelocity.z);
+		WRITE_ANGLE( rotation );
+		WRITE_SHORT( model );
+		WRITE_BYTE ( soundtype);
+		WRITE_BYTE ( 25 );// 2.5 seconds
+	MESSAGE_END();
+}
+
+void UTIL_DecalGunshot(TraceResult *pTrace)
 {
 	int iEntity;
 
@@ -120,6 +140,11 @@ void UTIL_DecalGunshot( TraceResult *pTrace)
 		WRITE_SHORT( iEntity );
 		WRITE_BYTE( index );
 	MESSAGE_END();
+}
+
+void UTIL_MakeVectors( const Vector &vecAngles )
+{
+	MAKE_VECTORS( vecAngles );
 }
 
 void UTIL_EmitAmbientSound( edict_t *entity, const Vector &vecOrigin, const char *samp, float vol, float attenuation, int fFlags, int pitch )
@@ -264,10 +289,13 @@ void FireBulletsPlayer(edict_t* pPlayer, edict_t* pAttacker, int iShotsCount, Ve
 	static int tracerCount;
 	TraceResult tr;
 	
-	Vector vecUp = gpGlobals->v_up;
-	Vector vecRight = gpGlobals->v_right;
-	Vector vecDirShooting = gpGlobals->v_forward;
 	Vector vecSrc = pPlayer->v.origin + pPlayer->v.view_ofs; 
+
+	UTIL_MakeVectors(pPlayer->v.v_angle + pPlayer->v.punchangle);
+	
+	Vector vecDirShooting = gpGlobals->v_forward;;
+	Vector vecRight = gpGlobals->v_right;
+	Vector vecUp = gpGlobals->v_up;
 
 	if (pAttacker == NULL)
 	{
@@ -280,18 +308,22 @@ void FireBulletsPlayer(edict_t* pPlayer, edict_t* pAttacker, int iShotsCount, Ve
 		{
 			x = RANDOM_FLOAT(-0.5,0.5) + RANDOM_FLOAT(-0.5,0.5);
 			y = RANDOM_FLOAT(-0.5,0.5) + RANDOM_FLOAT(-0.5,0.5);
-			z = x*x+y*y;
+			z = x*x + y*y;
 		} while (z > 1);
 
-		Vector vecDir = vecDirShooting + x * vecSpread.x * vecRight + y * vecSpread.y * vecUp;
-		Vector vecEnd = vecSrc + vecDir * flDistance;
+		Vector vecDir = vecDirShooting +
+						x * vecSpread.x * vecRight +
+						y * vecSpread.y * vecUp;
+		Vector vecEnd;
 
-		TRACE_LINE(vecSrc, vecEnd, dont_ignore_monsters, pAttacker, &tr);
+		vecEnd = vecSrc + vecDir * flDistance;
+
+		TRACE_LINE(vecSrc, vecEnd, dont_ignore_monsters, pPlayer, &tr);
 
 		if (iTracerFreq != 0 && (tracerCount++ % iTracerFreq) == 0)
 		{
 			// adjust tracer position for player
-			Vector vecTracerSrc = vecSrc + Vector ( 0 , 0 , -4 ) + gpGlobals->v_right * 2 + gpGlobals->v_forward * 16;
+			Vector vecTracerSrc = vecSrc + Vector (0 , 0 , -4) + gpGlobals->v_right * 2 + gpGlobals->v_forward * 16;
 
 			MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, vecTracerSrc );
 				WRITE_BYTE( TE_TRACER );
@@ -320,7 +352,7 @@ void FireBulletsPlayer(edict_t* pPlayer, edict_t* pAttacker, int iShotsCount, Ve
 					*((int *)tr.pHit->pvPrivateData + m_LastHitGroup) = tr.iHitgroup;
 				}
 
-				int iBloodColor =  BLOOD_COLOR(tr.pHit);
+				int iBloodColor = BLOOD_COLOR(tr.pHit);
 
 				if (iBloodColor != DONT_BLEED)
 				{
@@ -328,7 +360,12 @@ void FireBulletsPlayer(edict_t* pPlayer, edict_t* pAttacker, int iShotsCount, Ve
 					UTIL_BloodDrips(tr.vecEndPos - vecDir * 4, iBloodColor, (int)flDamage);
 				}
 
-				TAKE_DAMAGE(tr.pHit, pAttacker, pPlayer, flDamage, vecDir, bitsDamageType);
+				TAKE_DAMAGE(tr.pHit, pPlayer, pAttacker, flDamage, bitsDamageType);
+
+				// WTF?
+				gpGlobals->v_forward = vecDirShooting;
+				gpGlobals->v_right = vecRight;
+				gpGlobals->v_up = vecUp;
 			}
 
 			TEXTURETYPE_PlaySound(&tr, vecSrc, vecEnd);

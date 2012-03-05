@@ -1,6 +1,8 @@
 /*
  * Half-Life Weapon Mod
  * Copyright (c) 2012 AGHL.RU Dev Team
+ * 
+ * http://aghl.ru/forum/ - Russian Half-Life and Adrenaline Gamer Community
  *
  *
  *    This program is free software; you can redistribute it and/or modify it
@@ -32,17 +34,8 @@
 #include "weaponmod.h"
 
 
-
-
-
 int OnMetaAttach()
 {
-	if (!IS_DEDICATED_SERVER())
-	{
-		print_srvconsole("[WEAPONMOD] Only dedicated server supports.\n");
-		return 0;
-	}
-
 	pDbase = GetModuleHandleA("hl.dll");
 
 	if (pDbase == NULL) 
@@ -120,14 +113,15 @@ void ServerDeactivate()
 	RETURN_META(MRES_IGNORED);
 }
 
-int FN_DispatchSpawn(edict_t *pent)
+int FN_DispatchSpawn(edict_t *pEntity)
 {
 	if (!g_initialized)
 	{
-		g_initialized = true;
+		g_initialized = TRUE;
 		g_iWeaponIndex = LIMITER_WEAPON;
 
 		memset(WeaponInfoArray, 0, sizeof(WeaponInfoArray));
+		memset(AmmoBoxInfoArray, 0, sizeof(AmmoBoxInfoArray));
 	}
 
 	RETURN_META_VALUE(MRES_IGNORED, 0);

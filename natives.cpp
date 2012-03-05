@@ -1,6 +1,8 @@
 /*
  * Half-Life Weapon Mod
  * Copyright (c) 2012 AGHL.RU Dev Team
+ * 
+ * http://aghl.ru/forum/ - Russian Half-Life and Adrenaline Gamer Community
  *
  *
  *    This program is free software; you can redistribute it and/or modify it
@@ -30,6 +32,29 @@
  */
 
 #include "weaponmod.h"
+
+#define CHECK_ENTITY(x) \
+	if (x != 0 && (FNullEnt(INDEXENT2(x)) || x < 0 || x > gpGlobals->maxEntities)) \
+	{ \
+		MF_LogError(amx, AMX_ERR_NATIVE, "Invalid entity."); \
+		return 0; \
+	}\
+
+#define CHECK_OFFSET(x) \
+	if ( x < 0 || x >= Offset_End) \
+	{ \
+		MF_LogError(amx, AMX_ERR_NATIVE, "Function out of bounds. Got: %d  Max: %d.", x, Offset_End - 1); \
+		return 0; \
+	}\
+
+#define CHECK_PARAMS(x) \
+	cell count = params[0] / sizeof(cell); \
+	if (count != x) \
+	{ \
+		MF_LogError(amx, AMX_ERR_NATIVE, "Expected %d parameters, got %d.", x, count); \
+		return 0; \
+	}\
+
 
 enum e_Offsets
 {
@@ -83,29 +108,30 @@ int PvDataOffsets[Offset_End] =
 };
 
 
-#define CHECK_ENTITY(x) \
-	if (x != 0 && (FNullEnt(INDEXENT2(x)) || x < 0 || x > gpGlobals->maxEntities)) \
-	{ \
-		MF_LogError(amx, AMX_ERR_NATIVE, "Invalid entity."); \
-		return 0; \
-	}\
+edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles);
 
-#define CHECK_OFFSET(x) \
-	if ( x < 0 || x >= Offset_End) \
-	{ \
-		MF_LogError(amx, AMX_ERR_NATIVE, "Function out of bounds. Got: %d  Max: %d.", x, Offset_End - 1); \
-		return 0; \
-	}\
-
-#define CHECK_PARAMS(x) \
-	cell count = params[0] / sizeof(cell); \
-	if (count != x) \
-	{ \
-		MF_LogError(amx, AMX_ERR_NATIVE, "Expected %d parameters, got %d.", x, count); \
-		return 0; \
-	}\
+void UTIL_EjectBrass(const Vector &vecOrigin, const Vector &vecVelocity, float rotation, int model, int soundtype);
+void FireBulletsPlayer(edict_t* pPlayer, edict_t* pAttacker, int iShotsCount, Vector vecSpread, float flDistance, float flDamage, int bitsDamageType, BOOL bTracers);
 
 
+/**
+ * Register new weapon in module.
+ *
+ * @param szName		The weapon name.
+ * @param iSlot			SlotID (1...5).
+ * @param iPosition		NumberInSlot (1...5).
+ * @param szAmmo1		Primary ammo type ("9mm", "uranium", "MY_AMMO" etc).
+ * @param iMaxAmmo1		Max amount of primary ammo.
+ * @param szAmmo2		Secondary ammo type.
+ * @param iMaxAmmo2		Max amount of secondary ammo.
+ * @param iMaxClip		Max amount of ammo in weapon's clip.
+ * @param iFlags		Weapon's flags (see defines).
+ * @param iWeight		This value used to determine this weapon's importance in autoselection.
+ * 
+ * @return				The ID of registerd weapon or 0 on failure. (integer)
+ *
+ * native wpnmod_register_weapon(const szName[], const iSlot, const iPosition, const szAmmo1[], const iMaxAmmo1, const szAmmo2[], const iMaxAmmo2, const iMaxClip, const iFlags, const iWeight);
+**/
 static cell AMX_NATIVE_CALL wpnmod_register_weapon(AMX *amx, cell *params)
 {
 	CHECK_PARAMS(10)
@@ -143,6 +169,15 @@ static cell AMX_NATIVE_CALL wpnmod_register_weapon(AMX *amx, cell *params)
 	return g_iWeaponIndex;
 }
 
+/**
+ * Register weapon's forward.
+ *
+ * @param iWeaponID		The ID of registered weapon.
+ * @param iForward		Forward type to register.
+ * @param szCallBack	The forward to call.
+ *
+ * native wpnmod_register_forward(const iWeaponID, const e_Forwards: iForward, const szCallBack[]);
+**/
 static cell AMX_NATIVE_CALL wpnmod_register_forward(AMX *amx, cell *params)
 {
 	int iId = params[1];
@@ -185,6 +220,14 @@ static cell AMX_NATIVE_CALL wpnmod_register_forward(AMX *amx, cell *params)
 	return 1;
 }
 
+/**
+ * Plays weapon's animation.
+ *
+ * @param iItem		Weapon's entity.
+ * @param iAnim		Sequence number.
+ *
+ * native wpnmod_send_weapon_anim(const iItem, const iAnim);
+**/
 static cell AMX_NATIVE_CALL wpnmod_send_weapon_anim(AMX *amx, cell *params)
 {
 	int iEntity = params[1];
@@ -210,6 +253,14 @@ static cell AMX_NATIVE_CALL wpnmod_send_weapon_anim(AMX *amx, cell *params)
 	return 1;
 }
 
+/**
+ * Set the activity for player based on an event or current state.
+ *
+ * @param iPlayer		Player id.
+ * @param iPlayerAnim	Animation (See PLAYER_ANIM constants).
+ *
+ * native wpnmod_set_player_anim(const iPlayer, const PLAYER_ANIM: iPlayerAnim);
+**/
 static cell AMX_NATIVE_CALL wpnmod_set_player_anim(AMX *amx, cell *params)
 {
 	int iPlayer = params[1];
@@ -230,6 +281,15 @@ static cell AMX_NATIVE_CALL wpnmod_set_player_anim(AMX *amx, cell *params)
 	return 1;
 }
 
+/**
+ * Sets an integer from private data.
+ *
+ * @param iEntity		Entity index.
+ * @param iOffset		Offset (See e_Offsets constants).
+ * @param iValue		Value.
+ *
+ * native wpnmod_set_offset_int(const iEntity, const e_Offsets: iOffset, const iValue);
+**/
 static cell AMX_NATIVE_CALL wpnmod_set_offset_int(AMX *amx, cell *params)
 {
 	int iEntity = params[1];
@@ -243,6 +303,36 @@ static cell AMX_NATIVE_CALL wpnmod_set_offset_int(AMX *amx, cell *params)
 	return 1;
 }
 
+/**
+ * Returns an integer from private data.
+ *
+ * @param iEntity		Entity index.
+ * @param iOffset		Offset (See e_Offsets constants).
+ * 
+ * @return				Value from private data. (integer)
+ *
+ * native wpnmod_get_offset_int(const iEntity, const e_Offsets: iOffset);
+**/
+static cell AMX_NATIVE_CALL wpnmod_get_offset_int(AMX *amx, cell *params)
+{
+	int iEntity = params[1];
+	int iOffset = params[2];
+
+	CHECK_ENTITY(iEntity)
+	CHECK_OFFSET(iOffset)
+
+	return *((int *)INDEXENT2(iEntity)->pvPrivateData + PvDataOffsets[iOffset]);
+}
+
+/**
+ * Sets a float from private data.
+ *
+ * @param iEntity		Entity index.
+ * @param iOffset		Offset (See e_Offsets constants).
+ * @param flValue		Value.
+ *
+ * native wpnmod_set_offset_float(const iEntity, const e_Offsets: iOffset, const Float: flValue);
+**/
 static cell AMX_NATIVE_CALL wpnmod_set_offset_float(AMX *amx, cell *params)
 {
 	int iEntity = params[1];
@@ -257,17 +347,16 @@ static cell AMX_NATIVE_CALL wpnmod_set_offset_float(AMX *amx, cell *params)
 	return 1;
 }
 
-static cell AMX_NATIVE_CALL wpnmod_get_offset_int(AMX *amx, cell *params)
-{
-	int iEntity = params[1];
-	int iOffset = params[2];
-
-	CHECK_ENTITY(iEntity)
-	CHECK_OFFSET(iOffset)
-
-	return *((int *)INDEXENT2(iEntity)->pvPrivateData + PvDataOffsets[iOffset]);
-}
-
+/**
+ * Returns a float from private data.
+ *
+ * @param iEntity		Entity index.
+ * @param iOffset		Offset (See e_Offsets constants).
+ * 
+ * @return				Value from private data. (float)
+ *
+ * native Float: wpnmod_get_offset_float(const iEntity, const e_Offsets: iOffset);
+**/
 static cell AMX_NATIVE_CALL wpnmod_get_offset_float(AMX *amx, cell *params)
 {
 	int iEntity = params[1];
@@ -279,6 +368,17 @@ static cell AMX_NATIVE_CALL wpnmod_get_offset_float(AMX *amx, cell *params)
 	return amx_ftoc(*((float *)INDEXENT2(iEntity)->pvPrivateData + PvDataOffsets[iOffset]));
 }
 
+/**
+ * Default deploy function.
+ *
+ * @param iItem				Weapon's entity index.
+ * @param szViewModel		Weapon's view  model (V).
+ * @param szWeaponModel		Weapon's player  model (P).
+ * @param iAnim				Sequence number of deploy animation.
+ * @param szAnimExt			Animation extension.
+ *
+ * native wpnmod_default_deploy(const iItem, const szViewModel[], const szWeaponModel[], const iAnim, const szAnimExt[]);
+**/
 static cell AMX_NATIVE_CALL wpnmod_default_deploy(AMX *amx, cell *params)
 {
 	int iEntity = params[1];
@@ -326,6 +426,16 @@ static cell AMX_NATIVE_CALL wpnmod_default_deploy(AMX *amx, cell *params)
 	return 1;
 }
 
+/**
+ * Default reload function.
+ *
+ * @param iItem				Weapon's entity index.
+ * @param iClipSize			Maximum weapon's clip size.
+ * @param iAnim				Sequence number of reload animation.
+ * @param flDelay			Reload delay time.
+ *
+ * native wpnmod_default_reload(const iItem, const iClipSize, const iAnim, const Float: flDelay);
+**/
 static cell AMX_NATIVE_CALL wpnmod_default_reload(AMX *amx, cell *params)
 {
 	int iEntity = params[1];
@@ -372,6 +482,18 @@ static cell AMX_NATIVE_CALL wpnmod_default_reload(AMX *amx, cell *params)
 	return 1;
 }
 
+/**
+ * Sets weapon's think function. Analog of set_task native.
+ * 
+ * Usage: 
+ * 	wpnmod_set_think(iItem, "M249_CompleteReload");
+ * 	set_pev(iItem, pev_nextthink, get_gametime() + 1.52);
+ *
+ * @param iItem				Weapon's entity index.
+ * @param szCallBack		The forward to call.
+ *
+ * native wpnmod_set_think(const iItem, const szCallBack[]);
+**/
 static cell AMX_NATIVE_CALL wpnmod_set_think(AMX *amx, cell *params)
 {
 	int iEntity = params[1];
@@ -403,6 +525,20 @@ static cell AMX_NATIVE_CALL wpnmod_set_think(AMX *amx, cell *params)
 	return 1;
 }
 
+/**
+ * Fire bullets from player's weapon.
+ *
+ * @param iPlayer			Player index.
+ * @param iAttacker			Attacker index (usualy it equal to previous param).
+ * @param iShotsCount		Number of shots.
+ * @param vecSpread			Spread.
+ * @param flDistance		Max shot distance.
+ * @param flDamage			Damage amount.
+ * @param bitsDamageType	Damage type.
+ * @param iTracerFreq		Tracer frequancy.
+ *
+ * native wpnmod_fire_bullets(const iPlayer, const iAttacker, const iShotsCount, const Float: vecSpread[3], const Float: flDistance, const Float: flDamage, const bitsDamageType, const iTracerFreq);
+**/
 static cell AMX_NATIVE_CALL wpnmod_fire_bullets(AMX *amx, cell *params)
 {
 	int iPlayer = params[1];
@@ -419,7 +555,17 @@ static cell AMX_NATIVE_CALL wpnmod_fire_bullets(AMX *amx, cell *params)
 	vecSpread.y = amx_ctof(vSpread[1]);
 	vecSpread.z = amx_ctof(vSpread[2]);
 
-	FireBulletsPlayer(INDEXENT2(iPlayer), INDEXENT2(iAttacker), params[3], vecSpread, amx_ctof(params[5]), amx_ctof(params[6]), params[7], params[8]);
+	FireBulletsPlayer
+	(
+		INDEXENT2(iPlayer), 
+		INDEXENT2(iAttacker), 
+		params[3], 
+		vecSpread, 
+		amx_ctof(params[5]), 
+		amx_ctof(params[6]), 
+		params[7], 
+		params[8]
+	);
 
 	return 1;
 }
@@ -440,7 +586,17 @@ static cell AMX_NATIVE_CALL wpnmod_radius_damage(AMX *amx, cell *params)
 	CHECK_ENTITY(iAttacker)
 
 	FN_RadiusDamage RadiusDamage = (FN_RadiusDamage)((DWORD)pDbase + ADDRESS_RADIUS_DAMAGE);
-	RadiusDamage(vecSrc, &INDEXENT2(iInflictor)->v, &INDEXENT2(iAttacker)->v, amx_ctof(params[4]), amx_ctof(params[5]), params[6], params[7]);
+	
+	RadiusDamage
+	(
+		vecSrc, 
+		&INDEXENT2(iInflictor)->v, 
+		&INDEXENT2(iAttacker)->v, 
+		amx_ctof(params[4]), 
+		amx_ctof(params[5]), 
+		params[6], 
+		params[7]
+	);
 
 	return 1;
 }
@@ -448,53 +604,32 @@ static cell AMX_NATIVE_CALL wpnmod_radius_damage(AMX *amx, cell *params)
 static cell AMX_NATIVE_CALL wpnmod_eject_brass(AMX *amx, cell *params)
 {
 	int iPlayer = params[1];
-	int iShell = params[2];
-	int iSoundType = params[3];
 
 	CHECK_ENTITY(iPlayer)
 
-	float flFwdScale = amx_ctof(params[4]);
-	float flUpScale = amx_ctof(params[5]);
-	float flRightScale = amx_ctof(params[6]);
-	
-	Vector vecViewOfs;
-	Vector vecShellVelocity;
-	Vector vecShellOrigin;
-
-	float fR = RANDOM_FLOAT(50, 70);
-	float fU = RANDOM_FLOAT(100, 150);
-
-	Vector vecUp = gpGlobals->v_up;
-	Vector vecRight = gpGlobals->v_right;
-	Vector vecForward = gpGlobals->v_forward;
-	
 	edict_t* pPlayer = INDEXENT2(iPlayer);
 
-	vecViewOfs.z = FBitSet(pPlayer->v.flags, FL_DUCKING) ? 12 : DEFAULT_VIEWHEIGHT;
-
-	for (int i = 0; i < 3; i++ )
-	{
-		vecShellVelocity[i] = pPlayer->v.velocity[i] + vecRight[i] * fR + vecUp[i] * fU + vecForward[i] * 25;
-		vecShellOrigin[i]   = pPlayer->v.origin[i] + vecViewOfs[i] + vecUp[i] * flUpScale + vecForward[i] * flFwdScale + vecRight[i] * flRightScale;
-	}
-
-	MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, vecShellOrigin );
-		WRITE_BYTE( TE_MODEL);
-		WRITE_COORD( vecShellOrigin.x );
-		WRITE_COORD( vecShellOrigin.y );
-		WRITE_COORD( vecShellOrigin.z );
-		WRITE_COORD( vecShellVelocity.x );
-		WRITE_COORD( vecShellVelocity.y );
-		WRITE_COORD( vecShellVelocity.z );
-		WRITE_ANGLE( pPlayer->v.angles.z );
-		WRITE_SHORT( iShell );
-		WRITE_BYTE ( iSoundType );
-		WRITE_BYTE ( 25 );// 2.5 seconds
-	MESSAGE_END();
+	Vector	vecShellVelocity = pPlayer->v.velocity + gpGlobals->v_right * RANDOM_FLOAT(50, 70) + gpGlobals->v_up * RANDOM_FLOAT(100, 150) + gpGlobals->v_forward * 25;
+	
+	UTIL_EjectBrass
+	(
+		pPlayer->v.origin + pPlayer->v.view_ofs + gpGlobals->v_up * amx_ctof(params[5]) + gpGlobals->v_forward * amx_ctof(params[4]) + gpGlobals->v_right * amx_ctof(params[6]), 
+		vecShellVelocity, 
+		pPlayer->v.angles.y, 
+		params[2], 
+		params[3]
+	);
 
 	return 1;
 }
 
+/**
+ * Sets the weapon so that it can play empty sound again.
+ *
+ * @param iItem				Weapon's entity index.
+ *
+ * native wpnmod_reset_empty_sound(const iItem);
+**/
 static cell AMX_NATIVE_CALL wpnmod_reset_empty_sound(AMX *amx, cell *params)
 {
 	int iEntity = params[1];
@@ -505,6 +640,13 @@ static cell AMX_NATIVE_CALL wpnmod_reset_empty_sound(AMX *amx, cell *params)
 	return 1;
 }
 
+/**
+ * Plays the weapon's empty sound.
+ *
+ * @param iItem				Weapon's entity index.
+ *
+ * native wpnmod_play_empty_sound(const iItem);
+**/
 static cell AMX_NATIVE_CALL wpnmod_play_empty_sound(AMX *amx, cell *params)
 {
 	int iEntity = params[1];

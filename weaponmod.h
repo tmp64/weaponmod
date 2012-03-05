@@ -1,6 +1,8 @@
 /*
  * Half-Life Weapon Mod
  * Copyright (c) 2012 AGHL.RU Dev Team
+ * 
+ * http://aghl.ru/forum/ - Russian Half-Life and Adrenaline Gamer Community
  *
  *
  *    This program is free software; you can redistribute it and/or modify it
@@ -37,19 +39,19 @@
 	#include <malloc.h>
 #endif
 
-#define CBTEXTURENAMEMAX	13			// only load first n chars of name
+#define CBTEXTURENAMEMAX						13			// only load first n chars of name
 
-#define CHAR_TEX_CONCRETE	'C'			// texture types
-#define CHAR_TEX_METAL		'M'
-#define CHAR_TEX_DIRT		'D'
-#define CHAR_TEX_VENT		'V'
-#define CHAR_TEX_GRATE		'G'
-#define CHAR_TEX_TILE		'T'
-#define CHAR_TEX_SLOSH		'S'
-#define CHAR_TEX_WOOD		'W'
-#define CHAR_TEX_COMPUTER	'P'
-#define CHAR_TEX_GLASS		'Y'
-#define CHAR_TEX_FLESH		'F'
+#define CHAR_TEX_CONCRETE						'C'			// texture types
+#define CHAR_TEX_METAL							'M'
+#define CHAR_TEX_DIRT							'D'
+#define CHAR_TEX_VENT							'V'
+#define CHAR_TEX_GRATE							'G'
+#define CHAR_TEX_TILE							'T'
+#define CHAR_TEX_SLOSH							'S'
+#define CHAR_TEX_WOOD							'W'
+#define CHAR_TEX_COMPUTER						'P'
+#define CHAR_TEX_GLASS							'Y'
+#define CHAR_TEX_FLESH							'F'
 
 #define LIMITER_WEAPON							15
 
@@ -58,8 +60,6 @@
 #define ITEM_FLAG_NOAUTOSWITCHEMPTY				4
 #define ITEM_FLAG_LIMITINWORLD					8
 #define ITEM_FLAG_EXHAUSTIBLE					16
-
-#define	DEFAULT_VIEWHEIGHT	28
 
 #define IsValidPev(pEntity) (!FNullEnt(pEntity) && pEntity->pvPrivateData)
 
@@ -142,6 +142,7 @@ enum e_Forwards
 	Fwd_Reload,
 	Fwd_CanHolster,
 	Fwd_Holster,
+	Fwd_AddAmmo,
 
 	Fwd_End
 };
@@ -183,6 +184,12 @@ typedef struct
 	int iForward[Fwd_End];
 } WeaponData;
 
+typedef struct
+{
+	const char	*pszName;
+	int iForward[Fwd_End];
+} AmmoBoxData;
+
 class CEntity
 {
 	struct Obj 
@@ -212,6 +219,7 @@ extern int VirtualFunction[VirtFunc_End];
 
 extern CEntity g_EntData;
 extern WeaponData WeaponInfoArray[MAX_WEAPONS];
+extern AmmoBoxData AmmoBoxInfoArray[MAX_WEAPONS];
 extern AMX_NATIVE_INFO wpnmod_Natives[];
 
 extern BOOL g_HooksEnabled;
@@ -220,13 +228,9 @@ extern BOOL g_initialized;
 
 extern short g_sModelIndexBloodDrop;
 extern short g_sModelIndexBloodSpray;
-extern short g_sModelIndexBubbles;
 
 extern void MakeVirtualHooks(void);
 extern void WpnModCommand(void);
-
-extern edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles);
-extern void FireBulletsPlayer(edict_t* pPlayer, edict_t* pAttacker, int iShotsCount, Vector vecSpread, float flDistance, float flDamage, int bitsDamageType, BOOL bTracers);
 
 inline int			iSlot(const int iId)			{ return WeaponInfoArray[iId].ItemData.iSlot; }
 inline int			iItemPosition(const int iId)	{ return WeaponInfoArray[iId].ItemData.iPosition; }
@@ -315,7 +319,7 @@ inline void print_srvconsole(char *fmt, ...)
 		return reinterpret_cast<int (__fastcall *)(void *, int)>((*((void***)((char*)pEntity->pvPrivateData)))[VirtualFunction[VirtFunc_BloodColor]])(pEntity->pvPrivateData, 0);
 	}
 
-	inline void TAKE_DAMAGE(edict_t* pEntity, edict_t* pInflictor, edict_t* pAttacker, float flDamage, Vector vecDir, int bitsDamageType)
+	inline void TAKE_DAMAGE(edict_t* pEntity, edict_t* pInflictor, edict_t* pAttacker, float flDamage, int bitsDamageType)
 	{
 		reinterpret_cast<int (__fastcall *)(void *, int, entvars_t *, entvars_t *, float, int)>((*((void***)((char*)pEntity->pvPrivateData)))[VirtualFunction[VirtFunc_TakeDamage]])(pEntity->pvPrivateData, 0, &(pInflictor->v), &(pAttacker->v), flDamage, bitsDamageType);
 	}
@@ -337,7 +341,7 @@ inline void print_srvconsole(char *fmt, ...)
 		return reinterpret_cast<int (*)(void *)>((*((void***)(((char*)pEntity->pvPrivateData) + 0x60)))[VirtualFunction[VirtFunc_BloodColor]])(pEntity->pvPrivateData);
 	}
 
-	inline void TAKE_DAMAGE(edict_t* pEntity, edict_t* pInflictor, edict_t* pAttacker, float flDamage, Vector vecDir, int bitsDamageType)
+	inline void TAKE_DAMAGE(edict_t* pEntity, edict_t* pInflictor, edict_t* pAttacker, float flDamage, int bitsDamageType)
 	{
 		reinterpret_cast<int (*)(void *, entvars_t *, entvars_t *, float, int)>((*((void***)(((char*)pEntity->pvPrivateData) + 0x60)))[VirtualFunction[VirtFunc_TakeDamage]])(pEntity->pvPrivateData, &(pInflictor->v), &(pAttacker->v), flDamage, bitsDamageType);
 	}

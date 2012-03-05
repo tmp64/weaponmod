@@ -1,10 +1,35 @@
-/* AMX Mod X
-*	Half-Life Weapon Mod module API.
-*
-* http://aghl.ru/forum/ - Russian Half-Life and Adrenaline Gamer Community
-*
-* This file is provided as is (no warranties)
-*/
+/*
+ * Half-Life Weapon Mod
+ * Copyright (c) 2012 AGHL.RU Dev Team
+ * 
+ * http://aghl.ru/forum/ - Russian Half-Life and Adrenaline Gamer Community
+ *
+ *
+ *    This program is free software; you can redistribute it and/or modify it
+ *    under the terms of the GNU General Public License as published by the
+ *    Free Software Foundation; either version 2 of the License, or (at
+ *    your option) any later version.
+ *
+ *    This program is distributed in the hope that it will be useful, but
+ *    WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *    General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program; if not, write to the Free Software Foundation,
+ *    Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ *    In addition, as a special exception, the author gives permission to
+ *    link the code of this program with the Half-Life Game Engine ("HL
+ *    Engine") and Modified Game Libraries ("MODs") developed by Valve,
+ *    L.L.C ("Valve").  You must obey the GNU General Public License in all
+ *    respects for all of the code used other than the HL Engine and MODs
+ *    from Valve.  If you modify this file, you may extend this exception
+ *    to your version of the file, but you are not obligated to do so.  If
+ *    you do not wish to do so, delete this exception statement from your
+ *    version.
+ *
+ */
 
 #if defined hl_wpnmod_included
   #endinput
@@ -20,120 +45,152 @@
  #pragma library hl_wpnmod
 #endif
 
+#include <hl_wpnmod_const>
+#include <fakemeta>
 
-// Temp entity bounce sound types
-#define TE_BOUNCE_NULL			0
-#define TE_BOUNCE_SHELL			1
-#define TE_BOUNCE_SHOTSHELL		2
-
-// Gun volumes
-#define LOUD_GUN_VOLUME			1000
-#define NORMAL_GUN_VOLUME		600
-#define QUIET_GUN_VOLUME		200
-
-// Gun flash
-#define	BRIGHT_GUN_FLASH		512
-#define NORMAL_GUN_FLASH		256
-#define	DIM_GUN_FLASH			128
-
-// Weapon flags
-#define ITEM_FLAG_SELECTONEMPTY		1
-#define ITEM_FLAG_NOAUTORELOAD		2
-#define ITEM_FLAG_NOAUTOSWITCHEMPTY	4
-#define ITEM_FLAG_LIMITINWORLD		8
-#define ITEM_FLAG_EXHAUSTIBLE		16 // A player can totally exhaust their ammo supply and lose this weapon
-
-// Default spreads
-#define VECTOR_CONE_1DEGREES	Float:{ 0.00873, 0.00873, 0.00873 }
-#define VECTOR_CONE_2DEGREES	Float:{ 0.01745, 0.01745, 0.01745 }
-#define VECTOR_CONE_3DEGREES	Float:{ 0.02618, 0.02618, 0.02618 }
-#define VECTOR_CONE_4DEGREES	Float:{ 0.03490, 0.03490, 0.03490 }
-#define VECTOR_CONE_5DEGREES	Float:{ 0.04362, 0.04362, 0.04362 }
-#define VECTOR_CONE_6DEGREES	Float:{ 0.05234, 0.05234, 0.05234 }
-#define VECTOR_CONE_7DEGREES	Float:{ 0.06105, 0.06105, 0.06105 }
-#define VECTOR_CONE_8DEGREES	Float:{ 0.06976, 0.06976, 0.06976 }
-#define VECTOR_CONE_9DEGREES	Float:{ 0.07846, 0.07846, 0.07846 }
-#define VECTOR_CONE_10DEGREES	Float:{ 0.08716, 0.08716, 0.08716 }
-#define VECTOR_CONE_15DEGREES	Float:{ 0.13053, 0.13053, 0.13053 }
-#define VECTOR_CONE_20DEGREES	Float:{ 0.17365, 0.17365, 0.17365 }
-
-enum PLAYER_ANIM
-{
-	PLAYER_IDLE,
-	PLAYER_WALK,
-	PLAYER_JUMP,
-	PLAYER_SUPERJUMP,
-	PLAYER_DIE,
-	PLAYER_ATTACK1,
-};
-
-enum e_Forwards
-{
-	Fwd_Spawn,
-	Fwd_CanDeploy,
-	Fwd_Deploy,
-	Fwd_Idle,
-	Fwd_PrimaryAttack,
-	Fwd_SecondaryAttack,
-	Fwd_Reload,
-	Fwd_CanHolster,
-	Fwd_Holster,
-
-	Fwd_End
-};
-
-enum e_Offsets
-{
-	// Weapon
-	Offset_flStartThrow,
-	Offset_flReleaseThrow,
-	Offset_iChargeReady,
-	Offset_iInAttack,
-	Offset_iFireState,
-	Offset_iFireOnEmpty,				// true when the gun is empty and the player is still holding down the attack key(s)
-	Offset_flPumpTime,
-	Offset_iInSpecialReload,			// Are we in the middle of a reload for the shotguns
-	Offset_flNextPrimaryAttack,			// soonest time ItemPostFrame will call PrimaryAttack
-	Offset_flNextSecondaryAttack,		// soonest time ItemPostFrame will call SecondaryAttack
-	Offset_flTimeWeaponIdle,			// soonest time ItemPostFrame will call WeaponIdle
-	Offset_iPrimaryAmmoType,			// "primary" ammo index into players m_rgAmmo[]
-	Offset_iSecondaryAmmoType,			// "secondary" ammo index into players m_rgAmmo[]
-	Offset_iClip,						// number of shots left in the primary weapon clip, -1 it not used
-	Offset_iInReload,					// are we in the middle of a reload;
-	Offset_iDefaultAmmo,				// how much ammo you get when you pick up this weapon as placed by a level designer.
-	
-	// Player
-	Offset_flNextAttack,				// cannot attack again until this time
-	Offset_iWeaponVolume,				// how loud the player's weapon is right now
-	Offset_iWeaponFlash,				// brightness of the weapon flash
-	
-	Offset_End
-};
-
+#define SET_MODEL(%0,%1) engfunc(EngFunc_SetModel, %0, %1)
+#define PRECACHE_MODEL(%0) engfunc(EngFunc_PrecacheModel,%0)
+#define PRECACHE_SOUND(%0) engfunc(EngFunc_PrecacheSound,%0)
+#define PRECACHE_GENERIC(%0) engfunc(EngFunc_PrecacheGeneric,%0)
 
 /**
  * Register new weapon in module.
  *
- * @param szName		The weapon name.
- * @param iSlot			SlotID (1...5).
- * @param iPosition		NumberInSlot (1...5).
- * @param szAmmo1		Primary ammo type ("9mm", "uranium", "MY_AMMO" etc).
- * @param iMaxAmmo1		Max amount of primary ammo.
- * @param szAmmo2		Secondary ammo type.
- * @param iMaxAmmo2		Max amount of secondary ammo.
- * @param iMaxClip		Max amount of ammo in weapon's clip.
- * @param iFlags		Weapon's flags (see defines).
- * @param iWeight		This value used to determine this weapon's importance in autoselection.
+ * @param szName			The weapon name.
+ * @param iSlot				SlotID (1...5).
+ * @param iPosition			NumberInSlot (1...5).
+ * @param szAmmo1			Primary ammo type ("9mm", "uranium", "MY_AMMO" etc).
+ * @param iMaxAmmo1			Max amount of primary ammo.
+ * @param szAmmo2			Secondary ammo type.
+ * @param iMaxAmmo2			Max amount of secondary ammo.
+ * @param iMaxClip			Max amount of ammo in weapon's clip.
+ * @param iFlags			Weapon's flags (see defines).
+ * @param iWeight			This value used to determine this weapon's importance in autoselection.
  * 
- * @return				The ID of registerd weapon or 0 on failure. (integer)
+ * @return					The ID of registerd weapon or 0 on failure. (integer)
  */
 native wpnmod_register_weapon(const szName[], const iSlot, const iPosition, const szAmmo1[], const iMaxAmmo1, const szAmmo2[], const iMaxAmmo2, const iMaxClip, const iFlags, const iWeight);
 
 /**
  * Register weapon's forward.
  *
- * @param iWeaponID		The ID of registered weapon.
- * @param iForward		Forward type to register.
- * @param szCallBack	The forward to call.
+ * @param iWeaponID			The ID of registered weapon.
+ * @param iForward			Forward type to register.
+ * @param szCallBack		The forward to call.
  */
 native wpnmod_register_forward(const iWeaponID, const e_Forwards: iForward, const szCallBack[]);
+
+/**
+ * Sets weapon's think function. Analog of set_task native.
+ * 
+ * Usage: 
+ * 	wpnmod_set_think(iItem, "M249_CompleteReload");
+ * 	set_pev(iItem, pev_nextthink, get_gametime() + 1.52);
+ *
+ * @param iItem				Weapon's entity index.
+ * @param szCallBack		The forward to call.
+ */
+native wpnmod_set_think(const iItem, const szCallBack[]);
+
+/**
+ * Plays weapon's animation.
+ *
+ * @param iItem				Weapon's entity index.
+ * @param iAnim				Sequence number.
+ */
+native wpnmod_send_weapon_anim(const iItem, const iAnim);
+
+/**
+ * Sets the activity for player based on an event or current state.
+ *
+ * @param iPlayer			Player index.
+ * @param iPlayerAnim		Animation (See PLAYER_ANIM constants).
+ */
+native wpnmod_set_player_anim(const iPlayer, const PLAYER_ANIM: iPlayerAnim);
+
+/**
+ * Sets an integer from private data.
+ *
+ * @param iEntity			Entity index.
+ * @param iOffset			Offset (See e_Offsets constants).
+ * @param iValue			Value.
+ */
+native wpnmod_set_offset_int(const iEntity, const e_Offsets: iOffset, const iValue);
+
+/**
+ * Returns an integer from private data.
+ *
+ * @param iEntity			Entity index.
+ * @param iOffset			Offset (See e_Offsets constants).
+ * 
+ * @return					Value from private data. (integer)
+ */
+native wpnmod_get_offset_int(const iEntity, const e_Offsets: iOffset);
+
+/**
+ * Sets a float from private data.
+ *
+ * @param iEntity			Entity index.
+ * @param iOffset			Offset (See e_Offsets constants).
+ * @param flValue			Value.
+ */
+native wpnmod_set_offset_float(const iEntity, const e_Offsets: iOffset, const Float: flValue);
+
+/**
+ * Returns a float from private data.
+ *
+ * @param iEntity			Entity index.
+ * @param iOffset			Offset (See e_Offsets constants).
+ * 
+ * @return					Value from private data. (float)
+ */
+native Float: wpnmod_get_offset_float(const iEntity, const e_Offsets: iOffset);
+
+/**
+ * Default deploy function.
+ *
+ * @param iItem				Weapon's entity index.
+ * @param szViewModel		Weapon's view model (V).
+ * @param szWeaponModel		Weapon's player model (P).
+ * @param iAnim				Sequence number of deploy animation.
+ * @param szAnimExt			Animation extension.
+ */
+native wpnmod_default_deploy(const iItem, const szViewModel[], const szWeaponModel[], const iAnim, const szAnimExt[]);
+
+/**
+ * Default reload function.
+ *
+ * @param iItem				Weapon's entity index.
+ * @param iClipSize			Maximum weapon's clip size.
+ * @param iAnim				Sequence number of reload animation.
+ * @param flDelay			Reload delay time.
+ */
+native wpnmod_default_reload(const iItem, const iClipSize, const iAnim, const Float: flDelay);
+
+/**
+ * Sets the weapon so that it can play empty sound again.
+ *
+ * @param iItem				Weapon's entity index.
+ */
+native wpnmod_reset_empty_sound(const iItem);
+
+/**
+ * Plays the weapon's empty sound.
+ *
+ * @param iItem				Weapon's entity index.
+ */
+native wpnmod_play_empty_sound(const iItem);
+
+/**
+ * Fire bullets from player's weapon.
+ *
+ * @param iPlayer			Player index.
+ * @param iAttacker			Attacker index (usualy it equal to previous param).
+ * @param iShotsCount		Number of shots.
+ * @param vecSpread			Spread.
+ * @param flDistance		Max shot distance.
+ * @param flDamage			Damage amount.
+ * @param bitsDamageType	Damage type.
+ * @param iTracerFreq		Tracer frequancy.
+ */
+native wpnmod_fire_bullets(const iPlayer, const iAttacker, const iShotsCount, const Float: vecSpread[3], const Float: flDistance, const Float: flDamage, const bitsDamageType, const iTracerFreq);

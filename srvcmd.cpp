@@ -1,6 +1,8 @@
 /*
  * Half-Life Weapon Mod
  * Copyright (c) 2012 AGHL.RU Dev Team
+ * 
+ * http://aghl.ru/forum/ - Russian Half-Life and Adrenaline Gamer Community
  *
  *
  *    This program is free software; you can redistribute it and/or modify it
