@@ -31,18 +31,20 @@
  *
  */
 
+ 
 #if defined hl_wpnmod_included
-  #endinput
+	#endinput
 #endif
+
 #define _hl_wpnmod_included
 
 #if AMXX_VERSION_NUM >= 175
- #pragma reqlib hl_wpnmod
- #if !defined AMXMODX_NOAUTOLOAD
-  #pragma loadlib hl_wpnmod
- #endif
+	#pragma reqlib hl_wpnmod
+#if !defined AMXMODX_NOAUTOLOAD
+	#pragma loadlib hl_wpnmod
+#endif
 #else
- #pragma library hl_wpnmod
+	#pragma library hl_wpnmod
 #endif
 
 #include <hl_wpnmod_const>
@@ -104,7 +106,7 @@ native wpnmod_send_weapon_anim(const iItem, const iAnim);
  * Sets the activity for player based on an event or current state.
  *
  * @param iPlayer			Player index.
- * @param iPlayerAnim		Animation (See PLAYER_ANIM constants).
+ * @param iPlayerAnim		Animation (see PLAYER_ANIM constants).
  */
 native wpnmod_set_player_anim(const iPlayer, const PLAYER_ANIM: iPlayerAnim);
 
@@ -112,7 +114,7 @@ native wpnmod_set_player_anim(const iPlayer, const PLAYER_ANIM: iPlayerAnim);
  * Sets an integer from private data.
  *
  * @param iEntity			Entity index.
- * @param iOffset			Offset (See e_Offsets constants).
+ * @param iOffset			Offset (see e_Offsets constants).
  * @param iValue			Value.
  */
 native wpnmod_set_offset_int(const iEntity, const e_Offsets: iOffset, const iValue);
@@ -121,7 +123,7 @@ native wpnmod_set_offset_int(const iEntity, const e_Offsets: iOffset, const iVal
  * Returns an integer from private data.
  *
  * @param iEntity			Entity index.
- * @param iOffset			Offset (See e_Offsets constants).
+ * @param iOffset			Offset (see e_Offsets constants).
  * 
  * @return					Value from private data. (integer)
  */
@@ -131,7 +133,7 @@ native wpnmod_get_offset_int(const iEntity, const e_Offsets: iOffset);
  * Sets a float from private data.
  *
  * @param iEntity			Entity index.
- * @param iOffset			Offset (See e_Offsets constants).
+ * @param iOffset			Offset (see e_Offsets constants).
  * @param flValue			Value.
  */
 native wpnmod_set_offset_float(const iEntity, const e_Offsets: iOffset, const Float: flValue);
@@ -140,7 +142,7 @@ native wpnmod_set_offset_float(const iEntity, const e_Offsets: iOffset, const Fl
  * Returns a float from private data.
  *
  * @param iEntity			Entity index.
- * @param iOffset			Offset (See e_Offsets constants).
+ * @param iOffset			Offset (see e_Offsets constants).
  * 
  * @return					Value from private data. (float)
  */
@@ -194,3 +196,51 @@ native wpnmod_play_empty_sound(const iItem);
  * @param iTracerFreq		Tracer frequancy.
  */
 native wpnmod_fire_bullets(const iPlayer, const iAttacker, const iShotsCount, const Float: vecSpread[3], const Float: flDistance, const Float: flDamage, const bitsDamageType, const iTracerFreq);
+
+/**
+ * Make damage upon entities within a certain range.
+ * 	Only damage ents that can clearly be seen by the explosion.
+ *
+ * @param vecSrc			Origin of explosion.
+ * @param iInflictor		Entity which causes the damage impact.
+ * @param iAttacker			Attacker index.
+ * @param flDamage			Damage amount.
+ * @param flRadius			Damage radius.
+ * @param iClassIgnore		Class to ignore.
+ * @param bitsDamageType	Damage type (see CLASSIFY defines).
+ */
+native wpnmod_radius_damage(const Float: vecSrc[3], const iInflictor, const iAttacker, const Float: flDamage, const Float: flRadius, const iClassIgnore, const bitsDamageType);
+
+/**
+ * Eject a brass from player's weapon.
+ *
+ * @param iPlayer			Player index.
+ * @param iShellModelIndex	Index of precached shell's model.
+ * @param iSoundtype		Bounce sound type (see defines).
+ * @param flForwardScale	Forward scale value.
+ * @param flUpScale			Up scale value.
+ * @param flRightScale		Right scale value.
+ */
+native wpnmod_eject_brass(const iPlayer, const iShellModelIndex, const iSoundtype, const Float: flForwardScale, const Float: flUpScale, const Float: flRightScale);
+
+/**
+ * Spawn a weapon entity by name.
+ *
+ * @param szName			Weapon's name.
+ * @param vecOrigin			Origin were to spawn.
+ * @param vecAngles			Angles.
+ * 
+ * @return					Weapon entity index or -1 on failure. (integer)
+ */
+native wpnmod_spawn_weapon_by_name(const szName[], const Float: vecOrigin[3] = {0.0, 0.0, 0.0}, const Float: vecAngles[3] = {0.0, 0.0, 0.0});
+
+/**
+ * Spawn a weapon entity by registered ID.
+ *
+ * @param iWeaponID			ID of registered weapon.
+ * @param vecOrigin			Origin were to spawn.
+ * @param vecAngles			Angles.
+ * 
+ * @return					Weapon entity index or -1 on failure. (integer)
+ */
+native wpnmod_spawn_weapon_by_id(const iWeaponID, const Float: vecOrigin[3] = {0.0, 0.0, 0.0}, const Float: vecAngles[3] = {0.0, 0.0, 0.0});

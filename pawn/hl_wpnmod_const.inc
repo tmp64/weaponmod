@@ -31,9 +31,11 @@
  *
  */
 
+ 
 #if defined _hl_wpnmod_const_included
-  #endinput
+	#endinput
 #endif
+
 #define _hl_wpnmod_const_included
 
 
@@ -72,6 +74,22 @@
 #define VECTOR_CONE_10DEGREES			Float:{ 0.08716, 0.08716, 0.08716 }
 #define VECTOR_CONE_15DEGREES			Float:{ 0.13053, 0.13053, 0.13053 }
 #define VECTOR_CONE_20DEGREES			Float:{ 0.17365, 0.17365, 0.17365 }
+
+// For CLASSIFY
+#define	CLASS_NONE						0
+#define CLASS_MACHINE					1
+#define CLASS_PLAYER					2
+#define	CLASS_HUMAN_PASSIVE				3
+#define CLASS_HUMAN_MILITARY			4
+#define CLASS_ALIEN_MILITARY			5
+#define CLASS_ALIEN_PASSIVE				6
+#define CLASS_ALIEN_MONSTER				7
+#define CLASS_ALIEN_PREY				8
+#define CLASS_ALIEN_PREDATOR			9
+#define CLASS_INSECT					10
+#define CLASS_PLAYER_ALLY				11
+#define CLASS_PLAYER_BIOWEAPON			12 // hornets and snarks.launched by players
+#define CLASS_ALIEN_BIOWEAPON			13 // hornets and snarks.launched by the alien menace
 
 enum PLAYER_ANIM
 {
