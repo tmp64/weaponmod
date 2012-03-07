@@ -34,6 +34,7 @@
 #include "weaponmod.h"
 
 
+int g_iId;
 int g_iWeaponIndex;
 int VirtualFunction[VirtFunc_End];
 
@@ -47,6 +48,9 @@ BOOL g_InitWeapon;
 BOOL g_initialized;
 
 void *pDbase = NULL;
+
+edict_t* g_pWeapon;
+edict_t* g_pPlayer;
 
 //**********************************************
 //* Weapon spawn.                              *
@@ -96,6 +100,10 @@ edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 	return pItem;
 }
 
+//**********************************************
+//* Ammobox spawn.                             *
+//**********************************************
+
 edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 {
 	edict_t* pAmmoBox = NULL;
@@ -137,12 +145,6 @@ edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 
 	return pAmmoBox;
 }
-
-int g_iId;
-
-edict_t* g_pWeapon;
-edict_t* g_pPlayer;
-
 
 //**********************************************
 //* Get Item Info.                             *
@@ -203,6 +205,53 @@ edict_t* g_pPlayer;
 }
 
 //**********************************************
+//* Whether or not this entity can be deployed.*
+//**********************************************
+
+#ifdef _WIN32
+	BOOL __fastcall Weapon_CanDeploy(void *pPrivate)
+#elif __linux__
+	BOOL Weapon_CanDeploy(void *pPrivate)
+#endif
+{
+	g_pWeapon = PrivateToEdict(pPrivate);
+
+	if (!IsValidPev(g_pWeapon))
+	{
+		return FALSE;
+	}
+
+	g_iId = (int)*((int *)g_pWeapon->pvPrivateData + m_iId);
+
+	if (g_iId <= LIMITER_WEAPON || !WeaponInfoArray[g_iId].iForward[Fwd_CanDeploy])
+	{
+#ifdef _WIN32
+		return reinterpret_cast<int (__fastcall *)(void *, int)>(CrowbarHook[VirtFunc_CanDeploy].pOrigFunc)(pPrivate, 0);
+#elif __linux__
+		return reinterpret_cast<int (*)(void *)>(CrowbarHook[VirtFunc_CanDeploy].pOrigFunc)(pPrivate);
+#endif
+	}
+	
+	g_pPlayer = GetPrivateCbase(g_pWeapon, m_pPlayer);
+
+	if (!IsValidPev(g_pPlayer))
+	{
+		return FALSE;
+	}
+
+	return MF_ExecuteForward
+	(
+		WeaponInfoArray[g_iId].iForward[Fwd_CanDeploy],
+
+		static_cast<cell>(ENTINDEX(g_pWeapon)), 
+		static_cast<cell>(ENTINDEX(g_pPlayer)), 
+		static_cast<cell>((int)*((int *)g_pWeapon->pvPrivateData + m_iClip)), 
+		static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, TRUE)),
+		static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, FALSE))
+	);
+}
+
+//**********************************************
 //* Deploys the weapon.                        *
 //**********************************************
 
@@ -224,11 +273,10 @@ edict_t* g_pPlayer;
 	if (g_iId <= LIMITER_WEAPON)
 	{
 #ifdef _WIN32
-		reinterpret_cast<int (__fastcall *)(void *, int)>(CrowbarHook[VirtFunc_Deploy].pOrigFunc)(pPrivate, 0);
+		return reinterpret_cast<int (__fastcall *)(void *, int)>(CrowbarHook[VirtFunc_Deploy].pOrigFunc)(pPrivate, 0);
 #elif __linux__
-		reinterpret_cast<int (*)(void *)>(CrowbarHook[VirtFunc_Deploy].pOrigFunc)(pPrivate);
+		return reinterpret_cast<int (*)(void *)>(CrowbarHook[VirtFunc_Deploy].pOrigFunc)(pPrivate);
 #endif
-		return TRUE;
 	}
 	
 	g_pPlayer = GetPrivateCbase(g_pWeapon, m_pPlayer);
@@ -262,9 +310,9 @@ edict_t* g_pPlayer;
 //**********************************************
 
 #ifdef _WIN32
-void __fastcall Weapon_ItemPostFrame(void *pPrivate)
+	void __fastcall Weapon_ItemPostFrame(void *pPrivate)
 #elif __linux__
-void Weapon_ItemPostFrame(void *pPrivate)
+	void Weapon_ItemPostFrame(void *pPrivate)
 #endif
 {
 	static int iClip;
@@ -446,13 +494,107 @@ void Weapon_ItemPostFrame(void *pPrivate)
 }
 
 //**********************************************
+//* Whether or not the weapon is usable.       *
+//**********************************************
+
+#ifdef _WIN32
+	BOOL __fastcall Weapon_IsUseable(void *pPrivate)
+#elif __linux__
+	BOOL Weapon_IsUseable(void *pPrivate)
+#endif
+{
+	g_pWeapon = PrivateToEdict(pPrivate);
+
+	if (!IsValidPev(g_pWeapon))
+	{
+		return FALSE;
+	}
+
+	g_iId = (int)*((int *)g_pWeapon->pvPrivateData + m_iId);
+
+	if (g_iId <= LIMITER_WEAPON || !WeaponInfoArray[g_iId].iForward[Fwd_IsUseable])
+	{
+#ifdef _WIN32
+		return reinterpret_cast<int (__fastcall *)(void *, int)>(CrowbarHook[VirtFunc_IsUseable].pOrigFunc)(pPrivate, 0);
+#elif __linux__
+		return reinterpret_cast<int (*)(void *)>(CrowbarHook[VirtFunc_IsUseable].pOrigFunc)(pPrivate);
+#endif
+	}
+	
+	g_pPlayer = GetPrivateCbase(g_pWeapon, m_pPlayer);
+
+	if (!IsValidPev(g_pPlayer))
+	{
+		return FALSE;
+	}
+
+	return MF_ExecuteForward
+	(
+		WeaponInfoArray[g_iId].iForward[Fwd_IsUseable],
+
+		static_cast<cell>(ENTINDEX(g_pWeapon)), 
+		static_cast<cell>(ENTINDEX(g_pPlayer)), 
+		static_cast<cell>((int)*((int *)g_pWeapon->pvPrivateData + m_iClip)), 
+		static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, TRUE)),
+		static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, FALSE))
+	);
+}
+
+//**********************************************
+//* Whether or not the entity can be holstered.*
+//**********************************************
+
+#ifdef _WIN32
+	BOOL __fastcall Weapon_CanHolster(void *pPrivate)
+#elif __linux__
+	BOOL Weapon_CanHolster(void *pPrivate)
+#endif
+{
+	g_pWeapon = PrivateToEdict(pPrivate);
+
+	if (!IsValidPev(g_pWeapon))
+	{
+		return FALSE;
+	}
+
+	g_iId = (int)*((int *)g_pWeapon->pvPrivateData + m_iId);
+
+	if (g_iId <= LIMITER_WEAPON || !WeaponInfoArray[g_iId].iForward[Fwd_CanHolster])
+	{
+#ifdef _WIN32
+		return reinterpret_cast<int (__fastcall *)(void *, int)>(CrowbarHook[VirtFunc_CanHolster].pOrigFunc)(pPrivate, 0);
+#elif __linux__
+		return reinterpret_cast<int (*)(void *)>(CrowbarHook[VirtFunc_CanHolster].pOrigFunc)(pPrivate);
+#endif
+	}
+	
+	g_pPlayer = GetPrivateCbase(g_pWeapon, m_pPlayer);
+
+	if (!IsValidPev(g_pPlayer))
+	{
+		return FALSE;
+	}
+
+	return MF_ExecuteForward
+	(
+		WeaponInfoArray[g_iId].iForward[Fwd_CanHolster],
+
+		static_cast<cell>(ENTINDEX(g_pWeapon)), 
+		static_cast<cell>(ENTINDEX(g_pPlayer)), 
+		static_cast<cell>((int)*((int *)g_pWeapon->pvPrivateData + m_iClip)), 
+		static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, TRUE)),
+		static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, FALSE))
+	);
+}
+
+//**********************************************
 //* Called when the weapon is holster.         *
 //**********************************************
 
 #ifdef _WIN32
-void __fastcall Weapon_Holster(void *pPrivate, int i, int skiplocal)
+	void __fastcall Weapon_Holster(void *pPrivate, int i, int skiplocal)
 #elif __linux__
-void Weapon_Holster(void *pPrivate)
+	void Weapon_Holster(void *pPrivate)
 #endif
 {
 	g_pWeapon = PrivateToEdict(pPrivate);
@@ -497,9 +639,9 @@ void Weapon_Holster(void *pPrivate)
 //**********************************************
 
 #ifdef _WIN32
-void __fastcall Weapon_Think(void *pPrivate, int i)
+	void __fastcall Weapon_Think(void *pPrivate, int i)
 #elif __linux__
-void Weapon_Think(void *pPrivate)
+	void Weapon_Think(void *pPrivate)
 #endif
 {
 	g_pWeapon = PrivateToEdict(pPrivate);
@@ -540,11 +682,14 @@ void Weapon_Think(void *pPrivate)
 #endif
 }
 
+//**********************************************
+//* Adds the item to the player.               *
+//**********************************************
 
 #ifdef _WIN32
-int __fastcall Weapon_AddToPlayer(void *pPrivate, int i, void *pPrivate2)
+	int __fastcall Weapon_AddToPlayer(void *pPrivate, int i, void *pPrivate2)
 #elif __linux__
-int Weapon_AddToPlayer(void *pPrivate, void *pPrivate2)
+	int Weapon_AddToPlayer(void *pPrivate, void *pPrivate2)
 #endif
 {
 	g_pWeapon = PrivateToEdict(pPrivate);
@@ -578,13 +723,14 @@ int Weapon_AddToPlayer(void *pPrivate, void *pPrivate2)
 	return iOrigRet;
 }
 
-
-
+//**********************************************
+//* Returns the item slot for the item.        *
+//**********************************************
 
 #ifdef _WIN32
-int __fastcall Weapon_ItemSlot(void *pPrivate)
+	int __fastcall Weapon_ItemSlot(void *pPrivate)
 #elif __linux__
-int Weapon_ItemSlot(void *pPrivate)
+	int Weapon_ItemSlot(void *pPrivate)
 #endif
 {
 	g_pWeapon = PrivateToEdict(pPrivate);
@@ -610,11 +756,14 @@ int Weapon_ItemSlot(void *pPrivate)
 	return iOrigRet;
 }
 
+//**********************************************
+//* Called when an item removing.              *
+//**********************************************
 
 #ifdef _WIN32
-void __fastcall Weapon_Drop(void *pPrivate)
+	void __fastcall Weapon_Drop(void *pPrivate)
 #elif __linux__
-void Weapon_Drop(void *pPrivate)
+	void Weapon_Drop(void *pPrivate)
 #endif
 {
 	g_pWeapon = PrivateToEdict(pPrivate);
@@ -639,6 +788,47 @@ void Weapon_Drop(void *pPrivate)
 }
 
 //**********************************************
+//* Called when weapon respawns.               *
+//**********************************************
+
+#ifdef _WIN32
+	void* __fastcall Weapon_Respawn(void *pPrivate)
+#elif __linux__
+	void* Weapon_Respawn(void *pPrivate)
+#endif
+{
+	g_pWeapon = PrivateToEdict(pPrivate);
+
+	if (!IsValidPev(g_pWeapon))
+	{
+		return 0;
+	}
+	
+	g_iId = (int)*((int *)g_pWeapon->pvPrivateData + m_iId);
+	
+	if (g_iId <= LIMITER_WEAPON)
+	{
+#ifdef _WIN32
+		return reinterpret_cast<void* (__fastcall *)(void *, int)>(CrowbarHook[VirtFunc_Respawn].pOrigFunc)(pPrivate, NULL);
+#elif __linux__
+		return reinterpret_cast<void* (*)(void *)>(CrowbarHook[VirtFunc_Respawn].pOrigFunc)(pPrivate);
+#endif
+	}
+
+	edict_t* pItem = Weapon_Spawn(g_iId, g_pWeapon->v.origin, g_pWeapon->v.angles);
+
+	if (IsValidPev(pItem))
+	{
+		pItem->v.effects |= EF_NODRAW;
+		pItem->v.nextthink = gpGlobals->time + WEAPON_RESPAWN_TIME;
+
+		DROP_TO_FLOOR(pItem);
+	}
+
+	return pItem->pvPrivateData;
+}
+
+//**********************************************
 //* Virtual functions hook                     *
 //**********************************************
 
@@ -647,13 +837,17 @@ void MakeVirtualHooks(void)
 	char *classname = "weapon_crowbar";
 
 	CrowbarHook[VirtFunc_GetItemInfo].iTrampoline =		(int)Weapon_GetItemInfo;
+	CrowbarHook[VirtFunc_CanDeploy].iTrampoline =		(int)Weapon_CanDeploy;
 	CrowbarHook[VirtFunc_Deploy].iTrampoline =			(int)Weapon_Deploy;
+	CrowbarHook[VirtFunc_CanHolster].iTrampoline =		(int)Weapon_CanHolster;
 	CrowbarHook[VirtFunc_Holster].iTrampoline =			(int)Weapon_Holster;
 	CrowbarHook[VirtFunc_Think].iTrampoline =			(int)Weapon_Think;
+	CrowbarHook[VirtFunc_Respawn].iTrampoline =			(int)Weapon_Respawn;
 	CrowbarHook[VirtFunc_AddToPlayer].iTrampoline =		(int)Weapon_AddToPlayer;
 	CrowbarHook[VirtFunc_ItemPostFrame].iTrampoline =	(int)Weapon_ItemPostFrame;
 	CrowbarHook[VirtFunc_Drop].iTrampoline =			(int)Weapon_Drop;
 	CrowbarHook[VirtFunc_ItemSlot].iTrampoline =		(int)Weapon_ItemSlot;
+	CrowbarHook[VirtFunc_IsUseable].iTrampoline =		(int)Weapon_IsUseable;
 
 	edict_t *pEdict = CREATE_ENTITY();
 

@@ -379,6 +379,9 @@ static cell AMX_NATIVE_CALL wpnmod_get_offset_float(AMX *amx, cell *params)
  *
  * native wpnmod_default_deploy(const iItem, const szViewModel[], const szWeaponModel[], const iAnim, const szAnimExt[]);
 */
+
+BOOL __fastcall Weapon_CanDeploy(void *pPrivate);
+
 static cell AMX_NATIVE_CALL wpnmod_default_deploy(AMX *amx, cell *params)
 {
 	int iEntity = params[1];
@@ -397,11 +400,11 @@ static cell AMX_NATIVE_CALL wpnmod_default_deploy(AMX *amx, cell *params)
 	{
 		return 0;
 	}
-	/*
-	if (!CanDeploy( ))
+	
+	if (!Weapon_CanDeploy(pItem->pvPrivateData))
 	{
 		return 0;
-	}*/
+	}
 
 	pPlayer->v.viewmodel = MAKE_STRING(szViewModel);
 	pPlayer->v.weaponmodel = MAKE_STRING(szWeaponModel);
@@ -483,7 +486,7 @@ static cell AMX_NATIVE_CALL wpnmod_default_reload(AMX *amx, cell *params)
 }
 
 /**
- * Sets weapon's think function. Analog of set_task native.
+ * Sets weapon's think function. Analogue of set_task native.
  * 
  * Usage: 
  * 	wpnmod_set_think(iItem, "M249_CompleteReload");

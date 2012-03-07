@@ -293,7 +293,7 @@ void FireBulletsPlayer(edict_t* pPlayer, edict_t* pAttacker, int iShotsCount, Ve
 
 	UTIL_MakeVectors(pPlayer->v.v_angle + pPlayer->v.punchangle);
 	
-	Vector vecDirShooting = gpGlobals->v_forward;;
+	Vector vecDirShooting = gpGlobals->v_forward;
 	Vector vecRight = gpGlobals->v_right;
 	Vector vecUp = gpGlobals->v_up;
 

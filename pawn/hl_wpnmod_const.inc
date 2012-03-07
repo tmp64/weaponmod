@@ -121,6 +121,7 @@ enum e_Forwards
 	Fwd_Reload,					/* Called when the weapon is reloaded. */
 	Fwd_CanHolster,				/* Whether or not the weapon can be holstered. */
 	Fwd_Holster,				/* Holsters a weapon. */
+	Fwd_IsUseable,				/* Whether or not the weapon is usable. (has ammo, etc.) */
 
 	Fwd_End
 };

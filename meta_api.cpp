@@ -81,6 +81,7 @@ int AmxxCheckGame(const char *game)
 		VirtualFunction[VirtFunc_BloodColor] =			14 + extraoffset;
 		VirtualFunction[VirtFunc_TraceBleed] =			15 + extraoffset;
 		VirtualFunction[VirtFunc_Think] =				43 + extraoffset;
+		VirtualFunction[VirtFunc_Respawn] =				47 + extraoffset;
 		VirtualFunction[VirtFunc_AddToPlayer] =			58 + extraoffset;
 		VirtualFunction[VirtFunc_GetItemInfo] =			60 + extraoffset;
 		VirtualFunction[VirtFunc_CanDeploy] =			61 + extraoffset;
@@ -90,6 +91,7 @@ int AmxxCheckGame(const char *game)
 		VirtualFunction[VirtFunc_ItemPostFrame] =		67 + extraoffset;
 		VirtualFunction[VirtFunc_Drop] =				68 + extraoffset;
 		VirtualFunction[VirtFunc_ItemSlot] =			75 + extraoffset;
+		VirtualFunction[VirtFunc_IsUseable] =			82 + extraoffset;
 
 		return AMXX_GAME_OK;
 	}

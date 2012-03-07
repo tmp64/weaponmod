@@ -48,7 +48,7 @@
 #endif
 
 #include <hl_wpnmod_const>
-#include <fakemeta>
+
 
 #define SET_MODEL(%0,%1) engfunc(EngFunc_SetModel, %0, %1)
 #define PRECACHE_MODEL(%0) engfunc(EngFunc_PrecacheModel,%0)
@@ -83,7 +83,7 @@ native wpnmod_register_weapon(const szName[], const iSlot, const iPosition, cons
 native wpnmod_register_forward(const iWeaponID, const e_Forwards: iForward, const szCallBack[]);
 
 /**
- * Sets weapon's think function. Analog of set_task native.
+ * Sets weapon's think function. Analogue of set_task native.
  * 
  * Usage: 
  * 	wpnmod_set_think(iItem, "M249_CompleteReload");

@@ -39,6 +39,9 @@
 	#include <malloc.h>
 #endif
 
+#define WEAPON_RESPAWN_TIME						20
+#define AMMO_RESPAWN_TIME						20
+
 #define CBTEXTURENAMEMAX						13			// only load first n chars of name
 
 #define CHAR_TEX_CONCRETE						'C'			// texture types
@@ -118,6 +121,7 @@ enum e_VirtFuncs
 	VirtFunc_BloodColor,
 	VirtFunc_TraceBleed,
 	VirtFunc_Think,
+	VirtFunc_Respawn,
 	VirtFunc_AddToPlayer,
 	VirtFunc_GetItemInfo,
 	VirtFunc_CanDeploy,
@@ -127,6 +131,7 @@ enum e_VirtFuncs
 	VirtFunc_ItemPostFrame,
 	VirtFunc_Drop,
 	VirtFunc_ItemSlot,
+	VirtFunc_IsUseable,
 
 	VirtFunc_End
 };
@@ -142,7 +147,7 @@ enum e_Forwards
 	Fwd_Reload,
 	Fwd_CanHolster,
 	Fwd_Holster,
-	Fwd_AddAmmo,
+	Fwd_IsUseable,
 
 	Fwd_End
 };
