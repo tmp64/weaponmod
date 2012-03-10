@@ -108,7 +108,11 @@ int PvDataOffsets[Offset_End] =
 };
 
 
+edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles);
 edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles);
+
+void ActivateCrowbarHooks();
+void ActivateInfoTargetHooks();
 
 void UTIL_EjectBrass(const Vector &vecOrigin, const Vector &vecVelocity, float rotation, int model, int soundtype);
 void FireBulletsPlayer(edict_t* pPlayer, edict_t* pAttacker, int iShotsCount, Vector vecSpread, float flDistance, float flDamage, int bitsDamageType, BOOL bTracers);
@@ -155,10 +159,10 @@ static cell AMX_NATIVE_CALL wpnmod_register_weapon(AMX *amx, cell *params)
 	WeaponInfoArray[g_iWeaponIndex].ItemData.iFlags = params[9];
 	WeaponInfoArray[g_iWeaponIndex].ItemData.iWeight = params[10];
 
-	if (!g_HooksEnabled)
+	if (!g_CrowbarHooksEnabled)
 	{
-		g_HooksEnabled = TRUE;
-		MakeVirtualHooks();
+		g_CrowbarHooksEnabled = TRUE;
+		ActivateCrowbarHooks();
 	}
 
 	g_InitWeapon = TRUE;
@@ -167,6 +171,21 @@ static cell AMX_NATIVE_CALL wpnmod_register_weapon(AMX *amx, cell *params)
 	PrecacheOtherWeapon("weapon_crowbar");
 
 	return g_iWeaponIndex;
+}
+
+
+
+static cell AMX_NATIVE_CALL wpnmod_register_ammobox(AMX *amx, cell *params)
+{
+	AmmoBoxInfoArray[g_iAmmoBoxIndex].pszName = STRING(ALLOC_STRING(MF_GetAmxString(amx, params[1], 0, NULL)));
+
+	if (!g_InfoTargetHooksEnabled)
+	{
+		g_InfoTargetHooksEnabled = TRUE;
+		ActivateInfoTargetHooks();
+	}
+
+	return ++g_iAmmoBoxIndex;
 }
 
 /**
@@ -772,8 +791,11 @@ static cell AMX_NATIVE_CALL wpnmod_spawn_weapon_by_name(AMX *amx, cell *params)
 	vecAngles.y = amx_ctof(vAngles[1]);
 	vecAngles.z = amx_ctof(vAngles[2]);
 
-	for (int i = LIMITER_WEAPON + 1; i <= g_iWeaponIndex; i++)
+	int i;
+
+	for (i = LIMITER_WEAPON + 1; i <= g_iWeaponIndex; i++)
 	{
+
 		if (!strcmpi(pszName(i), wpnname))
 		{
 			edict_t* iItem = Weapon_Spawn(i, vecOrigin, vecAngles);
@@ -785,12 +807,26 @@ static cell AMX_NATIVE_CALL wpnmod_spawn_weapon_by_name(AMX *amx, cell *params)
 		}
 	}
 
+	for (i = 0; i < g_iAmmoBoxIndex; i++)
+	{
+		if (!strcmpi(AmmoBoxInfoArray[i].pszName, wpnname))
+		{
+			edict_t* iItem = Ammo_Spawn(i, vecOrigin, vecAngles);
+
+			if (IsValidPev(iItem))
+			{
+				return ENTINDEX(iItem);
+			}	
+		}
+	}
+
 	return -1;
 }
 
 AMX_NATIVE_INFO wpnmod_Natives[] = 
 {
 	{ "wpnmod_register_weapon", wpnmod_register_weapon},
+	{ "wpnmod_register_ammobox", wpnmod_register_ammobox},
 	{ "wpnmod_register_forward", wpnmod_register_forward},
 	{ "wpnmod_send_weapon_anim", wpnmod_send_weapon_anim},
 	{ "wpnmod_set_player_anim", wpnmod_set_player_anim},

@@ -34,10 +34,14 @@
 #include "amxxmodule.h"
 #include "cbase.h"
 
+
 #ifdef __linux__
 	#include <sys/mman.h>
 	#include <malloc.h>
 #endif
+
+#include "CEntity.h"
+#include "CVirtHook.h"
 
 #define WEAPON_RESPAWN_TIME						20
 #define AMMO_RESPAWN_TIME						20
@@ -121,6 +125,7 @@ enum e_VirtFuncs
 	VirtFunc_BloodColor,
 	VirtFunc_TraceBleed,
 	VirtFunc_Think,
+	VirtFunc_Touch,
 	VirtFunc_Respawn,
 	VirtFunc_AddToPlayer,
 	VirtFunc_GetItemInfo,
@@ -195,39 +200,25 @@ typedef struct
 	int iForward[Fwd_End];
 } AmmoBoxData;
 
-class CEntity
-{
-	struct Obj 
-	{
-		int iThinkForward;
-		int iEntity;
-		
-		Obj* next;
-	} *head;
-
-public:
-	CEntity() { head = 0; }
-	~CEntity() { clear(); }
-
-	int Get_Think(int iEnt);
-	void Set_Think(int iEnt, int iForward);
-	void clear();
-};
-
 typedef void (*FN_PrecacheOtherWeapon)(const char *szClassname);
 typedef void (*FN_RadiusDamage)(Vector vecSrc, entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, float flRadius, int iClassIgnore, int bitsDamageType);
 
 extern void *pDbase;
 
 extern int g_iWeaponIndex;
+extern int g_iAmmoBoxIndex;
 extern int VirtualFunction[VirtFunc_End];
 
 extern CEntity g_EntData;
+extern CVirtHook g_VirtHook_InfoTarget;
+extern CVirtHook g_VirtHook_Crowbar;
+
 extern WeaponData WeaponInfoArray[MAX_WEAPONS];
 extern AmmoBoxData AmmoBoxInfoArray[MAX_WEAPONS];
 extern AMX_NATIVE_INFO wpnmod_Natives[];
 
-extern BOOL g_HooksEnabled;
+extern BOOL g_CrowbarHooksEnabled;
+extern BOOL g_InfoTargetHooksEnabled;
 extern BOOL g_InitWeapon;
 extern BOOL g_initialized;
 

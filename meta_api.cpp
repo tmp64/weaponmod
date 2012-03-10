@@ -33,6 +33,9 @@
 
 #include "weaponmod.h"
 
+BOOL g_Initialized;
+
+
 
 int OnMetaAttach()
 {
@@ -55,15 +58,23 @@ int OnMetaAttach()
 	return 1;
 }
 
+
+
 void OnAmxxAttach()
 {
 	MF_AddNatives(wpnmod_Natives);
 }
 
+
+
 void OnAmxxDetach()
 {
 	g_EntData.clear();
+	g_VirtHook_Crowbar.clear();
+	g_VirtHook_InfoTarget.clear();
 }
+
+
 
 int AmxxCheckGame(const char *game)
 {
@@ -81,6 +92,7 @@ int AmxxCheckGame(const char *game)
 		VirtualFunction[VirtFunc_BloodColor] =			14 + extraoffset;
 		VirtualFunction[VirtFunc_TraceBleed] =			15 + extraoffset;
 		VirtualFunction[VirtFunc_Think] =				43 + extraoffset;
+		VirtualFunction[VirtFunc_Touch] =				44 + extraoffset;
 		VirtualFunction[VirtFunc_Respawn] =				47 + extraoffset;
 		VirtualFunction[VirtFunc_AddToPlayer] =			58 + extraoffset;
 		VirtualFunction[VirtFunc_GetItemInfo] =			60 + extraoffset;
@@ -99,28 +111,35 @@ int AmxxCheckGame(const char *game)
 	return AMXX_GAME_BAD;
 }
 
+
+
 void OnPluginsLoaded()
 {
 	g_sModelIndexBloodSpray = PRECACHE_MODEL ("sprites/bloodspray.spr"); // initial blood
 	g_sModelIndexBloodDrop = PRECACHE_MODEL ("sprites/blood.spr"); // splattered blood 
 }
 
+
+
 void ServerDeactivate()
 {
-	if (g_initialized)
+	if (g_Initialized)
 	{
-		g_initialized = FALSE;
+		g_Initialized = FALSE;
 	}
 
 	RETURN_META(MRES_IGNORED);
 }
 
+
+
 int FN_DispatchSpawn(edict_t *pEntity)
 {
-	if (!g_initialized)
+	if (!g_Initialized)
 	{
-		g_initialized = TRUE;
+		g_Initialized = TRUE;
 		g_iWeaponIndex = LIMITER_WEAPON;
+		g_iAmmoBoxIndex = 0;
 
 		memset(WeaponInfoArray, 0, sizeof(WeaponInfoArray));
 		memset(AmmoBoxInfoArray, 0, sizeof(AmmoBoxInfoArray));
@@ -128,6 +147,8 @@ int FN_DispatchSpawn(edict_t *pEntity)
 
 	RETURN_META_VALUE(MRES_IGNORED, 0);
 }
+
+
 
 void FN_ClientCommand(edict_t *pEntity)
 {

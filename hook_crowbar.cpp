@@ -34,27 +34,19 @@
 #include "weaponmod.h"
 
 
+
 int g_iId;
 int g_iWeaponIndex;
-int VirtualFunction[VirtFunc_End];
-
-CEntity g_EntData;
-HookData CrowbarHook[VirtFunc_End];
-WeaponData WeaponInfoArray[MAX_WEAPONS];
-AmmoBoxData AmmoBoxInfoArray[MAX_WEAPONS];
-
-BOOL g_HooksEnabled;
-BOOL g_InitWeapon;
-BOOL g_initialized;
-
-void *pDbase = NULL;
 
 edict_t* g_pWeapon;
 edict_t* g_pPlayer;
 
-//**********************************************
-//* Weapon spawn.                              *
-//**********************************************
+BOOL g_InitWeapon;
+BOOL g_CrowbarHooksEnabled;
+
+CVirtHook g_VirtHook_Crowbar;
+WeaponData WeaponInfoArray[MAX_WEAPONS];
+
 
 edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 {
@@ -100,55 +92,7 @@ edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 	return pItem;
 }
 
-//**********************************************
-//* Ammobox spawn.                             *
-//**********************************************
 
-edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
-{
-	edict_t* pAmmoBox = NULL;
-
-	static int iszAllocStringCached;
-
-	if (iszAllocStringCached || (iszAllocStringCached = MAKE_STRING("info_target")))
-	{
-		pAmmoBox = CREATE_NAMED_ENTITY(iszAllocStringCached);
-	}
-
-	if (IsValidPev(pAmmoBox))
-	{
-		MDLL_Spawn(pAmmoBox);
-
-		pAmmoBox->v.classname = MAKE_STRING(AmmoBoxInfoArray[iId].pszName);
-		pAmmoBox->v.movetype = MOVETYPE_TOSS;
-		pAmmoBox->v.solid = SOLID_TRIGGER;
-
-		SET_SIZE(pAmmoBox, Vector(-16.0, -16.0, 0.0), Vector(16.0, 16.0, 16.0));
-		SET_ORIGIN(pAmmoBox, vecOrigin);
-
-		pAmmoBox->v.angles = vecAngles;
-
-		/*if (AmmoBoxInfoArray[iId].iForward[Fwd_Spawn])
-		{
-			MF_ExecuteForward
-			(
-				WeaponInfoArray[iId].iForward[Fwd_Spawn],
-
-				static_cast<cell>(ENTINDEX(pItem)), 
-				static_cast<cell>(0), 
-				static_cast<cell>(0), 
-				static_cast<cell>(0),
-				static_cast<cell>(0)
-			);
-		}*/
-	}
-
-	return pAmmoBox;
-}
-
-//**********************************************
-//* Get Item Info.                             *
-//**********************************************
 
 #ifdef _WIN32
 	int __fastcall Weapon_GetItemInfo(void *pPrivate, int i, ItemInfo *p)
@@ -157,9 +101,9 @@ edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 #endif
 {
 #ifdef _WIN32
-	reinterpret_cast<int (__fastcall *)(void *, int, ItemInfo *)>(CrowbarHook[VirtFunc_GetItemInfo].pOrigFunc)(pPrivate, 0, p);
+	reinterpret_cast<int (__fastcall *)(void *, int, ItemInfo *)>(g_VirtHook_Crowbar.GetOrigFunc(VirtFunc_GetItemInfo))(pPrivate, 0, p);
 #elif __linux__
-	reinterpret_cast<int (*)(void *, ItemInfo *)>(pOrigFunc_Crowbar_GetItemInfo)(pPrivate, p);
+	reinterpret_cast<int (*)(void *, ItemInfo *)>(g_VirtHook_Crowbar.GetOrigFunc(VirtFunc_GetItemInfo))(pPrivate, p);
 #endif
 
 	g_pWeapon = PrivateToEdict(pPrivate);
@@ -204,9 +148,7 @@ edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 	return 1;
 }
 
-//**********************************************
-//* Whether or not this entity can be deployed.*
-//**********************************************
+
 
 #ifdef _WIN32
 	BOOL __fastcall Weapon_CanDeploy(void *pPrivate)
@@ -226,9 +168,9 @@ edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 	if (g_iId <= LIMITER_WEAPON || !WeaponInfoArray[g_iId].iForward[Fwd_CanDeploy])
 	{
 #ifdef _WIN32
-		return reinterpret_cast<int (__fastcall *)(void *, int)>(CrowbarHook[VirtFunc_CanDeploy].pOrigFunc)(pPrivate, 0);
+		return reinterpret_cast<int (__fastcall *)(void *, int)>(g_VirtHook_Crowbar.GetOrigFunc(VirtFunc_CanDeploy))(pPrivate, 0);
 #elif __linux__
-		return reinterpret_cast<int (*)(void *)>(CrowbarHook[VirtFunc_CanDeploy].pOrigFunc)(pPrivate);
+		return reinterpret_cast<int (*)(void *)>(g_VirtHook_Crowbar.GetOrigFunc(VirtFunc_CanDeploy))(pPrivate);
 #endif
 	}
 	
@@ -251,9 +193,7 @@ edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 	);
 }
 
-//**********************************************
-//* Deploys the weapon.                        *
-//**********************************************
+
 
 #ifdef _WIN32
 	BOOL __fastcall Weapon_Deploy(void *pPrivate)
@@ -273,9 +213,9 @@ edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 	if (g_iId <= LIMITER_WEAPON)
 	{
 #ifdef _WIN32
-		return reinterpret_cast<int (__fastcall *)(void *, int)>(CrowbarHook[VirtFunc_Deploy].pOrigFunc)(pPrivate, 0);
+		return reinterpret_cast<int (__fastcall *)(void *, int)>(g_VirtHook_Crowbar.GetOrigFunc(VirtFunc_Deploy))(pPrivate, NULL);
 #elif __linux__
-		return reinterpret_cast<int (*)(void *)>(CrowbarHook[VirtFunc_Deploy].pOrigFunc)(pPrivate);
+		return reinterpret_cast<int (*)(void *)>(g_VirtHook_Crowbar.GetOrigFunc(VirtFunc_Deploy))(pPrivate);
 #endif
 	}
 	
@@ -305,9 +245,7 @@ edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 	return iReturn;
 }
 
-//**********************************************
-//* Called each frame for an item.             *
-//**********************************************
+
 
 #ifdef _WIN32
 	void __fastcall Weapon_ItemPostFrame(void *pPrivate)
@@ -337,9 +275,9 @@ edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 	if (g_iId <= LIMITER_WEAPON)
 	{
 #ifdef _WIN32
-		reinterpret_cast<int (__fastcall *)(void *, int)>(CrowbarHook[VirtFunc_ItemPostFrame].pOrigFunc)(pPrivate, 0);
+		reinterpret_cast<int (__fastcall *)(void *, int)>(g_VirtHook_Crowbar.GetOrigFunc(VirtFunc_ItemPostFrame))(pPrivate, 0);
 #elif __linux__
-		reinterpret_cast<int (*)(void *)>(CrowbarHook[VirtFunc_ItemPostFrame].pOrigFunc)(pPrivate);
+		reinterpret_cast<int (*)(void *)>(g_VirtHook_Crowbar.GetOrigFunc(VirtFunc_ItemPostFrame))(pPrivate);
 #endif
 		return;
 	}
@@ -449,9 +387,9 @@ edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 		{
 			// weapon isn't useable, switch.
 #ifdef _WIN32
-			reinterpret_cast<int (__fastcall *)(void *, int)>(CrowbarHook[VirtFunc_ItemPostFrame].pOrigFunc)(pPrivate, 0);
+			reinterpret_cast<int (__fastcall *)(void *, int)>(g_VirtHook_Crowbar.GetOrigFunc(VirtFunc_ItemPostFrame))(pPrivate, 0);
 #elif __linux__
-			reinterpret_cast<int (*)(void *)>(CrowbarHook[VirtFunc_ItemPostFrame].pOrigFunc)(pPrivate);
+			reinterpret_cast<int (*)(void *)>(g_VirtHook_Crowbar.GetOrigFunc(VirtFunc_ItemPostFrame))(pPrivate);
 #endif
 			return;
 		}
@@ -493,9 +431,7 @@ edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 	}
 }
 
-//**********************************************
-//* Whether or not the weapon is usable.       *
-//**********************************************
+
 
 #ifdef _WIN32
 	BOOL __fastcall Weapon_IsUseable(void *pPrivate)
@@ -515,9 +451,9 @@ edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 	if (g_iId <= LIMITER_WEAPON || !WeaponInfoArray[g_iId].iForward[Fwd_IsUseable])
 	{
 #ifdef _WIN32
-		return reinterpret_cast<int (__fastcall *)(void *, int)>(CrowbarHook[VirtFunc_IsUseable].pOrigFunc)(pPrivate, 0);
+		return reinterpret_cast<int (__fastcall *)(void *, int)>(g_VirtHook_Crowbar.GetOrigFunc(VirtFunc_IsUseable))(pPrivate, 0);
 #elif __linux__
-		return reinterpret_cast<int (*)(void *)>(CrowbarHook[VirtFunc_IsUseable].pOrigFunc)(pPrivate);
+		return reinterpret_cast<int (*)(void *)>(g_VirtHook_Crowbar.GetOrigFunc(VirtFunc_IsUseable))(pPrivate);
 #endif
 	}
 	
@@ -540,9 +476,7 @@ edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 	);
 }
 
-//**********************************************
-//* Whether or not the entity can be holstered.*
-//**********************************************
+
 
 #ifdef _WIN32
 	BOOL __fastcall Weapon_CanHolster(void *pPrivate)
@@ -562,9 +496,9 @@ edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 	if (g_iId <= LIMITER_WEAPON || !WeaponInfoArray[g_iId].iForward[Fwd_CanHolster])
 	{
 #ifdef _WIN32
-		return reinterpret_cast<int (__fastcall *)(void *, int)>(CrowbarHook[VirtFunc_CanHolster].pOrigFunc)(pPrivate, 0);
+		return reinterpret_cast<int (__fastcall *)(void *, int)>(g_VirtHook_Crowbar.GetOrigFunc(VirtFunc_CanHolster))(pPrivate, 0);
 #elif __linux__
-		return reinterpret_cast<int (*)(void *)>(CrowbarHook[VirtFunc_CanHolster].pOrigFunc)(pPrivate);
+		return reinterpret_cast<int (*)(void *)>(g_VirtHook_Crowbar.GetOrigFunc(VirtFunc_CanHolster))(pPrivate);
 #endif
 	}
 	
@@ -587,9 +521,7 @@ edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 	);
 }
 
-//**********************************************
-//* Called when the weapon is holster.         *
-//**********************************************
+
 
 #ifdef _WIN32
 	void __fastcall Weapon_Holster(void *pPrivate, int i, int skiplocal)
@@ -609,9 +541,9 @@ edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 	if (g_iId <= LIMITER_WEAPON)
 	{
 #ifdef _WIN32
-		reinterpret_cast<int (__fastcall *)(void *, int, int)>(CrowbarHook[VirtFunc_Holster].pOrigFunc)(pPrivate, 0, skiplocal);
+		reinterpret_cast<int (__fastcall *)(void *, int, int)>(g_VirtHook_Crowbar.GetOrigFunc(VirtFunc_Holster))(pPrivate, 0, skiplocal);
 #elif __linux__
-		reinterpret_cast<int (*)(void *, int)>(CrowbarHook[VirtFunc_Holster].pOrigFunc)(pPrivate, skiplocal);
+		reinterpret_cast<int (*)(void *, int)>(g_VirtHook_Crowbar.GetOrigFunc(VirtFunc_Holster))(pPrivate, skiplocal);
 #endif
 		return;
 	}
@@ -634,9 +566,7 @@ edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 	}
 }
 
-//**********************************************
-//* Weapon think                               *
-//**********************************************
+
 
 #ifdef _WIN32
 	void __fastcall Weapon_Think(void *pPrivate, int i)
@@ -676,15 +606,13 @@ edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 	}
 	
 #ifdef _WIN32
-	reinterpret_cast<int (__fastcall *)(void *, int)>(CrowbarHook[VirtFunc_Think].pOrigFunc)(pPrivate, 0);
+	reinterpret_cast<int (__fastcall *)(void *, int)>(g_VirtHook_Crowbar.GetOrigFunc(VirtFunc_Think))(pPrivate, 0);
 #elif __linux__
-	reinterpret_cast<int (*)(void *)>(CrowbarHook[VirtFunc_Think].pOrigFunc)(pPrivate);
+	reinterpret_cast<int (*)(void *)>(g_VirtHook_Crowbar.GetOrigFunc(VirtFunc_Think))(pPrivate);
 #endif
 }
 
-//**********************************************
-//* Adds the item to the player.               *
-//**********************************************
+
 
 #ifdef _WIN32
 	int __fastcall Weapon_AddToPlayer(void *pPrivate, int i, void *pPrivate2)
@@ -715,17 +643,15 @@ edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 	}
 
 #ifdef _WIN32
-	int iOrigRet = reinterpret_cast<int (__fastcall *)(void *, int, void *)>(CrowbarHook[VirtFunc_AddToPlayer].pOrigFunc)(pPrivate, 0, pPrivate2);
+	int iOrigRet = reinterpret_cast<int (__fastcall *)(void *, int, void *)>(g_VirtHook_Crowbar.GetOrigFunc(VirtFunc_AddToPlayer))(pPrivate, 0, pPrivate2);
 #elif __linux__
-	int iOrigRet = reinterpret_cast<int (*)(void *, void *)>(CrowbarHook[VirtFunc_AddToPlayer].pOrigFunc)(pPrivate, pPrivate2);
+	int iOrigRet = reinterpret_cast<int (*)(void *, void *)>(g_VirtHook_Crowbar.GetOrigFunc(VirtFunc_AddToPlayer))(pPrivate, pPrivate2);
 #endif
 
 	return iOrigRet;
 }
 
-//**********************************************
-//* Returns the item slot for the item.        *
-//**********************************************
+
 
 #ifdef _WIN32
 	int __fastcall Weapon_ItemSlot(void *pPrivate)
@@ -748,17 +674,15 @@ edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 	}
 
 #ifdef _WIN32
-	int iOrigRet = reinterpret_cast<int (__fastcall *)(void *, int)>(CrowbarHook[VirtFunc_ItemSlot].pOrigFunc)(pPrivate, 0);
+	int iOrigRet = reinterpret_cast<int (__fastcall *)(void *, int)>(g_VirtHook_Crowbar.GetOrigFunc(VirtFunc_ItemSlot))(pPrivate, 0);
 #elif __linux__
-	int iOrigRet = reinterpret_cast<int (*)(void *)>(CrowbarHook[VirtFunc_ItemSlot].pOrigFunc)(pPrivate);
+	int iOrigRet = reinterpret_cast<int (*)(void *)>(g_VirtHook_Crowbar.GetOrigFunc(VirtFunc_ItemSlot))(pPrivate);
 #endif
 
 	return iOrigRet;
 }
 
-//**********************************************
-//* Called when an item removing.              *
-//**********************************************
+
 
 #ifdef _WIN32
 	void __fastcall Weapon_Drop(void *pPrivate)
@@ -781,15 +705,13 @@ edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 		return;
 	}
 #ifdef _WIN32
-	reinterpret_cast<int (__fastcall *)(void *, int)>(CrowbarHook[VirtFunc_Drop].pOrigFunc)(pPrivate, 0);
+	reinterpret_cast<int (__fastcall *)(void *, int)>(g_VirtHook_Crowbar.GetOrigFunc(VirtFunc_Drop))(pPrivate, 0);
 #elif __linux__
-	reinterpret_cast<int (*)(void *)>(CrowbarHook[VirtFunc_Drop].pOrigFunc)(pPrivate);
+	reinterpret_cast<int (*)(void *)>(g_VirtHook_Crowbar.GetOrigFunc(VirtFunc_Drop))(pPrivate);
 #endif
 }
 
-//**********************************************
-//* Called when weapon respawns.               *
-//**********************************************
+
 
 #ifdef _WIN32
 	void* __fastcall Weapon_Respawn(void *pPrivate)
@@ -809,9 +731,9 @@ edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 	if (g_iId <= LIMITER_WEAPON)
 	{
 #ifdef _WIN32
-		return reinterpret_cast<void* (__fastcall *)(void *, int)>(CrowbarHook[VirtFunc_Respawn].pOrigFunc)(pPrivate, NULL);
+		return reinterpret_cast<void* (__fastcall *)(void *, int)>(g_VirtHook_Crowbar.GetOrigFunc(VirtFunc_Respawn))(pPrivate, NULL);
 #elif __linux__
-		return reinterpret_cast<void* (*)(void *)>(CrowbarHook[VirtFunc_Respawn].pOrigFunc)(pPrivate);
+		return reinterpret_cast<void* (*)(void *)>(g_VirtHook_Crowbar.GetOrigFunc(VirtFunc_Respawn))(pPrivate);
 #endif
 	}
 
@@ -828,129 +750,32 @@ edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 	return pItem->pvPrivateData;
 }
 
-//**********************************************
-//* Virtual functions hook                     *
-//**********************************************
 
-void MakeVirtualHooks(void)
+
+void ActivateCrowbarHooks()
 {
-	char *classname = "weapon_crowbar";
-
-	CrowbarHook[VirtFunc_GetItemInfo].iTrampoline =		(int)Weapon_GetItemInfo;
-	CrowbarHook[VirtFunc_CanDeploy].iTrampoline =		(int)Weapon_CanDeploy;
-	CrowbarHook[VirtFunc_Deploy].iTrampoline =			(int)Weapon_Deploy;
-	CrowbarHook[VirtFunc_CanHolster].iTrampoline =		(int)Weapon_CanHolster;
-	CrowbarHook[VirtFunc_Holster].iTrampoline =			(int)Weapon_Holster;
-	CrowbarHook[VirtFunc_Think].iTrampoline =			(int)Weapon_Think;
-	CrowbarHook[VirtFunc_Respawn].iTrampoline =			(int)Weapon_Respawn;
-	CrowbarHook[VirtFunc_AddToPlayer].iTrampoline =		(int)Weapon_AddToPlayer;
-	CrowbarHook[VirtFunc_ItemPostFrame].iTrampoline =	(int)Weapon_ItemPostFrame;
-	CrowbarHook[VirtFunc_Drop].iTrampoline =			(int)Weapon_Drop;
-	CrowbarHook[VirtFunc_ItemSlot].iTrampoline =		(int)Weapon_ItemSlot;
-	CrowbarHook[VirtFunc_IsUseable].iTrampoline =		(int)Weapon_IsUseable;
-
 	edict_t *pEdict = CREATE_ENTITY();
 
-    CALL_GAME_ENTITY(PLID, classname, &pEdict->v);
+    CALL_GAME_ENTITY(PLID, "weapon_crowbar", &pEdict->v);
     
     if (pEdict->pvPrivateData == NULL)
     {
         REMOVE_ENTITY(pEdict);
-
-		print_srvconsole("[WEAPONMOD] Failed to retrieve classtype for \"%s\".\n", classname);
-       
 		return;
     }
 
-#ifdef _WIN32
-	DWORD OldFlags;
+	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_GetItemInfo,		(int)Weapon_GetItemInfo);
+	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_CanDeploy,			(int)Weapon_CanDeploy);
+	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_Deploy,				(int)Weapon_Deploy);
+	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_CanHolster,			(int)Weapon_CanHolster);
+	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_Holster,			(int)Weapon_Holster);
+	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_Think,				(int)Weapon_Think);
+	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_Respawn,			(int)Weapon_Respawn);
+	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_AddToPlayer,		(int)Weapon_AddToPlayer);
+	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_ItemPostFrame,		(int)Weapon_ItemPostFrame);
+	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_Drop,				(int)Weapon_Drop);
+	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_ItemSlot,			(int)Weapon_ItemSlot);
+	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_IsUseable,			(int)Weapon_IsUseable);
 
-    void **vtable = *((void***)((char*)pEdict->pvPrivateData));
-#elif __linux__
-    void **vtable = *((void***)(((char*)pEdict->pvPrivateData) + 0x60));
-#endif
-
-    REMOVE_ENTITY(pEdict);
-    
-    if (vtable == NULL)
-	{
-		print_srvconsole("[WEAPONMOD] Failed to retrieve vtable for \"%s\", hooks not active.\n", classname);
-
-        return;
-	}
-
-	int **ivtable = (int **)vtable;
-
-	for (int i = 0; i < VirtFunc_End; i++)
-	{
-		if (CrowbarHook[i].iTrampoline != NULL)
-		{
-			CrowbarHook[i].pOrigFunc = (void *)ivtable[VirtualFunction[i]];
-#ifdef _WIN32
-			VirtualProtect(&ivtable[VirtualFunction[i]], sizeof(int *), PAGE_READWRITE, &OldFlags);
-#elif __linux__
-			mprotect(&ivtable[CrowbarHook[i].iVirtFunc], sizeof(int*), PROT_READ | PROT_WRITE);
-#endif
-			ivtable[VirtualFunction[i]] = (int *)CrowbarHook[i].iTrampoline;
-		}
-	}
-}
-
-// *****************************************************
-// class CEntity
-// *****************************************************
-
-int CEntity::Get_Think(int iEnt)
-{
-	int found = 0;
-
-	Obj* a = head;
-
-	while ( a )
-	{
-		if (a->iEntity == iEnt)
-		{
-			found = a->iThinkForward;
-			break;
-		}
-		a = a->next;
-	}
-	return found;
-}
-
-void CEntity::Set_Think(int iEnt, int iForward )
-{
-	Obj* a = head;
-
-	while ( a )
-	{
-		if (a->iEntity == iEnt)
-		{
-			a->iThinkForward = iForward;
-			return;
-		}
-
-		a = a->next;
-	}
-
-	a = new Obj;
-
-	if ( a == 0 ) 
-		return;
-	
-	a->iThinkForward = iForward;
-	a->iEntity = iEnt;
-	a->next = head;
-	
-	head = a;
-}
-
-void CEntity::clear()
-{
-	while(head)
-	{
-		Obj* a = head->next;
-		delete head;
-		head = a;
-	}
+	REMOVE_ENTITY(pEdict);
 }
