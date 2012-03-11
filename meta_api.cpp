@@ -46,7 +46,7 @@ int OnMetaAttach()
 	print_srvconsole("   This is free software and you are welcome to redistribute it under \n"
 					 "   certain conditions; type 'wpnmod gpl' for details.\n  \n");
 
-	if (FindEngineBase((void*)MDLL_FUNC->pfnGetGameDescription()))
+	if (FindDllBase((void*)MDLL_FUNC->pfnGetGameDescription()))
 	{
 #ifdef _WIN32
 		pRadiusDamage = FindFunction(	"\xD9\x44\x24\x1C\xD8\x00\x00\x00\x00\x00\x83\xEC\x64",

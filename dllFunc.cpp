@@ -73,7 +73,7 @@ void* FindFunction(char* sig_str, char* sig_mask, size_t sig_len)
 
 
 #ifdef _WIN32
-BOOL FindEngineBase(void* func)
+BOOL FindDllBase(void* func)
 {
     MEMORY_BASIC_INFORMATION mem;
     VirtualQuery(func, &mem, sizeof(mem));
@@ -161,7 +161,7 @@ long getBaseLen(void *baseAddress)
 
 
 
-int FindEngineBase(void* func)
+int FindDllBase(void* func)
 {
 	Dl_info info;
 

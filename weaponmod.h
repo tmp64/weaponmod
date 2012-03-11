@@ -232,7 +232,7 @@ extern void MakeVirtualHooks(void);
 extern void WpnModCommand(void);
 extern void* FindFunction(char* sig_str, char* sig_mask, size_t sig_len);
 
-extern BOOL FindEngineBase(void* func);
+extern BOOL FindDllBase(void* func);
 
 inline int			iSlot(const int iId)			{ return WeaponInfoArray[iId].ItemData.iSlot; }
 inline int			iItemPosition(const int iId)	{ return WeaponInfoArray[iId].ItemData.iPosition; }
