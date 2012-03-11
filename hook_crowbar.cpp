@@ -643,12 +643,10 @@ edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 	}
 
 #ifdef _WIN32
-	int iOrigRet = reinterpret_cast<int (__fastcall *)(void *, int, void *)>(g_VirtHook_Crowbar.GetOrigFunc(VirtFunc_AddToPlayer))(pPrivate, 0, pPrivate2);
+	return reinterpret_cast<int (__fastcall *)(void *, int, void *)>(g_VirtHook_Crowbar.GetOrigFunc(VirtFunc_AddToPlayer))(pPrivate, 0, pPrivate2);
 #elif __linux__
-	int iOrigRet = reinterpret_cast<int (*)(void *, void *)>(g_VirtHook_Crowbar.GetOrigFunc(VirtFunc_AddToPlayer))(pPrivate, pPrivate2);
+	return reinterpret_cast<int (*)(void *, void *)>(g_VirtHook_Crowbar.GetOrigFunc(VirtFunc_AddToPlayer))(pPrivate, pPrivate2);
 #endif
-
-	return iOrigRet;
 }
 
 
@@ -674,12 +672,10 @@ edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 	}
 
 #ifdef _WIN32
-	int iOrigRet = reinterpret_cast<int (__fastcall *)(void *, int)>(g_VirtHook_Crowbar.GetOrigFunc(VirtFunc_ItemSlot))(pPrivate, 0);
+	return reinterpret_cast<int (__fastcall *)(void *, int)>(g_VirtHook_Crowbar.GetOrigFunc(VirtFunc_ItemSlot))(pPrivate, 0);
 #elif __linux__
-	int iOrigRet = reinterpret_cast<int (*)(void *)>(g_VirtHook_Crowbar.GetOrigFunc(VirtFunc_ItemSlot))(pPrivate);
+	return reinterpret_cast<int (*)(void *)>(g_VirtHook_Crowbar.GetOrigFunc(VirtFunc_ItemSlot))(pPrivate);
 #endif
-
-	return iOrigRet;
 }
 
 

@@ -156,12 +156,14 @@ void Ammo_Respawn(edict_t *pAmmoBox)
 	g_pEntity = PrivateToEdict(pPrivate);
 	pOther = PrivateToEdict(pPrivate2);
 
+	print_srvconsole("!!!!!!!!!!!!!!!!!!!!!! %d %d\n", ENTINDEX(g_pEntity), ENTINDEX(pOther));
+
 	if (!IsValidPev(g_pEntity) || !IsValidPev(pOther))
 	{
 		return;
 	}
 
-	if (MF_IsPlayerValid(ENTINDEX(pOther)))
+	if (MF_IsPlayerAlive(ENTINDEX(pOther)))
 	{
 		for (k = 0; k < g_iAmmoBoxIndex; k++)
 		{

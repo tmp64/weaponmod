@@ -117,6 +117,8 @@ void ActivateInfoTargetHooks();
 void UTIL_EjectBrass(const Vector &vecOrigin, const Vector &vecVelocity, float rotation, int model, int soundtype);
 void FireBulletsPlayer(edict_t* pPlayer, edict_t* pAttacker, int iShotsCount, Vector vecSpread, float flDistance, float flDamage, int bitsDamageType, BOOL bTracers);
 
+BOOL __fastcall Weapon_CanDeploy(void *pPrivate);
+
 
 /**
  * Register new weapon in module.
@@ -167,7 +169,7 @@ static cell AMX_NATIVE_CALL wpnmod_register_weapon(AMX *amx, cell *params)
 
 	g_InitWeapon = TRUE;
 
-	FN_PrecacheOtherWeapon PrecacheOtherWeapon = (FN_PrecacheOtherWeapon)((DWORD)pDbase + ADDRESS_PRECAHE_OTHER_WEAPON);
+	FN_PrecacheOtherWeapon PrecacheOtherWeapon = (FN_PrecacheOtherWeapon)(/*(DWORD)pDbase + ADDRESS_PRECAHE_OTHER_WEAPON*/(DWORD)pPrecacheOtherWeapon);
 	PrecacheOtherWeapon("weapon_crowbar");
 
 	return g_iWeaponIndex;
@@ -289,7 +291,7 @@ static cell AMX_NATIVE_CALL wpnmod_set_player_anim(AMX *amx, cell *params)
 
 	edict_t *pPlayer = INDEXENT2(iPlayer);
 
-	FN_SetAnimation SetAnimation = (FN_SetAnimation)((DWORD)pDbase + ADDRESS_SET_ANIMATION);
+	FN_SetAnimation SetAnimation = (FN_SetAnimation)((DWORD)/*pDbase + ADDRESS_SET_ANIMATION*/pPlayerSetAnimation);
 
 #ifdef _WIN32
 	reinterpret_cast<void (__fastcall *)(void *, int, int)>(SetAnimation)((void*)pPlayer->pvPrivateData, 0, iPlayerAnim);
@@ -398,9 +400,6 @@ static cell AMX_NATIVE_CALL wpnmod_get_offset_float(AMX *amx, cell *params)
  *
  * native wpnmod_default_deploy(const iItem, const szViewModel[], const szWeaponModel[], const iAnim, const szAnimExt[]);
 */
-
-BOOL __fastcall Weapon_CanDeploy(void *pPrivate);
-
 static cell AMX_NATIVE_CALL wpnmod_default_deploy(AMX *amx, cell *params)
 {
 	int iEntity = params[1];
@@ -621,7 +620,7 @@ static cell AMX_NATIVE_CALL wpnmod_radius_damage(AMX *amx, cell *params)
 	CHECK_ENTITY(iInflictor)
 	CHECK_ENTITY(iAttacker)
 
-	FN_RadiusDamage RadiusDamage = (FN_RadiusDamage)((DWORD)pDbase + ADDRESS_RADIUS_DAMAGE);
+	FN_RadiusDamage RadiusDamage = (FN_RadiusDamage)((DWORD)pRadiusDamage);
 	
 	RadiusDamage
 	(

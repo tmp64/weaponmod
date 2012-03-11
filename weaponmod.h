@@ -38,6 +38,12 @@
 #ifdef __linux__
 	#include <sys/mman.h>
 	#include <malloc.h>
+	#include <dlfcn.h>
+	#include <sys/types.h>
+	#include <sys/stat.h>
+	#include <unistd.h>
+	#define	PAGE_SIZE 4096
+	#define Align(addr) (void*)((long)addr & ~(PAGE_SIZE-1))
 #endif
 
 #include "CEntity.h"
@@ -74,19 +80,11 @@
 	#define XTRA_OFS_WEAPON						0
 	#define XTRA_OFS_PLAYER						0
 	
-	#define ADDRESS_SET_ANIMATION				0x60530
-	#define ADDRESS_RADIUS_DAMAGE				0x189B0
-	#define ADDRESS_PRECAHE_OTHER_WEAPON		0x8C590
-	
 	#define PrivateToEdict(pPrivate) (*(entvars_t **)((char*)pPrivate + 4))->pContainingEntity
 #elif __linux__
 	#define XTRA_OFS_WEAPON						4
 	#define XTRA_OFS_PLAYER						5
 	
-	#define ADDRESS_SET_ANIMATION				0x10FF9C
-	#define ADDRESS_RADIUS_DAMAGE				0x189B0 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	#define ADDRESS_PRECAHE_OTHER_WEAPON		0x14076C
-
     #define PrivateToEdict(pPrivate) (*(entvars_t **)pPrivate)->pContainingEntity
 #endif
 
@@ -203,7 +201,9 @@ typedef struct
 typedef void (*FN_PrecacheOtherWeapon)(const char *szClassname);
 typedef void (*FN_RadiusDamage)(Vector vecSrc, entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, float flRadius, int iClassIgnore, int bitsDamageType);
 
-extern void *pDbase;
+extern void *pRadiusDamage;
+extern void *pPlayerSetAnimation;
+extern void *pPrecacheOtherWeapon;
 
 extern int g_iWeaponIndex;
 extern int g_iAmmoBoxIndex;
@@ -217,16 +217,22 @@ extern WeaponData WeaponInfoArray[MAX_WEAPONS];
 extern AmmoBoxData AmmoBoxInfoArray[MAX_WEAPONS];
 extern AMX_NATIVE_INFO wpnmod_Natives[];
 
+extern unsigned char* hldll_base;
+
 extern BOOL g_CrowbarHooksEnabled;
 extern BOOL g_InfoTargetHooksEnabled;
 extern BOOL g_InitWeapon;
 extern BOOL g_initialized;
+extern BOOL	g_IsBaseSet;
 
 extern short g_sModelIndexBloodDrop;
 extern short g_sModelIndexBloodSpray;
 
 extern void MakeVirtualHooks(void);
 extern void WpnModCommand(void);
+extern void* FindFunction(char* sig_str, char* sig_mask, size_t sig_len);
+
+extern BOOL FindEngineBase(void* func);
 
 inline int			iSlot(const int iId)			{ return WeaponInfoArray[iId].ItemData.iSlot; }
 inline int			iItemPosition(const int iId)	{ return WeaponInfoArray[iId].ItemData.iPosition; }

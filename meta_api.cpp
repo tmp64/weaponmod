@@ -39,14 +39,6 @@ BOOL g_Initialized;
 
 int OnMetaAttach()
 {
-	pDbase = GetModuleHandleA("hl.dll");
-
-	if (pDbase == NULL) 
-	{
-		print_srvconsole("[WEAPONMOD] Failed to locate hl.dll\n");
-        return 0;
-	}
-
 	REG_SVR_COMMAND("wpnmod", WpnModCommand);
 
 	print_srvconsole("\n   Half-Life Weapon Mod version %s Copyright (c) 2012 AGHL.RU Dev Team. \n"
@@ -54,7 +46,23 @@ int OnMetaAttach()
 	print_srvconsole("   This is free software and you are welcome to redistribute it under \n"
 					 "   certain conditions; type 'wpnmod gpl' for details.\n  \n");
 
-	print_srvconsole("[WEAPONMOD] Found hl.dll at %p\n", pDbase);
+	if (FindEngineBase((void*)MDLL_FUNC->pfnGetGameDescription()))
+	{
+#ifdef _WIN32
+		pRadiusDamage = FindFunction(	"\xD9\x44\x24\x1C\xD8\x00\x00\x00\x00\x00\x83\xEC\x64",
+										"xxxxx?????xxx", 13);
+
+		pPlayerSetAnimation = FindFunction(		"\x83\xEC\x44\x53\x55\x8B\xE9\x33\xDB\x56\x57",
+												"xxxxxxxxxxx", 11);
+
+		pPrecacheOtherWeapon = FindFunction(	"\x8B\x00\x00\x00\x00\x00\x8B\x00\x00\x00\x83"
+												"\x00\x00\x53\x56\x2B\x00\x00\x00\x00\x00\x50",
+												"x?????x???x??xxx?????x", 22);
+#elif __linux__
+		// TO DO: Find linux patterns
+#endif
+	}
+
 	return 1;
 }
 
@@ -62,7 +70,16 @@ int OnMetaAttach()
 
 void OnAmxxAttach()
 {
-	MF_AddNatives(wpnmod_Natives);
+	if (!g_IsBaseSet)
+	{
+		print_srvconsole("[WEAPONMOD] Failed to locate hl.dll\n");
+	}
+	else
+	{
+		MF_AddNatives(wpnmod_Natives);
+
+		print_srvconsole("[WEAPONMOD] Found hl.dll at %p\n", hldll_base);
+	}
 }
 
 
