@@ -35,31 +35,40 @@
 
 BOOL g_Initialized;
 
-
-
 int OnMetaAttach()
 {
 	REG_SVR_COMMAND("wpnmod", WpnModCommand);
 
-	print_srvconsole("\n   Half-Life Weapon Mod version %s Copyright (c) 2012 AGHL.RU Dev Team. \n"
+	/*print_srvconsole("\n   Half-Life Weapon Mod version %s Copyright (c) 2012 AGHL.RU Dev Team. \n"
 					 "   Weapon Mod comes with ABSOLUTELY NO WARRANTY; for details type `wpnmod gpl'.\n", Plugin_info.version);
 	print_srvconsole("   This is free software and you are welcome to redistribute it under \n"
 					 "   certain conditions; type 'wpnmod gpl' for details.\n  \n");
-
+	*/
 	if (FindDllBase((void*)MDLL_FUNC->pfnGetGameDescription()))
 	{
+		if (CVAR_GET_POINTER("aghl.ru"))
+		{
 #ifdef _WIN32
-		pRadiusDamage = FindFunction(	"\xD9\x44\x24\x1C\xD8\x00\x00\x00\x00\x00\x83\xEC\x64",
-										"xxxxx?????xxx", 13);
-
-		pPlayerSetAnimation = FindFunction(		"\x83\xEC\x44\x53\x55\x8B\xE9\x33\xDB\x56\x57",
-												"xxxxxxxxxxx", 11);
-
-		pPrecacheOtherWeapon = FindFunction(	"\x8B\x00\x00\x00\x00\x00\x8B\x00\x00\x00\x83"
-												"\x00\x00\x53\x56\x2B\x00\x00\x00\x00\x00\x50",
-												"x?????x???x??xxx?????x", 22);
+		// TO DO: Find patterns.
 #elif __linux__
-		// TO DO: Find linux patterns
+		// TO DO: Find linux patterns.
+#endif
+		}
+		else
+		{
+#ifdef _WIN32
+			pRadiusDamage = FindFunction(	"\xD9\x44\x24\x1C\xD8\x00\x00\x00\x00\x00\x83\xEC\x64",
+											"xxxxx?????xxx", 13);
+
+			pPlayerSetAnimation = FindFunction(		"\x83\xEC\x44\x53\x55\x8B\xE9\x33\xDB\x56\x57",
+													"xxxxxxxxxxx", 11);
+
+			pPrecacheOtherWeapon = FindFunction(	"\x8B\x00\x00\x00\x00\x00\x8B\x00\x00\x00\x83"
+													"\x00\x00\x53\x56\x2B\x00\x00\x00\x00\x00\x50",
+													"x?????x???x??xxx?????x", 22);
+		}
+#elif __linux__
+		// TO DO: Find linux patterns. :D
 #endif
 	}
 
@@ -70,13 +79,14 @@ int OnMetaAttach()
 
 void OnAmxxAttach()
 {
-	if (!g_IsBaseSet)
+	if (!g_IsBaseSet || !pRadiusDamage || !pPlayerSetAnimation || ! pPrecacheOtherWeapon)
 	{
-		print_srvconsole("[WEAPONMOD] Failed to locate hl.dll\n");
+		print_srvconsole("[WEAPONMOD] Failed to locate hl.dll, cannot register natives.\n");
 	}
 	else
 	{
-		MF_AddNatives(wpnmod_Natives);
+		MF_AddNatives(Natives_Ammo);
+		MF_AddNatives(Natives_Weapon);
 
 		print_srvconsole("[WEAPONMOD] Found hl.dll at %p\n", hldll_base);
 	}

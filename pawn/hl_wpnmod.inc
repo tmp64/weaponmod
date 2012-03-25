@@ -69,7 +69,7 @@
  * @param iFlags			Weapon's flags (see defines).
  * @param iWeight			This value used to determine this weapon's importance in autoselection.
  * 
- * @return					The ID of registerd weapon or 0 on failure. (integer)
+ * @return					The ID of registerd weapon or -1 on failure. (integer)
  */
 native wpnmod_register_weapon(const szName[], const iSlot, const iPosition, const szAmmo1[], const iMaxAmmo1, const szAmmo2[], const iMaxAmmo2, const iMaxClip, const iFlags, const iWeight);
 
@@ -80,7 +80,25 @@ native wpnmod_register_weapon(const szName[], const iSlot, const iPosition, cons
  * @param iForward			Forward type to register.
  * @param szCallBack		The forward to call.
  */
-native wpnmod_register_forward(const iWeaponID, const e_Forwards: iForward, const szCallBack[]);
+native wpnmod_register_weapon_forward(const iWeaponID, const e_WpnFwds: iForward, const szCallBack[]);
+
+/**
+ * Register new ammobox in module.
+ *
+ * @param szName			The ammobox classname.
+ * 
+ * @return					The ID of registerd ammobox or -1 on failure. (integer)
+ */
+native wpnmod_register_ammobox(const szClassname[]);
+
+/**
+ * Register ammobox's forward.
+ *
+ * @param iAmmoboxID		The ID of registered ammobox.
+ * @param iForward			Forward type to register.
+ * @param szCallBack		The forward to call.
+ */
+native wpnmod_register_ammobox_forward(const iWeaponID, const e_AmmoFwds: iForward, const szCallBack[]);
 
 /**
  * Sets weapon's think function. Analogue of set_task native.
@@ -224,23 +242,12 @@ native wpnmod_radius_damage(const Float: vecSrc[3], const iInflictor, const iAtt
 native wpnmod_eject_brass(const iPlayer, const iShellModelIndex, const iSoundtype, const Float: flForwardScale, const Float: flUpScale, const Float: flRightScale);
 
 /**
- * Spawn a weapon entity by name.
+ * Spawn an item by name.
  *
- * @param szName			Weapon's name.
+ * @param szName			Item's name.
  * @param vecOrigin			Origin were to spawn.
  * @param vecAngles			Angles.
- * 
- * @return					Weapon entity index or -1 on failure. (integer)
- */
-native wpnmod_spawn_weapon_by_name(const szName[], const Float: vecOrigin[3] = {0.0, 0.0, 0.0}, const Float: vecAngles[3] = {0.0, 0.0, 0.0});
-
-/**
- * Spawn a weapon entity by registered ID.
  *
- * @param iWeaponID			ID of registered weapon.
- * @param vecOrigin			Origin were to spawn.
- * @param vecAngles			Angles.
- * 
- * @return					Weapon entity index or -1 on failure. (integer)
+ * @return					Item entity index or -1 on failure. (integer)
  */
-native wpnmod_spawn_weapon_by_id(const iWeaponID, const Float: vecOrigin[3] = {0.0, 0.0, 0.0}, const Float: vecAngles[3] = {0.0, 0.0, 0.0});
+native wpnmod_create_item(const szName[], const Float: vecOrigin[3] = {0.0, 0.0, 0.0}, const Float: vecAngles[3] = {0.0, 0.0, 0.0});

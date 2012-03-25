@@ -74,11 +74,11 @@ edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 			*((int *)pItem->pvPrivateData + m_iClip) = 0;
 		}
 
-		if (WeaponInfoArray[iId].iForward[Fwd_Spawn])
+		if (WeaponInfoArray[iId].iForward[Fwd_Wpn_Spawn])
 		{
 			MF_ExecuteForward
 			(
-				WeaponInfoArray[iId].iForward[Fwd_Spawn],
+				WeaponInfoArray[iId].iForward[Fwd_Wpn_Spawn],
 
 				static_cast<cell>(ENTINDEX(pItem)), 
 				static_cast<cell>(0), 
@@ -165,7 +165,7 @@ edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 
 	g_iId = (int)*((int *)g_pWeapon->pvPrivateData + m_iId);
 
-	if (g_iId <= LIMITER_WEAPON || !WeaponInfoArray[g_iId].iForward[Fwd_CanDeploy])
+	if (g_iId <= LIMITER_WEAPON || !WeaponInfoArray[g_iId].iForward[Fwd_Wpn_CanDeploy])
 	{
 #ifdef _WIN32
 		return reinterpret_cast<int (__fastcall *)(void *, int)>(g_VirtHook_Crowbar.GetOrigFunc(VirtFunc_CanDeploy))(pPrivate, 0);
@@ -183,7 +183,7 @@ edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 
 	return MF_ExecuteForward
 	(
-		WeaponInfoArray[g_iId].iForward[Fwd_CanDeploy],
+		WeaponInfoArray[g_iId].iForward[Fwd_Wpn_CanDeploy],
 
 		static_cast<cell>(ENTINDEX(g_pWeapon)), 
 		static_cast<cell>(ENTINDEX(g_pPlayer)), 
@@ -228,11 +228,11 @@ edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 
 	int iReturn = FALSE;
 
-	if (WeaponInfoArray[g_iId].iForward[Fwd_Deploy])
+	if (WeaponInfoArray[g_iId].iForward[Fwd_Wpn_Deploy])
 	{
 		iReturn = MF_ExecuteForward
 		(
-			WeaponInfoArray[g_iId].iForward[Fwd_Deploy],
+			WeaponInfoArray[g_iId].iForward[Fwd_Wpn_Deploy],
 
 			static_cast<cell>(ENTINDEX(g_pWeapon)), 
 			static_cast<cell>(ENTINDEX(g_pPlayer)), 
@@ -321,11 +321,11 @@ edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 			*((int *)g_pWeapon->pvPrivateData + m_fFireOnEmpty) = TRUE;
 		}
 
-		if (WeaponInfoArray[g_iId].iForward[Fwd_SecondaryAttack])
+		if (WeaponInfoArray[g_iId].iForward[Fwd_Wpn_SecondaryAttack])
 		{
 			MF_ExecuteForward
 			(
-				WeaponInfoArray[g_iId].iForward[Fwd_SecondaryAttack],
+				WeaponInfoArray[g_iId].iForward[Fwd_Wpn_SecondaryAttack],
 
 				static_cast<cell>(ENTINDEX(g_pWeapon)), 
 				static_cast<cell>(ENTINDEX(g_pPlayer)), 
@@ -344,11 +344,11 @@ edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 			*((int *)g_pWeapon->pvPrivateData + m_fFireOnEmpty) = TRUE;
 		}
 
-		if (WeaponInfoArray[g_iId].iForward[Fwd_PrimaryAttack])
+		if (WeaponInfoArray[g_iId].iForward[Fwd_Wpn_PrimaryAttack])
 		{
 			MF_ExecuteForward
 			(
-				WeaponInfoArray[g_iId].iForward[Fwd_PrimaryAttack],
+				WeaponInfoArray[g_iId].iForward[Fwd_Wpn_PrimaryAttack],
 
 				static_cast<cell>(ENTINDEX(g_pWeapon)), 
 				static_cast<cell>(ENTINDEX(g_pPlayer)), 
@@ -363,11 +363,11 @@ edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 	else if (g_pPlayer->v.button & IN_RELOAD && iMaxClip(g_iId) != -1 && !iInReload ) 
 	{
 		// reload when reload is pressed, or if no buttons are down and weapon is empty.
-		if (WeaponInfoArray[g_iId].iForward[Fwd_Reload])
+		if (WeaponInfoArray[g_iId].iForward[Fwd_Wpn_Reload])
 		{
 			MF_ExecuteForward
 			(
-				WeaponInfoArray[g_iId].iForward[Fwd_Reload],
+				WeaponInfoArray[g_iId].iForward[Fwd_Wpn_Reload],
 
 				static_cast<cell>(ENTINDEX(g_pWeapon)), 
 				static_cast<cell>(ENTINDEX(g_pPlayer)), 
@@ -398,11 +398,11 @@ edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 			// weapon is useable. Reload if empty and weapon has waited as long as it has to after firing
 			if (!iClip && !(iFlags(g_iId) & ITEM_FLAG_NOAUTORELOAD) && flNextPrimaryAttack < 0.0)
 			{
-				if (WeaponInfoArray[g_iId].iForward[Fwd_Reload])
+				if (WeaponInfoArray[g_iId].iForward[Fwd_Wpn_Reload])
 				{
 					MF_ExecuteForward
 					(
-						WeaponInfoArray[g_iId].iForward[Fwd_Reload],
+						WeaponInfoArray[g_iId].iForward[Fwd_Wpn_Reload],
 
 						static_cast<cell>(ENTINDEX(g_pWeapon)), 
 						static_cast<cell>(ENTINDEX(g_pPlayer)), 
@@ -415,11 +415,11 @@ edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 			}
 		}
 
-		if (WeaponInfoArray[g_iId].iForward[Fwd_Idle])
+		if (WeaponInfoArray[g_iId].iForward[Fwd_Wpn_Idle])
 		{
 			MF_ExecuteForward
 			(
-				WeaponInfoArray[g_iId].iForward[Fwd_Idle],
+				WeaponInfoArray[g_iId].iForward[Fwd_Wpn_Idle],
 
 				static_cast<cell>(ENTINDEX(g_pWeapon)), 
 				static_cast<cell>(ENTINDEX(g_pPlayer)), 
@@ -448,7 +448,7 @@ edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 
 	g_iId = (int)*((int *)g_pWeapon->pvPrivateData + m_iId);
 
-	if (g_iId <= LIMITER_WEAPON || !WeaponInfoArray[g_iId].iForward[Fwd_IsUseable])
+	if (g_iId <= LIMITER_WEAPON || !WeaponInfoArray[g_iId].iForward[Fwd_Wpn_IsUseable])
 	{
 #ifdef _WIN32
 		return reinterpret_cast<int (__fastcall *)(void *, int)>(g_VirtHook_Crowbar.GetOrigFunc(VirtFunc_IsUseable))(pPrivate, 0);
@@ -466,7 +466,7 @@ edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 
 	return MF_ExecuteForward
 	(
-		WeaponInfoArray[g_iId].iForward[Fwd_IsUseable],
+		WeaponInfoArray[g_iId].iForward[Fwd_Wpn_IsUseable],
 
 		static_cast<cell>(ENTINDEX(g_pWeapon)), 
 		static_cast<cell>(ENTINDEX(g_pPlayer)), 
@@ -493,7 +493,7 @@ edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 
 	g_iId = (int)*((int *)g_pWeapon->pvPrivateData + m_iId);
 
-	if (g_iId <= LIMITER_WEAPON || !WeaponInfoArray[g_iId].iForward[Fwd_CanHolster])
+	if (g_iId <= LIMITER_WEAPON || !WeaponInfoArray[g_iId].iForward[Fwd_Wpn_CanHolster])
 	{
 #ifdef _WIN32
 		return reinterpret_cast<int (__fastcall *)(void *, int)>(g_VirtHook_Crowbar.GetOrigFunc(VirtFunc_CanHolster))(pPrivate, 0);
@@ -511,7 +511,7 @@ edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 
 	return MF_ExecuteForward
 	(
-		WeaponInfoArray[g_iId].iForward[Fwd_CanHolster],
+		WeaponInfoArray[g_iId].iForward[Fwd_Wpn_CanHolster],
 
 		static_cast<cell>(ENTINDEX(g_pWeapon)), 
 		static_cast<cell>(ENTINDEX(g_pPlayer)), 
@@ -551,11 +551,11 @@ edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 	g_EntData.Set_Think(ENTINDEX(g_pWeapon), 0);
 	g_pPlayer = GetPrivateCbase(g_pWeapon, m_pPlayer);
 
-	if (IsValidPev(g_pPlayer) && WeaponInfoArray[g_iId].iForward[Fwd_Holster])
+	if (IsValidPev(g_pPlayer) && WeaponInfoArray[g_iId].iForward[Fwd_Wpn_Holster])
 	{
 		MF_ExecuteForward
 		(
-			WeaponInfoArray[g_iId].iForward[Fwd_Holster],
+			WeaponInfoArray[g_iId].iForward[Fwd_Wpn_Holster],
 
 			static_cast<cell>(ENTINDEX(g_pWeapon)), 
 			static_cast<cell>(ENTINDEX(g_pPlayer)), 

@@ -116,6 +116,30 @@
 #define m_rgAmmo								XTRA_OFS_PLAYER + 310
 #define m_szAnimExtention						XTRA_OFS_PLAYER + 387
 
+enum e_AmmoFwds
+{
+	Fwd_Ammo_Spawn,
+	Fwd_Ammo_AddAmmo,
+
+	Fwd_Ammo_End
+};
+
+enum e_WpnFwds
+{
+	Fwd_Wpn_Spawn,
+	Fwd_Wpn_CanDeploy,
+	Fwd_Wpn_Deploy,
+	Fwd_Wpn_Idle,
+	Fwd_Wpn_PrimaryAttack,
+	Fwd_Wpn_SecondaryAttack,
+	Fwd_Wpn_Reload,
+	Fwd_Wpn_CanHolster,
+	Fwd_Wpn_Holster,
+	Fwd_Wpn_IsUseable,
+
+	Fwd_Wpn_End
+};
+
 enum e_VirtFuncs
 {
 	VirtFunc_Classify,
@@ -137,22 +161,6 @@ enum e_VirtFuncs
 	VirtFunc_IsUseable,
 
 	VirtFunc_End
-};
-
-enum e_Forwards
-{
-	Fwd_Spawn,
-	Fwd_CanDeploy,
-	Fwd_Deploy,
-	Fwd_Idle,
-	Fwd_PrimaryAttack,
-	Fwd_SecondaryAttack,
-	Fwd_Reload,
-	Fwd_CanHolster,
-	Fwd_Holster,
-	Fwd_IsUseable,
-
-	Fwd_End
 };
 
 typedef enum
@@ -189,13 +197,13 @@ typedef struct
 typedef struct
 {
 	ItemInfo ItemData;
-	int iForward[Fwd_End];
+	int iForward[Fwd_Wpn_End];
 } WeaponData;
 
 typedef struct
 {
 	const char	*pszName;
-	int iForward[Fwd_End];
+	int iForward[Fwd_Wpn_End];
 } AmmoBoxData;
 
 typedef void (*FN_PrecacheOtherWeapon)(const char *szClassname);
@@ -215,7 +223,9 @@ extern CVirtHook g_VirtHook_Crowbar;
 
 extern WeaponData WeaponInfoArray[MAX_WEAPONS];
 extern AmmoBoxData AmmoBoxInfoArray[MAX_WEAPONS];
-extern AMX_NATIVE_INFO wpnmod_Natives[];
+
+extern AMX_NATIVE_INFO Natives_Ammo[];
+extern AMX_NATIVE_INFO Natives_Weapon[];
 
 extern unsigned char* hldll_base;
 

@@ -46,7 +46,7 @@
 		MF_LogError(amx, AMX_ERR_NATIVE, "Function out of bounds. Got: %d  Max: %d.", x, Offset_End - 1); \
 		return 0; \
 	}\
-
+/*
 #define CHECK_PARAMS(x) \
 	cell count = params[0] / sizeof(cell); \
 	if (count != x) \
@@ -54,7 +54,7 @@
 		MF_LogError(amx, AMX_ERR_NATIVE, "Expected %d parameters, got %d.", x, count); \
 		return 0; \
 	}\
-
+*/
 
 enum e_Offsets
 {
@@ -112,7 +112,6 @@ edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles);
 edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles);
 
 void ActivateCrowbarHooks();
-void ActivateInfoTargetHooks();
 
 void UTIL_EjectBrass(const Vector &vecOrigin, const Vector &vecVelocity, float rotation, int model, int soundtype);
 void FireBulletsPlayer(edict_t* pPlayer, edict_t* pAttacker, int iShotsCount, Vector vecSpread, float flDistance, float flDamage, int bitsDamageType, BOOL bTracers);
@@ -140,12 +139,12 @@ BOOL __fastcall Weapon_CanDeploy(void *pPrivate);
 */
 static cell AMX_NATIVE_CALL wpnmod_register_weapon(AMX *amx, cell *params)
 {
-	CHECK_PARAMS(10)
+	//CHECK_PARAMS(10)
 
 	if (g_iWeaponIndex >= MAX_WEAPONS)
 	{
 		MF_LogError(amx, AMX_ERR_NATIVE, "Weapon limit reached.");
-		return 0;
+		return -1;
 	}
 
 	g_iWeaponIndex++;
@@ -169,25 +168,10 @@ static cell AMX_NATIVE_CALL wpnmod_register_weapon(AMX *amx, cell *params)
 
 	g_InitWeapon = TRUE;
 
-	FN_PrecacheOtherWeapon PrecacheOtherWeapon = (FN_PrecacheOtherWeapon)(/*(DWORD)pDbase + ADDRESS_PRECAHE_OTHER_WEAPON*/(DWORD)pPrecacheOtherWeapon);
+	FN_PrecacheOtherWeapon PrecacheOtherWeapon = (FN_PrecacheOtherWeapon)((DWORD)pPrecacheOtherWeapon);
 	PrecacheOtherWeapon("weapon_crowbar");
 
 	return g_iWeaponIndex;
-}
-
-
-
-static cell AMX_NATIVE_CALL wpnmod_register_ammobox(AMX *amx, cell *params)
-{
-	AmmoBoxInfoArray[g_iAmmoBoxIndex].pszName = STRING(ALLOC_STRING(MF_GetAmxString(amx, params[1], 0, NULL)));
-
-	if (!g_InfoTargetHooksEnabled)
-	{
-		g_InfoTargetHooksEnabled = TRUE;
-		ActivateInfoTargetHooks();
-	}
-
-	return ++g_iAmmoBoxIndex;
 }
 
 /**
@@ -197,9 +181,9 @@ static cell AMX_NATIVE_CALL wpnmod_register_ammobox(AMX *amx, cell *params)
  * @param iForward		Forward type to register.
  * @param szCallBack	The forward to call.
  *
- * native wpnmod_register_forward(const iWeaponID, const e_Forwards: iForward, const szCallBack[]);
+ * native wpnmod_register_weapon_forward(const iWeaponID, const e_Forwards: iForward, const szCallBack[]);
 */
-static cell AMX_NATIVE_CALL wpnmod_register_forward(AMX *amx, cell *params)
+static cell AMX_NATIVE_CALL wpnmod_register_weapon_forward(AMX *amx, cell *params)
 {
 	int iId = params[1];
 
@@ -211,9 +195,9 @@ static cell AMX_NATIVE_CALL wpnmod_register_forward(AMX *amx, cell *params)
 
 	int Fwd = params[2];
 
-	if (Fwd < 0 || Fwd >= Fwd_End)
+	if (Fwd < 0 || Fwd >= Fwd_Wpn_End)
 	{
-		MF_LogError(amx, AMX_ERR_NATIVE, "Function out of bounds. Got: %d  Max: %d.", iId, Fwd_End - 1);
+		MF_LogError(amx, AMX_ERR_NATIVE, "Function out of bounds. Got: %d  Max: %d.", iId, Fwd_Wpn_End - 1);
 		return 0;
 	}
 
@@ -717,62 +701,17 @@ static cell AMX_NATIVE_CALL wpnmod_play_empty_sound(AMX *amx, cell *params)
 }
 
 /**
- * Spawn a weapon entity by registered ID.
+ * Spawn an item by name.
  *
- * @param iWeaponID			ID of registered weapon.
- * @param vecOrigin			Origin were to spawn.
- * @param vecAngles			Angles.
- * 
- * @return					Weapon entity index or -1 on failure. (integer)
- *
- * native wpnmod_spawn_weapon_by_id(const iWeaponID, const Float: vecOrigin[3] = {0.0, 0.0, 0.0}, const Float: vecAngles[3] = {0.0, 0.0, 0.0});
-*/
-static cell AMX_NATIVE_CALL wpnmod_spawn_weapon_by_id(AMX *amx, cell *params)
-{
-	int iId = params[1];
-
-	if (iId < LIMITER_WEAPON || iId >= MAX_WEAPONS)
-	{
-		MF_LogError(amx, AMX_ERR_NATIVE, "Invalid weapon id provided. Got: %d  Valid: 16 up to %d.", iId, MAX_WEAPONS - 1);
-		return -1;
-	}
-
-	Vector vecOrigin;
-	cell *vOrigin = MF_GetAmxAddr(amx, params[2]);
-
-	vecOrigin.x = amx_ctof(vOrigin[0]);
-	vecOrigin.y = amx_ctof(vOrigin[1]);
-	vecOrigin.z = amx_ctof(vOrigin[2]);
-
-	Vector vecAngles;
-	cell *vAngles = MF_GetAmxAddr(amx, params[3]);
-
-	vecAngles.x = amx_ctof(vAngles[0]);
-	vecAngles.y = amx_ctof(vAngles[1]);
-	vecAngles.z = amx_ctof(vAngles[2]);
-
-	edict_t* iItem = Weapon_Spawn(iId, vecOrigin, vecAngles);
-
-	if (IsValidPev(iItem))
-	{
-		return ENTINDEX(iItem);
-	}
-
-	return -1;
-}
-
-/**
- * Spawn a weapon entity by name.
- *
- * @param szName			Weapon's name.
+ * @param szName			Item's name.
  * @param vecOrigin			Origin were to spawn.
  * @param vecAngles			Angles.
  *
- * @return					Weapon entity index or -1 on failure. (integer)
+ * @return					Item entity index or -1 on failure. (integer)
  *
- * native wpnmod_spawn_weapon_by_name(const szName[], const Float: vecOrigin[3] = {0.0, 0.0, 0.0}, const Float: vecAngles[3] = {0.0, 0.0, 0.0});
+ * native wpnmod_create_item(const szName[], const Float: vecOrigin[3] = {0.0, 0.0, 0.0}, const Float: vecAngles[3] = {0.0, 0.0, 0.0});
 */
-static cell AMX_NATIVE_CALL wpnmod_spawn_weapon_by_name(AMX *amx, cell *params)
+static cell AMX_NATIVE_CALL wpnmod_create_item(AMX *amx, cell *params)
 {
 	char *wpnname = MF_GetAmxString(amx, params[1], 0, NULL);
 
@@ -822,11 +761,10 @@ static cell AMX_NATIVE_CALL wpnmod_spawn_weapon_by_name(AMX *amx, cell *params)
 	return -1;
 }
 
-AMX_NATIVE_INFO wpnmod_Natives[] = 
+AMX_NATIVE_INFO Natives_Weapon[] = 
 {
 	{ "wpnmod_register_weapon", wpnmod_register_weapon},
-	{ "wpnmod_register_ammobox", wpnmod_register_ammobox},
-	{ "wpnmod_register_forward", wpnmod_register_forward},
+	{ "wpnmod_register_weapon_forward", wpnmod_register_weapon_forward},
 	{ "wpnmod_send_weapon_anim", wpnmod_send_weapon_anim},
 	{ "wpnmod_set_player_anim", wpnmod_set_player_anim},
 	{ "wpnmod_set_think", wpnmod_set_think},
@@ -841,8 +779,7 @@ AMX_NATIVE_INFO wpnmod_Natives[] =
 	{ "wpnmod_eject_brass", wpnmod_eject_brass},
 	{ "wpnmod_reset_empty_sound", wpnmod_reset_empty_sound},
 	{ "wpnmod_play_empty_sound", wpnmod_play_empty_sound},
-	{ "wpnmod_spawn_weapon_by_id", wpnmod_spawn_weapon_by_id},
-	{ "wpnmod_spawn_weapon_by_name", wpnmod_spawn_weapon_by_name},
+	{ "wpnmod_create_item", wpnmod_create_item},
 
 	{ NULL, NULL }
 };

@@ -36,7 +36,7 @@
 
 void WpnModCommand(void)
 {
-	const char *cmd = CMD_ARGV(1);
+	/*const char *cmd = CMD_ARGV(1);
 
 	if (!strcmp(cmd, "weapons"))
 	{
@@ -49,4 +49,5 @@ void WpnModCommand(void)
 	print_srvconsole("   %-22s - %s\n", "team", "displays team information.");
 	print_srvconsole("   %-22s - %s\n", "credits", "displays credits information.");
 	print_srvconsole("   %-22s - %s\n", "weapons", "displays information about registered weapons.");
+	*/
 }

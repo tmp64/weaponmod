@@ -101,7 +101,21 @@ enum PLAYER_ANIM
 	PLAYER_ATTACK1,
 };
 
-enum e_Forwards
+enum e_AmmoFwds
+{
+	/**
+	 * Forward params for all functions:
+	 * 
+	 * @param iItem				Ammobox's entity index.
+	 */
+	
+	Fwd_Ammo_Spawn,					/* This is called whenever a ammobox entity is created. */
+	Fwd_Ammo_AddAmmo,
+
+	Fwd_Ammo_End
+};
+
+enum e_WpnFwds
 {
 	/**
 	 * Forward params for all functions:
@@ -112,18 +126,18 @@ enum e_Forwards
 	 * @param iAmmo				Amount of ammo in backpack on a user for weapon.
 	 */
 	
-	Fwd_Spawn,					/* This is called whenever a weapon entity is created. */
-	Fwd_CanDeploy,				/* Whether or not this weapon can be deployed. */
-	Fwd_Deploy,					/* Deploys a weapon. */
-	Fwd_Idle,					/* Displays the idle animation for the weapon. */
-	Fwd_PrimaryAttack,			/* Called when the main attack of a weapon is triggered. */
-	Fwd_SecondaryAttack,		/* Called when the secondary attack of a weapon is triggered. */
-	Fwd_Reload,					/* Called when the weapon is reloaded. */
-	Fwd_CanHolster,				/* Whether or not the weapon can be holstered. */
-	Fwd_Holster,				/* Holsters a weapon. */
-	Fwd_IsUseable,				/* Whether or not the weapon is usable. (has ammo, etc.) */
+	Fwd_Wpn_Spawn,					/* This is called whenever a weapon entity is created. */
+	Fwd_Wpn_CanDeploy,				/* Whether or not this weapon can be deployed. */
+	Fwd_Wpn_Deploy,					/* Deploys a weapon. */
+	Fwd_Wpn_Idle,					/* Displays the idle animation for the weapon. */
+	Fwd_Wpn_PrimaryAttack,			/* Called when the main attack of a weapon is triggered. */
+	Fwd_Wpn_SecondaryAttack,		/* Called when the secondary attack of a weapon is triggered. */
+	Fwd_Wpn_Reload,					/* Called when the weapon is reloaded. */
+	Fwd_Wpn_CanHolster,				/* Whether or not the weapon can be holstered. */
+	Fwd_Wpn_Holster,				/* Holsters a weapon. */
+	Fwd_Wpn_IsUseable,				/* Whether or not the weapon is usable. (has ammo, etc.) */
 
-	Fwd_End
+	Fwd_Wpn_End
 };
 
 enum e_Offsets

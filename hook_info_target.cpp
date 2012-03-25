@@ -69,16 +69,12 @@ edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 
 		pAmmoBox->v.angles = vecAngles;
 
-		if (AmmoBoxInfoArray[iId].iForward[Fwd_Spawn])
+		if (AmmoBoxInfoArray[iId].iForward[Fwd_Ammo_Spawn])
 		{
 			MF_ExecuteForward
 			(
-				WeaponInfoArray[iId].iForward[Fwd_Spawn],
-
-				static_cast<cell>(ENTINDEX(pAmmoBox)), 
-				static_cast<cell>(0), 
-				static_cast<cell>(0), 
-				static_cast<cell>(0),
+				AmmoBoxInfoArray[iId].iForward[Fwd_Ammo_Spawn],
+				static_cast<cell>(ENTINDEX(pAmmoBox)),
 				static_cast<cell>(0)
 			);
 		}
@@ -98,7 +94,7 @@ void Ammo_Respawn(edict_t *pAmmoBox)
 
 	pAmmoBox->v.effects |= EF_NODRAW;
 	pAmmoBox->v.solid = SOLID_NOT;
-	pAmmoBox->v.nextthink = gpGlobals->time + 5;
+	pAmmoBox->v.nextthink = gpGlobals->time + AMMO_RESPAWN_TIME;
 }
 
 
@@ -156,8 +152,6 @@ void Ammo_Respawn(edict_t *pAmmoBox)
 	g_pEntity = PrivateToEdict(pPrivate);
 	pOther = PrivateToEdict(pPrivate2);
 
-	print_srvconsole("!!!!!!!!!!!!!!!!!!!!!! %d %d\n", ENTINDEX(g_pEntity), ENTINDEX(pOther));
-
 	if (!IsValidPev(g_pEntity) || !IsValidPev(pOther))
 	{
 		return;
@@ -167,12 +161,20 @@ void Ammo_Respawn(edict_t *pAmmoBox)
 	{
 		for (k = 0; k < g_iAmmoBoxIndex; k++)
 		{
-			if (!strcmp(STRING(pOther->v.classname), AmmoBoxInfoArray[k].pszName))
+			if (!strcmp(STRING(g_pEntity->v.classname), AmmoBoxInfoArray[k].pszName) && AmmoBoxInfoArray[k].iForward[Fwd_Ammo_AddAmmo])
 			{
-				print_srvconsole("!!!!!!!!!!!!!!!!!!!!!! %d %d\n", ENTINDEX(g_pEntity), ENTINDEX(pOther));
-
-				Ammo_Respawn(g_pEntity);
-				break;
+				if (
+						MF_ExecuteForward
+						(
+							AmmoBoxInfoArray[k].iForward[Fwd_Ammo_AddAmmo], 
+							static_cast<cell>(ENTINDEX(g_pEntity)),
+							static_cast<cell>(ENTINDEX(pOther))
+						)
+					)
+				{
+					(g_pEntity->v.spawnflags & SF_NORESPAWN) ? REMOVE_ENTITY(g_pEntity) : Ammo_Respawn(g_pEntity);
+					break;
+				}
 			}
 		}
 	}
@@ -197,8 +199,8 @@ void ActivateInfoTargetHooks()
 		return;
     }
 
-	g_VirtHook_InfoTarget.SetHook(pEdict, VirtFunc_Touch,				(int)InfoTarget_Touch);
-	g_VirtHook_InfoTarget.SetHook(pEdict, VirtFunc_Think,				(int)InfoTarget_Think);
+	g_VirtHook_InfoTarget.SetHook(pEdict, VirtFunc_Touch, (int)InfoTarget_Touch);
+	g_VirtHook_InfoTarget.SetHook(pEdict, VirtFunc_Think, (int)InfoTarget_Think);
 
 	REMOVE_ENTITY(pEdict);
 }
