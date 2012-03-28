@@ -36,11 +36,11 @@
 
 // Module info
 #define MODULE_NAME "HL Weapon Mod"
-#define MODULE_VERSION "0.1 Alpha"
+#define MODULE_VERSION "0.2 Alpha"
 #define MODULE_AUTHOR "AGHL.RU Dev Team"
 #define MODULE_URL "http://www.aghl.ru/"
 #define MODULE_LOGTAG "WEAPONMOD"
-#define MODULE_LIBRARY "hl_wpnmod"
+#define MODULE_LIBRARY "weaponmod"
 #define MODULE_LIBCLASS ""
 // If you want the module not to be reloaded on mapchange, remove / comment out the next line
 #define MODULE_RELOAD_ON_MAPCHANGE

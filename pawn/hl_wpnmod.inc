@@ -35,19 +35,21 @@
 #if defined hl_wpnmod_included
 	#endinput
 #endif
-
 #define _hl_wpnmod_included
 
+#include <hl_wpnmod_const>
+
 #if AMXX_VERSION_NUM >= 175
-	#pragma reqlib hl_wpnmod
+	#pragma reqlib weaponmod
 #if !defined AMXMODX_NOAUTOLOAD
-	#pragma loadlib hl_wpnmod
+	#pragma loadlib weaponmod
 #endif
 #else
-	#pragma library hl_wpnmod
+	#pragma library weaponmod
 #endif
 
-#include <hl_wpnmod_const>
+#include <fakemeta>
+
 
 
 #define SET_MODEL(%0,%1) engfunc(EngFunc_SetModel, %0, %1)
@@ -225,7 +227,7 @@ native wpnmod_fire_bullets(const iPlayer, const iAttacker, const iShotsCount, co
  * @param flDamage			Damage amount.
  * @param flRadius			Damage radius.
  * @param iClassIgnore		Class to ignore.
- * @param bitsDamageType	Damage type (see CLASSIFY defines).
+ * @param bitsDamageType	Damage type (DMG_BLAST and etc).
  */
 native wpnmod_radius_damage(const Float: vecSrc[3], const iInflictor, const iAttacker, const Float: flDamage, const Float: flRadius, const iClassIgnore, const bitsDamageType);
 

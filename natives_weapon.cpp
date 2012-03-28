@@ -275,12 +275,12 @@ static cell AMX_NATIVE_CALL wpnmod_set_player_anim(AMX *amx, cell *params)
 
 	edict_t *pPlayer = INDEXENT2(iPlayer);
 
-	FN_SetAnimation SetAnimation = (FN_SetAnimation)((DWORD)/*pDbase + ADDRESS_SET_ANIMATION*/pPlayerSetAnimation);
+	FN_SetAnimation SetAnimation = (FN_SetAnimation)((DWORD)pPlayerSetAnimation);
 
 #ifdef _WIN32
 	reinterpret_cast<void (__fastcall *)(void *, int, int)>(SetAnimation)((void*)pPlayer->pvPrivateData, 0, iPlayerAnim);
 #elif __linux__
-	reinterpret_cast<void (*)(void *, int)>(SetAnimation)((void*)pPlayer->pvPrivateData, PLAYER_ATTACK1);
+	reinterpret_cast<void (*)(void *, int)>(SetAnimation)((void*)pPlayer->pvPrivateData, iPlayerAnim);
 #endif
 
 	return 1;
