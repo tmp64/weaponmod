@@ -180,9 +180,7 @@ float TEXTURETYPE_PlaySound(TraceResult *ptr,  Vector vecSrc, Vector vecEnd)
 	else
 	{
 		// hit world
-
 		// find texture under strike, get material type
-
 		// copy trace vector into array for trace_texture
 
 		vecSrc.CopyToArray(rgfl1);

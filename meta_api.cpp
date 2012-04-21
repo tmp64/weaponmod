@@ -33,23 +33,32 @@
 
 #include "weaponmod.h"
 
+
 BOOL g_Initialized;
+
 
 int OnMetaAttach()
 {
-	REG_SVR_COMMAND("wpnmod", WpnModCommand);
-
-	/*print_srvconsole("\n   Half-Life Weapon Mod version %s Copyright (c) 2012 AGHL.RU Dev Team. \n"
+	print_srvconsole("\n   Half-Life Weapon Mod version %s Copyright (c) 2012 AGHL.RU Dev Team. \n"
 					 "   Weapon Mod comes with ABSOLUTELY NO WARRANTY; for details type `wpnmod gpl'.\n", Plugin_info.version);
 	print_srvconsole("   This is free software and you are welcome to redistribute it under \n"
 					 "   certain conditions; type 'wpnmod gpl' for details.\n  \n");
-	*/
+	
 	if (FindDllBase((void*)MDLL_FUNC->pfnGetGameDescription()))
 	{
 		if (CVAR_GET_POINTER("aghl.ru"))
 		{
 #ifdef _WIN32
-		// TO DO: Find patterns.
+			pRadiusDamage = FindFunction(	"\x83\xEC\x7C\xD9\xEE\xD9\x54\x24\x58",
+											"xxxxxxxxx", 9);
+
+			pPlayerSetAnimation = FindFunction(		"\x83\xEC\x48\xA1\x00\x00\x00\x00"
+													"\x00\x00\x89\x00\x00\x00\x53\x56",
+													"xxxx??????x???xx", 16);
+
+			pPrecacheOtherWeapon = FindFunction(	"\x8B\x00\x00\x00\x00\x00\x8B\x00\x00\x00\x2B"
+													"\x81\x98\x00\x00\x00\x83\xEC\x2C\x53\x50",
+													"x?????x???xxx???xxxxx", 21);
 #elif __linux__
 		// TO DO: Find linux patterns.
 #endif
@@ -72,6 +81,11 @@ int OnMetaAttach()
 #endif
 	}
 
+	cvar_t	version = {"hl_wpnmod_version", Plugin_info.version, FCVAR_SERVER};
+	
+	REG_SVR_COMMAND("wpnmod", WpnModCommand);
+	CVAR_REGISTER (&version);
+
 	return 1;
 }
 
@@ -79,9 +93,21 @@ int OnMetaAttach()
 
 void OnAmxxAttach()
 {
-	if (!g_IsBaseSet || !pRadiusDamage || !pPlayerSetAnimation || ! pPrecacheOtherWeapon)
+	if (!g_IsBaseSet)
 	{
 		print_srvconsole("[WEAPONMOD] Failed to locate hl.dll, cannot register natives.\n");
+	}
+	else if (!pRadiusDamage)
+	{
+		print_srvconsole("[WEAPONMOD] Failed to find \"RadiusDamage\" function, cannot register natives.\n");
+	}
+	else if (!pPlayerSetAnimation)
+	{
+		print_srvconsole("[WEAPONMOD] Failed to find \"PlayerSetAnimation\" function, cannot register natives.\n");
+	}
+	else if (!pPrecacheOtherWeapon)
+	{
+		print_srvconsole("[WEAPONMOD] Failed to find \"PrecacheOtherWeapon\" function, cannot register natives.\n");
 	}
 	else
 	{
@@ -107,13 +133,11 @@ int AmxxCheckGame(const char *game)
 {
 	if (!strcasecmp(game, "valve"))
 	{
-
 #ifdef _WIN32
 		int extraoffset = 0;
 #elif __linux__
 		int extraoffset = 2;
 #endif
-
 		VirtualFunction[VirtFunc_Classify] =			8 + extraoffset;
 		VirtualFunction[VirtFunc_TakeDamage] =			11 + extraoffset;
 		VirtualFunction[VirtFunc_BloodColor] =			14 + extraoffset;
@@ -139,28 +163,14 @@ int AmxxCheckGame(const char *game)
 }
 
 
-
 void OnPluginsLoaded()
 {
-	g_sModelIndexBloodSpray = PRECACHE_MODEL ("sprites/bloodspray.spr"); // initial blood
-	g_sModelIndexBloodDrop = PRECACHE_MODEL ("sprites/blood.spr"); // splattered blood 
+	g_sModelIndexBloodSpray = PRECACHE_MODEL("sprites/bloodspray.spr"); // initial blood
+	g_sModelIndexBloodDrop = PRECACHE_MODEL("sprites/blood.spr"); // splattered blood
 }
 
 
-
-void ServerDeactivate()
-{
-	if (g_Initialized)
-	{
-		g_Initialized = FALSE;
-	}
-
-	RETURN_META(MRES_IGNORED);
-}
-
-
-
-int FN_DispatchSpawn(edict_t *pEntity)
+int DispatchSpawn(edict_t *pEntity)
 {
 	if (!g_Initialized)
 	{
@@ -176,8 +186,7 @@ int FN_DispatchSpawn(edict_t *pEntity)
 }
 
 
-
-void FN_ClientCommand(edict_t *pEntity)
+void ClientCommand(edict_t *pEntity)
 {
 	const char* cmd = CMD_ARGV(0);
 
@@ -189,12 +198,78 @@ void FN_ClientCommand(edict_t *pEntity)
 			
 		sprintf(buf, "\n%s %s\n", Plugin_info.name, Plugin_info.version);
 		CLIENT_PRINT(pEntity, print_console, buf);
-		len = sprintf(buf, "Author: \n         KORD_12.7\n");
-		len += sprintf(&buf[len], "Credits: \n         Lev\n");
+		len = sprintf(buf, "Author: \n         KORD_12.7 (AGHL.RU Dev Team)\n");
+		len += sprintf(&buf[len], "Credits: \n         6a6kin, GordonFreeman, Lev, noo00oob\n");
 		len += sprintf(&buf[len], "Compiled: %s\nURL: http://www.aghl.ru/ - Russian Half-Life and Adrenaline Gamer Community.\n\n", __DATE__ ", " __TIME__);
 		CLIENT_PRINT(pEntity, print_console, buf);
 
 		RETURN_META(MRES_SUPERCEDE);
+	}
+
+	RETURN_META(MRES_IGNORED);
+}
+
+
+void CmdStart(const edict_t *pPlayer, const struct usercmd_s *cmd, unsigned int random_seed)
+{
+	if (cmd->impulse == 101 && CVAR_GET_FLOAT("sv_cheats"))
+	{
+		edict_t *pItem = NULL;
+
+		// Give weapons;
+		for (int i = LIMITER_WEAPON + 1; i <= g_iWeaponIndex; i++)
+		{
+			pItem = Weapon_Spawn(i, pPlayer->v.origin, Vector (0, 0, 0));
+
+			if (IsValidPev(pItem))
+			{
+				pItem->v.spawnflags |= SF_NORESPAWN;
+				MDLL_Touch(pItem, (edict_t *)pPlayer);
+
+				if (pItem->v.modelindex)
+				{
+					REMOVE_ENTITY(pItem);
+				}
+			}
+		}
+
+		// Give ammo;
+		for (int i = 0; i < g_iAmmoBoxIndex; i++)
+		{
+			pItem = Ammo_Spawn(i, pPlayer->v.origin, Vector (0, 0, 0));
+
+			if (IsValidPev(pItem))
+			{
+				pItem->v.spawnflags |= SF_NORESPAWN;
+				MDLL_Touch(pItem, (edict_t *)pPlayer);
+
+				if (pItem->v.modelindex)
+				{
+					REMOVE_ENTITY(pItem);
+				}
+			}
+		}
+	}
+
+	RETURN_META(MRES_IGNORED);
+}
+
+
+void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
+{
+	char filepath[1024];
+	sprintf_s(filepath, "valve/maps/%s.bsp", STRING(gpGlobals->mapname));
+	ParseBSPEntData(filepath);
+	
+	RETURN_META(MRES_IGNORED);
+}
+
+
+void ServerDeactivate()
+{
+	if (g_Initialized)
+	{
+		g_Initialized = FALSE;
 	}
 
 	RETURN_META(MRES_IGNORED);

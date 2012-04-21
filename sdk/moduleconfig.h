@@ -36,7 +36,7 @@
 
 // Module info
 #define MODULE_NAME "HL Weapon Mod"
-#define MODULE_VERSION "0.2 Alpha"
+#define MODULE_VERSION "0.3 Beta"
 #define MODULE_AUTHOR "AGHL.RU Dev Team"
 #define MODULE_URL "http://www.aghl.ru/"
 #define MODULE_LOGTAG "WEAPONMOD"
@@ -163,7 +163,7 @@
 // #define FN_CreateBaseline			CreateBaseline				/* pfnCreateBaseline()			Tweak entity baseline for network encoding allows setup of player baselines too.; (wd) SDK2 */
 // #define FN_RegisterEncoders			RegisterEncoders			/* pfnRegisterEncoders()		Callbacks for network encoding; (wd) SDK2 */
 // #define FN_GetWeaponData				GetWeaponData				/* pfnGetWeaponData()			(wd) SDK2 */
-// #define FN_CmdStart					CmdStart					/* pfnCmdStart()				(wd) SDK2 */
+#define FN_CmdStart					CmdStart					/* pfnCmdStart()				(wd) SDK2 */
 // #define FN_CmdEnd					CmdEnd						/* pfnCmdEnd()					(wd) SDK2 */
 // #define FN_ConnectionlessPacket		ConnectionlessPacket		/* pfnConnectionlessPacket()	(wd) SDK2 */
 // #define FN_GetHullBounds				GetHullBounds				/* pfnGetHullBounds()			(wd) SDK2 */
@@ -193,14 +193,14 @@
 // #define FN_ClientPutInServer_Post				ClientPutInServer_Post
 // #define FN_ClientCommand_Post				ClientCommand_Post
 // #define FN_ClientUserInfoChanged_Post			ClientUserInfoChanged_Post
-// #define FN_ServerActivate_Post					ServerActivate_Post
+#define FN_ServerActivate_Post					ServerActivate_Post
 // #define FN_ServerDeactivate_Post				ServerDeactivate_Post
 // #define FN_PlayerPreThink_Post					PlayerPreThink_Post
 // #define FN_PlayerPostThink_Post				PlayerPostThink_Post
 // #define FN_StartFrame_Post					StartFrame_Post
 // #define FN_ParmsNewLevel_Post				ParmsNewLevel_Post
 // #define FN_ParmsChangeLevel_Post				ParmsChangeLevel_Post
-// #define FN_GetGameDescription_Post			GetGameDescription_Post
+//#define FN_GetGameDescription_Post			GetGameDescription_Post
 // #define FN_PlayerCustomization_Post			PlayerCustomization_Post
 // #define FN_SpectatorConnect_Post				SpectatorConnect_Post
 // #define FN_SpectatorDisconnect_Post			SpectatorDisconnect_Post

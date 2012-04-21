@@ -88,6 +88,13 @@
     #define PrivateToEdict(pPrivate) (*(entvars_t **)pPrivate)->pContainingEntity
 #endif
 
+#define CHECK_ENTITY(x) \
+	if (x != 0 && (FNullEnt(INDEXENT2(x)) || x < 0 || x > gpGlobals->maxEntities)) \
+	{ \
+		MF_LogError(amx, AMX_ERR_NATIVE, "Invalid entity."); \
+		return 0; \
+	}\
+
 #define CLIENT_PRINT							(*g_engfuncs.pfnClientPrintf)
 
 #define m_flStartThrow							XTRA_OFS_WEAPON + 16
@@ -179,6 +186,26 @@ typedef struct
 	void *pOrigFunc;
 } HookData;
 
+typedef struct usercmd_s
+{
+	short	lerp_msec;      // Interpolation time on client
+	byte	msec;           // Duration in ms of command
+	vec3_t	viewangles;     // Command view angles.
+
+// intended velocities
+	float	forwardmove;    // Forward velocity.
+	float	sidemove;       // Sideways velocity.
+	float	upmove;         // Upward velocity.
+	byte	lightlevel;     // Light level at spot where we are standing.
+	unsigned short  buttons;  // Attack buttons
+	byte    impulse;          // Impulse command issued.
+	byte	weaponselect;	// Current weapon id
+
+// Experimental player impact stuff.
+	int		impact_index;
+	vec3_t	impact_position;
+} usercmd_t;
+
 typedef struct
 {
 	int		iSlot;
@@ -243,6 +270,10 @@ extern void WpnModCommand(void);
 extern void* FindFunction(char* sig_str, char* sig_mask, size_t sig_len);
 
 extern BOOL FindDllBase(void* func);
+extern int ParseBSPEntData(char *file);
+
+extern edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles);
+extern edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles);
 
 inline int			iSlot(const int iId)			{ return WeaponInfoArray[iId].ItemData.iSlot; }
 inline int			iItemPosition(const int iId)	{ return WeaponInfoArray[iId].ItemData.iPosition; }

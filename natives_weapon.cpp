@@ -33,12 +33,6 @@
 
 #include "weaponmod.h"
 
-#define CHECK_ENTITY(x) \
-	if (x != 0 && (FNullEnt(INDEXENT2(x)) || x < 0 || x > gpGlobals->maxEntities)) \
-	{ \
-		MF_LogError(amx, AMX_ERR_NATIVE, "Invalid entity."); \
-		return 0; \
-	}\
 
 #define CHECK_OFFSET(x) \
 	if ( x < 0 || x >= Offset_End) \
@@ -107,9 +101,6 @@ int PvDataOffsets[Offset_End] =
 	m_iWeaponFlash
 };
 
-
-edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles);
-edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles);
 
 void ActivateCrowbarHooks();
 
@@ -640,7 +631,7 @@ static cell AMX_NATIVE_CALL wpnmod_eject_brass(AMX *amx, cell *params)
 
 	edict_t* pPlayer = INDEXENT2(iPlayer);
 
-	Vector	vecShellVelocity = pPlayer->v.velocity + gpGlobals->v_right * RANDOM_FLOAT(50, 70) + gpGlobals->v_up * RANDOM_FLOAT(100, 150) + gpGlobals->v_forward * 25;
+	Vector vecShellVelocity = pPlayer->v.velocity + gpGlobals->v_right * RANDOM_FLOAT(50, 70) + gpGlobals->v_up * RANDOM_FLOAT(100, 150) + gpGlobals->v_forward * 25;
 	
 	UTIL_EjectBrass
 	(
