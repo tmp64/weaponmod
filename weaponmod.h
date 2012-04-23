@@ -120,6 +120,7 @@
 #define m_flNextAttack							XTRA_OFS_PLAYER + 148
 #define m_iWeaponVolume							XTRA_OFS_PLAYER + 173
 #define m_iWeaponFlash							XTRA_OFS_PLAYER + 175
+#define m_iFOV									XTRA_OFS_PLAYER + 298
 #define m_rgAmmo								XTRA_OFS_PLAYER + 310
 #define m_szAnimExtention						XTRA_OFS_PLAYER + 387
 

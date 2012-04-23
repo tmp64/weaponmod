@@ -36,6 +36,9 @@
 
 BOOL g_Initialized;
 
+Vector ParseVec(char *pString);
+char* parse_arg(char** line, int& state);
+
 
 int OnMetaAttach()
 {
@@ -254,13 +257,74 @@ void CmdStart(const edict_t *pPlayer, const struct usercmd_s *cmd, unsigned int 
 	RETURN_META(MRES_IGNORED);
 }
 
+static const char* get_localinfo(const char* name , const char* def = 0)
+{
+	const char* b = LOCALINFO((char*)name);
+	if (((b==0)||(*b==0)) && def)
+		SET_LOCALINFO((char*)name,(char*)(b = def));
+	return b;
+}
+
 
 void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 {
 	char filepath[1024];
-	sprintf_s(filepath, "valve/maps/%s.bsp", STRING(gpGlobals->mapname));
+
+	MF_BuildPathnameR(filepath, sizeof(filepath) - 1, "maps/%s.bsp", STRING(gpGlobals->mapname));
 	ParseBSPEntData(filepath);
-	
+
+	MF_BuildPathnameR(filepath, sizeof(filepath) - 1, "%s/weaponmod/%s.ini", get_localinfo("amxx_configsdir","addons/amxmodx/configs"), STRING(gpGlobals->mapname));
+	FILE *stream = fopen(filepath, "r");
+
+	if (stream)
+	{
+		char data[2048];
+		int wpns = 0, ammoboxes = 0;
+
+		while (!feof(stream))
+		{
+			fgets(data, sizeof(data) - 1, stream);
+			
+			char *b = &data[0];
+
+			if (*b != ';')
+			{
+				int i;
+				int state;
+				
+				char* arg;
+				char szData[3][32];
+
+				for (i = 0; i < 3; i++)
+				{
+					arg = parse_arg(&b, state);
+					strcpy(szData[i], arg);
+				}
+				
+				for (i = LIMITER_WEAPON + 1; i <= g_iWeaponIndex; i++)
+				{
+					if (!strcmpi(pszName(i), szData[0]))
+					{
+						Weapon_Spawn(i, strlen(szData[1]) ? ParseVec(szData[1]) : Vector(0, 0, 0), strlen(szData[2])  ? ParseVec(szData[2]) : Vector(0, 0, 0));
+						wpns++;
+					}
+				}
+
+				for (i = 0; i < g_iAmmoBoxIndex; i++)
+				{
+					if (!strcmpi(AmmoBoxInfoArray[i].pszName, szData[0]))
+					{
+						Ammo_Spawn(i, strlen(szData[1]) ? ParseVec(szData[1]) : Vector(0, 0, 0), strlen(szData[2]) ? ParseVec(szData[2]) : Vector(0, 0, 0));
+						ammoboxes++;
+					}
+				}
+			}
+		}
+
+		print_srvconsole("[WEAPONMOD] \"%s.ini\": spawn %d weapons and %d ammoboxes.\n", STRING(gpGlobals->mapname), wpns, ammoboxes);
+		fclose(stream);
+	}
+
 	RETURN_META(MRES_IGNORED);
 }
 

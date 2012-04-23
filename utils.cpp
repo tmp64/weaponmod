@@ -102,7 +102,7 @@ void UTIL_DecalGunshot(TraceResult *pTrace)
 {
 	int iEntity;
 
-	const char g_GunshotDecals[5][7] =
+	const char GunshotDecals[5][7] =
 	{
 		"{shot1",
 		"{shot2",
@@ -111,7 +111,7 @@ void UTIL_DecalGunshot(TraceResult *pTrace)
 		"{shot5"
 	};
 
-	int index = DECAL_INDEX(g_GunshotDecals[RANDOM_LONG(0, 4)]);
+	int index = DECAL_INDEX(GunshotDecals[RANDOM_LONG(0, 4)]);
 	
 	if (index < 0 || pTrace->flFraction == 1.0)
 	{

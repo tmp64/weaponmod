@@ -74,6 +74,8 @@ enum e_Offsets
 	Offset_flNextAttack,				// cannot attack again until this time
 	Offset_iWeaponVolume,				// how loud the player's weapon is right now
 	Offset_iWeaponFlash,				// brightness of the weapon flash
+	Offset_iLastHitGroup,
+	Offset_iFOV,
 	
 	Offset_End
 };
@@ -98,7 +100,9 @@ int PvDataOffsets[Offset_End] =
 	m_iDefaultAmmo,
 	m_flNextAttack,
 	m_iWeaponVolume,
-	m_iWeaponFlash
+	m_iWeaponFlash,
+	m_LastHitGroup,
+	m_iFOV
 };
 
 

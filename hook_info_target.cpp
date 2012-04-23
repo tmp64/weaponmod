@@ -58,16 +58,7 @@ edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 
 	if (IsValidPev(pAmmoBox))
 	{
-		MDLL_Spawn(pAmmoBox);
-
 		pAmmoBox->v.classname = MAKE_STRING(AmmoBoxInfoArray[iId].pszName);
-		pAmmoBox->v.movetype = MOVETYPE_TOSS;
-		pAmmoBox->v.solid = SOLID_TRIGGER;
-
-		SET_SIZE(pAmmoBox, Vector(-16.0, -16.0, 0.0), Vector(16.0, 16.0, 16.0));
-		SET_ORIGIN(pAmmoBox, vecOrigin);
-
-		pAmmoBox->v.angles = vecAngles;
 
 		if (AmmoBoxInfoArray[iId].iForward[Fwd_Ammo_Spawn])
 		{
@@ -78,6 +69,14 @@ edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 				static_cast<cell>(0)
 			);
 		}
+
+		pAmmoBox->v.movetype = MOVETYPE_TOSS;
+		pAmmoBox->v.solid = SOLID_TRIGGER;
+		
+		SET_SIZE(pAmmoBox, Vector(-16, -16, 0), Vector(16, 16, 16));
+		SET_ORIGIN(pAmmoBox, vecOrigin);
+
+		pAmmoBox->v.angles = vecAngles;
 	}
 
 	return pAmmoBox;
@@ -129,6 +128,24 @@ void Ammo_Respawn(edict_t *pAmmoBox)
 			g_pEntity->v.solid = SOLID_TRIGGER;
 			break;
 		}
+	}
+
+	int iThinkForward = g_EntData.Get_Think(ENTINDEX(g_pEntity));
+
+	if (iThinkForward)
+	{
+		MF_ExecuteForward
+		(
+			iThinkForward,
+
+			static_cast<cell>(ENTINDEX(g_pEntity)), 
+			static_cast<cell>(0), 
+			static_cast<cell>(0), 
+			static_cast<cell>(0),
+			static_cast<cell>(0)
+		);
+
+		return;
 	}
 
 #ifdef _WIN32
