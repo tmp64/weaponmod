@@ -144,6 +144,7 @@ enum e_WpnFwds
 	Fwd_Wpn_CanHolster,
 	Fwd_Wpn_Holster,
 	Fwd_Wpn_IsUseable,
+	Fwd_Wpn_AddToPlayer,
 
 	Fwd_Wpn_End
 };
@@ -234,10 +235,12 @@ typedef struct
 	int iForward[Fwd_Wpn_End];
 } AmmoBoxData;
 
+typedef int (*FN_GetAmmoIndex)(const char *psz);
 typedef void (*FN_PrecacheOtherWeapon)(const char *szClassname);
 typedef void (*FN_RadiusDamage)(Vector vecSrc, entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, float flRadius, int iClassIgnore, int bitsDamageType);
 
 extern void *pRadiusDamage;
+extern void *pGetAmmoIndex;
 extern void *pPlayerSetAnimation;
 extern void *pPrecacheOtherWeapon;
 
@@ -265,6 +268,8 @@ extern BOOL	g_IsBaseSet;
 
 extern short g_sModelIndexBloodDrop;
 extern short g_sModelIndexBloodSpray;
+extern short g_sModelIndexFireball;
+extern short g_sModelIndexWExplosion;
 
 extern void MakeVirtualHooks(void);
 extern void WpnModCommand(void);

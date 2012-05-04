@@ -253,3 +253,22 @@ native wpnmod_eject_brass(const iPlayer, const iShellModelIndex, const iSoundtyp
  * @return					Item entity index or -1 on failure. (integer)
  */
 native wpnmod_create_item(const szName[], const Float: vecOrigin[3] = {0.0, 0.0, 0.0}, const Float: vecAngles[3] = {0.0, 0.0, 0.0});
+
+/**
+* Get player's ammo inventory.
+ *
+ * @param iPlayer		Player id.
+ * @param szAmmoName	Ammo type. ("9mm", "uranium", "MY_AMMO" etc..)
+ *
+ * @return				Amount of given ammo. (integer)
+*/
+native wpnmod_get_player_ammo(const iPlayer, const szAmmoName[]);
+
+/**
+* Set player's ammo inventory.
+ *
+ * @param iPlayer		Player id.
+ * @param szAmmoName	Ammo type. ("9mm", "uranium", "MY_AMMO" etc..)
+ * @param iAmount		Ammo amount.
+*/
+native wpnmod_set_player_ammo(const iPlayer, const szAmmoName[], const iAmount);

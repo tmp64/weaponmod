@@ -136,6 +136,7 @@ enum e_WpnFwds
 	Fwd_Wpn_CanHolster,				/* Whether or not the weapon can be holstered. */
 	Fwd_Wpn_Holster,				/* Holsters a weapon. */
 	Fwd_Wpn_IsUseable,				/* Whether or not the weapon is usable. (has ammo, etc.) */
+	Fwd_Wpn_AddToPlayer,
 
 	Fwd_Wpn_End
 };
@@ -166,6 +167,16 @@ enum e_Offsets
 	Offset_iWeaponFlash,				// Brightness of the weapon flash.
 	Offset_iLastHitGroup,				// The last body region that took damage.
 	Offset_iFOV,						// Field of view.
+
+	// Custom (for weapon and "info_target" entities only)
+	Offset_iuser1,
+	Offset_iuser2,
+	Offset_iuser3,
+	Offset_iuser4,
+	Offset_fuser1,
+	Offset_fuser2,
+	Offset_fuser3,
+	Offset_fuser4,
 	
 	Offset_End
 };

@@ -55,6 +55,9 @@ int OnMetaAttach()
 			pRadiusDamage = FindFunction(	"\x83\xEC\x7C\xD9\xEE\xD9\x54\x24\x58",
 											"xxxxxxxxx", 9);
 
+			pGetAmmoIndex = FindFunction(	"\x57\x8B\x7C\x24\x08\x85\xFF\x75\x05",
+											"xxxxxxxxx", 9);
+
 			pPlayerSetAnimation = FindFunction(		"\x83\xEC\x48\xA1\x00\x00\x00\x00"
 													"\x00\x00\x89\x00\x00\x00\x53\x56",
 													"xxxx??????x???xx", 16);
@@ -71,6 +74,9 @@ int OnMetaAttach()
 #ifdef _WIN32
 			pRadiusDamage = FindFunction(	"\xD9\x44\x24\x1C\xD8\x00\x00\x00\x00\x00\x83\xEC\x64",
 											"xxxxx?????xxx", 13);
+
+			pGetAmmoIndex = FindFunction(	"\x56\x57\x8B\x7C\x24\x0C\x85\xFF",
+											"xxxxxxxx", 8);
 
 			pPlayerSetAnimation = FindFunction(		"\x83\xEC\x44\x53\x55\x8B\xE9\x33\xDB\x56\x57",
 													"xxxxxxxxxxx", 11);
@@ -103,6 +109,10 @@ void OnAmxxAttach()
 	else if (!pRadiusDamage)
 	{
 		print_srvconsole("[WEAPONMOD] Failed to find \"RadiusDamage\" function, cannot register natives.\n");
+	}
+	else if (!pGetAmmoIndex)
+	{
+		print_srvconsole("[WEAPONMOD] Failed to find \"GetAmmoIndex\" function, cannot register natives.\n");
 	}
 	else if (!pPlayerSetAnimation)
 	{
@@ -170,6 +180,8 @@ void OnPluginsLoaded()
 {
 	g_sModelIndexBloodSpray = PRECACHE_MODEL("sprites/bloodspray.spr"); // initial blood
 	g_sModelIndexBloodDrop = PRECACHE_MODEL("sprites/blood.spr"); // splattered blood
+	g_sModelIndexFireball = PRECACHE_MODEL("sprites/zerogxplode.spr"); // fireball
+	g_sModelIndexWExplosion = PRECACHE_MODEL("sprites/WXplo1.spr"); // underwater fireball
 }
 
 

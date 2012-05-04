@@ -38,6 +38,7 @@
 BOOL g_IsBaseSet = FALSE;
 
 void *pRadiusDamage = NULL;
+void *pGetAmmoIndex = NULL;
 void *pPlayerSetAnimation = NULL;
 void *pPrecacheOtherWeapon = NULL;
 

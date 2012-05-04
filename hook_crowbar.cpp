@@ -630,15 +630,31 @@ edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 	g_iId = (int)*((int *)g_pWeapon->pvPrivateData + m_iId);
 	g_pPlayer = PrivateToEdict(pPrivate2);
 
-	if (g_iId > LIMITER_WEAPON && IsValidPev(g_pPlayer) && !CVAR_GET_POINTER("aghl.ru"))
+	if (g_iId > LIMITER_WEAPON && IsValidPev(g_pPlayer))
 	{
-		int msgWeapPickup = NULL;
-
-		if (msgWeapPickup || (msgWeapPickup = REG_USER_MSG( "WeapPickup", 1 )))		
+		if (!CVAR_GET_POINTER("aghl.ru"))
 		{
-			MESSAGE_BEGIN(MSG_ONE, msgWeapPickup, NULL, g_pPlayer);
-				WRITE_BYTE(g_iId);
-			MESSAGE_END();
+			int msgWeapPickup = NULL;
+			if (msgWeapPickup || (msgWeapPickup = REG_USER_MSG( "WeapPickup", 1 )))		
+			{
+				MESSAGE_BEGIN(MSG_ONE, msgWeapPickup, NULL, g_pPlayer);
+					WRITE_BYTE(g_iId);
+				MESSAGE_END();
+			}
+		}
+
+		if ( WeaponInfoArray[g_iId].iForward[Fwd_Wpn_AddToPlayer])
+		{
+			MF_ExecuteForward
+			(
+				WeaponInfoArray[g_iId].iForward[Fwd_Wpn_AddToPlayer],
+
+				static_cast<cell>(ENTINDEX(g_pWeapon)), 
+				static_cast<cell>(ENTINDEX(g_pPlayer)), 
+				static_cast<cell>((int)*((int *)g_pWeapon->pvPrivateData + m_iClip)), 
+				static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, TRUE)),
+				static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, FALSE))
+			);
 		}
 	}
 

@@ -113,23 +113,6 @@ void Ammo_Respawn(edict_t *pAmmoBox)
 		return;
 	}
 
-	for (k = 0; k < g_iAmmoBoxIndex; k++)
-	{
-		if (!strcmpi(STRING(g_pEntity->v.classname), AmmoBoxInfoArray[k].pszName))
-		{
-			if (g_pEntity->v.effects & EF_NODRAW)
-			{
-				EMIT_SOUND_DYN2(g_pEntity, CHAN_WEAPON, "items/suitchargeok1.wav", 1.0, ATTN_NORM, 0, 150);
-
-				g_pEntity->v.effects &= ~EF_NODRAW;
-				g_pEntity->v.effects |= EF_MUZZLEFLASH;
-			}
-
-			g_pEntity->v.solid = SOLID_TRIGGER;
-			break;
-		}
-	}
-
 	int iThinkForward = g_EntData.Get_Think(ENTINDEX(g_pEntity));
 
 	if (iThinkForward)
@@ -146,6 +129,23 @@ void Ammo_Respawn(edict_t *pAmmoBox)
 		);
 
 		return;
+	}
+
+	for (k = 0; k < g_iAmmoBoxIndex; k++)
+	{
+		if (!strcmpi(STRING(g_pEntity->v.classname), AmmoBoxInfoArray[k].pszName))
+		{
+			if (g_pEntity->v.effects & EF_NODRAW)
+			{
+				EMIT_SOUND_DYN2(g_pEntity, CHAN_WEAPON, "items/suitchargeok1.wav", 1.0, ATTN_NORM, 0, 150);
+
+				g_pEntity->v.effects &= ~EF_NODRAW;
+				g_pEntity->v.effects |= EF_MUZZLEFLASH;
+			}
+
+			g_pEntity->v.solid = SOLID_TRIGGER;
+			break;
+		}
 	}
 
 #ifdef _WIN32

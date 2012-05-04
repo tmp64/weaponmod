@@ -76,6 +76,16 @@ enum e_Offsets
 	Offset_iWeaponFlash,				// brightness of the weapon flash
 	Offset_iLastHitGroup,
 	Offset_iFOV,
+
+	// Custom (for weapon and "info_target" entities only)
+	Offset_iuser1,
+	Offset_iuser2,
+	Offset_iuser3,
+	Offset_iuser4,
+	Offset_fuser1,
+	Offset_fuser2,
+	Offset_fuser3,
+	Offset_fuser4,
 	
 	Offset_End
 };
@@ -102,7 +112,15 @@ int PvDataOffsets[Offset_End] =
 	m_iWeaponVolume,
 	m_iWeaponFlash,
 	m_LastHitGroup,
-	m_iFOV
+	m_iFOV,
+	XTRA_OFS_WEAPON + 8,
+	XTRA_OFS_WEAPON + 9,
+	XTRA_OFS_WEAPON + 10,
+	XTRA_OFS_WEAPON + 11,
+	XTRA_OFS_WEAPON + 12,
+	XTRA_OFS_WEAPON + 13,
+	XTRA_OFS_WEAPON + 14,
+	XTRA_OFS_WEAPON + 15,
 };
 
 
@@ -268,17 +286,79 @@ static cell AMX_NATIVE_CALL wpnmod_set_player_anim(AMX *amx, cell *params)
 
 	CHECK_ENTITY(iPlayer)
 
-	edict_t *pPlayer = INDEXENT2(iPlayer);
-
 	FN_SetAnimation SetAnimation = (FN_SetAnimation)((DWORD)pPlayerSetAnimation);
 
 #ifdef _WIN32
-	reinterpret_cast<void (__fastcall *)(void *, int, int)>(SetAnimation)((void*)pPlayer->pvPrivateData, 0, iPlayerAnim);
+	reinterpret_cast<void (__fastcall *)(void *, int, int)>(SetAnimation)((void*)INDEXENT2(iPlayer)->pvPrivateData, 0, iPlayerAnim);
 #elif __linux__
-	reinterpret_cast<void (*)(void *, int)>(SetAnimation)((void*)pPlayer->pvPrivateData, iPlayerAnim);
+	reinterpret_cast<void (*)(void *, int)>(SetAnimation)((void*)INDEXENT2(iPlayer)->pvPrivateData, iPlayerAnim);
 #endif
 
 	return 1;
+}
+
+/**
+* Get player's ammo inventory.
+ *
+ * @param iPlayer		Player id.
+ * @param szAmmoName	Ammo type. ("9mm", "uranium", "MY_AMMO" etc..)
+ *
+ * @return				Amount of given ammo. (integer)
+ *
+ * native wpnmod_get_player_ammo(const iPlayer, const szAmmoName[]);
+*/
+static cell AMX_NATIVE_CALL wpnmod_get_player_ammo(AMX *amx, cell *params)
+{
+	int iPlayer = params[1];
+
+	CHECK_ENTITY(iPlayer)
+
+	FN_GetAmmoIndex GetAmmoIndex = (FN_GetAmmoIndex)((DWORD)pGetAmmoIndex);
+
+#ifdef _WIN32
+	int iAmmoIndex = reinterpret_cast<int (__cdecl *)(const char *)>(GetAmmoIndex)(STRING(ALLOC_STRING(MF_GetAmxString(amx, params[2], 0, NULL))));
+#elif __linux__
+	int iAmmoIndex = reinterpret_cast<int (*)(const char *)>(GetAmmoIndex)(STRING(ALLOC_STRING(MF_GetAmxString(amx, params[2], 0, NULL))));
+#endif
+
+	if (iAmmoIndex != -1)
+	{
+		return (int)*((int *)INDEXENT2(iPlayer)->pvPrivateData + m_rgAmmo + iAmmoIndex - 1);
+	}
+
+	return 0;
+}
+
+/**
+* Set player's ammo inventory.
+ *
+ * @param iPlayer		Player id.
+ * @param szAmmoName	Ammo type. ("9mm", "uranium", "MY_AMMO" etc..)
+ * @param iAmount		Ammo amount.
+ *
+ * native wpnmod_set_player_ammo(const iPlayer, const szAmmoName[], const iAmount);
+*/
+static cell AMX_NATIVE_CALL wpnmod_set_player_ammo(AMX *amx, cell *params)
+{
+	int iPlayer = params[1];
+
+	CHECK_ENTITY(iPlayer)
+
+	FN_GetAmmoIndex GetAmmoIndex = (FN_GetAmmoIndex)((DWORD)pGetAmmoIndex);
+
+#ifdef _WIN32
+	int iAmmoIndex = reinterpret_cast<int (__cdecl *)(const char *)>(GetAmmoIndex)(STRING(ALLOC_STRING(MF_GetAmxString(amx, params[2], 0, NULL))));
+#elif __linux__
+	int iAmmoIndex = reinterpret_cast<int (*)(const char *)>(GetAmmoIndex)(STRING(ALLOC_STRING(MF_GetAmxString(amx, params[2], 0, NULL))));
+#endif
+
+	if (iAmmoIndex != -1)
+	{
+		*((int *)INDEXENT2(iPlayer)->pvPrivateData + m_rgAmmo + iAmmoIndex - 1) = params[3];
+		return 1;
+	}
+
+	return 0;
 }
 
 /**
@@ -767,6 +847,8 @@ AMX_NATIVE_INFO Natives_Weapon[] =
 	{ "wpnmod_set_offset_float", wpnmod_set_offset_float},
 	{ "wpnmod_get_offset_int", wpnmod_get_offset_int},
 	{ "wpnmod_get_offset_float", wpnmod_get_offset_float},
+	{ "wpnmod_get_player_ammo", wpnmod_get_player_ammo},
+	{ "wpnmod_set_player_ammo", wpnmod_set_player_ammo},
 	{ "wpnmod_default_deploy", wpnmod_default_deploy},
 	{ "wpnmod_default_reload", wpnmod_default_reload},
 	{ "wpnmod_fire_bullets", wpnmod_fire_bullets},
@@ -774,6 +856,7 @@ AMX_NATIVE_INFO Natives_Weapon[] =
 	{ "wpnmod_eject_brass", wpnmod_eject_brass},
 	{ "wpnmod_reset_empty_sound", wpnmod_reset_empty_sound},
 	{ "wpnmod_play_empty_sound", wpnmod_play_empty_sound},
+	{ "wpnmod_create_item", wpnmod_create_item},
 	{ "wpnmod_create_item", wpnmod_create_item},
 
 	{ NULL, NULL }

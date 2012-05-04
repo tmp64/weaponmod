@@ -36,6 +36,8 @@
 
 short g_sModelIndexBloodDrop; // holds the sprite index for blood drops
 short g_sModelIndexBloodSpray; // holds the sprite index for blood spray (bigger)
+short g_sModelIndexFireball;
+short g_sModelIndexWExplosion;
 
 
 BOOL UTIL_ShouldShowBlood( int color )
@@ -139,6 +141,65 @@ void UTIL_DecalGunshot(TraceResult *pTrace)
 		WRITE_COORD( pTrace->vecEndPos.z );
 		WRITE_SHORT( iEntity );
 		WRITE_BYTE( index );
+	MESSAGE_END();
+}
+
+void UTIL_DecalTrace(TraceResult *pTrace, int iDecalIndex)
+{
+	short entityIndex;
+	int message;
+
+	if (iDecalIndex < 0 || pTrace->flFraction == 1.0)
+	{
+		return;
+	}
+
+	// Only decal BSP models
+	if (!IsValidPev(pTrace->pHit))
+	{
+		entityIndex = 0;
+	}
+	else 
+	{
+		if (pTrace->pHit && !(pTrace->pHit->v.solid == SOLID_BSP || pTrace->pHit->v.movetype == MOVETYPE_PUSHSTEP))
+		{
+			return;
+		}
+
+		entityIndex = ENTINDEX(pTrace->pHit);
+	}
+		
+	message = TE_DECAL;
+	if ( entityIndex != 0 )
+	{
+		if ( iDecalIndex > 255 )
+		{
+			message = TE_DECALHIGH;
+			iDecalIndex -= 256;
+		}
+	}
+	else
+	{
+		message = TE_WORLDDECAL;
+		if ( iDecalIndex > 255 )
+		{
+			message = TE_WORLDDECALHIGH;
+			iDecalIndex -= 256;
+		}
+	}
+	
+	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
+	WRITE_BYTE( message );
+	WRITE_COORD( pTrace->vecEndPos.x );
+	WRITE_COORD( pTrace->vecEndPos.y );
+	WRITE_COORD( pTrace->vecEndPos.z );
+	WRITE_BYTE( iDecalIndex );
+	
+	if ( entityIndex )
+	{
+			WRITE_SHORT( entityIndex );
+	}
+
 	MESSAGE_END();
 }
 
@@ -359,11 +420,6 @@ void FireBulletsPlayer(edict_t* pPlayer, edict_t* pAttacker, int iShotsCount, Ve
 				}
 
 				TAKE_DAMAGE(tr.pHit, pPlayer, pAttacker, flDamage, bitsDamageType);
-
-				// WTF?
-				gpGlobals->v_forward = vecDirShooting;
-				gpGlobals->v_right = vecRight;
-				gpGlobals->v_up = vecUp;
 			}
 
 			TEXTURETYPE_PlaySound(&tr, vecSrc, vecEnd);
