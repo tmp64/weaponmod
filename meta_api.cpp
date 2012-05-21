@@ -58,16 +58,13 @@ int OnMetaAttach()
 		DllFileName = "dlls/hl_i386.so";
 		handle = dlopen(DllFileName, RTLD_NOW);
 
-		if (handle == NULL) 
+		if (handle != NULL) 
 		{
-			print_srvconsole("[WEAPONMOD]: Cant load '%s'\n", DllFileName);
-			return 1;
+			pRadiusDamage = dlsym(handle, "RadiusDamage__FG6VectorP9entvars_sT1ffii");
+			pGetAmmoIndex = dlsym(handle, "GetAmmoIndex__11CBasePlayerPCc");
+			pPlayerSetAnimation = dlsym(handle, "SetAnimation__11CBasePlayer11PLAYER_ANIM");
+			pPrecacheOtherWeapon = dlsym(handle, "UTIL_PrecacheOtherWeapon__FPCc");
 		}
-
-		pRadiusDamage = dlsym(handle, "RadiusDamage__FG6VectorP9entvars_sT1ffii");
-		pGetAmmoIndex = dlsym(handle, "GetAmmoIndex__11CBasePlayerPCc");
-		pPlayerSetAnimation = dlsym(handle, "SetAnimation__11CBasePlayer11PLAYER_ANIM");
-		pPrecacheOtherWeapon = dlsym(handle, "UTIL_PrecacheOtherWeapon__FPCc");
 
 #elif _WIN32
 
