@@ -40,6 +40,21 @@ Vector ParseVec(char *pString);
 char* parse_arg(char** line, int& state);
 
 
+/*
+void* FindSymbol(void* hlib, const char* sName) 
+{
+	uint32_t csym =(uint32_t) dlsym(hlib, sName);
+	
+	if (csym == 0) 
+	{
+		print_srvconsole("[WEAPONMOD]: Cant Resolve '%s'\n", sName);
+		return NULL;
+	}
+
+	return (void*)csym;
+}*/
+
+
 int OnMetaAttach()
 {
 	print_srvconsole("\n   Half-Life Weapon Mod version %s Copyright (c) 2012 AGHL.RU Dev Team. \n"
@@ -65,8 +80,13 @@ int OnMetaAttach()
 			pPrecacheOtherWeapon = FindFunction(	"\x8B\x00\x00\x00\x00\x00\x8B\x00\x00\x00\x2B"
 													"\x81\x98\x00\x00\x00\x83\xEC\x2C\x53\x50",
 													"x?????x???xxx???xxxxx", 21);
+
+			
+			
+			
+			//pRadiusDamage = FindSymbol(slib, "SV_GetClientIDString");
 #elif __linux__
-			// TO DO: Find linux patterns.
+			
 #endif
 		}
 		else
