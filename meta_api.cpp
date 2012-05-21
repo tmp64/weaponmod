@@ -224,7 +224,7 @@ void ClientCommand(edict_t *pEntity)
 {
 	const char* cmd = CMD_ARGV(0);
 
-	if (cmd && stricmp(cmd, "wpnmod") == 0)
+	if (cmd && _stricmp(cmd, "wpnmod") == 0)
 	{
 		// Print version
 		static char buf[1024];
