@@ -47,35 +47,21 @@ int OnMetaAttach()
 					 "   Weapon Mod comes with ABSOLUTELY NO WARRANTY; for details type `wpnmod gpl'.\n", Plugin_info.version);
 	print_srvconsole("   This is free software and you are welcome to redistribute it under \n"
 					 "   certain conditions; type 'wpnmod gpl' for details.\n  \n");
-	
+
 	if (FindDllBase((void*)MDLL_FUNC->pfnGetGameDescription()))
 	{
 #ifdef __linux__
-		void* handle = NULL;
-		char* DllFileName = NULL;
-
-		DllFileName = "dlls/hl_i386.so";
-		handle = dlopen(DllFileName, RTLD_NOW);
-
-		print_srvconsole("[WEAPONMOD] dlopen at %p\n", handle);
+		void* handle = dlopen(GET_GAME_INFO(PLID, GINFO_DLL_FULLPATH), RTLD_NOW);
 
 		if (handle != NULL) 
 		{
 			pRadiusDamage = dlsym(handle, "RadiusDamage__FG6VectorP9entvars_sT1ffii");
-			print_srvconsole("[WEAPONMOD] pRadiusDamage is %p\n", pRadiusDamage);
-
 			pGetAmmoIndex = dlsym(handle, "GetAmmoIndex__11CBasePlayerPCc");
-			print_srvconsole("[WEAPONMOD] pGetAmmoIndex is %p\n", pGetAmmoIndex);
-
 			pPlayerSetAnimation = dlsym(handle, "SetAnimation__11CBasePlayer11PLAYER_ANIM");
-			print_srvconsole("[WEAPONMOD] pPlayerSetAnimation is %p\n", pPlayerSetAnimation);
-
 			pPrecacheOtherWeapon = dlsym(handle, "UTIL_PrecacheOtherWeapon__FPCc");
-			print_srvconsole("[WEAPONMOD] pPrecacheOtherWeapon is %p\n", pPrecacheOtherWeapon);
-		}
 
-		print_srvconsole("[WEAPONMOD] dlclose :D\n", pPrecacheOtherWeapon);
-		dlclose(handle);
+			dlclose(handle);
+		}
 #elif _WIN32
 		if (CVAR_GET_POINTER("aghl.ru"))
 		{
