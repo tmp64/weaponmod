@@ -57,14 +57,24 @@ int OnMetaAttach()
 		DllFileName = "dlls/hl_i386.so";
 		handle = dlopen(DllFileName, RTLD_NOW);
 
+		print_srvconsole("[WEAPONMOD] dlopen at %p\n", handle);
+
 		if (handle != NULL) 
 		{
 			pRadiusDamage = dlsym(handle, "RadiusDamage__FG6VectorP9entvars_sT1ffii");
+			print_srvconsole("[WEAPONMOD] pRadiusDamage is %p\n", pRadiusDamage);
+
 			pGetAmmoIndex = dlsym(handle, "GetAmmoIndex__11CBasePlayerPCc");
+			print_srvconsole("[WEAPONMOD] pGetAmmoIndex is %p\n", pGetAmmoIndex);
+
 			pPlayerSetAnimation = dlsym(handle, "SetAnimation__11CBasePlayer11PLAYER_ANIM");
+			print_srvconsole("[WEAPONMOD] pPlayerSetAnimation is %p\n", pPlayerSetAnimation);
+
 			pPrecacheOtherWeapon = dlsym(handle, "UTIL_PrecacheOtherWeapon__FPCc");
+			print_srvconsole("[WEAPONMOD] pPrecacheOtherWeapon is %p\n", pPrecacheOtherWeapon);
 		}
 
+		print_srvconsole("[WEAPONMOD] dlclose :D\n", pPrecacheOtherWeapon);
 		dlclose(handle);
 #elif _WIN32
 		if (CVAR_GET_POINTER("aghl.ru"))
