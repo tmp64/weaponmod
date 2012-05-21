@@ -51,7 +51,6 @@ int OnMetaAttach()
 	if (FindDllBase((void*)MDLL_FUNC->pfnGetGameDescription()))
 	{
 #ifdef __linux__
-
 		void* handle = NULL;
 		char* DllFileName = NULL;
 
@@ -67,9 +66,7 @@ int OnMetaAttach()
 		}
 
 		dlclose(handle);
-
 #elif _WIN32
-
 		if (CVAR_GET_POINTER("aghl.ru"))
 		{
 			pRadiusDamage = FindFunction(	"\x83\xEC\x7C\xD9\xEE\xD9\x54\x24\x58",
@@ -101,8 +98,8 @@ int OnMetaAttach()
 													"\x00\x00\x53\x56\x2B\x00\x00\x00\x00\x00\x50",
 													"x?????x???x??xxx?????x", 22);
 		}
-	}
 #endif 
+	}
 
 	cvar_t	version = {"hl_wpnmod_version", Plugin_info.version, FCVAR_SERVER};
 	
