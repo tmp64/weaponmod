@@ -340,7 +340,7 @@ void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 				
 				for (i = LIMITER_WEAPON + 1; i <= g_iWeaponIndex; i++)
 				{
-					if (!strcmpi(pszName(i), szData[0]))
+					if (!_stricmp(pszName(i), szData[0]))
 					{
 						Weapon_Spawn(i, strlen(szData[1]) ? ParseVec(szData[1]) : Vector(0, 0, 0), strlen(szData[2])  ? ParseVec(szData[2]) : Vector(0, 0, 0));
 						wpns++;
@@ -349,7 +349,7 @@ void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 
 				for (i = 0; i < g_iAmmoBoxIndex; i++)
 				{
-					if (!strcmpi(AmmoBoxInfoArray[i].pszName, szData[0]))
+					if (!_stricmp(AmmoBoxInfoArray[i].pszName, szData[0]))
 					{
 						Ammo_Spawn(i, strlen(szData[1]) ? ParseVec(szData[1]) : Vector(0, 0, 0), strlen(szData[2]) ? ParseVec(szData[2]) : Vector(0, 0, 0));
 						ammoboxes++;

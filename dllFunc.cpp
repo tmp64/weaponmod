@@ -118,11 +118,8 @@ long getBaseLen(void *baseAddress)
 		while (!feof(fp))
 		{
 			fgets(buffer, sizeof(buffer)-1, fp);			
-#if defined AMD64
-			sscanf(buffer, "%Lx-%Lx", &start, &end);
-#else
-			sscanf(buffer, "%lx-%lx", &start, &end);
-#endif
+			sscanf(buffer, "%lx-%lx", (long unsigned int*)&start, (long unsigned int*)&end);
+
 			if(start == baseAddress)
 			{
 				length = (unsigned long)end  - (unsigned long)start;
@@ -133,11 +130,8 @@ long getBaseLen(void *baseAddress)
 				while(!feof(fp))
 				{
 					fgets(buffer, sizeof(buffer)-1, fp);
-#if defined AMD64
-					sscanf(buffer, "%Lx-%Lx %s %s %s %d", &start, &end, ignore, ignore, ignore, &value);
-#else
-    				sscanf(buffer, "%lx-%lx %s %s %s %d", &start, &end, ignore, ignore ,ignore, &value);
-#endif
+    				sscanf(buffer, "%lx-%lx %s %s %s %d", (long unsigned int*)&start, (long unsigned int*)&end, ignore, ignore ,ignore, &value);
+
 					if(!value)
 					{		
 						break;
@@ -171,8 +165,6 @@ int FindDllBase(void* func)
 		hldll_base = NULL;
 		hldll_base_len = (size_t)NULL;
 		
-		ALERT(at_console, "[RCONfig]: Base search failed.\n");
-
 		return (g_IsBaseSet = 0);
 	} else {
 		hldll_base = (unsigned char*)info.dli_fbase;

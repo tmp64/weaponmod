@@ -133,7 +133,7 @@ void Ammo_Respawn(edict_t *pAmmoBox)
 
 	for (k = 0; k < g_iAmmoBoxIndex; k++)
 	{
-		if (!strcmpi(STRING(g_pEntity->v.classname), AmmoBoxInfoArray[k].pszName))
+		if (!_stricmp(STRING(g_pEntity->v.classname), AmmoBoxInfoArray[k].pszName))
 		{
 			if (g_pEntity->v.effects & EF_NODRAW)
 			{
@@ -160,7 +160,7 @@ void Ammo_Respawn(edict_t *pAmmoBox)
 #ifdef _WIN32
 	void __fastcall InfoTarget_Touch(void *pPrivate, int i, void *pPrivate2)
 #elif __linux__
-	void InfoTarget_Touch(void *pPrivate, , void *pOther)
+	void InfoTarget_Touch(void *pPrivate, , void *pPrivate2)
 #endif
 {
 	static int k;

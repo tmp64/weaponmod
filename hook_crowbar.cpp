@@ -634,7 +634,7 @@ edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 	{
 		if (!CVAR_GET_POINTER("aghl.ru"))
 		{
-			int msgWeapPickup = NULL;
+			static int msgWeapPickup = 0;
 			if (msgWeapPickup || (msgWeapPickup = REG_USER_MSG( "WeapPickup", 1 )))		
 			{
 				MESSAGE_BEGIN(MSG_ONE, msgWeapPickup, NULL, g_pPlayer);

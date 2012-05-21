@@ -809,7 +809,7 @@ static cell AMX_NATIVE_CALL wpnmod_create_item(AMX *amx, cell *params)
 	for (i = LIMITER_WEAPON + 1; i <= g_iWeaponIndex; i++)
 	{
 
-		if (!strcmpi(pszName(i), wpnname))
+		if (!_stricmp(pszName(i), wpnname))
 		{
 			edict_t* iItem = Weapon_Spawn(i, vecOrigin, vecAngles);
 
@@ -822,7 +822,7 @@ static cell AMX_NATIVE_CALL wpnmod_create_item(AMX *amx, cell *params)
 
 	for (i = 0; i < g_iAmmoBoxIndex; i++)
 	{
-		if (!strcmpi(AmmoBoxInfoArray[i].pszName, wpnname))
+		if (!_stricmp(AmmoBoxInfoArray[i].pszName, wpnname))
 		{
 			edict_t* iItem = Ammo_Spawn(i, vecOrigin, vecAngles);
 

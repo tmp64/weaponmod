@@ -96,8 +96,8 @@ int LoadFile(char *filename, void **bufferptr)
 {
 	FILE *stream;
 	
-	void *buffer;
-	int length;
+	void *buffer = NULL;
+	int length = 0;
 
 	stream = fopen(filename, "rb");
 
@@ -347,7 +347,7 @@ void KeyValueFromBSP(char *pKey, char *pValue, int iNewent)
 
 		for (i = LIMITER_WEAPON + 1; i <= g_iWeaponIndex; i++)
 		{
-			if (!strcmpi(pszName(i), pValue))
+			if (!_stricmp(pszName(i), pValue))
 			{
 				Weapon_Spawn(i, vecOrigin, Vector (0, AngleY, 0));
 			}
@@ -355,7 +355,7 @@ void KeyValueFromBSP(char *pKey, char *pValue, int iNewent)
 
 		for (i = 0; i < g_iAmmoBoxIndex; i++)
 		{
-			if (!strcmpi(AmmoBoxInfoArray[i].pszName, pValue))
+			if (!_stricmp(AmmoBoxInfoArray[i].pszName, pValue))
 			{
 				Ammo_Spawn(i, vecOrigin, Vector (0, AngleY, 0));
 			}
