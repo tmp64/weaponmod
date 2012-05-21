@@ -66,7 +66,7 @@ void ParseFromMemory(char *buffer, int size)
 	script = scriptstack;
 	script++;
 
-	strcpy_s(script->filename, "memory buffer");
+	strcpy(script->filename, "memory buffer");
 
 	script->buffer = buffer;
 	script->line = 1;
@@ -99,7 +99,9 @@ int LoadFile(char *filename, void **bufferptr)
 	void *buffer;
 	int length;
 
-	if (!fopen_s(&stream, filename, "rb"))
+	stream = fopen(filename, "rb");
+
+	if (stream)
 	{
 		length = filelength (stream);
 		buffer = malloc (length+1);
@@ -130,11 +132,11 @@ char *ExpandPath(char *path)
 	
 	if (psz)
 	{
-		strcpy_s(full, path);
+		strcpy(full, path);
 	}
 	else
 	{
-		sprintf_s(full, "%s%s", qdir, path);
+		sprintf(full, "%s%s", qdir, path);
 	}
 
 	return full;
@@ -146,7 +148,7 @@ void AddScriptToStack(char *filename)
 	int size;
 	script++;
 
-	strcpy_s(script->filename, ExpandPath (filename) );
+	strcpy(script->filename, ExpandPath (filename) );
 	size = LoadFile (script->filename, (void **)&script->buffer);
 	script->line = 1;
 	script->script_p = script->buffer;
@@ -370,8 +372,10 @@ int ParseBSPEntData(char *file)
 	char key[512];
 	char value[512];
 	bool newent = false;
+
+	fp = fopen(file, "rb");
 	
-	if (fopen_s(&fp, file, "rb"))
+	if (!fp)
 	{
 		return false;
 	}
@@ -420,9 +424,9 @@ int ParseBSPEntData(char *file)
 				break;
 			}
 
-			strcpy_s(key, token);
+			strcpy(key, token);
 			GetToken(false);
-			strcpy_s(value, token);
+			strcpy(value, token);
 
 			KeyValueFromBSP(key, value, newent);
 			newent = false;
