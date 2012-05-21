@@ -66,7 +66,7 @@ int OnMetaAttach()
 													"\x81\x98\x00\x00\x00\x83\xEC\x2C\x53\x50",
 													"x?????x???xxx???xxxxx", 21);
 #elif __linux__
-		// TO DO: Find linux patterns.
+			// TO DO: Find linux patterns.
 #endif
 		}
 		else
@@ -84,10 +84,10 @@ int OnMetaAttach()
 			pPrecacheOtherWeapon = FindFunction(	"\x8B\x00\x00\x00\x00\x00\x8B\x00\x00\x00\x83"
 													"\x00\x00\x53\x56\x2B\x00\x00\x00\x00\x00\x50",
 													"x?????x???x??xxx?????x", 22);
-		}
 #elif __linux__
-		// TO DO: Find linux patterns. :D
+			// TO DO: Find linux patterns. :D
 #endif
+		}
 	}
 
 	cvar_t	version = {"hl_wpnmod_version", Plugin_info.version, FCVAR_SERVER};
@@ -176,13 +176,13 @@ int AmxxCheckGame(const char *game)
 }
 
 
+
 void OnPluginsLoaded()
 {
 	g_sModelIndexBloodSpray = PRECACHE_MODEL("sprites/bloodspray.spr"); // initial blood
 	g_sModelIndexBloodDrop = PRECACHE_MODEL("sprites/blood.spr"); // splattered blood
-	g_sModelIndexFireball = PRECACHE_MODEL("sprites/zerogxplode.spr"); // fireball
-	g_sModelIndexWExplosion = PRECACHE_MODEL("sprites/WXplo1.spr"); // underwater fireball
 }
+
 
 
 int DispatchSpawn(edict_t *pEntity)
@@ -199,6 +199,7 @@ int DispatchSpawn(edict_t *pEntity)
 
 	RETURN_META_VALUE(MRES_IGNORED, 0);
 }
+
 
 
 void ClientCommand(edict_t *pEntity)
@@ -223,6 +224,7 @@ void ClientCommand(edict_t *pEntity)
 
 	RETURN_META(MRES_IGNORED);
 }
+
 
 
 void CmdStart(const edict_t *pPlayer, const struct usercmd_s *cmd, unsigned int random_seed)
@@ -269,6 +271,8 @@ void CmdStart(const edict_t *pPlayer, const struct usercmd_s *cmd, unsigned int 
 	RETURN_META(MRES_IGNORED);
 }
 
+
+
 static const char* get_localinfo(const char* name , const char* def = 0)
 {
 	const char* b = LOCALINFO((char*)name);
@@ -276,6 +280,7 @@ static const char* get_localinfo(const char* name , const char* def = 0)
 		SET_LOCALINFO((char*)name,(char*)(b = def));
 	return b;
 }
+
 
 
 void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
@@ -339,6 +344,7 @@ void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 
 	RETURN_META(MRES_IGNORED);
 }
+
 
 
 void ServerDeactivate()

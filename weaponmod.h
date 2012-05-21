@@ -34,7 +34,6 @@
 #include "amxxmodule.h"
 #include "cbase.h"
 
-
 #ifdef __linux__
 	#include <sys/mman.h>
 	#include <malloc.h>
@@ -42,8 +41,6 @@
 	#include <sys/types.h>
 	#include <sys/stat.h>
 	#include <unistd.h>
-	#define	PAGE_SIZE 4096
-	#define Align(addr) (void*)((long)addr & ~(PAGE_SIZE-1))
 #endif
 
 #include "CEntity.h"
@@ -268,8 +265,6 @@ extern BOOL	g_IsBaseSet;
 
 extern short g_sModelIndexBloodDrop;
 extern short g_sModelIndexBloodSpray;
-extern short g_sModelIndexFireball;
-extern short g_sModelIndexWExplosion;
 
 extern void MakeVirtualHooks(void);
 extern void WpnModCommand(void);

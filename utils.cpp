@@ -36,8 +36,6 @@
 
 short g_sModelIndexBloodDrop; // holds the sprite index for blood drops
 short g_sModelIndexBloodSpray; // holds the sprite index for blood spray (bigger)
-short g_sModelIndexFireball;
-short g_sModelIndexWExplosion;
 
 
 BOOL UTIL_ShouldShowBlood( int color )
@@ -373,9 +371,8 @@ void FireBulletsPlayer(edict_t* pPlayer, edict_t* pAttacker, int iShotsCount, Ve
 		Vector vecDir = vecDirShooting +
 						x * vecSpread.x * vecRight +
 						y * vecSpread.y * vecUp;
-		Vector vecEnd;
-
-		vecEnd = vecSrc + vecDir * flDistance;
+		
+		Vector vecEnd = vecSrc + vecDir * flDistance;
 
 		TRACE_LINE(vecSrc, vecEnd, dont_ignore_monsters, pPlayer, &tr);
 
@@ -396,34 +393,31 @@ void FireBulletsPlayer(edict_t* pPlayer, edict_t* pAttacker, int iShotsCount, Ve
 		}
 
 		// do damage, paint decals
-		if (tr.flFraction != 1.0)
+		if (tr.flFraction != 1.0 && IsValidPev(tr.pHit))
 		{
-			if (IsValidPev(tr.pHit))
+			// Headshot
+			if (tr.iHitgroup == 1)
 			{
-				// Headshot
-				if (tr.iHitgroup == 1)
-				{
-					flDamage *= 3;
-				}
-
-				if (CLASSIFY(tr.pHit) != CLASS_NONE)
-				{
-					*((int *)tr.pHit->pvPrivateData + m_LastHitGroup) = tr.iHitgroup;
-				}
-
-				int iBloodColor = BLOOD_COLOR(tr.pHit);
-
-				if (iBloodColor != DONT_BLEED)
-				{
-					TRACE_BLEED(tr.pHit, flDamage, vecDir, tr, bitsDamageType);
-					UTIL_BloodDrips(tr.vecEndPos - vecDir * 4, iBloodColor, (int)flDamage);
-				}
-
-				TAKE_DAMAGE(tr.pHit, pPlayer, pAttacker, flDamage, bitsDamageType);
+				flDamage *= 3;
 			}
 
-			TEXTURETYPE_PlaySound(&tr, vecSrc, vecEnd);
-			UTIL_DecalGunshot(&tr);
+			int iBloodColor = BLOOD_COLOR(tr.pHit);
+
+			if (iBloodColor != DONT_BLEED)
+			{
+				TRACE_BLEED(tr.pHit, flDamage, vecDir, tr, bitsDamageType);
+				UTIL_BloodDrips(tr.vecEndPos - vecDir * 4, iBloodColor, (int)flDamage);
+			}
+
+			if (CLASSIFY(tr.pHit) != CLASS_NONE)
+			{
+				*((int *)tr.pHit->pvPrivateData + m_LastHitGroup) = tr.iHitgroup;
+			}
+
+			TAKE_DAMAGE(tr.pHit, pPlayer, pAttacker, flDamage, bitsDamageType);
 		}
+
+		TEXTURETYPE_PlaySound(&tr, vecSrc, vecEnd);
+		UTIL_DecalGunshot(&tr);
 	}
 }
