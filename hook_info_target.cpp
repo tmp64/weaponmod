@@ -160,7 +160,7 @@ void Ammo_Respawn(edict_t *pAmmoBox)
 #ifdef _WIN32
 	void __fastcall InfoTarget_Touch(void *pPrivate, int i, void *pPrivate2)
 #elif __linux__
-	void InfoTarget_Touch(void *pPrivate, , void *pPrivate2)
+	void InfoTarget_Touch(void *pPrivate, void *pPrivate2)
 #endif
 {
 	static int k;

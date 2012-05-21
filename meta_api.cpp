@@ -72,7 +72,6 @@ int OnMetaAttach()
 
 		if (CVAR_GET_POINTER("aghl.ru"))
 		{
-
 			pRadiusDamage = FindFunction(	"\x83\xEC\x7C\xD9\xEE\xD9\x54\x24\x58",
 											"xxxxxxxxx", 9);
 
@@ -119,7 +118,11 @@ void OnAmxxAttach()
 {
 	if (!g_IsBaseSet)
 	{
+#ifdef __linux__
+		print_srvconsole("[WEAPONMOD] Failed to locate hl_i386.so, cannot register natives.\n");
+#elif _WIN32
 		print_srvconsole("[WEAPONMOD] Failed to locate hl.dll, cannot register natives.\n");
+#endif
 	}
 	else if (!pRadiusDamage)
 	{
@@ -141,13 +144,11 @@ void OnAmxxAttach()
 	{
 		MF_AddNatives(Natives_Ammo);
 		MF_AddNatives(Natives_Weapon);
-
 #ifdef __linux__
 		print_srvconsole("[WEAPONMOD] Found hl_i386.so at %p\n", hldll_base);
 #elif _WIN32
 		print_srvconsole("[WEAPONMOD] Found hl.dll at %p\n", hldll_base);
 #endif
-
 	}
 }
 
