@@ -526,7 +526,7 @@ edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 #ifdef _WIN32
 	void __fastcall Weapon_Holster(void *pPrivate, int i, int skiplocal)
 #elif __linux__
-	void Weapon_Holster(void *pPrivate)
+	void Weapon_Holster(void *pPrivate, int skiplocal)
 #endif
 {
 	g_pWeapon = PrivateToEdict(pPrivate);

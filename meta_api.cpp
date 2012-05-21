@@ -40,20 +40,6 @@ Vector ParseVec(char *pString);
 char* parse_arg(char** line, int& state);
 
 
-/*
-void* FindSymbol(void* hlib, const char* sName) 
-{
-	uint32_t csym =(uint32_t) dlsym(hlib, sName);
-	
-	if (csym == 0) 
-	{
-		print_srvconsole("[WEAPONMOD]: Cant Resolve '%s'\n", sName);
-		return NULL;
-	}
-
-	return (void*)csym;
-}*/
-
 
 int OnMetaAttach()
 {
@@ -64,9 +50,30 @@ int OnMetaAttach()
 	
 	if (FindDllBase((void*)MDLL_FUNC->pfnGetGameDescription()))
 	{
+#ifdef __linux__
+
+		void* handle = NULL;
+		char* DllFileName = NULL;
+
+		DllFileName = "dlls/hl_i386.so";
+		handle = dlopen(DllFileName, RTLD_NOW);
+
+		if (handle == NULL) 
+		{
+			print_srvconsole("[WEAPONMOD]: Cant load '%s'\n", DllFileName);
+			return 1;
+		}
+
+		pRadiusDamage = dlsym(handle, "RadiusDamage__FG6VectorP9entvars_sT1ffii");
+		pGetAmmoIndex = dlsym(handle, "GetAmmoIndex__11CBasePlayerPCc");
+		pPlayerSetAnimation = dlsym(handle, "SetAnimation__11CBasePlayer11PLAYER_ANIM");
+		pPrecacheOtherWeapon = dlsym(handle, "UTIL_PrecacheOtherWeapon__FPCc");
+
+#elif _WIN32
+
 		if (CVAR_GET_POINTER("aghl.ru"))
 		{
-#ifdef _WIN32
+
 			pRadiusDamage = FindFunction(	"\x83\xEC\x7C\xD9\xEE\xD9\x54\x24\x58",
 											"xxxxxxxxx", 9);
 
@@ -80,18 +87,9 @@ int OnMetaAttach()
 			pPrecacheOtherWeapon = FindFunction(	"\x8B\x00\x00\x00\x00\x00\x8B\x00\x00\x00\x2B"
 													"\x81\x98\x00\x00\x00\x83\xEC\x2C\x53\x50",
 													"x?????x???xxx???xxxxx", 21);
-
-			
-			
-			
-			//pRadiusDamage = FindSymbol(slib, "SV_GetClientIDString");
-#elif __linux__
-			
-#endif
 		}
 		else
 		{
-#ifdef _WIN32
 			pRadiusDamage = FindFunction(	"\xD9\x44\x24\x1C\xD8\x00\x00\x00\x00\x00\x83\xEC\x64",
 											"xxxxx?????xxx", 13);
 
@@ -104,11 +102,9 @@ int OnMetaAttach()
 			pPrecacheOtherWeapon = FindFunction(	"\x8B\x00\x00\x00\x00\x00\x8B\x00\x00\x00\x83"
 													"\x00\x00\x53\x56\x2B\x00\x00\x00\x00\x00\x50",
 													"x?????x???x??xxx?????x", 22);
-#elif __linux__
-			// TO DO: Find linux patterns. :D
-#endif
 		}
 	}
+#endif 
 
 	cvar_t	version = {"hl_wpnmod_version", Plugin_info.version, FCVAR_SERVER};
 	
@@ -147,7 +143,12 @@ void OnAmxxAttach()
 		MF_AddNatives(Natives_Ammo);
 		MF_AddNatives(Natives_Weapon);
 
+#ifdef __linux__
+		print_srvconsole("[WEAPONMOD] Found hl_i386.so at %p\n", hldll_base);
+#elif _WIN32
 		print_srvconsole("[WEAPONMOD] Found hl.dll at %p\n", hldll_base);
+#endif
+
 	}
 }
 
