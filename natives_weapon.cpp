@@ -33,6 +33,18 @@
 
 #include "weaponmod.h"
 
+#ifdef __linux__
+//implement these with setjmp later.
+bool IsBadReadPtr(void *l, size_t size)
+{
+	return false;
+}
+bool IsBadWritePtr(void *l, size_t size)
+{
+	return false;
+}
+#endif
+
 
 #define CHECK_OFFSET(x) \
 	if ( x < 0 || x >= Offset_End) \
@@ -125,7 +137,6 @@ int PvDataOffsets[Offset_End] =
 
 
 void ActivateCrowbarHooks();
-
 void UTIL_EjectBrass(const Vector &vecOrigin, const Vector &vecVelocity, float rotation, int model, int soundtype);
 void FireBulletsPlayer(edict_t* pPlayer, edict_t* pAttacker, int iShotsCount, Vector vecSpread, float flDistance, float flDamage, int bitsDamageType, BOOL bTracers);
 
