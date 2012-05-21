@@ -118,7 +118,7 @@ long getBaseLen(void *baseAddress)
 		while (!feof(fp))
 		{
 			fgets(buffer, sizeof(buffer)-1, fp);			
-			sscanf(buffer, "%lx-%lx", (long unsigned int*)&start, (long unsigned int*)&end);
+			sscanf(buffer, "%lx-%lx", &start, &end);
 
 			if(start == baseAddress)
 			{
@@ -130,7 +130,7 @@ long getBaseLen(void *baseAddress)
 				while(!feof(fp))
 				{
 					fgets(buffer, sizeof(buffer)-1, fp);
-    				sscanf(buffer, "%lx-%lx %s %s %s %d", (long unsigned int*)&start, (long unsigned int*)&end, ignore, ignore ,ignore, &value);
+    				sscanf(buffer, "%lx-%lx %s %s %s %d", &start, &end, ignore, ignore ,ignore, &value);
 
 					if(!value)
 					{		
