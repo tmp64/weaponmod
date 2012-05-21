@@ -66,6 +66,8 @@ int OnMetaAttach()
 			pPrecacheOtherWeapon = dlsym(handle, "UTIL_PrecacheOtherWeapon__FPCc");
 		}
 
+		dlclose(handle);
+
 #elif _WIN32
 
 		if (CVAR_GET_POINTER("aghl.ru"))
