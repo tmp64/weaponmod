@@ -41,6 +41,10 @@
 	#include <sys/types.h>
 	#include <sys/stat.h>
 	#include <unistd.h>
+
+	typedef unsigned long DWORD;
+	typedef unsigned short WORD;
+	typedef unsigned int UNINT32;
 #endif
 
 #include "CEntity.h"
@@ -345,8 +349,12 @@ inline void print_srvconsole(char *fmt, ...)
 	SERVER_PRINT(string);
 }
 
+
+
 #ifdef _WIN32
 	typedef void (*FN_SetAnimation)(void *Private, int i, PLAYER_ANIM playerAnim);
+
+	extern BOOL __fastcall Weapon_CanDeploy(void *pPrivate);
 
 	inline int CLASSIFY(edict_t* pEntity)
 	{
@@ -369,6 +377,8 @@ inline void print_srvconsole(char *fmt, ...)
 	}
 #elif __linux__
 	typedef void (*FN_SetAnimation)(void *Private, PLAYER_ANIM playerAnim);
+
+	extern BOOL Weapon_CanDeploy(void *pPrivate);
 
 	inline int CLASSIFY(edict_t* pEntity)
 	{

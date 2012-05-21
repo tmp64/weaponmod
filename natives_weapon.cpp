@@ -129,8 +129,6 @@ void ActivateCrowbarHooks();
 void UTIL_EjectBrass(const Vector &vecOrigin, const Vector &vecVelocity, float rotation, int model, int soundtype);
 void FireBulletsPlayer(edict_t* pPlayer, edict_t* pAttacker, int iShotsCount, Vector vecSpread, float flDistance, float flDamage, int bitsDamageType, BOOL bTracers);
 
-BOOL __fastcall Weapon_CanDeploy(void *pPrivate);
-
 
 /**
  * Register new weapon in module.
