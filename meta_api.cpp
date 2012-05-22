@@ -222,7 +222,11 @@ void ClientCommand(edict_t *pEntity)
 
 	if (cmd && _stricmp(cmd, "wpnmod") == 0)
 	{
-		// Print version
+		int i = 0;
+		int items = 0;
+		int weapons = 0;
+		int ammo = 0;
+
 		static char buf[1024];
 		size_t len = 0;
 			
@@ -231,6 +235,28 @@ void ClientCommand(edict_t *pEntity)
 		len = sprintf(buf, "Author: \n         KORD_12.7 (AGHL.RU Dev Team)\n");
 		len += sprintf(&buf[len], "Credits: \n         6a6kin, GordonFreeman, Lev, noo00oob\n");
 		len += sprintf(&buf[len], "Compiled: %s\nURL: http://www.aghl.ru/ - Russian Half-Life and Adrenaline Gamer Community.\n\n", __DATE__ ", " __TIME__);
+		CLIENT_PRINT(pEntity, print_console, buf);
+
+		CLIENT_PRINT(pEntity, print_console, "Currently loaded weapons:\n");
+
+		for (i = LIMITER_WEAPON + 1; i <= g_iWeaponIndex; i++)
+		{
+			items++;
+			sprintf(buf, " [%2d] %-23.22s\n", ++weapons, pszName(i));
+			CLIENT_PRINT(pEntity, print_console, buf);
+		}
+
+		CLIENT_PRINT(pEntity, print_console, "\nCurrently loaded ammo:\n");
+
+		for (i = 0; i < g_iAmmoBoxIndex; i++)
+		{
+			items++;
+			sprintf(buf, " [%2d] %-23.22s\n", ++ammo, AmmoBoxInfoArray[i].pszName);
+			CLIENT_PRINT(pEntity, print_console, buf);
+		}
+
+		CLIENT_PRINT(pEntity, print_console, "\nTotal:\n");
+		sprintf(buf, "%4d items (%d weapons, %d ammo).\n\n", items, weapons, ammo);
 		CLIENT_PRINT(pEntity, print_console, buf);
 
 		RETURN_META(MRES_SUPERCEDE);
