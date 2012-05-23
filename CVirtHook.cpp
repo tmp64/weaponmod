@@ -31,10 +31,10 @@
  *
  */
 
-#include "weaponmod.h"
+#include "CVirtHook.h"
+#include "amxxmodule.h"
+#include "utils.h"
 
-
-void *pDbase = NULL;
 
 int VirtualFunction[VirtFunc_End];
 

@@ -32,18 +32,8 @@
  */
 
 #include "weaponmod.h"
-
-#ifdef __linux__
-//implement these with setjmp later.
-bool IsBadReadPtr(void *l, size_t size)
-{
-	return false;
-}
-bool IsBadWritePtr(void *l, size_t size)
-{
-	return false;
-}
-#endif
+#include "dllFunc.h"
+#include "CEntity.h"
 
 
 #define CHECK_OFFSET(x) \
@@ -135,11 +125,21 @@ int PvDataOffsets[Offset_End] =
 	XTRA_OFS_WEAPON + 15,
 };
 
+#ifdef _WIN32
+extern BOOL __fastcall Weapon_CanDeploy(void *pPrivate);
+#elif __linux__
+extern BOOL Weapon_CanDeploy(void *pPrivate);
 
-void ActivateCrowbarHooks();
-void UTIL_EjectBrass(const Vector &vecOrigin, const Vector &vecVelocity, float rotation, int model, int soundtype);
-void FireBulletsPlayer(edict_t* pPlayer, edict_t* pAttacker, int iShotsCount, Vector vecSpread, float flDistance, float flDamage, int bitsDamageType, BOOL bTracers);
-
+//implement these with setjmp later.
+bool IsBadReadPtr(void *l, size_t size)
+{
+	return false;
+}
+bool IsBadWritePtr(void *l, size_t size)
+{
+	return false;
+}
+#endif
 
 /**
  * Register new weapon in module.
@@ -845,7 +845,83 @@ static cell AMX_NATIVE_CALL wpnmod_create_item(AMX *amx, cell *params)
 	return -1;
 }
 
-AMX_NATIVE_INFO Natives_Weapon[] = 
+/**
+ * Register new ammobox in module.
+ *
+ * @param szName			The ammobox classname.
+ * 
+ * @return					The ID of registerd ammobox or -1 on failure. (integer)
+ *
+ * native wpnmod_register_ammobox(const szClassname[]);
+ */
+static cell AMX_NATIVE_CALL wpnmod_register_ammobox(AMX *amx, cell *params)
+{
+	if (g_iAmmoBoxIndex >= MAX_WEAPONS)
+	{
+		MF_LogError(amx, AMX_ERR_NATIVE, "Ammobox limit reached.");
+		return -1;
+	}
+
+	AmmoBoxInfoArray[g_iAmmoBoxIndex].pszName = STRING(ALLOC_STRING(MF_GetAmxString(amx, params[1], 0, NULL)));
+
+	if (!g_InfoTargetHooksEnabled)
+	{
+		g_InfoTargetHooksEnabled = TRUE;
+		ActivateInfoTargetHooks();
+	}
+
+	return g_iAmmoBoxIndex++;
+}
+
+/**
+ * Register ammobox's forward.
+ *
+ * @param iAmmoboxID		The ID of registered ammobox.
+ * @param iForward			Forward type to register.
+ * @param szCallBack		The forward to call.
+ *
+ * native wpnmod_register_ammobox_forward(const iWeaponID, const e_AmmoFwds: iForward, const szCallBack[]);
+ */
+static cell AMX_NATIVE_CALL wpnmod_register_ammobox_forward(AMX *amx, cell *params)
+{
+	int iId = params[1];
+
+	if (iId < 0 || iId >= MAX_WEAPONS)
+	{
+		MF_LogError(amx, AMX_ERR_NATIVE, "Invalid ammobox id provided. Got: %d  Valid: 0 up to %d.", iId, MAX_WEAPONS - 1);
+		return 0;
+	}
+
+	int Fwd = params[2];
+
+	if (Fwd < 0 || Fwd >= Fwd_Ammo_End)
+	{
+		MF_LogError(amx, AMX_ERR_NATIVE, "Function out of bounds. Got: %d  Max: %d.", iId, Fwd_Ammo_End - 1);
+		return 0;
+	}
+
+	const char *funcname = MF_GetAmxString(amx, params[3], 0, NULL);
+
+	AmmoBoxInfoArray[iId].iForward[Fwd] = MF_RegisterSPForwardByName
+	(
+		amx, 
+		funcname, 
+		FP_CELL,
+		FP_CELL,
+		FP_DONE
+	);
+
+	if (AmmoBoxInfoArray[iId].iForward[Fwd] == -1)
+	{
+		AmmoBoxInfoArray[iId].iForward[Fwd] = 0;
+		MF_LogError(amx, AMX_ERR_NATIVE, "Function not found (%d, \"%s\").", Fwd, funcname);
+		return 0;
+	}
+
+	return 1;
+}
+
+AMX_NATIVE_INFO Natives[] = 
 {
 	{ "wpnmod_register_weapon", wpnmod_register_weapon},
 	{ "wpnmod_register_weapon_forward", wpnmod_register_weapon_forward},
@@ -867,6 +943,8 @@ AMX_NATIVE_INFO Natives_Weapon[] =
 	{ "wpnmod_play_empty_sound", wpnmod_play_empty_sound},
 	{ "wpnmod_create_item", wpnmod_create_item},
 	{ "wpnmod_create_item", wpnmod_create_item},
+	{ "wpnmod_register_ammobox", wpnmod_register_ammobox},
+	{ "wpnmod_register_ammobox_forward", wpnmod_register_ammobox_forward},
 
 	{ NULL, NULL }
 };

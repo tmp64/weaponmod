@@ -31,8 +31,7 @@
  *
  */
 
-#include "weaponmod.h"
-
+#include "amxxmodule.h"
 
 
 BOOL g_IsBaseSet = FALSE;
@@ -45,7 +44,6 @@ void *pPrecacheOtherWeapon = NULL;
 unsigned char* hldll_base;
 
 size_t hldll_base_len;
-
 
 
 void* FindFunction(char* sig_str, char* sig_mask, size_t sig_len)

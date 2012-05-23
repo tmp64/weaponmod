@@ -32,10 +32,61 @@
  */
 
 #include "weaponmod.h"
+#include "CVirtHook.h"
 
 
 short g_sModelIndexBloodDrop; // holds the sprite index for blood drops
 short g_sModelIndexBloodSpray; // holds the sprite index for blood spray (bigger)
+
+
+edict_t* INDEXENT2(int iEdictNum)
+{ 
+	if (iEdictNum >= 1 && iEdictNum <= gpGlobals->maxClients)
+		return MF_GetPlayerEdict(iEdictNum);
+	else
+		return (*g_engfuncs.pfnPEntityOfEntIndex)(iEdictNum); 
+}
+
+
+edict_t *GetPrivateCbase(edict_t *pEntity, int iOffset)
+{
+    void *pPrivate=*((void **)((int *)(edict_t *)(INDEXENT(0) + ENTINDEX(pEntity))->pvPrivateData + iOffset));
+
+    if (!pPrivate)
+    {
+        return NULL;
+    }
+
+    return PrivateToEdict(pPrivate);	
+}
+
+
+int Player_AmmoInventory(edict_t* pPlayer, edict_t* pWeapon, BOOL bPrimary)
+{
+	int iAmmoIndex = (int)*((int *)pWeapon->pvPrivateData + (bPrimary ? m_iPrimaryAmmoType : m_iSecondaryAmmoType));
+
+	if (iAmmoIndex == -1)
+	{
+		return -1;
+	}
+
+	return (int)*((int *)pPlayer->pvPrivateData + m_rgAmmo + iAmmoIndex - 1);
+}
+
+
+int Player_Set_AmmoInventory(edict_t* pPlayer, edict_t* pWeapon, BOOL bPrimary, int Amount)
+{
+	int iAmmoIndex = (int)*((int *)pWeapon->pvPrivateData + (bPrimary ? m_iPrimaryAmmoType : m_iSecondaryAmmoType));
+
+	if (iAmmoIndex == -1)
+	{
+		return 0;
+	}
+
+	*((int *)pPlayer->pvPrivateData + m_rgAmmo + iAmmoIndex - 1) = Amount;
+
+	return 1;
+}
 
 
 BOOL UTIL_ShouldShowBlood( int color )

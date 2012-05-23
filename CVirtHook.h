@@ -31,6 +31,9 @@
  *
  */
 
+#include "amxxmodule.h"
+
+
 class CVirtHook
 {
 	struct Obj 
@@ -50,3 +53,77 @@ public:
 
 	void clear();
 };
+
+
+typedef struct
+{
+	int iTrampoline;
+	void *pOrigFunc;
+} HookData;
+
+enum e_VirtFuncs
+{
+	VirtFunc_Classify,
+	VirtFunc_TakeDamage,
+	VirtFunc_BloodColor,
+	VirtFunc_TraceBleed,
+	VirtFunc_Think,
+	VirtFunc_Touch,
+	VirtFunc_Respawn,
+	VirtFunc_AddToPlayer,
+	VirtFunc_GetItemInfo,
+	VirtFunc_CanDeploy,
+	VirtFunc_Deploy,
+	VirtFunc_CanHolster,
+	VirtFunc_Holster,
+	VirtFunc_ItemPostFrame,
+	VirtFunc_Drop,
+	VirtFunc_ItemSlot,
+	VirtFunc_IsUseable,
+
+	VirtFunc_End
+};
+
+extern int VirtualFunction[VirtFunc_End];
+
+#ifdef _WIN32
+inline int CLASSIFY(edict_t* pEntity)
+{
+	return reinterpret_cast<int (__fastcall *)(void *, int)>((*((void***)((char*)pEntity->pvPrivateData)))[VirtualFunction[VirtFunc_Classify]])(pEntity->pvPrivateData, 0);
+}
+
+inline void TRACE_BLEED(edict_t* pEntity, float flDamage, Vector vecDir, TraceResult tr, int bitsDamageType)
+{
+	reinterpret_cast<int (__fastcall *)(void *, int, float, Vector, TraceResult *, int)>((*((void***)((char*)pEntity->pvPrivateData)))[VirtualFunction[VirtFunc_TraceBleed]])(pEntity->pvPrivateData, 0, flDamage, vecDir, &tr, bitsDamageType);
+}
+
+inline int BLOOD_COLOR(edict_t* pEntity)
+{
+	return reinterpret_cast<int (__fastcall *)(void *, int)>((*((void***)((char*)pEntity->pvPrivateData)))[VirtualFunction[VirtFunc_BloodColor]])(pEntity->pvPrivateData, 0);
+}
+
+inline void TAKE_DAMAGE(edict_t* pEntity, edict_t* pInflictor, edict_t* pAttacker, float flDamage, int bitsDamageType)
+{
+	reinterpret_cast<int (__fastcall *)(void *, int, entvars_t *, entvars_t *, float, int)>((*((void***)((char*)pEntity->pvPrivateData)))[VirtualFunction[VirtFunc_TakeDamage]])(pEntity->pvPrivateData, 0, &(pInflictor->v), &(pAttacker->v), flDamage, bitsDamageType);
+}
+#elif __linux__
+inline int CLASSIFY(edict_t* pEntity)
+{
+	return reinterpret_cast<int (*)(void *)>((*((void***)(((char*)pEntity->pvPrivateData) + 0x60)))[VirtualFunction[VirtFunc_Classify]])(pEntity->pvPrivateData);
+}
+
+inline void TRACE_BLEED(edict_t* pEntity, float flDamage, Vector vecDir, TraceResult tr, int bitsDamageType)
+{
+	reinterpret_cast<int (*)(void *, float, Vector, TraceResult *, int)>((*((void***)(((char*)tr.pHit->pvPrivateData) + 0x60)))[VirtualFunction[VirtFunc_TraceBleed]])(tr.pHit->pvPrivateData, flDamage, vecDir, &tr, bitsDamageType);
+}
+
+inline int BLOOD_COLOR(edict_t* pEntity)
+{
+	return reinterpret_cast<int (*)(void *)>((*((void***)(((char*)pEntity->pvPrivateData) + 0x60)))[VirtualFunction[VirtFunc_BloodColor]])(pEntity->pvPrivateData);
+}
+
+inline void TAKE_DAMAGE(edict_t* pEntity, edict_t* pInflictor, edict_t* pAttacker, float flDamage, int bitsDamageType)
+{
+	reinterpret_cast<int (*)(void *, entvars_t *, entvars_t *, float, int)>((*((void***)(((char*)pEntity->pvPrivateData) + 0x60)))[VirtualFunction[VirtFunc_TakeDamage]])(pEntity->pvPrivateData, &(pInflictor->v), &(pAttacker->v), flDamage, bitsDamageType);
+}
+#endif

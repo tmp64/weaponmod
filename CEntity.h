@@ -49,3 +49,5 @@ public:
 	void Set_Think(int iEnt, int iForward);
 	void clear();
 };
+
+extern CEntity g_EntData;

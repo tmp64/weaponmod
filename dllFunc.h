@@ -31,66 +31,24 @@
  *
  */
 
-#include "CEntity.h"
+extern BOOL	g_IsBaseSet;
 
-CEntity g_EntData;
+extern void *pRadiusDamage;
+extern void *pGetAmmoIndex;
+extern void *pPlayerSetAnimation;
+extern void *pPrecacheOtherWeapon;
 
+extern unsigned char* hldll_base;
 
-int CEntity::Get_Think(int iEnt)
-{
-	int found = 0;
+BOOL FindDllBase(void* func);
+void* FindFunction(char* sig_str, char* sig_mask, size_t sig_len);
 
-	Obj* a = head;
+#ifdef _WIN32
+typedef void (*FN_SetAnimation)(void *Private, int i, PLAYER_ANIM playerAnim);
+#elif __linux__
+typedef void (*FN_SetAnimation)(void *Private, PLAYER_ANIM playerAnim);
+#endif
 
-	while ( a )
-	{
-		if (a->iEntity == iEnt)
-		{
-			found = a->iThinkForward;
-			break;
-		}
-		a = a->next;
-	}
-	return found;
-}
-
-
-
-void CEntity::Set_Think(int iEnt, int iForward )
-{
-	Obj* a = head;
-
-	while ( a )
-	{
-		if (a->iEntity == iEnt)
-		{
-			a->iThinkForward = iForward;
-			return;
-		}
-
-		a = a->next;
-	}
-
-	a = new Obj;
-
-	if ( a == 0 ) 
-		return;
-	
-	a->iThinkForward = iForward;
-	a->iEntity = iEnt;
-	a->next = head;
-	
-	head = a;
-}
-
-
-
-void CEntity::clear()
-{
-	while(head)
-	{
-		Obj* a = head->next;
-		delete head;
-		head = a;
-	}
-}
+typedef int (*FN_GetAmmoIndex)(const char *psz);
+typedef void (*FN_PrecacheOtherWeapon)(const char *szClassname);
+typedef void (*FN_RadiusDamage)(Vector vecSrc, entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, float flRadius, int iClassIgnore, int bitsDamageType);

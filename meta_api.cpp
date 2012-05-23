@@ -32,22 +32,19 @@
  */
 
 #include "weaponmod.h"
+#include "dllFunc.h"
+#include "CEntity.h"
+#include "CVirtHook.h"
 
 
 BOOL g_Initialized;
 
-Vector ParseVec(char *pString);
-char* parse_arg(char** line, int& state);
-
+extern CVirtHook g_VirtHook_InfoTarget;
+extern CVirtHook g_VirtHook_Crowbar;
 
 
 int OnMetaAttach()
 {
-	print_srvconsole("\n   Half-Life Weapon Mod version %s Copyright (c) 2012 AGHL.RU Dev Team. \n"
-					 "   Weapon Mod comes with ABSOLUTELY NO WARRANTY; for details type `wpnmod gpl'.\n", Plugin_info.version);
-	print_srvconsole("   This is free software and you are welcome to redistribute it under \n"
-					 "   certain conditions; type 'wpnmod gpl' for details.\n  \n");
-
 	if (FindDllBase((void*)MDLL_FUNC->pfnGetGameDescription()))
 	{
 #ifdef __linux__
@@ -109,39 +106,58 @@ int OnMetaAttach()
 
 void OnAmxxAttach()
 {
+	BOOL bAddNatives = TRUE; 
+
 	if (!g_IsBaseSet)
 	{
 #ifdef __linux__
-		print_srvconsole("[WEAPONMOD] Failed to locate hl_i386.so, cannot register natives.\n");
+		print_srvconsole("[WEAPONMOD] Failed to locate hl_i386.so\n");
 #elif _WIN32
-		print_srvconsole("[WEAPONMOD] Failed to locate hl.dll, cannot register natives.\n");
+		print_srvconsole("[WEAPONMOD] Failed to locate hl.dll\n");
 #endif
+		bAddNatives = FALSE;
 	}
-	else if (!pRadiusDamage)
+
+	if (!pRadiusDamage)
 	{
-		print_srvconsole("[WEAPONMOD] Failed to find \"RadiusDamage\" function, cannot register natives.\n");
+		print_srvconsole("[WEAPONMOD] Failed to find \"RadiusDamage\" function.\n");
+		bAddNatives = FALSE;
 	}
-	else if (!pGetAmmoIndex)
+
+	if (!pGetAmmoIndex)
 	{
-		print_srvconsole("[WEAPONMOD] Failed to find \"GetAmmoIndex\" function, cannot register natives.\n");
+		print_srvconsole("[WEAPONMOD] Failed to find \"GetAmmoIndex\" function.\n");
+		bAddNatives = FALSE;
 	}
-	else if (!pPlayerSetAnimation)
+
+	if (!pPlayerSetAnimation)
 	{
-		print_srvconsole("[WEAPONMOD] Failed to find \"PlayerSetAnimation\" function, cannot register natives.\n");
+		print_srvconsole("[WEAPONMOD] Failed to find \"PlayerSetAnimation\" function.\n");
+		bAddNatives = FALSE;
 	}
-	else if (!pPrecacheOtherWeapon)
+
+	if (!pPrecacheOtherWeapon)
 	{
-		print_srvconsole("[WEAPONMOD] Failed to find \"PrecacheOtherWeapon\" function, cannot register natives.\n");
+		print_srvconsole("[WEAPONMOD] Failed to find \"PrecacheOtherWeapon\" function.\n");
+		bAddNatives = FALSE;
+	}
+	
+	if (!bAddNatives)
+	{
+		print_srvconsole("[WEAPONMOD] Cannot register natives.\n");
 	}
 	else
 	{
-		MF_AddNatives(Natives_Ammo);
-		MF_AddNatives(Natives_Weapon);
+		MF_AddNatives(Natives);
 #ifdef __linux__
 		print_srvconsole("[WEAPONMOD] Found hl_i386.so at %p\n", hldll_base);
 #elif _WIN32
 		print_srvconsole("[WEAPONMOD] Found hl.dll at %p\n", hldll_base);
 #endif
+		print_srvconsole("\n   Half-Life Weapon Mod version %s Copyright (c) 2012 AGHL.RU Dev Team. \n"
+						"   Weapon Mod comes with ABSOLUTELY NO WARRANTY; for details type `wpnmod gpl'.\n", Plugin_info.version);
+		print_srvconsole("   This is free software and you are welcome to redistribute it under \n"
+						"   certain conditions; type 'wpnmod gpl' for details.\n  \n");
 	}
 }
 
