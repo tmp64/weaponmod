@@ -62,34 +62,26 @@ int OnMetaAttach()
 #elif _WIN32
 		if (CVAR_GET_POINTER("aghl.ru"))
 		{
-			pRadiusDamage = FindFunction(	"\x83\xEC\x7C\xD9\xEE\xD9\x54\x24\x58",
-											"xxxxxxxxx", 9);
+			pRadiusDamage = FindFunction("\x83\xEC\x7C\xD9\xEE\xD9\x54\x24\x58", "xxxxxxxxx", 9);
+			pGetAmmoIndex = FindFunction("\x57\x8B\x7C\x24\x08\x85\xFF\x75\x05", "xxxxxxxxx", 9);
+			
+			pPlayerSetAnimation = FindFunction("\x83\xEC\x48\xA1\x00\x00\x00\x00"
+												"\x00\x00\x89\x00\x00\x00\x53\x56",
+												"xxxx??????x???xx", 16);
 
-			pGetAmmoIndex = FindFunction(	"\x57\x8B\x7C\x24\x08\x85\xFF\x75\x05",
-											"xxxxxxxxx", 9);
-
-			pPlayerSetAnimation = FindFunction(		"\x83\xEC\x48\xA1\x00\x00\x00\x00"
-													"\x00\x00\x89\x00\x00\x00\x53\x56",
-													"xxxx??????x???xx", 16);
-
-			pPrecacheOtherWeapon = FindFunction(	"\x8B\x00\x00\x00\x00\x00\x8B\x00\x00\x00\x2B"
-													"\x81\x98\x00\x00\x00\x83\xEC\x2C\x53\x50",
-													"x?????x???xxx???xxxxx", 21);
+			pPrecacheOtherWeapon = FindFunction("\x8B\x00\x00\x00\x00\x00\x8B\x00\x00\x00\x2B"
+												"\x81\x98\x00\x00\x00\x83\xEC\x2C\x53\x50",
+												"x?????x???xxx???xxxxx", 21);
 		}
 		else
 		{
-			pRadiusDamage = FindFunction(	"\xD9\x44\x24\x1C\xD8\x00\x00\x00\x00\x00\x83\xEC\x64",
-											"xxxxx?????xxx", 13);
+			pRadiusDamage = FindFunction("\xD9\x44\x24\x1C\xD8\x00\x00\x00\x00\x00\x83\xEC\x64", "xxxxx?????xxx", 13);
+			pGetAmmoIndex = FindFunction("\x56\x57\x8B\x7C\x24\x0C\x85\xFF", "xxxxxxxx", 8);
+			pPlayerSetAnimation = FindFunction("\x83\xEC\x44\x53\x55\x8B\xE9\x33\xDB\x56\x57", "xxxxxxxxxxx", 11);
 
-			pGetAmmoIndex = FindFunction(	"\x56\x57\x8B\x7C\x24\x0C\x85\xFF",
-											"xxxxxxxx", 8);
-
-			pPlayerSetAnimation = FindFunction(		"\x83\xEC\x44\x53\x55\x8B\xE9\x33\xDB\x56\x57",
-													"xxxxxxxxxxx", 11);
-
-			pPrecacheOtherWeapon = FindFunction(	"\x8B\x00\x00\x00\x00\x00\x8B\x00\x00\x00\x83"
-													"\x00\x00\x53\x56\x2B\x00\x00\x00\x00\x00\x50",
-													"x?????x???x??xxx?????x", 22);
+			pPrecacheOtherWeapon = FindFunction("\x8B\x00\x00\x00\x00\x00\x8B\x00\x00\x00\x83"
+												"\x00\x00\x53\x56\x2B\x00\x00\x00\x00\x00\x50",
+												"x?????x???x??xxx?????x", 22);
 		}
 #endif 
 	}
@@ -110,11 +102,7 @@ void OnAmxxAttach()
 
 	if (!g_IsBaseSet)
 	{
-#ifdef __linux__
-		print_srvconsole("[WEAPONMOD] Failed to locate hl_i386.so\n");
-#elif _WIN32
-		print_srvconsole("[WEAPONMOD] Failed to locate hl.dll\n");
-#endif
+		print_srvconsole("[WEAPONMOD] Failed to locate %s\n", GET_GAME_INFO(PLID, GINFO_DLL_FILENAME));
 		bAddNatives = FALSE;
 	}
 
@@ -149,11 +137,8 @@ void OnAmxxAttach()
 	else
 	{
 		MF_AddNatives(Natives);
-#ifdef __linux__
-		print_srvconsole("[WEAPONMOD] Found hl_i386.so at %p\n", hldll_base);
-#elif _WIN32
-		print_srvconsole("[WEAPONMOD] Found hl.dll at %p\n", hldll_base);
-#endif
+		print_srvconsole("[WEAPONMOD] Found %s at %p\n", GET_GAME_INFO(PLID, GINFO_DLL_FILENAME), hldll_base);
+
 		print_srvconsole("\n   Half-Life Weapon Mod version %s Copyright (c) 2012 AGHL.RU Dev Team. \n"
 						"   Weapon Mod comes with ABSOLUTELY NO WARRANTY; for details type `wpnmod gpl'.\n", Plugin_info.version);
 		print_srvconsole("   This is free software and you are welcome to redistribute it under \n"

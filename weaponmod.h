@@ -94,6 +94,7 @@
 #define m_rgAmmo							XTRA_OFS_PLAYER + 310
 #define m_szAnimExtention					XTRA_OFS_PLAYER + 387
 
+
 enum e_AmmoFwds
 {
 	Fwd_Ammo_Spawn,

@@ -31,7 +31,7 @@
  *
  */
 
-extern BOOL	g_IsBaseSet;
+extern BOOL g_IsBaseSet;
 
 extern void *pRadiusDamage;
 extern void *pGetAmmoIndex;

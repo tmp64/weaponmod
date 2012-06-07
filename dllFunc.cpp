@@ -164,7 +164,9 @@ int FindDllBase(void* func)
 		hldll_base_len = (size_t)NULL;
 		
 		return (g_IsBaseSet = 0);
-	} else {
+	} 
+	else 
+	{
 		hldll_base = (unsigned char*)info.dli_fbase;
 		hldll_base_len = getBaseLen(hldll_base);
 

@@ -36,8 +36,6 @@
 #include "CVirtHook.h"
 
 
-
-
 int g_iId;
 int g_iWeaponIndex;
 int g_iAmmoBoxIndex;
@@ -104,9 +102,9 @@ edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 
 
 #ifdef _WIN32
-	int __fastcall Weapon_GetItemInfo(void *pPrivate, int i, ItemInfo *p)
+int __fastcall Weapon_GetItemInfo(void *pPrivate, int i, ItemInfo *p)
 #elif __linux__
-	int Weapon_GetItemInfo(void *pPrivate, ItemInfo *p)
+int Weapon_GetItemInfo(void *pPrivate, ItemInfo *p)
 #endif
 {
 #ifdef _WIN32
@@ -160,9 +158,9 @@ edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 
 
 #ifdef _WIN32
-	BOOL __fastcall Weapon_CanDeploy(void *pPrivate)
+BOOL __fastcall Weapon_CanDeploy(void *pPrivate)
 #elif __linux__
-	BOOL Weapon_CanDeploy(void *pPrivate)
+BOOL Weapon_CanDeploy(void *pPrivate)
 #endif
 {
 	g_pWeapon = PrivateToEdict(pPrivate);
@@ -205,9 +203,9 @@ edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 
 
 #ifdef _WIN32
-	BOOL __fastcall Weapon_Deploy(void *pPrivate)
+BOOL __fastcall Weapon_Deploy(void *pPrivate)
 #elif __linux__
-	BOOL Weapon_Deploy(void *pPrivate)
+BOOL Weapon_Deploy(void *pPrivate)
 #endif
 {
 	g_pWeapon = PrivateToEdict(pPrivate);
@@ -257,9 +255,9 @@ edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 
 
 #ifdef _WIN32
-	void __fastcall Weapon_ItemPostFrame(void *pPrivate)
+void __fastcall Weapon_ItemPostFrame(void *pPrivate)
 #elif __linux__
-	void Weapon_ItemPostFrame(void *pPrivate)
+void Weapon_ItemPostFrame(void *pPrivate)
 #endif
 {
 	static int iClip;
@@ -443,9 +441,9 @@ edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 
 
 #ifdef _WIN32
-	BOOL __fastcall Weapon_IsUseable(void *pPrivate)
+BOOL __fastcall Weapon_IsUseable(void *pPrivate)
 #elif __linux__
-	BOOL Weapon_IsUseable(void *pPrivate)
+BOOL Weapon_IsUseable(void *pPrivate)
 #endif
 {
 	g_pWeapon = PrivateToEdict(pPrivate);
@@ -488,9 +486,9 @@ edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 
 
 #ifdef _WIN32
-	BOOL __fastcall Weapon_CanHolster(void *pPrivate)
+BOOL __fastcall Weapon_CanHolster(void *pPrivate)
 #elif __linux__
-	BOOL Weapon_CanHolster(void *pPrivate)
+BOOL Weapon_CanHolster(void *pPrivate)
 #endif
 {
 	g_pWeapon = PrivateToEdict(pPrivate);
@@ -533,9 +531,9 @@ edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 
 
 #ifdef _WIN32
-	void __fastcall Weapon_Holster(void *pPrivate, int i, int skiplocal)
+void __fastcall Weapon_Holster(void *pPrivate, int i, int skiplocal)
 #elif __linux__
-	void Weapon_Holster(void *pPrivate, int skiplocal)
+void Weapon_Holster(void *pPrivate, int skiplocal)
 #endif
 {
 	g_pWeapon = PrivateToEdict(pPrivate);
@@ -578,9 +576,9 @@ edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 
 
 #ifdef _WIN32
-	void __fastcall Weapon_Think(void *pPrivate, int i)
+void __fastcall Weapon_Think(void *pPrivate, int i)
 #elif __linux__
-	void Weapon_Think(void *pPrivate)
+void Weapon_Think(void *pPrivate)
 #endif
 {
 	g_pWeapon = PrivateToEdict(pPrivate);
@@ -624,9 +622,9 @@ edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 
 
 #ifdef _WIN32
-	int __fastcall Weapon_AddToPlayer(void *pPrivate, int i, void *pPrivate2)
+int __fastcall Weapon_AddToPlayer(void *pPrivate, int i, void *pPrivate2)
 #elif __linux__
-	int Weapon_AddToPlayer(void *pPrivate, void *pPrivate2)
+int Weapon_AddToPlayer(void *pPrivate, void *pPrivate2)
 #endif
 {
 	g_pWeapon = PrivateToEdict(pPrivate);
@@ -677,9 +675,9 @@ edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 
 
 #ifdef _WIN32
-	int __fastcall Weapon_ItemSlot(void *pPrivate)
+int __fastcall Weapon_ItemSlot(void *pPrivate)
 #elif __linux__
-	int Weapon_ItemSlot(void *pPrivate)
+int Weapon_ItemSlot(void *pPrivate)
 #endif
 {
 	g_pWeapon = PrivateToEdict(pPrivate);
@@ -706,9 +704,9 @@ edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 
 
 #ifdef _WIN32
-	void __fastcall Weapon_Drop(void *pPrivate)
+void __fastcall Weapon_Drop(void *pPrivate)
 #elif __linux__
-	void Weapon_Drop(void *pPrivate)
+void Weapon_Drop(void *pPrivate)
 #endif
 {
 	g_pWeapon = PrivateToEdict(pPrivate);
@@ -735,9 +733,9 @@ edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 
 
 #ifdef _WIN32
-	void* __fastcall Weapon_Respawn(void *pPrivate)
+void* __fastcall Weapon_Respawn(void *pPrivate)
 #elif __linux__
-	void* Weapon_Respawn(void *pPrivate)
+void* Weapon_Respawn(void *pPrivate)
 #endif
 {
 	g_pWeapon = PrivateToEdict(pPrivate);
@@ -827,9 +825,9 @@ void Ammo_Respawn(edict_t *pAmmoBox)
 
 
 #ifdef _WIN32
-	void __fastcall InfoTarget_Think(void *pPrivate)
+void __fastcall InfoTarget_Think(void *pPrivate)
 #elif __linux__
-	void InfoTarget_Think(void *pPrivate)
+void InfoTarget_Think(void *pPrivate)
 #endif
 {
 	static int k;
@@ -886,9 +884,9 @@ void Ammo_Respawn(edict_t *pAmmoBox)
 
 
 #ifdef _WIN32
-	void __fastcall InfoTarget_Touch(void *pPrivate, int i, void *pPrivate2)
+void __fastcall InfoTarget_Touch(void *pPrivate, int i, void *pPrivate2)
 #elif __linux__
-	void InfoTarget_Touch(void *pPrivate, void *pPrivate2)
+void InfoTarget_Touch(void *pPrivate, void *pPrivate2)
 #endif
 {
 	static int k;
@@ -945,18 +943,18 @@ void ActivateCrowbarHooks()
 		return;
 	}
 
-	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_GetItemInfo,		(int)Weapon_GetItemInfo);
-	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_CanDeploy,			(int)Weapon_CanDeploy);
-	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_Deploy,				(int)Weapon_Deploy);
-	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_CanHolster,			(int)Weapon_CanHolster);
-	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_Holster,			(int)Weapon_Holster);
-	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_Think,				(int)Weapon_Think);
-	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_Respawn,			(int)Weapon_Respawn);
-	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_AddToPlayer,		(int)Weapon_AddToPlayer);
-	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_ItemPostFrame,		(int)Weapon_ItemPostFrame);
-	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_Drop,				(int)Weapon_Drop);
-	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_ItemSlot,			(int)Weapon_ItemSlot);
-	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_IsUseable,			(int)Weapon_IsUseable);
+	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_GetItemInfo,	(int)Weapon_GetItemInfo);
+	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_CanDeploy,		(int)Weapon_CanDeploy);
+	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_Deploy,			(int)Weapon_Deploy);
+	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_CanHolster,		(int)Weapon_CanHolster);
+	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_Holster,		(int)Weapon_Holster);
+	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_Think,			(int)Weapon_Think);
+	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_Respawn,		(int)Weapon_Respawn);
+	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_AddToPlayer,	(int)Weapon_AddToPlayer);
+	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_ItemPostFrame,	(int)Weapon_ItemPostFrame);
+	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_Drop,			(int)Weapon_Drop);
+	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_ItemSlot,		(int)Weapon_ItemSlot);
+	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_IsUseable,		(int)Weapon_IsUseable);
 
 	REMOVE_ENTITY(pEdict);
 }
@@ -967,13 +965,13 @@ void ActivateInfoTargetHooks()
 {
 	edict_t *pEdict = CREATE_ENTITY();
 
-    CALL_GAME_ENTITY(PLID, "info_target", &pEdict->v);
+	CALL_GAME_ENTITY(PLID, "info_target", &pEdict->v);
     
-    if (pEdict->pvPrivateData == NULL)
-    {
-        REMOVE_ENTITY(pEdict);
+	if (pEdict->pvPrivateData == NULL)
+	{
+		REMOVE_ENTITY(pEdict);
 		return;
-    }
+	}
 
 	g_VirtHook_InfoTarget.SetHook(pEdict, VirtFunc_Touch, (int)InfoTarget_Touch);
 	g_VirtHook_InfoTarget.SetHook(pEdict, VirtFunc_Think, (int)InfoTarget_Think);
