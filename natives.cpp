@@ -495,7 +495,7 @@ static cell AMX_NATIVE_CALL wpnmod_default_deploy(AMX *amx, cell *params)
 	pPlayer->v.viewmodel = MAKE_STRING(szViewModel);
 	pPlayer->v.weaponmodel = MAKE_STRING(szWeaponModel);
 
-	char *szData = (char *)pPlayer->pvPrivateData + m_szAnimExtention;// * 4;
+	char *szData = (char *)pPlayer->pvPrivateData + m_szAnimExtention * 4;
 		
 	if (!IsBadWritePtr(szData, 1))
 	{
