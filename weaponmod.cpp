@@ -622,6 +622,46 @@ void Weapon_Think(void *pPrivate)
 
 
 #ifdef _WIN32
+void __fastcall Weapon_Touch(void *pPrivate, int i, void *pPrivate2)
+#elif __linux__
+void Weapon_Touch(void *pPrivate, void *pPrivate2)
+#endif
+{
+	static edict_t* pOther;
+
+	g_pEntity = PrivateToEdict(pPrivate);
+	pOther = PrivateToEdict(pPrivate2);
+
+	if (!IsValidPev(g_pEntity))
+	{
+		return;
+	}
+
+	int iTouchForward = g_EntData.Get_Touch(ENTINDEX(g_pEntity));
+
+	if (iTouchForward)
+	{
+		MF_ExecuteForward
+		(
+			iTouchForward,
+
+			static_cast<cell>(ENTINDEX(g_pEntity)), 
+			static_cast<cell>(ENTINDEX(pOther))
+		);
+
+		return;
+	}
+
+#ifdef _WIN32
+	reinterpret_cast<int (__fastcall *)(void *, int, void *)>(g_VirtHook_Crowbar.GetOrigFunc(VirtFunc_Touch))(pPrivate, NULL, pPrivate2);
+#elif __linux__
+	reinterpret_cast<int (*)(void *, void *)>(g_VirtHook_Crowbar.GetOrigFunc(VirtFunc_Touch))(pPrivate, pPrivate2);
+#endif
+}
+
+
+
+#ifdef _WIN32
 int __fastcall Weapon_AddToPlayer(void *pPrivate, int i, void *pPrivate2)
 #elif __linux__
 int Weapon_AddToPlayer(void *pPrivate, void *pPrivate2)
@@ -895,8 +935,23 @@ void InfoTarget_Touch(void *pPrivate, void *pPrivate2)
 	g_pEntity = PrivateToEdict(pPrivate);
 	pOther = PrivateToEdict(pPrivate2);
 
-	if (!IsValidPev(g_pEntity) || !IsValidPev(pOther))
+	if (!IsValidPev(g_pEntity))
 	{
+		return;
+	}
+
+	int iTouchForward = g_EntData.Get_Touch(ENTINDEX(g_pEntity));
+
+	if (iTouchForward)
+	{
+		MF_ExecuteForward
+		(
+			iTouchForward,
+
+			static_cast<cell>(ENTINDEX(g_pEntity)), 
+			static_cast<cell>(ENTINDEX(pOther))
+		);
+
 		return;
 	}
 
@@ -949,6 +1004,7 @@ void ActivateCrowbarHooks()
 	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_CanHolster,		(int)Weapon_CanHolster);
 	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_Holster,		(int)Weapon_Holster);
 	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_Think,			(int)Weapon_Think);
+	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_Touch,			(int)Weapon_Touch);
 	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_Respawn,		(int)Weapon_Respawn);
 	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_AddToPlayer,	(int)Weapon_AddToPlayer);
 	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_ItemPostFrame,	(int)Weapon_ItemPostFrame);

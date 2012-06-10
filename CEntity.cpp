@@ -55,6 +55,24 @@ int CEntity::Get_Think(int iEnt)
 }
 
 
+int CEntity::Get_Touch(int iEnt)
+{
+	int found = 0;
+
+	Obj* a = head;
+
+	while ( a )
+	{
+		if (a->iEntity == iEnt)
+		{
+			found = a->iTouchForward;
+			break;
+		}
+		a = a->next;
+	}
+	return found;
+}
+
 
 void CEntity::Set_Think(int iEnt, int iForward )
 {
@@ -77,6 +95,35 @@ void CEntity::Set_Think(int iEnt, int iForward )
 		return;
 	
 	a->iThinkForward = iForward;
+	a->iEntity = iEnt;
+	a->next = head;
+	
+	head = a;
+}
+
+
+
+void CEntity::Set_Touch(int iEnt, int iForward )
+{
+	Obj* a = head;
+
+	while ( a )
+	{
+		if (a->iEntity == iEnt)
+		{
+			a->iTouchForward = iForward;
+			return;
+		}
+
+		a = a->next;
+	}
+
+	a = new Obj;
+
+	if ( a == 0 ) 
+		return;
+	
+	a->iTouchForward = iForward;
 	a->iEntity = iEnt;
 	a->next = head;
 	

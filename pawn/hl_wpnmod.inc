@@ -115,6 +115,14 @@ native wpnmod_register_ammobox_forward(const iWeaponID, const e_AmmoFwds: iForwa
 native wpnmod_set_think(const iItem, const szCallBack[]);
 
 /**
+ * Sets entity's touch function. 
+ * 
+ * @param iEntity			Entity index.
+ * @param szCallBack		The forward to call.
+ */
+native wpnmod_set_touch(const iEntity, const szCallBack[]);
+
+/**
  * Plays weapon's animation.
  *
  * @param iItem				Weapon's entity index.

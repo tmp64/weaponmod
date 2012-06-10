@@ -36,6 +36,7 @@ class CEntity
 	struct Obj 
 	{
 		int iThinkForward;
+		int iTouchForward;
 		int iEntity;
 		
 		Obj* next;
@@ -46,7 +47,11 @@ public:
 	~CEntity() { clear(); }
 
 	int Get_Think(int iEnt);
+	int Get_Touch(int iEnt);
+
 	void Set_Think(int iEnt, int iForward);
+	void Set_Touch(int iEnt, int iForward);
+	
 	void clear();
 };
 

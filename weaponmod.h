@@ -174,7 +174,7 @@ typedef struct
 typedef struct
 {
 	const char	*pszName;
-	int iForward[Fwd_Wpn_End];
+	int iForward[Fwd_Ammo_End];
 } AmmoBoxData;
 
 extern int g_iWeaponIndex;

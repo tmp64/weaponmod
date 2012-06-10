@@ -615,6 +615,42 @@ static cell AMX_NATIVE_CALL wpnmod_set_think(AMX *amx, cell *params)
 }
 
 /**
+ * Sets entity's touch function. 
+ * 
+ * @param iEntity			Entity index.
+ * @param szCallBack		The forward to call.
+ *
+ * native wpnmod_set_touch(const iEntity, const szCallBack[]);
+*/
+static cell AMX_NATIVE_CALL wpnmod_set_touch(AMX *amx, cell *params)
+{
+	int iEntity = params[1];
+
+	CHECK_ENTITY(iEntity)
+
+	char *funcname = MF_GetAmxString(amx, params[2], 0, NULL);
+
+	int iForward = MF_RegisterSPForwardByName
+	(
+		amx, 
+		funcname, 
+		FP_CELL, 
+		FP_CELL, 
+		FP_DONE
+	);
+
+	if (iForward == -1)
+	{
+		MF_LogError(amx, AMX_ERR_NATIVE, "Function not found (\"%s\").", funcname);
+		return 0;
+	}
+
+	g_EntData.Set_Touch(iEntity, iForward);
+
+	return 1;
+}
+
+/**
  * Fire bullets from player's weapon.
  *
  * @param iPlayer			Player index.
@@ -928,6 +964,7 @@ AMX_NATIVE_INFO Natives[] =
 	{ "wpnmod_send_weapon_anim", wpnmod_send_weapon_anim},
 	{ "wpnmod_set_player_anim", wpnmod_set_player_anim},
 	{ "wpnmod_set_think", wpnmod_set_think},
+	{ "wpnmod_set_touch", wpnmod_set_touch},
 	{ "wpnmod_set_offset_int", wpnmod_set_offset_int},
 	{ "wpnmod_set_offset_float", wpnmod_set_offset_float},
 	{ "wpnmod_get_offset_int", wpnmod_get_offset_int},
