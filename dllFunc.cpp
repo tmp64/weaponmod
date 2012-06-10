@@ -32,6 +32,7 @@
  */
 
 #include "amxxmodule.h"
+#include "weaponmod.h"
 
 
 BOOL g_IsBaseSet = FALSE;

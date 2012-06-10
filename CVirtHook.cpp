@@ -33,6 +33,7 @@
 
 #include "CVirtHook.h"
 #include "amxxmodule.h"
+#include "weaponmod.h"
 #include "utils.h"
 
 
@@ -118,3 +119,4 @@ void CVirtHook::clear()
 		head = a;
 	}
 }
+

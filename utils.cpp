@@ -107,6 +107,19 @@ BOOL UTIL_ShouldShowBlood( int color )
 	return FALSE;
 }
 
+
+void print_srvconsole(char *fmt, ...)
+{
+	va_list argptr;
+	static char string[384];
+	va_start(argptr, fmt);
+	vsnprintf(string, sizeof(string) - 1, fmt, argptr);
+	string[sizeof(string) - 1] = '\0';
+	va_end(argptr);
+       
+	SERVER_PRINT(string);
+}
+
 void UTIL_BloodDrips(const Vector &origin, int color, int amount)
 {
 	if (!UTIL_ShouldShowBlood(color))

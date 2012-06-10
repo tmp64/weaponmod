@@ -66,17 +66,7 @@
 #define PrivateToEdict(pPrivate) (*(entvars_t **)pPrivate)->pContainingEntity
 #endif
 
-inline void print_srvconsole(char *fmt, ...)
-{
-	va_list argptr;
-	static char string[384];
-	va_start(argptr, fmt);
-	vsnprintf(string, sizeof(string) - 1, fmt, argptr);
-	string[sizeof(string) - 1] = '\0';
-	va_end(argptr);
-       
-	SERVER_PRINT(string);
-}
+void print_srvconsole(char *fmt, ...);
 
 edict_t* INDEXENT2(int iEdictNum);
 edict_t *GetPrivateCbase(edict_t *pEntity, int iOffset);
