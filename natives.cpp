@@ -957,6 +957,26 @@ static cell AMX_NATIVE_CALL wpnmod_register_ammobox_forward(AMX *amx, cell *para
 	return 1;
 }
 
+
+
+void HOOK_Think(void *pPrivate)
+{
+	//entvars_t* a = ((CBaseEntity*)pPrivate)->pev;
+
+	print_srvconsole("[WEAPONMOD] 2222 %p\n", pPrivate);
+}
+
+static cell AMX_NATIVE_CALL wpnmod_test(AMX *amx, cell *params)
+{
+	int iEntity = params[1];
+	CHECK_ENTITY(iEntity)
+
+	*((int *)INDEXENT(iEntity)->pvPrivateData + 4) = (int)(HOOK_Think);
+	print_srvconsole("[WEAPONMOD] HOOK_Think(%p), m_pfnThink(%p)\n", (DWORD)HOOK_Think, INDEXENT2(iEntity)->pvPrivateData);
+
+	return 1;
+}
+
 AMX_NATIVE_INFO Natives[] = 
 {
 	{ "wpnmod_register_weapon", wpnmod_register_weapon},
@@ -982,6 +1002,10 @@ AMX_NATIVE_INFO Natives[] =
 	{ "wpnmod_create_item", wpnmod_create_item},
 	{ "wpnmod_register_ammobox", wpnmod_register_ammobox},
 	{ "wpnmod_register_ammobox_forward", wpnmod_register_ammobox_forward},
+
+
+
+	{ "wpnmod_test", wpnmod_test},
 
 	{ NULL, NULL }
 };

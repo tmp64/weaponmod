@@ -556,6 +556,8 @@ void Weapon_Holster(void *pPrivate, int skiplocal)
 	}
 
 	g_EntData.Set_Think(ENTINDEX(g_pWeapon), 0);
+	g_EntData.Set_Touch(ENTINDEX(g_pWeapon), 0);
+
 	g_pPlayer = GetPrivateCbase(g_pWeapon, m_pPlayer);
 
 	if (IsValidPev(g_pPlayer) && WeaponInfoArray[g_iId].iForward[Fwd_Wpn_Holster])
