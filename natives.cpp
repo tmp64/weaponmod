@@ -653,8 +653,6 @@ int __declspec(naked) Global_Touch(CBaseEntity *pOther)
 	CBaseEntity *pEntity;
 	__asm
 	{
-		//mov		eax, dword ptr [ecx]
-		//mov		dword ptr [pEntity], eax
 		mov		pEntity, ecx
 	}
 
