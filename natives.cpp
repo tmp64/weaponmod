@@ -657,6 +657,7 @@ int __declspec(naked) Global_Touch(CBaseEntity *pOther)
 		//mov		dword ptr [pEntity], eax
 		mov		pEntity, ecx
 	}
+
 #else	// _MSC_VER
 // compiler not known
 #error There is no support (yet) for your compiler. Please use MSVC or GCC compilers or contact the AGHL.RU dev team.
