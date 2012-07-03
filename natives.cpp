@@ -624,64 +624,20 @@ static cell AMX_NATIVE_CALL wpnmod_set_think(AMX *amx, cell *params)
  * native wpnmod_set_touch(const iEntity, const szCallBack[]);
 */
 
-#ifdef __linux__
-// linux prototype
-int __cdecl Global_Touch(CBaseEntity *pEntity, CBaseEntity *pOther)
+#ifdef _WIN32
+void __fastcall Global_Touch(CBaseEntity *pEntity, int i, CBaseEntity *pOther)
+#elif __linux__
+void Global_Touch(CBaseEntity *pEntity, CBaseEntity *pOther)
+#endif
 {
-
-#else
-#ifdef _MSC_VER
-// MSVC: Simulate __thiscall calling convention
-int __declspec(naked) Global_Touch(CBaseEntity *pOther)
-{
-	// Prolog
-	__asm
-	{
-		// Save ebp
-		push	ebp
-		// Set stack frame pointer
-		mov		ebp, esp
-		// Allocate space for local variables
-		// The MSVC compiler gives us the needed size in __LOCAL_SIZE.
-		sub		esp, __LOCAL_SIZE
-		// Push registers
-		push	ebx
-		push	esi
-		push	edi
-	}
-	// Get *this from ecx (__thiscall convention)
-	CBaseEntity *pEntity;
-	__asm
-	{
-		mov		pEntity, ecx
-	}
-
-#else	// _MSC_VER
-// compiler not known
-#error There is no support (yet) for your compiler. Please use MSVC or GCC compilers or contact the AGHL.RU dev team.
-#endif // _MSC_VER
-#endif // __linux__
-
 	print_srvconsole("!!!! %p %d %d \n", pEntity, ENTINDEX(pEntity->pev->pContainingEntity), ENTINDEX(pOther->pev->pContainingEntity));
 
-#ifdef _MSC_VER
-	// Epilog // 32 bit
-	__asm
-	{
-		// Pop registers
-		pop		edi
-		pop		esi
-		pop		ebx
-		// Restore stack frame pointer
-		mov		esp, ebp
-		// Restore ebp
-		pop		ebp
-		// Ret value
-		mov		eax, 1
-		// sizeof(int*) = 4 on 32 bit
-		ret		4
-	}
-#endif // #ifdef _MSC_VER
+	// TODO: Тут вызов сам поправь, когда старый Think наковыряешь из ентити, всё как в InfoTarget_Touch
+//#ifdef _WIN32
+//	reinterpret_cast<int (__fastcall *)(void *, int, void *)>(g_VirtHook_InfoTarget.GetOrigFunc(VirtFunc_Touch))(pPrivate, NULL, pPrivate2);
+//#elif __linux__
+//	reinterpret_cast<int (*)(void *, void *)>(g_VirtHook_InfoTarget.GetOrigFunc(VirtFunc_Touch))(pPrivate, pPrivate2);
+//#endif
 }
 
 static cell AMX_NATIVE_CALL wpnmod_set_touch(AMX *amx, cell *params)

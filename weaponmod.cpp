@@ -1,35 +1,35 @@
 /*
- * Half-Life Weapon Mod
- * Copyright (c) 2012 AGHL.RU Dev Team
- * 
- * http://aghl.ru/forum/ - Russian Half-Life and Adrenaline Gamer Community
- *
- *
- *    This program is free software; you can redistribute it and/or modify it
- *    under the terms of the GNU General Public License as published by the
- *    Free Software Foundation; either version 2 of the License, or (at
- *    your option) any later version.
- *
- *    This program is distributed in the hope that it will be useful, but
- *    WITHOUT ANY WARRANTY; without even the implied warranty of
- *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *    General Public License for more details.
- *
- *    You should have received a copy of the GNU General Public License
- *    along with this program; if not, write to the Free Software Foundation,
- *    Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- *    In addition, as a special exception, the author gives permission to
- *    link the code of this program with the Half-Life Game Engine ("HL
- *    Engine") and Modified Game Libraries ("MODs") developed by Valve,
- *    L.L.C ("Valve").  You must obey the GNU General Public License in all
- *    respects for all of the code used other than the HL Engine and MODs
- *    from Valve.  If you modify this file, you may extend this exception
- *    to your version of the file, but you are not obligated to do so.  If
- *    you do not wish to do so, delete this exception statement from your
- *    version.
- *
- */
+* Half-Life Weapon Mod
+* Copyright (c) 2012 AGHL.RU Dev Team
+* 
+* http://aghl.ru/forum/ - Russian Half-Life and Adrenaline Gamer Community
+*
+*
+*    This program is free software; you can redistribute it and/or modify it
+*    under the terms of the GNU General Public License as published by the
+*    Free Software Foundation; either version 2 of the License, or (at
+*    your option) any later version.
+*
+*    This program is distributed in the hope that it will be useful, but
+*    WITHOUT ANY WARRANTY; without even the implied warranty of
+*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+*    General Public License for more details.
+*
+*    You should have received a copy of the GNU General Public License
+*    along with this program; if not, write to the Free Software Foundation,
+*    Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*
+*    In addition, as a special exception, the author gives permission to
+*    link the code of this program with the Half-Life Game Engine ("HL
+*    Engine") and Modified Game Libraries ("MODs") developed by Valve,
+*    L.L.C ("Valve").  You must obey the GNU General Public License in all
+*    respects for all of the code used other than the HL Engine and MODs
+*    from Valve.  If you modify this file, you may extend this exception
+*    to your version of the file, but you are not obligated to do so.  If
+*    you do not wish to do so, delete this exception statement from your
+*    version.
+*
+*/
 
 #include "weaponmod.h"
 #include "CEntity.h"
@@ -65,7 +65,7 @@ edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 	{
 		pItem = CREATE_NAMED_ENTITY(iszAllocStringCached);
 	}
-	
+
 	if (IsValidPev(pItem))
 	{
 		MDLL_Spawn(pItem);
@@ -84,7 +84,7 @@ edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 		if (WeaponInfoArray[iId].iForward[Fwd_Wpn_Spawn])
 		{
 			MF_ExecuteForward
-			(
+				(
 				WeaponInfoArray[iId].iForward[Fwd_Wpn_Spawn],
 
 				static_cast<cell>(ENTINDEX(pItem)), 
@@ -92,7 +92,7 @@ edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 				static_cast<cell>(0), 
 				static_cast<cell>(0),
 				static_cast<cell>(0)
-			);
+				);
 		}
 	}
 
@@ -125,7 +125,7 @@ int Weapon_GetItemInfo(void *pPrivate, ItemInfo *p)
 	if (g_InitWeapon)
 	{
 		g_InitWeapon = FALSE;
-		
+
 		g_iId = g_iWeaponIndex;
 	}
 
@@ -180,7 +180,7 @@ BOOL Weapon_CanDeploy(void *pPrivate)
 		return reinterpret_cast<int (*)(void *)>(g_VirtHook_Crowbar.GetOrigFunc(VirtFunc_CanDeploy))(pPrivate);
 #endif
 	}
-	
+
 	g_pPlayer = GetPrivateCbase(g_pWeapon, m_pPlayer);
 
 	if (!IsValidPev(g_pPlayer))
@@ -189,7 +189,7 @@ BOOL Weapon_CanDeploy(void *pPrivate)
 	}
 
 	return MF_ExecuteForward
-	(
+		(
 		WeaponInfoArray[g_iId].iForward[Fwd_Wpn_CanDeploy],
 
 		static_cast<cell>(ENTINDEX(g_pWeapon)), 
@@ -197,7 +197,7 @@ BOOL Weapon_CanDeploy(void *pPrivate)
 		static_cast<cell>((int)*((int *)g_pWeapon->pvPrivateData + m_iClip)), 
 		static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, TRUE)),
 		static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, FALSE))
-	);
+		);
 }
 
 
@@ -225,7 +225,7 @@ BOOL Weapon_Deploy(void *pPrivate)
 		return reinterpret_cast<int (*)(void *)>(g_VirtHook_Crowbar.GetOrigFunc(VirtFunc_Deploy))(pPrivate);
 #endif
 	}
-	
+
 	g_pPlayer = GetPrivateCbase(g_pWeapon, m_pPlayer);
 
 	if (!IsValidPev(g_pPlayer))
@@ -238,7 +238,7 @@ BOOL Weapon_Deploy(void *pPrivate)
 	if (WeaponInfoArray[g_iId].iForward[Fwd_Wpn_Deploy])
 	{
 		iReturn = MF_ExecuteForward
-		(
+			(
 			WeaponInfoArray[g_iId].iForward[Fwd_Wpn_Deploy],
 
 			static_cast<cell>(ENTINDEX(g_pWeapon)), 
@@ -246,7 +246,7 @@ BOOL Weapon_Deploy(void *pPrivate)
 			static_cast<cell>((int)*((int *)g_pWeapon->pvPrivateData + m_iClip)), 
 			static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, TRUE)),
 			static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, FALSE))
-		);
+			);
 	}
 
 	return iReturn;
@@ -270,7 +270,7 @@ void Weapon_ItemPostFrame(void *pPrivate)
 	static float flNextPrimaryAttack;
 	static float flNextSecondaryAttack;
 
-    g_pWeapon = PrivateToEdict(pPrivate);
+	g_pWeapon = PrivateToEdict(pPrivate);
 
 	if (!IsValidPev(g_pWeapon))
 	{
@@ -317,7 +317,7 @@ void Weapon_ItemPostFrame(void *pPrivate)
 		// Add them to the clip
 		*((int *)g_pWeapon->pvPrivateData + m_iClip) = iClip;
 		*((int *)g_pWeapon->pvPrivateData + m_fInReload) = FALSE;	
-		
+
 		Player_Set_AmmoInventory(g_pPlayer, g_pWeapon, TRUE, iAmmoPrimary);
 	}
 
@@ -331,7 +331,7 @@ void Weapon_ItemPostFrame(void *pPrivate)
 		if (WeaponInfoArray[g_iId].iForward[Fwd_Wpn_SecondaryAttack])
 		{
 			MF_ExecuteForward
-			(
+				(
 				WeaponInfoArray[g_iId].iForward[Fwd_Wpn_SecondaryAttack],
 
 				static_cast<cell>(ENTINDEX(g_pWeapon)), 
@@ -339,7 +339,7 @@ void Weapon_ItemPostFrame(void *pPrivate)
 				static_cast<cell>(iClip), 
 				static_cast<cell>(iAmmoPrimary),
 				static_cast<cell>(iAmmoSecondary)
-			);
+				);
 		}
 
 		g_pPlayer->v.button &= ~IN_ATTACK2;
@@ -354,7 +354,7 @@ void Weapon_ItemPostFrame(void *pPrivate)
 		if (WeaponInfoArray[g_iId].iForward[Fwd_Wpn_PrimaryAttack])
 		{
 			MF_ExecuteForward
-			(
+				(
 				WeaponInfoArray[g_iId].iForward[Fwd_Wpn_PrimaryAttack],
 
 				static_cast<cell>(ENTINDEX(g_pWeapon)), 
@@ -362,7 +362,7 @@ void Weapon_ItemPostFrame(void *pPrivate)
 				static_cast<cell>(iClip), 
 				static_cast<cell>(iAmmoPrimary),
 				static_cast<cell>(iAmmoSecondary)
-			);
+				);
 		}
 
 		g_pPlayer->v.button &= ~IN_ATTACK;
@@ -373,7 +373,7 @@ void Weapon_ItemPostFrame(void *pPrivate)
 		if (WeaponInfoArray[g_iId].iForward[Fwd_Wpn_Reload])
 		{
 			MF_ExecuteForward
-			(
+				(
 				WeaponInfoArray[g_iId].iForward[Fwd_Wpn_Reload],
 
 				static_cast<cell>(ENTINDEX(g_pWeapon)), 
@@ -381,7 +381,7 @@ void Weapon_ItemPostFrame(void *pPrivate)
 				static_cast<cell>(iClip), 
 				static_cast<cell>(iAmmoPrimary),
 				static_cast<cell>(iAmmoSecondary)
-			);
+				);
 		}
 	}
 	else if (!(g_pPlayer->v.button & (IN_ATTACK|IN_ATTACK2)))
@@ -408,7 +408,7 @@ void Weapon_ItemPostFrame(void *pPrivate)
 				if (WeaponInfoArray[g_iId].iForward[Fwd_Wpn_Reload])
 				{
 					MF_ExecuteForward
-					(
+						(
 						WeaponInfoArray[g_iId].iForward[Fwd_Wpn_Reload],
 
 						static_cast<cell>(ENTINDEX(g_pWeapon)), 
@@ -416,7 +416,7 @@ void Weapon_ItemPostFrame(void *pPrivate)
 						static_cast<cell>(iClip), 
 						static_cast<cell>(iAmmoPrimary),
 						static_cast<cell>(iAmmoSecondary)
-					);
+						);
 				}
 				return;
 			}
@@ -425,7 +425,7 @@ void Weapon_ItemPostFrame(void *pPrivate)
 		if (WeaponInfoArray[g_iId].iForward[Fwd_Wpn_Idle])
 		{
 			MF_ExecuteForward
-			(
+				(
 				WeaponInfoArray[g_iId].iForward[Fwd_Wpn_Idle],
 
 				static_cast<cell>(ENTINDEX(g_pWeapon)), 
@@ -433,7 +433,7 @@ void Weapon_ItemPostFrame(void *pPrivate)
 				static_cast<cell>(iClip), 
 				static_cast<cell>(iAmmoPrimary),
 				static_cast<cell>(iAmmoSecondary)
-			);
+				);
 		}
 	}
 }
@@ -463,7 +463,7 @@ BOOL Weapon_IsUseable(void *pPrivate)
 		return reinterpret_cast<int (*)(void *)>(g_VirtHook_Crowbar.GetOrigFunc(VirtFunc_IsUseable))(pPrivate);
 #endif
 	}
-	
+
 	g_pPlayer = GetPrivateCbase(g_pWeapon, m_pPlayer);
 
 	if (!IsValidPev(g_pPlayer))
@@ -472,7 +472,7 @@ BOOL Weapon_IsUseable(void *pPrivate)
 	}
 
 	return MF_ExecuteForward
-	(
+		(
 		WeaponInfoArray[g_iId].iForward[Fwd_Wpn_IsUseable],
 
 		static_cast<cell>(ENTINDEX(g_pWeapon)), 
@@ -480,7 +480,7 @@ BOOL Weapon_IsUseable(void *pPrivate)
 		static_cast<cell>((int)*((int *)g_pWeapon->pvPrivateData + m_iClip)), 
 		static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, TRUE)),
 		static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, FALSE))
-	);
+		);
 }
 
 
@@ -508,7 +508,7 @@ BOOL Weapon_CanHolster(void *pPrivate)
 		return reinterpret_cast<int (*)(void *)>(g_VirtHook_Crowbar.GetOrigFunc(VirtFunc_CanHolster))(pPrivate);
 #endif
 	}
-	
+
 	g_pPlayer = GetPrivateCbase(g_pWeapon, m_pPlayer);
 
 	if (!IsValidPev(g_pPlayer))
@@ -517,7 +517,7 @@ BOOL Weapon_CanHolster(void *pPrivate)
 	}
 
 	return MF_ExecuteForward
-	(
+		(
 		WeaponInfoArray[g_iId].iForward[Fwd_Wpn_CanHolster],
 
 		static_cast<cell>(ENTINDEX(g_pWeapon)), 
@@ -525,7 +525,7 @@ BOOL Weapon_CanHolster(void *pPrivate)
 		static_cast<cell>((int)*((int *)g_pWeapon->pvPrivateData + m_iClip)), 
 		static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, TRUE)),
 		static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, FALSE))
-	);
+		);
 }
 
 
@@ -563,7 +563,7 @@ void Weapon_Holster(void *pPrivate, int skiplocal)
 	if (IsValidPev(g_pPlayer) && WeaponInfoArray[g_iId].iForward[Fwd_Wpn_Holster])
 	{
 		MF_ExecuteForward
-		(
+			(
 			WeaponInfoArray[g_iId].iForward[Fwd_Wpn_Holster],
 
 			static_cast<cell>(ENTINDEX(g_pWeapon)), 
@@ -571,7 +571,7 @@ void Weapon_Holster(void *pPrivate, int skiplocal)
 			static_cast<cell>((int)*((int *)g_pWeapon->pvPrivateData + m_iClip)), 
 			static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, TRUE)),
 			static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, FALSE))
-		);
+			);
 	}
 }
 
@@ -588,7 +588,7 @@ int Weapon_AddToPlayer(void *pPrivate, void *pPrivate2)
 	{
 		return 0;
 	}
-	
+
 	g_iId = (int)*((int *)g_pWeapon->pvPrivateData + m_iId);
 	g_pPlayer = PrivateToEdict(pPrivate2);
 
@@ -600,7 +600,7 @@ int Weapon_AddToPlayer(void *pPrivate, void *pPrivate2)
 			if (msgWeapPickup || (msgWeapPickup = REG_USER_MSG( "WeapPickup", 1 )))		
 			{
 				MESSAGE_BEGIN(MSG_ONE, msgWeapPickup, NULL, g_pPlayer);
-					WRITE_BYTE(g_iId);
+				WRITE_BYTE(g_iId);
 				MESSAGE_END();
 			}
 		}
@@ -608,7 +608,7 @@ int Weapon_AddToPlayer(void *pPrivate, void *pPrivate2)
 		if ( WeaponInfoArray[g_iId].iForward[Fwd_Wpn_AddToPlayer])
 		{
 			MF_ExecuteForward
-			(
+				(
 				WeaponInfoArray[g_iId].iForward[Fwd_Wpn_AddToPlayer],
 
 				static_cast<cell>(ENTINDEX(g_pWeapon)), 
@@ -616,7 +616,7 @@ int Weapon_AddToPlayer(void *pPrivate, void *pPrivate2)
 				static_cast<cell>((int)*((int *)g_pWeapon->pvPrivateData + m_iClip)), 
 				static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, TRUE)),
 				static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, FALSE))
-			);
+				);
 		}
 	}
 
@@ -641,7 +641,7 @@ int Weapon_ItemSlot(void *pPrivate)
 	{
 		return 0;
 	}
-	
+
 	g_iId = (int)*((int *)g_pWeapon->pvPrivateData + m_iId);
 
 	if (g_iId > LIMITER_WEAPON)
@@ -670,7 +670,7 @@ void Weapon_Drop(void *pPrivate)
 	{
 		return;
 	}
-	
+
 	g_iId = (int)*((int *)g_pWeapon->pvPrivateData + m_iId);
 
 	if (g_iId > LIMITER_WEAPON)
@@ -699,9 +699,9 @@ void* Weapon_Respawn(void *pPrivate)
 	{
 		return 0;
 	}
-	
+
 	g_iId = (int)*((int *)g_pWeapon->pvPrivateData + m_iId);
-	
+
 	if (g_iId <= LIMITER_WEAPON)
 	{
 #ifdef _WIN32
@@ -744,16 +744,16 @@ edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 		if (AmmoBoxInfoArray[iId].iForward[Fwd_Ammo_Spawn])
 		{
 			MF_ExecuteForward
-			(
+				(
 				AmmoBoxInfoArray[iId].iForward[Fwd_Ammo_Spawn],
 				static_cast<cell>(ENTINDEX(pAmmoBox)),
 				static_cast<cell>(0)
-			);
+				);
 		}
 
 		pAmmoBox->v.movetype = MOVETYPE_TOSS;
 		pAmmoBox->v.solid = SOLID_TRIGGER;
-		
+
 		SET_SIZE(pAmmoBox, Vector(-16, -16, 0), Vector(16, 16, 16));
 		SET_ORIGIN(pAmmoBox, vecOrigin);
 
@@ -819,12 +819,12 @@ void InfoTarget_Touch(void *pPrivate, void *pPrivate2)
 	if (iTouchForward)
 	{
 		MF_ExecuteForward
-		(
+			(
 			iTouchForward,
 
 			static_cast<cell>(ENTINDEX(g_pEntity)), 
 			static_cast<cell>(ENTINDEX(pOther))
-		);
+			);
 
 		return;
 	}
@@ -836,12 +836,12 @@ void InfoTarget_Touch(void *pPrivate, void *pPrivate2)
 			if (!strcmp(STRING(g_pEntity->v.classname), AmmoBoxInfoArray[k].pszName) && AmmoBoxInfoArray[k].iForward[Fwd_Ammo_AddAmmo])
 			{
 				if (
-						MF_ExecuteForward
-						(
-							AmmoBoxInfoArray[k].iForward[Fwd_Ammo_AddAmmo], 
-							static_cast<cell>(ENTINDEX(g_pEntity)),
-							static_cast<cell>(ENTINDEX(pOther))
-						)
+					MF_ExecuteForward
+					(
+					AmmoBoxInfoArray[k].iForward[Fwd_Ammo_AddAmmo], 
+					static_cast<cell>(ENTINDEX(g_pEntity)),
+					static_cast<cell>(ENTINDEX(pOther))
+					)
 					)
 				{
 					(g_pEntity->v.spawnflags & SF_NORESPAWN) ? REMOVE_ENTITY(g_pEntity) : Ammo_Respawn(g_pEntity);
@@ -874,7 +874,7 @@ void Global_Think(edict_t *pEntity)
 		if (!strstr(STRING(pEntity->v.classname), "weapon_"))
 		{
 			MF_ExecuteForward
-			(
+				(
 				iThinkForward,
 
 				static_cast<cell>(ENTINDEX(pEntity)), 
@@ -882,7 +882,7 @@ void Global_Think(edict_t *pEntity)
 				static_cast<cell>(0), 
 				static_cast<cell>(0),
 				static_cast<cell>(0)
-			);
+				);
 		}
 		else
 		{
@@ -890,7 +890,7 @@ void Global_Think(edict_t *pEntity)
 			edict_t* pPlayer = GetPrivateCbase(pEntity, m_pPlayer);
 
 			MF_ExecuteForward
-			(
+				(
 				iThinkForward,
 
 				static_cast<cell>(ENTINDEX(pEntity)), 
@@ -898,7 +898,7 @@ void Global_Think(edict_t *pEntity)
 				static_cast<cell>((int)*((int *)pEntity->pvPrivateData + m_iClip)), 
 				static_cast<cell>(Player_AmmoInventory(pPlayer, pEntity, TRUE)),
 				static_cast<cell>(Player_AmmoInventory(pPlayer, pEntity, FALSE))
-			);
+				);
 		}
 	}
 }
@@ -913,7 +913,7 @@ void ActivateCrowbarHooks()
 	edict_t *pEdict = CREATE_ENTITY();
 
 	CALL_GAME_ENTITY(PLID, "weapon_crowbar", &pEdict->v);
-    
+
 	if (pEdict->pvPrivateData == NULL)
 	{
 		REMOVE_ENTITY(pEdict);
@@ -942,7 +942,7 @@ void ActivateInfoTargetHooks()
 	edict_t *pEdict = CREATE_ENTITY();
 
 	CALL_GAME_ENTITY(PLID, "info_target", &pEdict->v);
-    
+
 	if (pEdict->pvPrivateData == NULL)
 	{
 		REMOVE_ENTITY(pEdict);
