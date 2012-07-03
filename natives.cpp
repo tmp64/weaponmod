@@ -610,6 +610,7 @@ static cell AMX_NATIVE_CALL wpnmod_set_think(AMX *amx, cell *params)
 	}
 
 	g_EntData.Set_Think(iEntity, iForward);
+	*((int *)INDEXENT2(iEntity)->pvPrivateData + m_pfnThink) = (int)(Global_Think);
 
 	return 1;
 }
@@ -622,6 +623,20 @@ static cell AMX_NATIVE_CALL wpnmod_set_think(AMX *amx, cell *params)
  *
  * native wpnmod_set_touch(const iEntity, const szCallBack[]);
 */
+
+int __stdcall Global_Touch(CBaseEntity *pOther)
+{
+	CBaseEntity *pEntity;
+	__asm
+	{
+		mov pEntity, eax;
+	}
+
+	print_srvconsole("!!!! %p %d \n", pEntity, ENTINDEX(pOther->pev->pContainingEntity));
+
+	return 1;
+}
+
 static cell AMX_NATIVE_CALL wpnmod_set_touch(AMX *amx, cell *params)
 {
 	int iEntity = params[1];
@@ -646,6 +661,7 @@ static cell AMX_NATIVE_CALL wpnmod_set_touch(AMX *amx, cell *params)
 	}
 
 	g_EntData.Set_Touch(iEntity, iForward);
+	*((int *)INDEXENT2(iEntity)->pvPrivateData + m_pfnTouch) = (int)(Global_Touch);
 
 	return 1;
 }
@@ -958,25 +974,6 @@ static cell AMX_NATIVE_CALL wpnmod_register_ammobox_forward(AMX *amx, cell *para
 }
 
 
-
-void HOOK_Think(void *pPrivate)
-{
-	//entvars_t* a = ((CBaseEntity*)pPrivate)->pev;
-
-	print_srvconsole("[WEAPONMOD] 2222 %p\n", pPrivate);
-}
-
-static cell AMX_NATIVE_CALL wpnmod_test(AMX *amx, cell *params)
-{
-	int iEntity = params[1];
-	CHECK_ENTITY(iEntity)
-
-	*((int *)INDEXENT(iEntity)->pvPrivateData + 4) = (int)(HOOK_Think);
-	print_srvconsole("[WEAPONMOD] HOOK_Think(%p), m_pfnThink(%p)\n", (DWORD)HOOK_Think, INDEXENT2(iEntity)->pvPrivateData);
-
-	return 1;
-}
-
 AMX_NATIVE_INFO Natives[] = 
 {
 	{ "wpnmod_register_weapon", wpnmod_register_weapon},
@@ -1002,10 +999,6 @@ AMX_NATIVE_INFO Natives[] =
 	{ "wpnmod_create_item", wpnmod_create_item},
 	{ "wpnmod_register_ammobox", wpnmod_register_ammobox},
 	{ "wpnmod_register_ammobox_forward", wpnmod_register_ammobox_forward},
-
-
-
-	{ "wpnmod_test", wpnmod_test},
 
 	{ NULL, NULL }
 };

@@ -67,6 +67,8 @@
 #define XTRA_OFS_PLAYER						5
 #endif
 
+#define	m_pfnThink							(4)
+#define	m_pfnTouch							(5)
 #define m_flStartThrow						(XTRA_OFS_WEAPON + 16)
 #define m_flReleaseThrow					(XTRA_OFS_WEAPON + 17)
 #define m_chargeReady						(XTRA_OFS_WEAPON + 18)
@@ -194,6 +196,8 @@ extern short g_sModelIndexBloodDrop;
 extern short g_sModelIndexBloodSpray;
 
 extern void WpnModCommand(void);
+extern void Global_Think(edict_t *pEntity);
+//extern void Global_Touch(edict_t *pEntity/*, edict_t *pOther*/);
 
 extern void ActivateCrowbarHooks();
 extern void ActivateInfoTargetHooks();

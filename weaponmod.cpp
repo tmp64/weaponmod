@@ -576,93 +576,6 @@ void Weapon_Holster(void *pPrivate, int skiplocal)
 }
 
 
-
-#ifdef _WIN32
-void __fastcall Weapon_Think(void *pPrivate, int i)
-#elif __linux__
-void Weapon_Think(void *pPrivate)
-#endif
-{
-	g_pWeapon = PrivateToEdict(pPrivate);
-
-	if (!IsValidPev(g_pWeapon))
-	{
-		return;
-	}
-
-	g_iId = (int)*((int *)g_pWeapon->pvPrivateData + m_iId);
-	g_pPlayer = GetPrivateCbase(g_pWeapon, m_pPlayer);
-
-	if (g_iId > LIMITER_WEAPON && IsValidPev(g_pPlayer))
-	{
-		int iThinkForward = g_EntData.Get_Think(ENTINDEX(g_pWeapon));
-
-		if (iThinkForward)
-		{
-			MF_ExecuteForward
-			(
-				iThinkForward,
-
-				static_cast<cell>(ENTINDEX(g_pWeapon)), 
-				static_cast<cell>(ENTINDEX(g_pPlayer)), 
-				static_cast<cell>((int)*((int *)g_pWeapon->pvPrivateData + m_iClip)), 
-				static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, TRUE)),
-				static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, FALSE))
-			);
-		}
-
-		return;
-	}
-	
-#ifdef _WIN32
-	reinterpret_cast<int (__fastcall *)(void *, int)>(g_VirtHook_Crowbar.GetOrigFunc(VirtFunc_Think))(pPrivate, 0);
-#elif __linux__
-	reinterpret_cast<int (*)(void *)>(g_VirtHook_Crowbar.GetOrigFunc(VirtFunc_Think))(pPrivate);
-#endif
-}
-
-
-
-#ifdef _WIN32
-void __fastcall Weapon_Touch(void *pPrivate, int i, void *pPrivate2)
-#elif __linux__
-void Weapon_Touch(void *pPrivate, void *pPrivate2)
-#endif
-{
-	static edict_t* pOther;
-
-	g_pEntity = PrivateToEdict(pPrivate);
-	pOther = PrivateToEdict(pPrivate2);
-
-	if (!IsValidPev(g_pEntity))
-	{
-		return;
-	}
-
-	int iTouchForward = g_EntData.Get_Touch(ENTINDEX(g_pEntity));
-
-	if (iTouchForward)
-	{
-		MF_ExecuteForward
-		(
-			iTouchForward,
-
-			static_cast<cell>(ENTINDEX(g_pEntity)), 
-			static_cast<cell>(ENTINDEX(pOther))
-		);
-
-		return;
-	}
-
-#ifdef _WIN32
-	reinterpret_cast<int (__fastcall *)(void *, int, void *)>(g_VirtHook_Crowbar.GetOrigFunc(VirtFunc_Touch))(pPrivate, NULL, pPrivate2);
-#elif __linux__
-	reinterpret_cast<int (*)(void *, void *)>(g_VirtHook_Crowbar.GetOrigFunc(VirtFunc_Touch))(pPrivate, pPrivate2);
-#endif
-}
-
-
-
 #ifdef _WIN32
 int __fastcall Weapon_AddToPlayer(void *pPrivate, int i, void *pPrivate2)
 #elif __linux__
@@ -852,6 +765,22 @@ edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 
 
 
+void Ammo_Materialize(edict_t *pEntity)
+{
+	if (!IsValidPev(pEntity))
+	{
+		return;
+	}
+
+	EMIT_SOUND_DYN2(pEntity, CHAN_WEAPON, "items/suitchargeok1.wav", 1.0, ATTN_NORM, 0, 150);
+
+	pEntity->v.effects &= ~EF_NODRAW;
+	pEntity->v.effects |= EF_MUZZLEFLASH;
+	pEntity->v.solid = SOLID_TRIGGER;
+}
+
+
+
 void Ammo_Respawn(edict_t *pAmmoBox)
 {
 	if (pAmmoBox->v.spawnflags & SF_NORESPAWN)
@@ -859,68 +788,11 @@ void Ammo_Respawn(edict_t *pAmmoBox)
 		return;
 	}
 
+	*((int *)pAmmoBox->pvPrivateData + m_pfnThink) = (int)(Ammo_Materialize);
+
+	pAmmoBox->v.nextthink = gpGlobals->time + AMMO_RESPAWN_TIME;
 	pAmmoBox->v.effects |= EF_NODRAW;
 	pAmmoBox->v.solid = SOLID_NOT;
-	pAmmoBox->v.nextthink = gpGlobals->time + AMMO_RESPAWN_TIME;
-}
-
-
-
-#ifdef _WIN32
-void __fastcall InfoTarget_Think(void *pPrivate)
-#elif __linux__
-void InfoTarget_Think(void *pPrivate)
-#endif
-{
-	static int k;
-
-	g_pEntity = PrivateToEdict(pPrivate);
-
-	if (!IsValidPev(g_pEntity))
-	{
-		return;
-	}
-
-	int iThinkForward = g_EntData.Get_Think(ENTINDEX(g_pEntity));
-
-	if (iThinkForward)
-	{
-		MF_ExecuteForward
-		(
-			iThinkForward,
-
-			static_cast<cell>(ENTINDEX(g_pEntity)), 
-			static_cast<cell>(0), 
-			static_cast<cell>(0), 
-			static_cast<cell>(0),
-			static_cast<cell>(0)
-		);
-
-		return;
-	}
-
-	for (k = 0; k < g_iAmmoBoxIndex; k++)
-	{
-		if (!_stricmp(STRING(g_pEntity->v.classname), AmmoBoxInfoArray[k].pszName))
-		{
-			if (g_pEntity->v.effects & EF_NODRAW)
-			{
-				EMIT_SOUND_DYN2(g_pEntity, CHAN_WEAPON, "items/suitchargeok1.wav", 1.0, ATTN_NORM, 0, 150);
-
-				g_pEntity->v.effects &= ~EF_NODRAW;
-				g_pEntity->v.effects |= EF_MUZZLEFLASH;
-			}
-
-			g_pEntity->v.solid = SOLID_TRIGGER;
-			break;
-		}
-	}
-
-#ifdef _WIN32
-	reinterpret_cast<int (__fastcall *)(void *, int)>(g_VirtHook_InfoTarget.GetOrigFunc(VirtFunc_Think))(pPrivate, NULL);
-#elif __linux__
-	reinterpret_cast<int (*)(void *)>(g_VirtHook_InfoTarget.GetOrigFunc(VirtFunc_Think))(pPrivate);
-#endif
 }
 
 
@@ -988,6 +860,54 @@ void InfoTarget_Touch(void *pPrivate, void *pPrivate2)
 
 
 
+void Global_Think(edict_t *pEntity)
+{
+	if (!IsValidPev(pEntity))
+	{
+		return;
+	}
+
+	int iThinkForward = g_EntData.Get_Think(ENTINDEX(pEntity));
+
+	if (iThinkForward)
+	{
+		if (!strstr(STRING(pEntity->v.classname), "weapon_"))
+		{
+			MF_ExecuteForward
+			(
+				iThinkForward,
+
+				static_cast<cell>(ENTINDEX(pEntity)), 
+				static_cast<cell>(0), 
+				static_cast<cell>(0), 
+				static_cast<cell>(0),
+				static_cast<cell>(0)
+			);
+		}
+		else
+		{
+			int iId = (int)*((int *)pEntity->pvPrivateData + m_iId);
+			edict_t* pPlayer = GetPrivateCbase(pEntity, m_pPlayer);
+
+			MF_ExecuteForward
+			(
+				iThinkForward,
+
+				static_cast<cell>(ENTINDEX(pEntity)), 
+				static_cast<cell>(ENTINDEX(pPlayer)), 
+				static_cast<cell>((int)*((int *)pEntity->pvPrivateData + m_iClip)), 
+				static_cast<cell>(Player_AmmoInventory(pPlayer, pEntity, TRUE)),
+				static_cast<cell>(Player_AmmoInventory(pPlayer, pEntity, FALSE))
+			);
+		}
+	}
+}
+
+
+
+
+
+
 void ActivateCrowbarHooks()
 {
 	edict_t *pEdict = CREATE_ENTITY();
@@ -1005,8 +925,6 @@ void ActivateCrowbarHooks()
 	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_Deploy,			(int)Weapon_Deploy);
 	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_CanHolster,		(int)Weapon_CanHolster);
 	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_Holster,		(int)Weapon_Holster);
-	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_Think,			(int)Weapon_Think);
-	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_Touch,			(int)Weapon_Touch);
 	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_Respawn,		(int)Weapon_Respawn);
 	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_AddToPlayer,	(int)Weapon_AddToPlayer);
 	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_ItemPostFrame,	(int)Weapon_ItemPostFrame);
@@ -1031,8 +949,7 @@ void ActivateInfoTargetHooks()
 		return;
 	}
 
-	g_VirtHook_InfoTarget.SetHook(pEdict, VirtFunc_Touch, (int)InfoTarget_Touch);
-	g_VirtHook_InfoTarget.SetHook(pEdict, VirtFunc_Think, (int)InfoTarget_Think);
+	//g_VirtHook_InfoTarget.SetHook(pEdict, VirtFunc_Touch, (int)InfoTarget_Touch);
 
 	REMOVE_ENTITY(pEdict);
 }
