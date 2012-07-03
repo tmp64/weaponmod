@@ -67,7 +67,7 @@ void* FindFunction(char* sig_str, char* sig_mask, size_t sig_len)
 		pBuff++;
 	}
 
-    return NULL;
+	return NULL;
 }
 
 
@@ -75,15 +75,15 @@ void* FindFunction(char* sig_str, char* sig_mask, size_t sig_len)
 #ifdef _WIN32
 BOOL FindDllBase(void* func)
 {
-    MEMORY_BASIC_INFORMATION mem;
-    VirtualQuery(func, &mem, sizeof(mem));
+	MEMORY_BASIC_INFORMATION mem;
+	VirtualQuery(func, &mem, sizeof(mem));
  
-    IMAGE_DOS_HEADER *dos = (IMAGE_DOS_HEADER*)mem.AllocationBase;
-    IMAGE_NT_HEADERS *pe = (IMAGE_NT_HEADERS*)((unsigned long)dos+(unsigned long)dos->e_lfanew);
+	IMAGE_DOS_HEADER *dos = (IMAGE_DOS_HEADER*)mem.AllocationBase;
+	IMAGE_NT_HEADERS *pe = (IMAGE_NT_HEADERS*)((unsigned long)dos+(unsigned long)dos->e_lfanew);
  
-    if (pe->Signature != IMAGE_NT_SIGNATURE) 
+	if (pe->Signature != IMAGE_NT_SIGNATURE) 
 	{
-        hldll_base = (unsigned char*)NULL;
+		hldll_base = (unsigned char*)NULL;
 		hldll_base_len = NULL;
 
 		return (g_IsBaseSet = FALSE);
@@ -129,7 +129,7 @@ long getBaseLen(void *baseAddress)
 				while(!feof(fp))
 				{
 					fgets(buffer, sizeof(buffer)-1, fp);
-    				sscanf(buffer, "%lx-%lx %s %s %s %d", &start, &end, ignore, ignore ,ignore, &value);
+					sscanf(buffer, "%lx-%lx %s %s %s %d", &start, &end, ignore, ignore ,ignore, &value);
 
 					if(!value)
 					{		

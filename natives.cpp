@@ -624,17 +624,65 @@ static cell AMX_NATIVE_CALL wpnmod_set_think(AMX *amx, cell *params)
  * native wpnmod_set_touch(const iEntity, const szCallBack[]);
 */
 
-int __stdcall Global_Touch(CBaseEntity *pOther)
+#ifdef __linux__
+// linux prototype
+int __cdecl Global_Touch(CBaseEntity *pEntity, CBaseEntity *pOther)
 {
+
+#else
+#ifdef _MSC_VER
+// MSVC: Simulate __thiscall calling convention
+int __declspec(naked) Global_Touch(CBaseEntity *pOther)
+{
+	// Prolog
+	__asm
+	{
+		// Save ebp
+		push	ebp
+		// Set stack frame pointer
+		mov		ebp, esp
+		// Allocate space for local variables
+		// The MSVC compiler gives us the needed size in __LOCAL_SIZE.
+		sub		esp, __LOCAL_SIZE
+		// Push registers
+		push	ebx
+		push	esi
+		push	edi
+	}
+	// Get *this from ecx (__thiscall convention)
 	CBaseEntity *pEntity;
 	__asm
 	{
-		mov pEntity, eax;
+		//mov		eax, dword ptr [ecx]
+		//mov		dword ptr [pEntity], eax
+		mov		pEntity, ecx
 	}
+#else	// _MSC_VER
+// compiler not known
+#error There is no support (yet) for your compiler. Please use MSVC or GCC compilers or contact the AGHL.RU dev team.
+#endif // _MSC_VER
+#endif // __linux__
 
-	print_srvconsole("!!!! %p %d \n", pEntity, ENTINDEX(pOther->pev->pContainingEntity));
+	print_srvconsole("!!!! %p %d %d \n", pEntity, ENTINDEX(pEntity->pev->pContainingEntity), ENTINDEX(pOther->pev->pContainingEntity));
 
-	return 1;
+#ifdef _MSC_VER
+	// Epilog // 32 bit
+	__asm
+	{
+		// Pop registers
+		pop		edi
+		pop		esi
+		pop		ebx
+		// Restore stack frame pointer
+		mov		esp, ebp
+		// Restore ebp
+		pop		ebp
+		// Ret value
+		mov		eax, 1
+		// sizeof(int*) = 4 on 32 bit
+		ret		4
+	}
+#endif // #ifdef _MSC_VER
 }
 
 static cell AMX_NATIVE_CALL wpnmod_set_touch(AMX *amx, cell *params)

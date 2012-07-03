@@ -265,41 +265,41 @@ skipspace:
 
 char* parse_arg(char** line, int& state)
 {
-    static char arg[3072];
-    char* dest = arg;
-    state = 0;
-    
-    while (**line)
-    {
-        if (isspace(**line))
-        {
-            if (state == 1)
-                break;
-            else if (!state)
-            {
-                (*line)++;
-                continue;
-            }
-        }
-        else if (state != 2)
-            state = 1;
-        
-        if (**line == '"')
-        {
-            (*line)++;
-            
-            if (state == 2)
-                break;
-            
-            state = 2;
-            continue;
-        }
-        
-        *dest++ = *(*line)++;
-    }
-    
-    *dest = '\0';
-    return arg;
+	static char arg[3072];
+	char* dest = arg;
+	state = 0;
+	
+	while (**line)
+	{
+		if (isspace(**line))
+		{
+			if (state == 1)
+				break;
+			else if (!state)
+			{
+				(*line)++;
+				continue;
+			}
+		}
+		else if (state != 2)
+			state = 1;
+		
+		if (**line == '"')
+		{
+			(*line)++;
+			
+			if (state == 2)
+				break;
+			
+			state = 2;
+			continue;
+		}
+		
+		*dest++ = *(*line)++;
+	}
+	
+	*dest = '\0';
+	return arg;
 }
 
 
