@@ -60,15 +60,19 @@
 #define ITEM_FLAG_EXHAUSTIBLE				16
 
 #ifdef _WIN32
+#define	m_pfnThink							4
+
 #define XTRA_OFS_WEAPON						0
 #define XTRA_OFS_PLAYER						0
 #elif __linux__
+#define	m_pfnThink							3
+
 #define XTRA_OFS_WEAPON						4
 #define XTRA_OFS_PLAYER						5
 #endif
 
-#define	m_pfnThink							(4)
-#define	m_pfnTouch							(5)
+
+#define	m_pfnTouch							5
 #define m_flStartThrow						(XTRA_OFS_WEAPON + 16)
 #define m_flReleaseThrow					(XTRA_OFS_WEAPON + 17)
 #define m_chargeReady						(XTRA_OFS_WEAPON + 18)
@@ -95,6 +99,12 @@
 #define m_iFOV								(XTRA_OFS_PLAYER + 298)
 #define m_rgAmmo							(XTRA_OFS_PLAYER + 310)
 #define m_szAnimExtention					(XTRA_OFS_PLAYER + 387)
+
+#define Get_Think(ent) g_Ents[ent].iThink
+#define Get_Touch(ent) g_Ents[ent].iTouch
+
+#define Set_Think(ent,value) g_Ents[ent].iThink = value
+#define Set_Touch(ent,value) g_Ents[ent].iTouch = value
 
 
 enum e_AmmoFwds
@@ -169,6 +179,12 @@ typedef struct
 
 typedef struct
 {
+	int iThink;
+	int iTouch;
+} EntData;
+
+typedef struct
+{
 	ItemInfo ItemData;
 	int iForward[Fwd_Wpn_End];
 } WeaponData;
@@ -184,23 +200,18 @@ extern int g_iAmmoBoxIndex;
 
 extern WeaponData WeaponInfoArray[MAX_WEAPONS];
 extern AmmoBoxData AmmoBoxInfoArray[MAX_WEAPONS];
+extern EntData *g_Ents;
 
 extern AMX_NATIVE_INFO Natives[];
 
 extern BOOL g_CrowbarHooksEnabled;
-extern BOOL g_InfoTargetHooksEnabled;
 extern BOOL g_InitWeapon;
 extern BOOL g_initialized;
 
-extern short g_sModelIndexBloodDrop;
-extern short g_sModelIndexBloodSpray;
-
 extern void WpnModCommand(void);
 extern void Global_Think(edict_t *pEntity);
-//extern void Global_Touch(edict_t *pEntity/*, edict_t *pOther*/);
 
 extern void ActivateCrowbarHooks();
-extern void ActivateInfoTargetHooks();
 
 extern Vector ParseVec(char *pString);
 extern int ParseBSPEntData(char *file);
@@ -219,3 +230,11 @@ inline const char	*pszName(const int iId)			{ return WeaponInfoArray[iId].ItemDa
 inline int			iMaxClip(const int iId)			{ return WeaponInfoArray[iId].ItemData.iMaxClip; }
 inline int			iWeight(const int iId)			{ return WeaponInfoArray[iId].ItemData.iWeight; }
 inline int			iFlags(const int iId)			{ return WeaponInfoArray[iId].ItemData.iFlags; }
+
+#ifdef _WIN32
+extern BOOL __fastcall Weapon_CanDeploy(void *pPrivate);
+extern void __fastcall Global_Touch(CBaseEntity *pEntity, int i, CBaseEntity *pEntity2);
+#elif __linux__
+extern BOOL Weapon_CanDeploy(void *pPrivate);
+extern void Global_Touch(CBaseEntity *pEntity, CBaseEntity *pOther);
+#endif

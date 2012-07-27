@@ -33,10 +33,7 @@
 
 #include "weaponmod.h"
 #include "CVirtHook.h"
-
-
-short g_sModelIndexBloodDrop; // holds the sprite index for blood drops
-short g_sModelIndexBloodSpray; // holds the sprite index for blood spray (bigger)
+#include "dllFunc.h"
 
 
 edict_t* INDEXENT2(int iEdictNum)
@@ -88,26 +85,6 @@ int Player_Set_AmmoInventory(edict_t* pPlayer, edict_t* pWeapon, BOOL bPrimary, 
 	return 1;
 }
 
-
-BOOL UTIL_ShouldShowBlood( int color )
-{
-	if ( color != DONT_BLEED )
-	{
-		if ( color == BLOOD_COLOR_RED )
-		{
-			if ( CVAR_GET_FLOAT("violence_hblood") != 0 )
-				return TRUE;
-		}
-		else
-		{
-			if ( CVAR_GET_FLOAT("violence_ablood") != 0 )
-				return TRUE;
-		}
-	}
-	return FALSE;
-}
-
-
 void print_srvconsole(char *fmt, ...)
 {
 	va_list argptr;
@@ -118,31 +95,6 @@ void print_srvconsole(char *fmt, ...)
 	va_end(argptr);
        
 	SERVER_PRINT(string);
-}
-
-void UTIL_BloodDrips(const Vector &origin, int color, int amount)
-{
-	if (!UTIL_ShouldShowBlood(color))
-		return;
-
-	if (color == DONT_BLEED || amount == 0)
-		return;
-
-	amount *= 2;
-
-	if (amount > 255)
-		amount = 255;
-
-	MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, origin );
-		WRITE_BYTE( TE_BLOODSPRITE );
-		WRITE_COORD( origin.x);								// pos
-		WRITE_COORD( origin.y);
-		WRITE_COORD( origin.z);
-		WRITE_SHORT( g_sModelIndexBloodSpray );				// initial sprite model
-		WRITE_SHORT( g_sModelIndexBloodDrop );				// droplet sprite models
-		WRITE_BYTE( color );								// color index into host_basepal
-		WRITE_BYTE( min( max( 3, amount / 10 ), 16 ) );		// size
-	MESSAGE_END();
 }
 
 void UTIL_EjectBrass(const Vector &vecOrigin, const Vector &vecVelocity, float rotation, int model, int soundtype)
@@ -411,7 +363,6 @@ void FireBulletsPlayer(edict_t* pPlayer, edict_t* pAttacker, int iShotsCount, Ve
 	TraceResult tr;
 	
 	Vector vecSrc = pPlayer->v.origin + pPlayer->v.view_ofs; 
-
 	UTIL_MakeVectors(pPlayer->v.v_angle + pPlayer->v.punchangle);
 	
 	Vector vecDirShooting = gpGlobals->v_forward;
@@ -422,7 +373,11 @@ void FireBulletsPlayer(edict_t* pPlayer, edict_t* pAttacker, int iShotsCount, Ve
 	{
 		pAttacker = pPlayer;  // the default attacker is ourselves
 	}
-
+#ifdef _WIN32
+	reinterpret_cast<int (__cdecl *)()>(pClearMultiDamage)();
+#elif __linux__
+	reinterpret_cast<int (*)()>(pClearMultiDamage)();
+#endif
 	for (int iShot = 1; iShot <= iShotsCount; iShot++)
 	{
 		do // get circular gaussian spread
@@ -457,31 +412,18 @@ void FireBulletsPlayer(edict_t* pPlayer, edict_t* pAttacker, int iShotsCount, Ve
 		}
 
 		// do damage, paint decals
-		if (tr.flFraction != 1.0 && IsValidPev(tr.pHit))
+		if (tr.flFraction != 1.0)
 		{
-			// Headshot
-			if (tr.iHitgroup == 1)
-			{
-				flDamage *= 3;
-			}
+			TRACE_ATTACK(tr.pHit, pAttacker, flDamage, vecDir, tr, bitsDamageType);
+			TEXTURETYPE_PlaySound(&tr, vecSrc, vecEnd);
+			UTIL_DecalGunshot(&tr);
 
-			int iBloodColor = BLOOD_COLOR(tr.pHit);
-
-			if (iBloodColor != DONT_BLEED)
-			{
-				TRACE_BLEED(tr.pHit, flDamage, vecDir, tr, bitsDamageType);
-				UTIL_BloodDrips(tr.vecEndPos - vecDir * 4, iBloodColor, (int)flDamage);
-			}
-
-			if (CLASSIFY(tr.pHit) != CLASS_NONE)
-			{
-				*((int *)tr.pHit->pvPrivateData + m_LastHitGroup) = tr.iHitgroup;
-			}
-
-			TAKE_DAMAGE(tr.pHit, pPlayer, pAttacker, flDamage, bitsDamageType);
+			//print_srvconsole("!!!! %d \n", ENTINDEX(tr.pHit));
 		}
-
-		TEXTURETYPE_PlaySound(&tr, vecSrc, vecEnd);
-		UTIL_DecalGunshot(&tr);
 	}
+#ifdef _WIN32
+	reinterpret_cast<int (__cdecl *)(entvars_t*, entvars_t*)>(pApplyMultiDamage)(&(pPlayer->v), &(pAttacker->v));
+#elif __linux__
+	reinterpret_cast<int (*)(entvars_t*, entvars_t*)>(pApplyMultiDamage)();
+#endif
 }

@@ -33,18 +33,18 @@
 
 #include "weaponmod.h"
 #include "dllFunc.h"
-#include "CEntity.h"
 #include "CVirtHook.h"
 
 
 BOOL g_Initialized;
 
-extern CVirtHook g_VirtHook_InfoTarget;
 extern CVirtHook g_VirtHook_Crowbar;
 
 
 int OnMetaAttach()
 {
+	g_Ents = new EntData[gpGlobals->maxEntities];
+
 	if (FindDllBase((void*)MDLL_FUNC->pfnGetGameDescription()))
 	{
 #ifdef __linux__
@@ -54,6 +54,8 @@ int OnMetaAttach()
 		{
 			pRadiusDamage = dlsym(handle, "RadiusDamage__FG6VectorP9entvars_sT1ffii");
 			pGetAmmoIndex = dlsym(handle, "GetAmmoIndex__11CBasePlayerPCc");
+			pClearMultiDamage = dlsym(handle, "ClearMultiDamage__Fv");
+			pApplyMultiDamage = dlsym(handle, "ApplyMultiDamage__FP9entvars_sT0");
 			pPlayerSetAnimation = dlsym(handle, "SetAnimation__11CBasePlayer11PLAYER_ANIM");
 			pPrecacheOtherWeapon = dlsym(handle, "UTIL_PrecacheOtherWeapon__FPCc");
 
@@ -62,22 +64,32 @@ int OnMetaAttach()
 #elif _WIN32
 		if (CVAR_GET_POINTER("aghl.ru"))
 		{
-			pRadiusDamage = FindFunction("\x83\xEC\x7C\xD9\xEE\xD9\x54\x24\x58", "xxxxxxxxx", 9);
-			pGetAmmoIndex = FindFunction("\x57\x8B\x7C\x24\x08\x85\xFF\x75\x05", "xxxxxxxxx", 9);
-			
-			pPlayerSetAnimation = FindFunction("\x83\xEC\x48\xA1\x00\x00\x00\x00"
-												"\x00\x00\x89\x00\x00\x00\x53\x56",
-												"xxxx??????x???xx", 16);
+			pRadiusDamage = FindFunction("\x83\x00\x00\xD9\x00\xD9\x00\x00\x00\xD9"
+											"\x00\x00\x00\xD9\x00\x00\x00\xD9\x00"
+											"\x00\x00\xD9\x00\x00\x00\xD9\x00\x00\x00", 
+											"x??x?x???x???x???x???x???x???", 29);
+
+			pPlayerSetAnimation = FindFunction("\x83\xEC\x00\xA1\x00\x00\x00\x00\x33"
+												"\xC4\x89\x00\x00\x00\x53\x56\x8B\xD9",
+												"xx?x????xxx???xxxx", 18);
 
 			pPrecacheOtherWeapon = FindFunction("\x8B\x00\x00\x00\x00\x00\x8B\x00\x00\x00\x2B"
-												"\x81\x98\x00\x00\x00\x83\xEC\x2C\x53\x50",
-												"x?????x???xxx???xxxxx", 21);
+												"\x00\x00\x00\x00\x00\x83\x00\x00\x53\x50",
+												"x?????x???x?????x??xx", 21);
+
+			pGetAmmoIndex = FindFunction("\x57\x8B\x7C\x24\x08\x85\xFF\x75\x05", "xxxxxxxxx", 9);
+			pApplyMultiDamage = FindFunction("\x8B\x0D\x00\x00\x00\x00\x85\xC9\x74\x22", "xx????xxxx", 10);
+			pClearMultiDamage = FindFunction("\xD9\xEE\x33\xC0\xD9\x00\x00\x00\x00\x00\xA3\x00\x00\x00\x00", "xxxxx?????x????", 15);
+
+			//print_srvconsole("!!!! %p\n", (DWORD)pTexturePlaySound - (DWORD)hldll_base);
 		}
 		else
 		{
 			pRadiusDamage = FindFunction("\xD9\x44\x24\x1C\xD8\x00\x00\x00\x00\x00\x83\xEC\x64", "xxxxx?????xxx", 13);
 			pGetAmmoIndex = FindFunction("\x56\x57\x8B\x7C\x24\x0C\x85\xFF", "xxxxxxxx", 8);
 			pPlayerSetAnimation = FindFunction("\x83\xEC\x44\x53\x55\x8B\xE9\x33\xDB\x56\x57", "xxxxxxxxxxx", 11);
+			//pApplyMultiDamage = FindFunction("\x8B\x0D\x00\x00\x00\x00\x85\xC9\x74\x22", "xx????xxxx", 10);
+			//pClearMultiDamage = FindFunction("\xD9\xEE\x33\xC0\xD9\x00\x00\x00\x00\x00\xA3\x00\x00\x00\x00", "xxxxx?????x????", 15);
 
 			pPrecacheOtherWeapon = FindFunction("\x8B\x00\x00\x00\x00\x00\x8B\x00\x00\x00\x83"
 												"\x00\x00\x53\x56\x2B\x00\x00\x00\x00\x00\x50",
@@ -118,6 +130,18 @@ void OnAmxxAttach()
 		bAddNatives = FALSE;
 	}
 
+	if (!pClearMultiDamage)
+	{
+		print_srvconsole("[WEAPONMOD] Failed to find \"ClearMultiDamage\" function.\n");
+		bAddNatives = FALSE;
+	}
+
+	if (!pApplyMultiDamage)
+	{
+		print_srvconsole("[WEAPONMOD] Failed to find \"ApplyMultiDamage\" function.\n");
+		bAddNatives = FALSE;
+	}
+
 	if (!pPlayerSetAnimation)
 	{
 		print_srvconsole("[WEAPONMOD] Failed to find \"PlayerSetAnimation\" function.\n");
@@ -150,9 +174,8 @@ void OnAmxxAttach()
 
 void OnAmxxDetach()
 {
-	g_EntData.clear();
+	delete [] g_Ents;
 	g_VirtHook_Crowbar.clear();
-	g_VirtHook_InfoTarget.clear();
 }
 
 
@@ -167,9 +190,7 @@ int AmxxCheckGame(const char *game)
 		int extraoffset = 2;
 #endif
 		VirtualFunction[VirtFunc_Classify] =			8 + extraoffset;
-		VirtualFunction[VirtFunc_TakeDamage] =			11 + extraoffset;
-		VirtualFunction[VirtFunc_BloodColor] =			14 + extraoffset;
-		VirtualFunction[VirtFunc_TraceBleed] =			15 + extraoffset;
+		VirtualFunction[VirtFunc_TraceAttack] =			10 + extraoffset;
 		VirtualFunction[VirtFunc_Think] =				43 + extraoffset;
 		VirtualFunction[VirtFunc_Touch] =				44 + extraoffset;
 		VirtualFunction[VirtFunc_Respawn] =				47 + extraoffset;
@@ -188,14 +209,6 @@ int AmxxCheckGame(const char *game)
 	}
 	
 	return AMXX_GAME_BAD;
-}
-
-
-
-void OnPluginsLoaded()
-{
-	g_sModelIndexBloodSpray = PRECACHE_MODEL("sprites/bloodspray.spr"); // initial blood
-	g_sModelIndexBloodDrop = PRECACHE_MODEL("sprites/blood.spr"); // splattered blood
 }
 
 
@@ -331,7 +344,7 @@ void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 	MF_BuildPathnameR(filepath, sizeof(filepath) - 1, "maps/%s.bsp", STRING(gpGlobals->mapname));
 	ParseBSPEntData(filepath);
 
-	MF_BuildPathnameR(filepath, sizeof(filepath) - 1, "%s/weaponmod/%s.ini", get_localinfo("amxx_configsdir","addons/amxmodx/configs"), STRING(gpGlobals->mapname));
+	MF_BuildPathnameR(filepath, sizeof(filepath) - 1, "%s/weaponmod/%s.ini", get_localinfo("amxx_configsdir", "addons/amxmodx/configs"), STRING(gpGlobals->mapname));
 	FILE *stream = fopen(filepath, "r");
 
 	if (stream)

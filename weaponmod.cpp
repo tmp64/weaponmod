@@ -32,7 +32,6 @@
 */
 
 #include "weaponmod.h"
-#include "CEntity.h"
 #include "CVirtHook.h"
 
 
@@ -46,14 +45,13 @@ edict_t* g_pPlayer;
 
 BOOL g_InitWeapon;
 BOOL g_CrowbarHooksEnabled;
-BOOL g_InfoTargetHooksEnabled;
 
 CVirtHook g_VirtHook_Crowbar;
-CVirtHook g_VirtHook_InfoTarget;
 
 WeaponData WeaponInfoArray[MAX_WEAPONS];
 AmmoBoxData AmmoBoxInfoArray[MAX_WEAPONS];
 
+EntData *g_Ents = NULL;
 
 edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 {
@@ -84,7 +82,7 @@ edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 		if (WeaponInfoArray[iId].iForward[Fwd_Wpn_Spawn])
 		{
 			MF_ExecuteForward
-				(
+			(
 				WeaponInfoArray[iId].iForward[Fwd_Wpn_Spawn],
 
 				static_cast<cell>(ENTINDEX(pItem)), 
@@ -92,7 +90,7 @@ edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 				static_cast<cell>(0), 
 				static_cast<cell>(0),
 				static_cast<cell>(0)
-				);
+			);
 		}
 	}
 
@@ -189,7 +187,7 @@ BOOL Weapon_CanDeploy(void *pPrivate)
 	}
 
 	return MF_ExecuteForward
-		(
+	(
 		WeaponInfoArray[g_iId].iForward[Fwd_Wpn_CanDeploy],
 
 		static_cast<cell>(ENTINDEX(g_pWeapon)), 
@@ -197,7 +195,7 @@ BOOL Weapon_CanDeploy(void *pPrivate)
 		static_cast<cell>((int)*((int *)g_pWeapon->pvPrivateData + m_iClip)), 
 		static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, TRUE)),
 		static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, FALSE))
-		);
+	);
 }
 
 
@@ -238,7 +236,7 @@ BOOL Weapon_Deploy(void *pPrivate)
 	if (WeaponInfoArray[g_iId].iForward[Fwd_Wpn_Deploy])
 	{
 		iReturn = MF_ExecuteForward
-			(
+		(
 			WeaponInfoArray[g_iId].iForward[Fwd_Wpn_Deploy],
 
 			static_cast<cell>(ENTINDEX(g_pWeapon)), 
@@ -246,7 +244,7 @@ BOOL Weapon_Deploy(void *pPrivate)
 			static_cast<cell>((int)*((int *)g_pWeapon->pvPrivateData + m_iClip)), 
 			static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, TRUE)),
 			static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, FALSE))
-			);
+		);
 	}
 
 	return iReturn;
@@ -331,7 +329,7 @@ void Weapon_ItemPostFrame(void *pPrivate)
 		if (WeaponInfoArray[g_iId].iForward[Fwd_Wpn_SecondaryAttack])
 		{
 			MF_ExecuteForward
-				(
+			(
 				WeaponInfoArray[g_iId].iForward[Fwd_Wpn_SecondaryAttack],
 
 				static_cast<cell>(ENTINDEX(g_pWeapon)), 
@@ -339,7 +337,7 @@ void Weapon_ItemPostFrame(void *pPrivate)
 				static_cast<cell>(iClip), 
 				static_cast<cell>(iAmmoPrimary),
 				static_cast<cell>(iAmmoSecondary)
-				);
+			);
 		}
 
 		g_pPlayer->v.button &= ~IN_ATTACK2;
@@ -354,7 +352,7 @@ void Weapon_ItemPostFrame(void *pPrivate)
 		if (WeaponInfoArray[g_iId].iForward[Fwd_Wpn_PrimaryAttack])
 		{
 			MF_ExecuteForward
-				(
+			(
 				WeaponInfoArray[g_iId].iForward[Fwd_Wpn_PrimaryAttack],
 
 				static_cast<cell>(ENTINDEX(g_pWeapon)), 
@@ -362,7 +360,7 @@ void Weapon_ItemPostFrame(void *pPrivate)
 				static_cast<cell>(iClip), 
 				static_cast<cell>(iAmmoPrimary),
 				static_cast<cell>(iAmmoSecondary)
-				);
+			);
 		}
 
 		g_pPlayer->v.button &= ~IN_ATTACK;
@@ -373,7 +371,7 @@ void Weapon_ItemPostFrame(void *pPrivate)
 		if (WeaponInfoArray[g_iId].iForward[Fwd_Wpn_Reload])
 		{
 			MF_ExecuteForward
-				(
+			(
 				WeaponInfoArray[g_iId].iForward[Fwd_Wpn_Reload],
 
 				static_cast<cell>(ENTINDEX(g_pWeapon)), 
@@ -381,7 +379,7 @@ void Weapon_ItemPostFrame(void *pPrivate)
 				static_cast<cell>(iClip), 
 				static_cast<cell>(iAmmoPrimary),
 				static_cast<cell>(iAmmoSecondary)
-				);
+			);
 		}
 	}
 	else if (!(g_pPlayer->v.button & (IN_ATTACK|IN_ATTACK2)))
@@ -408,7 +406,7 @@ void Weapon_ItemPostFrame(void *pPrivate)
 				if (WeaponInfoArray[g_iId].iForward[Fwd_Wpn_Reload])
 				{
 					MF_ExecuteForward
-						(
+					(
 						WeaponInfoArray[g_iId].iForward[Fwd_Wpn_Reload],
 
 						static_cast<cell>(ENTINDEX(g_pWeapon)), 
@@ -416,7 +414,7 @@ void Weapon_ItemPostFrame(void *pPrivate)
 						static_cast<cell>(iClip), 
 						static_cast<cell>(iAmmoPrimary),
 						static_cast<cell>(iAmmoSecondary)
-						);
+					);
 				}
 				return;
 			}
@@ -425,7 +423,7 @@ void Weapon_ItemPostFrame(void *pPrivate)
 		if (WeaponInfoArray[g_iId].iForward[Fwd_Wpn_Idle])
 		{
 			MF_ExecuteForward
-				(
+			(
 				WeaponInfoArray[g_iId].iForward[Fwd_Wpn_Idle],
 
 				static_cast<cell>(ENTINDEX(g_pWeapon)), 
@@ -433,7 +431,7 @@ void Weapon_ItemPostFrame(void *pPrivate)
 				static_cast<cell>(iClip), 
 				static_cast<cell>(iAmmoPrimary),
 				static_cast<cell>(iAmmoSecondary)
-				);
+			);
 		}
 	}
 }
@@ -472,7 +470,7 @@ BOOL Weapon_IsUseable(void *pPrivate)
 	}
 
 	return MF_ExecuteForward
-		(
+	(
 		WeaponInfoArray[g_iId].iForward[Fwd_Wpn_IsUseable],
 
 		static_cast<cell>(ENTINDEX(g_pWeapon)), 
@@ -480,7 +478,7 @@ BOOL Weapon_IsUseable(void *pPrivate)
 		static_cast<cell>((int)*((int *)g_pWeapon->pvPrivateData + m_iClip)), 
 		static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, TRUE)),
 		static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, FALSE))
-		);
+	);
 }
 
 
@@ -517,7 +515,7 @@ BOOL Weapon_CanHolster(void *pPrivate)
 	}
 
 	return MF_ExecuteForward
-		(
+	(
 		WeaponInfoArray[g_iId].iForward[Fwd_Wpn_CanHolster],
 
 		static_cast<cell>(ENTINDEX(g_pWeapon)), 
@@ -525,7 +523,7 @@ BOOL Weapon_CanHolster(void *pPrivate)
 		static_cast<cell>((int)*((int *)g_pWeapon->pvPrivateData + m_iClip)), 
 		static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, TRUE)),
 		static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, FALSE))
-		);
+	);
 }
 
 
@@ -555,15 +553,15 @@ void Weapon_Holster(void *pPrivate, int skiplocal)
 		return;
 	}
 
-	g_EntData.Set_Think(ENTINDEX(g_pWeapon), 0);
-	g_EntData.Set_Touch(ENTINDEX(g_pWeapon), 0);
+	Set_Think(ENTINDEX(g_pWeapon), 0);
+	Set_Touch(ENTINDEX(g_pWeapon), 0);
 
 	g_pPlayer = GetPrivateCbase(g_pWeapon, m_pPlayer);
 
 	if (IsValidPev(g_pPlayer) && WeaponInfoArray[g_iId].iForward[Fwd_Wpn_Holster])
 	{
 		MF_ExecuteForward
-			(
+		(
 			WeaponInfoArray[g_iId].iForward[Fwd_Wpn_Holster],
 
 			static_cast<cell>(ENTINDEX(g_pWeapon)), 
@@ -571,7 +569,7 @@ void Weapon_Holster(void *pPrivate, int skiplocal)
 			static_cast<cell>((int)*((int *)g_pWeapon->pvPrivateData + m_iClip)), 
 			static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, TRUE)),
 			static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, FALSE))
-			);
+		);
 	}
 }
 
@@ -605,10 +603,10 @@ int Weapon_AddToPlayer(void *pPrivate, void *pPrivate2)
 			}
 		}
 
-		if ( WeaponInfoArray[g_iId].iForward[Fwd_Wpn_AddToPlayer])
+		if (WeaponInfoArray[g_iId].iForward[Fwd_Wpn_AddToPlayer])
 		{
 			MF_ExecuteForward
-				(
+			(
 				WeaponInfoArray[g_iId].iForward[Fwd_Wpn_AddToPlayer],
 
 				static_cast<cell>(ENTINDEX(g_pWeapon)), 
@@ -616,7 +614,7 @@ int Weapon_AddToPlayer(void *pPrivate, void *pPrivate2)
 				static_cast<cell>((int)*((int *)g_pWeapon->pvPrivateData + m_iClip)), 
 				static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, TRUE)),
 				static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, FALSE))
-				);
+			);
 		}
 	}
 
@@ -715,52 +713,24 @@ void* Weapon_Respawn(void *pPrivate)
 
 	if (IsValidPev(pItem))
 	{
+		float flNextRespawn;
+
+		if (CVAR_GET_FLOAT("mp_weaponstay") && !(iFlags(g_iId) & ITEM_FLAG_LIMITINWORLD))
+		{
+			flNextRespawn = 0;
+		}
+		else
+		{
+			flNextRespawn = WEAPON_RESPAWN_TIME;
+		}
+
 		pItem->v.effects |= EF_NODRAW;
-		pItem->v.nextthink = gpGlobals->time + WEAPON_RESPAWN_TIME;
+		pItem->v.nextthink = gpGlobals->time + flNextRespawn;
 
 		DROP_TO_FLOOR(pItem);
 	}
 
 	return pItem->pvPrivateData;
-}
-
-
-
-edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
-{
-	edict_t* pAmmoBox = NULL;
-
-	static int iszAllocStringCached;
-
-	if (iszAllocStringCached || (iszAllocStringCached = MAKE_STRING("info_target")))
-	{
-		pAmmoBox = CREATE_NAMED_ENTITY(iszAllocStringCached);
-	}
-
-	if (IsValidPev(pAmmoBox))
-	{
-		pAmmoBox->v.classname = MAKE_STRING(AmmoBoxInfoArray[iId].pszName);
-
-		if (AmmoBoxInfoArray[iId].iForward[Fwd_Ammo_Spawn])
-		{
-			MF_ExecuteForward
-				(
-				AmmoBoxInfoArray[iId].iForward[Fwd_Ammo_Spawn],
-				static_cast<cell>(ENTINDEX(pAmmoBox)),
-				static_cast<cell>(0)
-				);
-		}
-
-		pAmmoBox->v.movetype = MOVETYPE_TOSS;
-		pAmmoBox->v.solid = SOLID_TRIGGER;
-
-		SET_SIZE(pAmmoBox, Vector(-16, -16, 0), Vector(16, 16, 16));
-		SET_ORIGIN(pAmmoBox, vecOrigin);
-
-		pAmmoBox->v.angles = vecAngles;
-	}
-
-	return pAmmoBox;
 }
 
 
@@ -798,34 +768,19 @@ void Ammo_Respawn(edict_t *pAmmoBox)
 
 
 #ifdef _WIN32
-void __fastcall InfoTarget_Touch(void *pPrivate, int i, void *pPrivate2)
+void __fastcall Ammo_Touch(CBaseEntity *pEntity, int i, CBaseEntity *pEntity2)
 #elif __linux__
-void InfoTarget_Touch(void *pPrivate, void *pPrivate2)
+void Ammo_Touch(CBaseEntity *pEntity, CBaseEntity *pEntity2)
 #endif
 {
 	static int k;
 	static edict_t* pOther;
 
-	g_pEntity = PrivateToEdict(pPrivate);
-	pOther = PrivateToEdict(pPrivate2);
+	g_pEntity = pEntity->pev->pContainingEntity;
+	pOther = pEntity2->pev->pContainingEntity;
 
 	if (!IsValidPev(g_pEntity))
 	{
-		return;
-	}
-
-	int iTouchForward = g_EntData.Get_Touch(ENTINDEX(g_pEntity));
-
-	if (iTouchForward)
-	{
-		MF_ExecuteForward
-			(
-			iTouchForward,
-
-			static_cast<cell>(ENTINDEX(g_pEntity)), 
-			static_cast<cell>(ENTINDEX(pOther))
-			);
-
 		return;
 	}
 
@@ -835,27 +790,64 @@ void InfoTarget_Touch(void *pPrivate, void *pPrivate2)
 		{
 			if (!strcmp(STRING(g_pEntity->v.classname), AmmoBoxInfoArray[k].pszName) && AmmoBoxInfoArray[k].iForward[Fwd_Ammo_AddAmmo])
 			{
-				if (
+				if 
+				(
 					MF_ExecuteForward
 					(
-					AmmoBoxInfoArray[k].iForward[Fwd_Ammo_AddAmmo], 
-					static_cast<cell>(ENTINDEX(g_pEntity)),
-					static_cast<cell>(ENTINDEX(pOther))
+						AmmoBoxInfoArray[k].iForward[Fwd_Ammo_AddAmmo], 
+						static_cast<cell>(ENTINDEX(g_pEntity)),
+						static_cast<cell>(ENTINDEX(pOther))
 					)
-					)
+				)
 				{
 					(g_pEntity->v.spawnflags & SF_NORESPAWN) ? REMOVE_ENTITY(g_pEntity) : Ammo_Respawn(g_pEntity);
-					break;
+					return;
 				}
 			}
 		}
 	}
+}
 
-#ifdef _WIN32
-	reinterpret_cast<int (__fastcall *)(void *, int, void *)>(g_VirtHook_InfoTarget.GetOrigFunc(VirtFunc_Touch))(pPrivate, NULL, pPrivate2);
-#elif __linux__
-	reinterpret_cast<int (*)(void *, void *)>(g_VirtHook_InfoTarget.GetOrigFunc(VirtFunc_Touch))(pPrivate, pPrivate2);
-#endif
+
+
+edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
+{
+	edict_t* pAmmoBox = NULL;
+
+	static int iszAllocStringCached;
+
+	if (iszAllocStringCached || (iszAllocStringCached = MAKE_STRING("info_target")))
+	{
+		pAmmoBox = CREATE_NAMED_ENTITY(iszAllocStringCached);
+	}
+
+	if (IsValidPev(pAmmoBox))
+	{
+		pAmmoBox->v.classname = MAKE_STRING(AmmoBoxInfoArray[iId].pszName);
+
+		if (AmmoBoxInfoArray[iId].iForward[Fwd_Ammo_Spawn])
+		{
+			MF_ExecuteForward
+			(
+				AmmoBoxInfoArray[iId].iForward[Fwd_Ammo_Spawn],
+				static_cast<cell>(ENTINDEX(pAmmoBox)),
+				static_cast<cell>(0)
+			);
+		}
+
+		pAmmoBox->v.movetype = MOVETYPE_TOSS;
+		pAmmoBox->v.solid = SOLID_TRIGGER;
+
+		SET_SIZE(pAmmoBox, Vector(-16, -16, 0), Vector(16, 16, 16));
+		SET_ORIGIN(pAmmoBox, vecOrigin);
+
+		pAmmoBox->v.angles = vecAngles;
+
+		Set_Touch(ENTINDEX(pAmmoBox), 0);
+		*((int *)pAmmoBox->pvPrivateData + m_pfnTouch) = (int)(Ammo_Touch);
+	}
+
+	return pAmmoBox;
 }
 
 
@@ -867,14 +859,14 @@ void Global_Think(edict_t *pEntity)
 		return;
 	}
 
-	int iThinkForward = g_EntData.Get_Think(ENTINDEX(pEntity));
+	int iThinkForward = Get_Think(ENTINDEX(pEntity));
 
 	if (iThinkForward)
 	{
 		if (!strstr(STRING(pEntity->v.classname), "weapon_"))
 		{
 			MF_ExecuteForward
-				(
+			(
 				iThinkForward,
 
 				static_cast<cell>(ENTINDEX(pEntity)), 
@@ -882,7 +874,7 @@ void Global_Think(edict_t *pEntity)
 				static_cast<cell>(0), 
 				static_cast<cell>(0),
 				static_cast<cell>(0)
-				);
+			);
 		}
 		else
 		{
@@ -890,7 +882,7 @@ void Global_Think(edict_t *pEntity)
 			edict_t* pPlayer = GetPrivateCbase(pEntity, m_pPlayer);
 
 			MF_ExecuteForward
-				(
+			(
 				iThinkForward,
 
 				static_cast<cell>(ENTINDEX(pEntity)), 
@@ -898,13 +890,42 @@ void Global_Think(edict_t *pEntity)
 				static_cast<cell>((int)*((int *)pEntity->pvPrivateData + m_iClip)), 
 				static_cast<cell>(Player_AmmoInventory(pPlayer, pEntity, TRUE)),
 				static_cast<cell>(Player_AmmoInventory(pPlayer, pEntity, FALSE))
-				);
+			);
 		}
 	}
 }
 
 
 
+#ifdef _WIN32
+void __fastcall Global_Touch(CBaseEntity *pEntity, int i, CBaseEntity *pEntity2)
+#elif __linux__
+void Global_Touch(CBaseEntity *pEntity, CBaseEntity *pEntity2)
+#endif
+{
+	static edict_t* pOther;
+
+	g_pEntity = pEntity->pev->pContainingEntity;
+	pOther = pEntity2->pev->pContainingEntity;
+
+	if (!IsValidPev(g_pEntity))
+	{
+		return;
+	}
+
+	int iTouchForward = Get_Touch(ENTINDEX(g_pEntity));
+
+	if (iTouchForward)
+	{
+		MF_ExecuteForward
+		(
+			iTouchForward,
+
+			static_cast<cell>(ENTINDEX(g_pEntity)), 
+			static_cast<cell>(ENTINDEX(pOther))
+		);
+	}
+}
 
 
 
@@ -931,25 +952,6 @@ void ActivateCrowbarHooks()
 	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_Drop,			(int)Weapon_Drop);
 	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_ItemSlot,		(int)Weapon_ItemSlot);
 	g_VirtHook_Crowbar.SetHook(pEdict, VirtFunc_IsUseable,		(int)Weapon_IsUseable);
-
-	REMOVE_ENTITY(pEdict);
-}
-
-
-
-void ActivateInfoTargetHooks()
-{
-	edict_t *pEdict = CREATE_ENTITY();
-
-	CALL_GAME_ENTITY(PLID, "info_target", &pEdict->v);
-
-	if (pEdict->pvPrivateData == NULL)
-	{
-		REMOVE_ENTITY(pEdict);
-		return;
-	}
-
-	//g_VirtHook_InfoTarget.SetHook(pEdict, VirtFunc_Touch, (int)InfoTarget_Touch);
 
 	REMOVE_ENTITY(pEdict);
 }

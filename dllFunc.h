@@ -35,6 +35,8 @@ extern BOOL g_IsBaseSet;
 
 extern void *pRadiusDamage;
 extern void *pGetAmmoIndex;
+extern void *pClearMultiDamage;
+extern void *pApplyMultiDamage;
 extern void *pPlayerSetAnimation;
 extern void *pPrecacheOtherWeapon;
 
@@ -42,13 +44,3 @@ extern unsigned char* hldll_base;
 
 BOOL FindDllBase(void* func);
 void* FindFunction(char* sig_str, char* sig_mask, size_t sig_len);
-
-#ifdef _WIN32
-typedef void (*FN_SetAnimation)(void *Private, int i, PLAYER_ANIM playerAnim);
-#elif __linux__
-typedef void (*FN_SetAnimation)(void *Private, PLAYER_ANIM playerAnim);
-#endif
-
-typedef int (*FN_GetAmmoIndex)(const char *psz);
-typedef void (*FN_PrecacheOtherWeapon)(const char *szClassname);
-typedef void (*FN_RadiusDamage)(Vector vecSrc, entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, float flRadius, int iClassIgnore, int bitsDamageType);

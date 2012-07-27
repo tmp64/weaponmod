@@ -33,7 +33,6 @@
 
 #include "weaponmod.h"
 #include "dllFunc.h"
-#include "CEntity.h"
 
 
 #define CHECK_OFFSET(x) \
@@ -125,11 +124,8 @@ int PvDataOffsets[Offset_End] =
 	XTRA_OFS_WEAPON + 15,
 };
 
-#ifdef _WIN32
-extern BOOL __fastcall Weapon_CanDeploy(void *pPrivate);
-#elif __linux__
-extern BOOL Weapon_CanDeploy(void *pPrivate);
 
+#ifdef __linux__
 //implement these with setjmp later.
 bool IsBadReadPtr(void *l, size_t size)
 {
@@ -190,8 +186,11 @@ static cell AMX_NATIVE_CALL wpnmod_register_weapon(AMX *amx, cell *params)
 
 	g_InitWeapon = TRUE;
 
-	FN_PrecacheOtherWeapon PrecacheOtherWeapon = (FN_PrecacheOtherWeapon)((DWORD)pPrecacheOtherWeapon);
-	PrecacheOtherWeapon("weapon_crowbar");
+#ifdef _WIN32
+	reinterpret_cast<int (__cdecl *)(const char *)>(pPrecacheOtherWeapon)("weapon_crowbar");
+#elif __linux__
+	reinterpret_cast<int (*)(const char *)>(pPrecacheOtherWeapon)("weapon_crowbar");
+#endif
 
 	return g_iWeaponIndex;
 }
@@ -295,12 +294,10 @@ static cell AMX_NATIVE_CALL wpnmod_set_player_anim(AMX *amx, cell *params)
 
 	CHECK_ENTITY(iPlayer)
 
-	FN_SetAnimation SetAnimation = (FN_SetAnimation)((DWORD)pPlayerSetAnimation);
-
 #ifdef _WIN32
-	reinterpret_cast<void (__fastcall *)(void *, int, int)>(SetAnimation)((void*)INDEXENT2(iPlayer)->pvPrivateData, 0, iPlayerAnim);
+	reinterpret_cast<void (__fastcall *)(void *, int, int)>(pPlayerSetAnimation)((void*)INDEXENT2(iPlayer)->pvPrivateData, 0, iPlayerAnim);
 #elif __linux__
-	reinterpret_cast<void (*)(void *, int)>(SetAnimation)((void*)INDEXENT2(iPlayer)->pvPrivateData, iPlayerAnim);
+	reinterpret_cast<void (*)(void *, int)>(pPlayerSetAnimation)((void*)INDEXENT2(iPlayer)->pvPrivateData, iPlayerAnim);
 #endif
 
 	return 1;
@@ -322,12 +319,10 @@ static cell AMX_NATIVE_CALL wpnmod_get_player_ammo(AMX *amx, cell *params)
 
 	CHECK_ENTITY(iPlayer)
 
-	FN_GetAmmoIndex GetAmmoIndex = (FN_GetAmmoIndex)((DWORD)pGetAmmoIndex);
-
 #ifdef _WIN32
-	int iAmmoIndex = reinterpret_cast<int (__cdecl *)(const char *)>(GetAmmoIndex)(STRING(ALLOC_STRING(MF_GetAmxString(amx, params[2], 0, NULL))));
+	int iAmmoIndex = reinterpret_cast<int (__cdecl *)(const char *)>(pGetAmmoIndex)(STRING(ALLOC_STRING(MF_GetAmxString(amx, params[2], 0, NULL))));
 #elif __linux__
-	int iAmmoIndex = reinterpret_cast<int (*)(const char *)>(GetAmmoIndex)(STRING(ALLOC_STRING(MF_GetAmxString(amx, params[2], 0, NULL))));
+	int iAmmoIndex = reinterpret_cast<int (*)(const char *)>(pGetAmmoIndex)(STRING(ALLOC_STRING(MF_GetAmxString(amx, params[2], 0, NULL))));
 #endif
 
 	if (iAmmoIndex != -1)
@@ -353,12 +348,10 @@ static cell AMX_NATIVE_CALL wpnmod_set_player_ammo(AMX *amx, cell *params)
 
 	CHECK_ENTITY(iPlayer)
 
-	FN_GetAmmoIndex GetAmmoIndex = (FN_GetAmmoIndex)((DWORD)pGetAmmoIndex);
-
 #ifdef _WIN32
-	int iAmmoIndex = reinterpret_cast<int (__cdecl *)(const char *)>(GetAmmoIndex)(STRING(ALLOC_STRING(MF_GetAmxString(amx, params[2], 0, NULL))));
+	int iAmmoIndex = reinterpret_cast<int (__cdecl *)(const char *)>(pGetAmmoIndex)(STRING(ALLOC_STRING(MF_GetAmxString(amx, params[2], 0, NULL))));
 #elif __linux__
-	int iAmmoIndex = reinterpret_cast<int (*)(const char *)>(GetAmmoIndex)(STRING(ALLOC_STRING(MF_GetAmxString(amx, params[2], 0, NULL))));
+	int iAmmoIndex = reinterpret_cast<int (*)(const char *)>(pGetAmmoIndex)(STRING(ALLOC_STRING(MF_GetAmxString(amx, params[2], 0, NULL))));
 #endif
 
 	if (iAmmoIndex != -1)
@@ -609,7 +602,7 @@ static cell AMX_NATIVE_CALL wpnmod_set_think(AMX *amx, cell *params)
 		return 0;
 	}
 
-	g_EntData.Set_Think(iEntity, iForward);
+	Set_Think(iEntity, iForward);
 	*((int *)INDEXENT2(iEntity)->pvPrivateData + m_pfnThink) = (int)(Global_Think);
 
 	return 1;
@@ -623,23 +616,6 @@ static cell AMX_NATIVE_CALL wpnmod_set_think(AMX *amx, cell *params)
  *
  * native wpnmod_set_touch(const iEntity, const szCallBack[]);
 */
-
-#ifdef _WIN32
-void __fastcall Global_Touch(CBaseEntity *pEntity, int i, CBaseEntity *pOther)
-#elif __linux__
-void Global_Touch(CBaseEntity *pEntity, CBaseEntity *pOther)
-#endif
-{
-	print_srvconsole("!!!! %p %d %d \n", pEntity, ENTINDEX(pEntity->pev->pContainingEntity), ENTINDEX(pOther->pev->pContainingEntity));
-
-	// TODO: Тут вызов сам поправь, когда старый Think наковыряешь из ентити, всё как в InfoTarget_Touch
-//#ifdef _WIN32
-//	reinterpret_cast<int (__fastcall *)(void *, int, void *)>(g_VirtHook_InfoTarget.GetOrigFunc(VirtFunc_Touch))(pPrivate, NULL, pPrivate2);
-//#elif __linux__
-//	reinterpret_cast<int (*)(void *, void *)>(g_VirtHook_InfoTarget.GetOrigFunc(VirtFunc_Touch))(pPrivate, pPrivate2);
-//#endif
-}
-
 static cell AMX_NATIVE_CALL wpnmod_set_touch(AMX *amx, cell *params)
 {
 	int iEntity = params[1];
@@ -663,7 +639,7 @@ static cell AMX_NATIVE_CALL wpnmod_set_touch(AMX *amx, cell *params)
 		return 0;
 	}
 
-	g_EntData.Set_Touch(iEntity, iForward);
+	Set_Touch(iEntity, iForward);
 	*((int *)INDEXENT2(iEntity)->pvPrivateData + m_pfnTouch) = (int)(Global_Touch);
 
 	return 1;
@@ -743,18 +719,13 @@ static cell AMX_NATIVE_CALL wpnmod_radius_damage(AMX *amx, cell *params)
 	CHECK_ENTITY(iInflictor)
 	CHECK_ENTITY(iAttacker)
 
-	FN_RadiusDamage RadiusDamage = (FN_RadiusDamage)((DWORD)pRadiusDamage);
-	
-	RadiusDamage
-	(
-		vecSrc, 
-		&INDEXENT2(iInflictor)->v, 
-		&INDEXENT2(iAttacker)->v, 
-		amx_ctof(params[4]), 
-		amx_ctof(params[5]), 
-		params[6], 
-		params[7]
-	);
+#ifdef _WIN32
+	reinterpret_cast<int (__cdecl *)(Vector, entvars_t*, entvars_t*, float, float, int, int)>(pRadiusDamage)
+	(vecSrc, &INDEXENT2(iInflictor)->v, &INDEXENT2(iAttacker)->v, amx_ctof(params[4]), amx_ctof(params[5]), params[6], params[7]);
+#elif __linux__
+	reinterpret_cast<int (*)(Vector, entvars_t*, entvars_t*, float, float, int, int)>(pRadiusDamage)
+	(vecSrc, &INDEXENT2(iInflictor)->v, &INDEXENT2(iAttacker)->v, amx_ctof(params[4]), amx_ctof(params[5]), params[6], params[7]);
+#endif
 
 	return 1;
 }
@@ -918,12 +889,6 @@ static cell AMX_NATIVE_CALL wpnmod_register_ammobox(AMX *amx, cell *params)
 	}
 
 	AmmoBoxInfoArray[g_iAmmoBoxIndex].pszName = STRING(ALLOC_STRING(MF_GetAmxString(amx, params[1], 0, NULL)));
-
-	if (!g_InfoTargetHooksEnabled)
-	{
-		g_InfoTargetHooksEnabled = TRUE;
-		ActivateInfoTargetHooks();
-	}
 
 	return g_iAmmoBoxIndex++;
 }
