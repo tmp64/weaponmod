@@ -424,6 +424,6 @@ void FireBulletsPlayer(edict_t* pPlayer, edict_t* pAttacker, int iShotsCount, Ve
 #ifdef _WIN32
 	reinterpret_cast<int (__cdecl *)(entvars_t*, entvars_t*)>(pApplyMultiDamage)(&(pPlayer->v), &(pAttacker->v));
 #elif __linux__
-	reinterpret_cast<int (*)(entvars_t*, entvars_t*)>(pApplyMultiDamage)();
+	reinterpret_cast<int (*)(entvars_t*, entvars_t*)>(pApplyMultiDamage)(&(pPlayer->v), &(pAttacker->v));
 #endif
 }

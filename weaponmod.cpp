@@ -878,7 +878,6 @@ void Global_Think(edict_t *pEntity)
 		}
 		else
 		{
-			int iId = (int)*((int *)pEntity->pvPrivateData + m_iId);
 			edict_t* pPlayer = GetPrivateCbase(pEntity, m_pPlayer);
 
 			MF_ExecuteForward
