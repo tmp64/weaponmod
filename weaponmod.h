@@ -31,7 +31,11 @@
  *
  */
 
+#ifndef _WPNMOD_H
+#define _WPNMOD_H
+
 #include "amxxmodule.h"
+#include "libFunc.h"
 #include "cbase.h"
 #include "utils.h"
 
@@ -60,19 +64,18 @@
 #define ITEM_FLAG_EXHAUSTIBLE				16
 
 #ifdef _WIN32
-#define	m_pfnThink							4
-
 #define XTRA_OFS_WEAPON						0
 #define XTRA_OFS_PLAYER						0
-#elif __linux__
-#define	m_pfnThink							3
-
-#define XTRA_OFS_WEAPON						4
-#define XTRA_OFS_PLAYER						5
-#endif
-
 
 #define	m_pfnTouch							5
+#elif __linux__
+#define XTRA_OFS_WEAPON						4
+#define XTRA_OFS_PLAYER						5
+
+#define	m_pfnTouch							6
+#endif
+
+#define	m_pfnThink							4
 #define m_flStartThrow						(XTRA_OFS_WEAPON + 16)
 #define m_flReleaseThrow					(XTRA_OFS_WEAPON + 17)
 #define m_chargeReady						(XTRA_OFS_WEAPON + 18)
@@ -132,6 +135,19 @@ enum e_WpnFwds
 	Fwd_Wpn_End
 };
 
+enum e_DllFuncs
+{
+	Func_RadiusDamage,
+	Func_GetAmmoIndex,
+	Func_ClearMultiDamage,
+	Func_ApplyMultiDamage,
+	Func_PlayerSetAnimation,
+	Func_PrecacheOtherWeapon,
+	Func_GiveNamedItem,
+
+	Func_End
+};
+
 typedef enum
 {
 	PLAYER_IDLE,
@@ -179,6 +195,15 @@ typedef struct
 
 typedef struct
 {
+	void			*pAddress;
+	const char		*name;
+	const char		*linuxName;
+	signature		sigAGHLru;
+	signature		sigStandart;
+} dllFunc;
+
+typedef struct
+{
 	int iThink;
 	int iTouch;
 } EntData;
@@ -200,6 +225,7 @@ extern int g_iAmmoBoxIndex;
 
 extern WeaponData WeaponInfoArray[MAX_WEAPONS];
 extern AmmoBoxData AmmoBoxInfoArray[MAX_WEAPONS];
+extern dllFunc g_dllFuncs[Func_End];
 extern EntData *g_Ents;
 
 extern AMX_NATIVE_INFO Natives[];
@@ -209,7 +235,11 @@ extern BOOL g_InitWeapon;
 extern BOOL g_initialized;
 
 extern void WpnModCommand(void);
-extern void Global_Think(edict_t *pEntity);
+#ifdef _WIN32
+extern void __fastcall Global_Think(CBaseEntity *pEntity);
+#elif __linux__
+extern void Global_Think(CBaseEntity *pEntity);
+#endif
 
 extern void ActivateCrowbarHooks();
 
@@ -238,3 +268,5 @@ extern void __fastcall Global_Touch(CBaseEntity *pEntity, int i, CBaseEntity *pE
 extern BOOL Weapon_CanDeploy(void *pPrivate);
 extern void Global_Touch(CBaseEntity *pEntity, CBaseEntity *pOther);
 #endif
+
+#endif // _WPNMOD_H

@@ -79,7 +79,7 @@
   <ItemGroup>
     <ClCompile Include="..\BSP_parse_ents.cpp" />
     <ClCompile Include="..\CVirtHook.cpp" />
-    <ClCompile Include="..\dllFunc.cpp" />
+    <ClCompile Include="..\libFunc.cpp" />
     <ClCompile Include="..\meta_api.cpp" />
     <ClCompile Include="..\natives.cpp" />
     <ClCompile Include="..\sdk\amxxmodule.cpp" />
@@ -89,7 +89,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\CVirtHook.h" />
-    <ClInclude Include="..\dllFunc.h" />
+    <ClInclude Include="..\libFunc.h" />
     <ClInclude Include="..\sdk\amxxmodule.h" />
     <ClInclude Include="..\sdk\moduleconfig.h" />
     <ClInclude Include="..\utils.h" />

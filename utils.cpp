@@ -33,7 +33,7 @@
 
 #include "weaponmod.h"
 #include "CVirtHook.h"
-#include "dllFunc.h"
+#include "libFunc.h"
 
 
 edict_t* INDEXENT2(int iEdictNum)
@@ -374,9 +374,9 @@ void FireBulletsPlayer(edict_t* pPlayer, edict_t* pAttacker, int iShotsCount, Ve
 		pAttacker = pPlayer;  // the default attacker is ourselves
 	}
 #ifdef _WIN32
-	reinterpret_cast<int (__cdecl *)()>(pClearMultiDamage)();
+	reinterpret_cast<int (__cdecl *)()>(g_dllFuncs[Func_ClearMultiDamage].pAddress)();
 #elif __linux__
-	reinterpret_cast<int (*)()>(pClearMultiDamage)();
+	reinterpret_cast<int (*)()>(g_dllFuncs[Func_ClearMultiDamage].pAddress)();
 #endif
 	for (int iShot = 1; iShot <= iShotsCount; iShot++)
 	{
@@ -422,8 +422,8 @@ void FireBulletsPlayer(edict_t* pPlayer, edict_t* pAttacker, int iShotsCount, Ve
 		}
 	}
 #ifdef _WIN32
-	reinterpret_cast<int (__cdecl *)(entvars_t*, entvars_t*)>(pApplyMultiDamage)(&(pPlayer->v), &(pAttacker->v));
+	reinterpret_cast<int (__cdecl *)(entvars_t*, entvars_t*)>(g_dllFuncs[Func_ApplyMultiDamage].pAddress)(&(pPlayer->v), &(pAttacker->v));
 #elif __linux__
-	reinterpret_cast<int (*)(entvars_t*, entvars_t*)>(pApplyMultiDamage)(&(pPlayer->v), &(pAttacker->v));
+	reinterpret_cast<int (*)(entvars_t*, entvars_t*)>(g_dllFuncs[Func_ApplyMultiDamage].pAddress)(&(pPlayer->v), &(pAttacker->v));
 #endif
 }

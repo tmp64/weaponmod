@@ -852,24 +852,31 @@ edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 
 
 
-void Global_Think(edict_t *pEntity)
+//void Global_Think(edict_t *pEntity)
+#ifdef _WIN32
+void __fastcall Global_Think(CBaseEntity *pEntity)
+#elif __linux__
+void Global_Think(CBaseEntity *pEntity)
+#endif
 {
-	if (!IsValidPev(pEntity))
+	g_pEntity = pEntity->pev->pContainingEntity;
+
+	if (!IsValidPev(g_pEntity))
 	{
 		return;
 	}
 
-	int iThinkForward = Get_Think(ENTINDEX(pEntity));
+	int iThinkForward = Get_Think(ENTINDEX(g_pEntity));
 
 	if (iThinkForward)
 	{
-		if (!strstr(STRING(pEntity->v.classname), "weapon_"))
+		if (!strstr(STRING(g_pEntity->v.classname), "weapon_"))
 		{
 			MF_ExecuteForward
 			(
 				iThinkForward,
 
-				static_cast<cell>(ENTINDEX(pEntity)), 
+				static_cast<cell>(ENTINDEX(g_pEntity)), 
 				static_cast<cell>(0), 
 				static_cast<cell>(0), 
 				static_cast<cell>(0),
@@ -878,17 +885,17 @@ void Global_Think(edict_t *pEntity)
 		}
 		else
 		{
-			edict_t* pPlayer = GetPrivateCbase(pEntity, m_pPlayer);
+			edict_t* pPlayer = GetPrivateCbase(g_pEntity, m_pPlayer);
 
 			MF_ExecuteForward
 			(
 				iThinkForward,
 
-				static_cast<cell>(ENTINDEX(pEntity)), 
+				static_cast<cell>(ENTINDEX(g_pEntity)), 
 				static_cast<cell>(ENTINDEX(pPlayer)), 
-				static_cast<cell>((int)*((int *)pEntity->pvPrivateData + m_iClip)), 
-				static_cast<cell>(Player_AmmoInventory(pPlayer, pEntity, TRUE)),
-				static_cast<cell>(Player_AmmoInventory(pPlayer, pEntity, FALSE))
+				static_cast<cell>((int)*((int *)g_pEntity->pvPrivateData + m_iClip)), 
+				static_cast<cell>(Player_AmmoInventory(pPlayer, g_pEntity, TRUE)),
+				static_cast<cell>(Player_AmmoInventory(pPlayer, g_pEntity, FALSE))
 			);
 		}
 	}

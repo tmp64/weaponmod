@@ -17,7 +17,7 @@ NAME = weaponmod
 BIN_SUFFIX = amxx_i386.so
 
 OBJECTS = sdk/amxxmodule.cpp  BSP_parse_ents.cpp \
-CVirtHook.cpp  dllFunc.cpp  meta_api.cpp  natives.cpp \
+CVirtHook.cpp  libFunc.cpp  meta_api.cpp  natives.cpp \
 srvcmd.cpp  utils.cpp  weaponmod.cpp
 
 

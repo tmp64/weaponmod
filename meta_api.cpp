@@ -32,7 +32,7 @@
  */
 
 #include "weaponmod.h"
-#include "dllFunc.h"
+#include "libFunc.h"
 #include "CVirtHook.h"
 
 
@@ -41,61 +41,167 @@ BOOL g_Initialized;
 extern CVirtHook g_VirtHook_Crowbar;
 
 
+
+dllFunc g_dllFuncs[Func_End] =
+{
+	{
+		NULL,
+		"RadiusDamage",
+		"RadiusDamage__FG6VectorP9entvars_sT1ffii",
+		{
+			"\x83\x00\x00\xD9\x00\xD9\x00\x00\x00\xD9\x00\x00\x00\xD9\x00"
+			"\x00\x00\xD9\x00\x00\x00\xD9\x00\x00\x00\xD9\x00\x00\x00",
+			"x??x?x???x???x???x???x???x???", 29,
+		},
+		{
+			"\xD9\x44\x24\x1C\xD8\x00\x00\x00\x00\x00\x83\xEC\x64", 
+			"xxxxx?????xxx", 13
+		}
+	},
+	{
+		NULL,
+		"CBasePlayer::GetAmmoIndex",
+		"GetAmmoIndex__11CBasePlayerPCc",
+		{
+			"\x57\x8B\x7C\x24\x08\x85\xFF\x75\x05", 
+			"xxxxxxxxx", 9,
+		},
+		{
+			"\x56\x57\x8B\x7C\x24\x0C\x85\xFF", 
+			"xxxxxxxx", 8
+		}
+	},
+	{
+		NULL,
+		"ClearMultiDamage",
+		"ClearMultiDamage__Fv",
+		{
+			"\xD9\xEE\x33\xC0\xD9\x00\x00\x00\x00\x00\xA3\x00\x00\x00\x00", 
+			"xxxxx?????x????", 
+			15,
+		},
+		{
+			"\x8B\x00\x00\x00\x00\x00\x8B\x00\x00\x00\x2B"
+			"\x00\x00\x00\x00\x00\x83\x00\x00\x53\x50",
+			"x?????x???x?????x??xx", 21
+		}
+	},
+	{
+		NULL,
+		"ApplyMultiDamage",
+		"ApplyMultiDamage__FP9entvars_sT0",
+		{
+			"\x8B\x0D\x00\x00\x00\x00\x85\xC9\x74\x22", 
+			"xx????xxxx", 10,
+		},
+		{
+			"\x57\x8B\x7C\x24\x08\x85\xFF\x75\x05",
+			"xxxxxxxxx", 9
+		}
+	},
+	{
+		NULL,
+		"CBasePlayer::SetAnimation",
+		"SetAnimation__11CBasePlayer11PLAYER_ANIM",
+		{
+			"\x83\xEC\x00\xA1\x00\x00\x00\x00\x33"
+			"\xC4\x89\x00\x00\x00\x53\x56\x8B\xD9",
+			"xx?x????xxx???xxxx", 18,
+		},
+		{
+			"\x83\xEC\x44\x53\x55\x8B\xE9\x33\xDB\x56\x57", 
+			"xxxxxxxxxxx", 11
+		}
+	},
+	{
+		NULL,
+		"UTIL_PrecacheOtherWeapon",
+		"UTIL_PrecacheOtherWeapon__FPCc",
+		{
+			"\x8B\x00\x00\x00\x00\x00\x8B\x00\x00\x00\x2B"
+			"\x00\x00\x00\x00\x00\x83\x00\x00\x53\x50",
+			"x?????x???x?????x??xx", 21,
+		},
+		{
+			"\x8B\x00\x00\x00\x00\x00\x8B\x00\x00\x00\x83"
+			"\x00\x00\x53\x56\x2B\x00\x00\x00\x00\x00\x50",
+			"x?????x???x??xxx?????x", 22
+		}
+	},
+	{
+		NULL,
+		"GiveNamedItem",
+		"",
+		{
+			"\x8B\x44\x00\x00\x56\x57\x8B\xF9\x8B\x0D\x00\x00\x00\x00",
+			"xx??xxxxxx????", 14,
+		},
+		{
+			""
+			"",
+			"", 0
+		}
+	}
+};
+
+
+function dll_GiveNamedItem;
+
+
+#ifdef _WIN32
+void __fastcall GiveNamedItem_HookHandler(void *pPrivate, int i, const char *pszName)
+#elif __linux__
+void GiveNamedItem_HookHandler(void *pPrivate, const char *pszName)
+#endif
+{
+	UnsetHook(&dll_GiveNamedItem);
+#ifdef _WIN32
+	reinterpret_cast<int (__fastcall *)(void *, int, const char *)>( dll_GiveNamedItem.address)(pPrivate, i, pszName);
+#elif __linux__
+	reinterpret_cast<int (*)(void *, const char *)>( dll_GiveNamedItem.address)(pPrivate, pszName);
+#endif
+	SetHook(&dll_GiveNamedItem);
+}
+
+
 int OnMetaAttach()
 {
 	g_Ents = new EntData[gpGlobals->maxEntities];
 
-	if (FindDllBase((void*)MDLL_FUNC->pfnGetGameDescription()))
+	if (FindModuleByAddr((void*)MDLL_FUNC->pfnGetGameDescription(), &hl_dll))
 	{
 #ifdef __linux__
 		void* handle = dlopen(GET_GAME_INFO(PLID, GINFO_DLL_FULLPATH), RTLD_NOW);
 
 		if (handle != NULL) 
 		{
-			pRadiusDamage = dlsym(handle, "RadiusDamage__FG6VectorP9entvars_sT1ffii");
-			pGetAmmoIndex = dlsym(handle, "GetAmmoIndex__11CBasePlayerPCc");
-			pClearMultiDamage = dlsym(handle, "ClearMultiDamage__Fv");
-			pApplyMultiDamage = dlsym(handle, "ApplyMultiDamage__FP9entvars_sT0");
-			pPlayerSetAnimation = dlsym(handle, "SetAnimation__11CBasePlayer11PLAYER_ANIM");
-			pPrecacheOtherWeapon = dlsym(handle, "UTIL_PrecacheOtherWeapon__FPCc");
+			for (int i = 0; i < Func_End; i++)
+			{
+				g_dllFuncs[i].pAddress = dlsym(handle, g_dllFuncs[i].linuxName);
+			}
 
 			dlclose(handle);
 		}
 #elif _WIN32
 		if (CVAR_GET_POINTER("aghl.ru"))
 		{
-			pRadiusDamage = FindFunction("\x83\x00\x00\xD9\x00\xD9\x00\x00\x00\xD9"
-											"\x00\x00\x00\xD9\x00\x00\x00\xD9\x00"
-											"\x00\x00\xD9\x00\x00\x00\xD9\x00\x00\x00", 
-											"x??x?x???x???x???x???x???x???", 29);
-
-			pPlayerSetAnimation = FindFunction("\x83\xEC\x00\xA1\x00\x00\x00\x00\x33"
-												"\xC4\x89\x00\x00\x00\x53\x56\x8B\xD9",
-												"xx?x????xxx???xxxx", 18);
-
-			pPrecacheOtherWeapon = FindFunction("\x8B\x00\x00\x00\x00\x00\x8B\x00\x00\x00\x2B"
-												"\x00\x00\x00\x00\x00\x83\x00\x00\x53\x50",
-												"x?????x???x?????x??xx", 21);
-
-			pGetAmmoIndex = FindFunction("\x57\x8B\x7C\x24\x08\x85\xFF\x75\x05", "xxxxxxxxx", 9);
-			pApplyMultiDamage = FindFunction("\x8B\x0D\x00\x00\x00\x00\x85\xC9\x74\x22", "xx????xxxx", 10);
-			pClearMultiDamage = FindFunction("\xD9\xEE\x33\xC0\xD9\x00\x00\x00\x00\x00\xA3\x00\x00\x00\x00", "xxxxx?????x????", 15);
-
-			//print_srvconsole("!!!! %p\n", (DWORD)pTexturePlaySound - (DWORD)hldll_base);
+			for (int i = 0; i < Func_End; i++)
+			{
+				g_dllFuncs[i].pAddress = FindFunction(&hl_dll, g_dllFuncs[i].sigAGHLru);
+			}
 		}
 		else
 		{
-			pRadiusDamage = FindFunction("\xD9\x44\x24\x1C\xD8\x00\x00\x00\x00\x00\x83\xEC\x64", "xxxxx?????xxx", 13);
-			pGetAmmoIndex = FindFunction("\x56\x57\x8B\x7C\x24\x0C\x85\xFF", "xxxxxxxx", 8);
-			pPlayerSetAnimation = FindFunction("\x83\xEC\x44\x53\x55\x8B\xE9\x33\xDB\x56\x57", "xxxxxxxxxxx", 11);
-			//pApplyMultiDamage = FindFunction("\x8B\x0D\x00\x00\x00\x00\x85\xC9\x74\x22", "xx????xxxx", 10);
-			//pClearMultiDamage = FindFunction("\xD9\xEE\x33\xC0\xD9\x00\x00\x00\x00\x00\xA3\x00\x00\x00\x00", "xxxxx?????x????", 15);
-
-			pPrecacheOtherWeapon = FindFunction("\x8B\x00\x00\x00\x00\x00\x8B\x00\x00\x00\x83"
-												"\x00\x00\x53\x56\x2B\x00\x00\x00\x00\x00\x50",
-												"x?????x???x??xxx?????x", 22);
+			for (int i = 0; i < Func_End; i++)
+			{
+				g_dllFuncs[i].pAddress = FindFunction(&hl_dll, g_dllFuncs[i].sigStandart);
+			}
 		}
-#endif 
+#endif
+		if (CreateFunctionHook(&dll_GiveNamedItem, g_dllFuncs[Func_GiveNamedItem].pAddress, (void*)GiveNamedItem_HookHandler))
+		{
+			SetHook(&dll_GiveNamedItem);
+		}
 	}
 
 	cvar_t	version = {"hl_wpnmod_version", Plugin_info.version, FCVAR_SERVER};
@@ -112,46 +218,19 @@ void OnAmxxAttach()
 {
 	BOOL bAddNatives = TRUE; 
 
-	if (!g_IsBaseSet)
+	if (!hl_dll.base)
 	{
 		print_srvconsole("[WEAPONMOD] Failed to locate %s\n", GET_GAME_INFO(PLID, GINFO_DLL_FILENAME));
 		bAddNatives = FALSE;
 	}
 
-	if (!pRadiusDamage)
+	for (int i = 0; i < Func_End; i++)
 	{
-		print_srvconsole("[WEAPONMOD] Failed to find \"RadiusDamage\" function.\n");
-		bAddNatives = FALSE;
-	}
-
-	if (!pGetAmmoIndex)
-	{
-		print_srvconsole("[WEAPONMOD] Failed to find \"GetAmmoIndex\" function.\n");
-		bAddNatives = FALSE;
-	}
-
-	if (!pClearMultiDamage)
-	{
-		print_srvconsole("[WEAPONMOD] Failed to find \"ClearMultiDamage\" function.\n");
-		bAddNatives = FALSE;
-	}
-
-	if (!pApplyMultiDamage)
-	{
-		print_srvconsole("[WEAPONMOD] Failed to find \"ApplyMultiDamage\" function.\n");
-		bAddNatives = FALSE;
-	}
-
-	if (!pPlayerSetAnimation)
-	{
-		print_srvconsole("[WEAPONMOD] Failed to find \"PlayerSetAnimation\" function.\n");
-		bAddNatives = FALSE;
-	}
-
-	if (!pPrecacheOtherWeapon)
-	{
-		print_srvconsole("[WEAPONMOD] Failed to find \"PrecacheOtherWeapon\" function.\n");
-		bAddNatives = FALSE;
+		if (!g_dllFuncs[i].pAddress)
+		{
+			print_srvconsole("[WEAPONMOD] Failed to find \"%s\" function.\n", g_dllFuncs[i].name);
+			bAddNatives = FALSE;
+		}
 	}
 	
 	if (!bAddNatives)
@@ -161,7 +240,7 @@ void OnAmxxAttach()
 	else
 	{
 		MF_AddNatives(Natives);
-		print_srvconsole("[WEAPONMOD] Found %s at %p\n", GET_GAME_INFO(PLID, GINFO_DLL_FILENAME), hldll_base);
+		print_srvconsole("[WEAPONMOD] Found %s at %p\n", GET_GAME_INFO(PLID, GINFO_DLL_FILENAME), hl_dll.base);
 
 		print_srvconsole("\n   Half-Life Weapon Mod version %s Copyright (c) 2012 AGHL.RU Dev Team. \n"
 						"   Weapon Mod comes with ABSOLUTELY NO WARRANTY; for details type `wpnmod gpl'.\n", Plugin_info.version);
@@ -174,6 +253,11 @@ void OnAmxxAttach()
 
 void OnAmxxDetach()
 {
+	if (dll_GiveNamedItem.done)
+	{
+		UnsetHook(&dll_GiveNamedItem);
+	}
+
 	delete [] g_Ents;
 	g_VirtHook_Crowbar.clear();
 }
