@@ -602,8 +602,8 @@ static cell AMX_NATIVE_CALL wpnmod_set_think(AMX *amx, cell *params)
 		return 0;
 	}
 
-	Set_Think(iEntity, iForward);
-	*((int *)INDEXENT2(iEntity)->pvPrivateData + m_pfnThink) = (int)(Global_Think);
+	PushThink_(iEntity, iForward);
+	SetThink_(INDEXENT2(iEntity), (void*)Global_Think);
 
 	return 1;
 }
@@ -639,8 +639,8 @@ static cell AMX_NATIVE_CALL wpnmod_set_touch(AMX *amx, cell *params)
 		return 0;
 	}
 
-	Set_Touch(iEntity, iForward);
-	*((int *)INDEXENT2(iEntity)->pvPrivateData + m_pfnTouch) = (int)(Global_Touch);
+	PushTouch_(iEntity, iForward);
+	SetTouch_(INDEXENT2(iEntity), (void*)Global_Touch);
 
 	return 1;
 }

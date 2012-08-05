@@ -1,8 +1,8 @@
 #(C)2004-2005 AMX Mod X Development Team
 # Makefile written by David "BAILOPAN" Anderson
 
-HLSDK = ../../../hlsdk
-MM_ROOT = ../../metamod/metamod
+HLSDK = ../hlsdk
+MM_ROOT = ../metamod
 
 ### EDIT BELOW FOR OTHER PROJECTS ###
 
@@ -10,7 +10,7 @@ MM_ROOT = ../../metamod/metamod
 OPT_FLAGS = -O3 -funroll-loops -s -pipe -fomit-frame-pointer -fno-strict-aliasing -DNDEBUG
 
 DEBUG_FLAGS = -g -ggdb3
-CPP = gcc-4.1
+CPP = gcc
 #CPP = gcc-2.95
 NAME = weaponmod
 
@@ -40,7 +40,7 @@ else
 	CFLAGS = $(OPT_FLAGS)
 endif
 
-CFLAGS += -Wall -Wno-non-virtual-dtor -fno-exceptions -DHAVE_STDINT_H -fno-rtti -m32  -D_stricmp=strcasecmp -D_strnicmp=strncasecmp
+CFLAGS += -Wall -Wno-non-virtual-dtor -fno-exceptions -DHAVE_STDINT_H -fno-rtti -m32  -D_stricmp=strcasecmp -D_strnicmp=strncasecmp -fno-threadsafe-statics
 
 BINARY = $(NAME)_$(BIN_SUFFIX)
 CFLAGS += -DPAWN_CELL_SIZE=32 -DJIT -DASM32

@@ -553,8 +553,8 @@ void Weapon_Holster(void *pPrivate, int skiplocal)
 		return;
 	}
 
-	Set_Think(ENTINDEX(g_pWeapon), 0);
-	Set_Touch(ENTINDEX(g_pWeapon), 0);
+	PushThink_(ENTINDEX(g_pWeapon), 0);
+	PushTouch_(ENTINDEX(g_pWeapon), 0);
 
 	g_pPlayer = GetPrivateCbase(g_pWeapon, m_pPlayer);
 
@@ -735,18 +735,24 @@ void* Weapon_Respawn(void *pPrivate)
 
 
 
-void Ammo_Materialize(edict_t *pEntity)
+#ifdef _WIN32
+void __fastcall Ammo_Materialize(void *pPrivate)
+#elif __linux__
+void Ammo_Materialize(void *pPrivate)
+#endif
 {
-	if (!IsValidPev(pEntity))
+	g_pEntity = PrivateToEdict(pPrivate);
+
+	if (!IsValidPev(g_pEntity))
 	{
 		return;
 	}
 
-	EMIT_SOUND_DYN2(pEntity, CHAN_WEAPON, "items/suitchargeok1.wav", 1.0, ATTN_NORM, 0, 150);
+	EMIT_SOUND_DYN2(g_pEntity, CHAN_WEAPON, "items/suitchargeok1.wav", 1.0, ATTN_NORM, 0, 150);
 
-	pEntity->v.effects &= ~EF_NODRAW;
-	pEntity->v.effects |= EF_MUZZLEFLASH;
-	pEntity->v.solid = SOLID_TRIGGER;
+	g_pEntity->v.effects &= ~EF_NODRAW;
+	g_pEntity->v.effects |= EF_MUZZLEFLASH;
+	g_pEntity->v.solid = SOLID_TRIGGER;
 }
 
 
@@ -758,7 +764,7 @@ void Ammo_Respawn(edict_t *pAmmoBox)
 		return;
 	}
 
-	*((int *)pAmmoBox->pvPrivateData + m_pfnThink) = (int)(Ammo_Materialize);
+	SetThink_(pAmmoBox, (void*)Ammo_Materialize);
 
 	pAmmoBox->v.nextthink = gpGlobals->time + AMMO_RESPAWN_TIME;
 	pAmmoBox->v.effects |= EF_NODRAW;
@@ -768,16 +774,16 @@ void Ammo_Respawn(edict_t *pAmmoBox)
 
 
 #ifdef _WIN32
-void __fastcall Ammo_Touch(CBaseEntity *pEntity, int i, CBaseEntity *pEntity2)
+void __fastcall Ammo_Touch(void *pPrivate, int i, void *pPrivate2)
 #elif __linux__
-void Ammo_Touch(CBaseEntity *pEntity, CBaseEntity *pEntity2)
+void Ammo_Touch(void *pPrivate, void *pPrivate2)
 #endif
 {
 	static int k;
 	static edict_t* pOther;
 
-	g_pEntity = pEntity->pev->pContainingEntity;
-	pOther = pEntity2->pev->pContainingEntity;
+	g_pEntity = PrivateToEdict(pPrivate);
+	pOther = PrivateToEdict(pPrivate2);
 
 	if (!IsValidPev(g_pEntity))
 	{
@@ -843,8 +849,8 @@ edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 
 		pAmmoBox->v.angles = vecAngles;
 
-		Set_Touch(ENTINDEX(pAmmoBox), 0);
-		*((int *)pAmmoBox->pvPrivateData + m_pfnTouch) = (int)(Ammo_Touch);
+		PushTouch_(ENTINDEX(pAmmoBox), 0);
+		SetTouch_(pAmmoBox, (void*)Ammo_Touch);
 	}
 
 	return pAmmoBox;
@@ -852,21 +858,20 @@ edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 
 
 
-//void Global_Think(edict_t *pEntity)
 #ifdef _WIN32
-void __fastcall Global_Think(CBaseEntity *pEntity)
+void __fastcall Global_Think(void *pPrivate)
 #elif __linux__
-void Global_Think(CBaseEntity *pEntity)
+void Global_Think(void *pPrivate)
 #endif
 {
-	g_pEntity = pEntity->pev->pContainingEntity;
+	g_pEntity = PrivateToEdict(pPrivate);
 
 	if (!IsValidPev(g_pEntity))
 	{
 		return;
 	}
 
-	int iThinkForward = Get_Think(ENTINDEX(g_pEntity));
+	int iThinkForward = GetThink_(ENTINDEX(g_pEntity));
 
 	if (iThinkForward)
 	{
@@ -904,22 +909,22 @@ void Global_Think(CBaseEntity *pEntity)
 
 
 #ifdef _WIN32
-void __fastcall Global_Touch(CBaseEntity *pEntity, int i, CBaseEntity *pEntity2)
+void __fastcall Global_Touch(void *pPrivate, int i, void *pPrivate2)
 #elif __linux__
-void Global_Touch(CBaseEntity *pEntity, CBaseEntity *pEntity2)
+void Global_Touch(void *pPrivate, void *pPrivate2)
 #endif
 {
 	static edict_t* pOther;
 
-	g_pEntity = pEntity->pev->pContainingEntity;
-	pOther = pEntity2->pev->pContainingEntity;
+	g_pEntity = PrivateToEdict(pPrivate);
+	pOther = PrivateToEdict(pPrivate2);
 
 	if (!IsValidPev(g_pEntity))
 	{
 		return;
 	}
 
-	int iTouchForward = Get_Touch(ENTINDEX(g_pEntity));
+	int iTouchForward = GetTouch_(ENTINDEX(g_pEntity));
 
 	if (iTouchForward)
 	{
@@ -931,6 +936,62 @@ void Global_Touch(CBaseEntity *pEntity, CBaseEntity *pEntity2)
 			static_cast<cell>(ENTINDEX(pOther))
 		);
 	}
+}
+
+
+
+#ifdef _WIN32
+void __fastcall GiveNamedItem_HookHandler(void *pPrivate, int i, const char *szName)
+#elif __linux__
+void GiveNamedItem_HookHandler(void *pPrivate, const char *szName)
+#endif
+{
+	if (CVAR_GET_FLOAT("sv_cheats"))
+	{
+		GiveNamedItem(PrivateToEdict(pPrivate), szName);
+	}
+
+	UnsetHook(&dll_GiveNamedItem);
+#ifdef _WIN32
+	reinterpret_cast<int (__fastcall *)(void *, int, const char *)>( dll_GiveNamedItem.address)(pPrivate, i, szName);
+#elif __linux__
+	reinterpret_cast<int (*)(void *, const char *)>( dll_GiveNamedItem.address)(pPrivate, szName);
+#endif
+	SetHook(&dll_GiveNamedItem);
+}
+
+
+
+
+#ifdef _WIN32
+void __fastcall CheatImpulseCommands_HookHandler(void *pPrivate, int i, int iImpulse)
+#elif __linux__
+void CheatImpulseCommands_HookHandler(void *pPrivate, int iImpulse)
+#endif
+{
+	// check cheat impulse command now
+	if (iImpulse == 101 && CVAR_GET_FLOAT("sv_cheats"))
+	{
+		edict_t *pPlayer = PrivateToEdict(pPrivate);
+
+		for (int k = LIMITER_WEAPON + 1; k <= g_iWeaponIndex; k++)
+		{
+			GiveNamedItem(pPlayer, pszName(k));
+		}
+
+		for (int k = 0; k < g_iAmmoBoxIndex; k++)
+		{
+			GiveNamedItem(pPlayer, AmmoBoxInfoArray[k].pszName);
+		}
+	}
+
+	UnsetHook(&dll_CheatImpulseCommands);
+#ifdef _WIN32
+	reinterpret_cast<int (__fastcall *)(void *, int, int)>( dll_CheatImpulseCommands.address)(pPrivate, i, iImpulse);
+#else
+	reinterpret_cast<int (*)(void *, int)>( dll_CheatImpulseCommands.address)(pPrivate, iImpulse);
+#endif
+	SetHook(&dll_CheatImpulseCommands);
 }
 
 

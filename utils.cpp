@@ -85,6 +85,45 @@ int Player_Set_AmmoInventory(edict_t* pPlayer, edict_t* pWeapon, BOOL bPrimary, 
 	return 1;
 }
 
+void GiveNamedItem(edict_t *pPlayer, const char *szName)
+{
+	int k = 0;
+	edict_t *pItem = NULL;
+
+	for (k = LIMITER_WEAPON + 1; k <= g_iWeaponIndex; k++)
+	{
+		if (!_stricmp(pszName(k), szName))
+		{
+			pItem = Weapon_Spawn(k, pPlayer->v.origin, Vector (0, 0, 0));
+			break;
+		}
+	}
+
+	if (pItem == NULL)
+	{
+		for (k = 0; k < g_iAmmoBoxIndex; k++)
+		{
+			if (!_stricmp(AmmoBoxInfoArray[k].pszName, szName))
+			{
+				pItem = Ammo_Spawn(k, pPlayer->v.origin, Vector (0, 0, 0));
+				break;
+			}
+		}
+	}
+
+	if (IsValidPev(pItem))
+	{
+		pItem->v.spawnflags |= SF_NORESPAWN;
+		MDLL_Touch(pItem, (edict_t *)pPlayer);
+
+		if (pItem->v.modelindex)
+		{
+			REMOVE_ENTITY(pItem);
+		}
+	}
+
+}
+
 void print_srvconsole(char *fmt, ...)
 {
 	va_list argptr;
@@ -95,6 +134,61 @@ void print_srvconsole(char *fmt, ...)
 	va_end(argptr);
        
 	SERVER_PRINT(string);
+}
+
+char* parse_arg(char** line, int& state)
+{
+	static char arg[3072];
+	char* dest = arg;
+	state = 0;
+	
+	while (**line)
+	{
+		if (isspace(**line))
+		{
+			if (state == 1)
+				break;
+			else if (!state)
+			{
+				(*line)++;
+				continue;
+			}
+		}
+		else if (state != 2)
+			state = 1;
+		
+		if (**line == '"')
+		{
+			(*line)++;
+			
+			if (state == 2)
+				break;
+			
+			state = 2;
+			continue;
+		}
+		
+		*dest++ = *(*line)++;
+	}
+	
+	*dest = '\0';
+	return arg;
+}
+
+Vector ParseVec(char *pString)
+{
+	char *pValue;
+	Vector vecResult;
+
+	vecResult.x = atoi(pValue = pString);
+
+	for (int i = 0; i < 2; i++)
+	{
+		pValue = strchr(pValue + i, ' ');
+		vecResult[i + 1] = atoi(pValue);
+	}
+
+	return vecResult;
 }
 
 void UTIL_EjectBrass(const Vector &vecOrigin, const Vector &vecVelocity, float rotation, int model, int soundtype)

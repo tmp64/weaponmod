@@ -37,6 +37,125 @@
 
 module hl_dll = {NULL, 0};
 
+function dll_GiveNamedItem;
+function dll_CheatImpulseCommands;
+
+dllFunc g_dllFuncs[Func_End] =
+{
+	{
+		NULL,
+		"RadiusDamage",
+		"RadiusDamage__FG6VectorP9entvars_sT1ffii",
+		{
+			"\x83\x00\x00\xD9\x00\xD9\x00\x00\x00\xD9\x00\x00\x00\xD9\x00"
+			"\x00\x00\xD9\x00\x00\x00\xD9\x00\x00\x00\xD9\x00\x00\x00",
+			"x??x?x???x???x???x???x???x???", 29,
+		},
+		{
+			"\xD9\x44\x24\x1C\xD8\x00\x00\x00\x00\x00\x83\xEC\x64", 
+			"xxxxx?????xxx", 13
+		}
+	},
+	{
+		NULL,
+		"CBasePlayer::GetAmmoIndex",
+		"GetAmmoIndex__11CBasePlayerPCc",
+		{
+			"\x57\x8B\x7C\x24\x08\x85\xFF\x75\x05", 
+			"xxxxxxxxx", 9,
+		},
+		{
+			"\x56\x57\x8B\x7C\x24\x0C\x85\xFF", 
+			"xxxxxxxx", 8
+		}
+	},
+	{
+		NULL,
+		"ClearMultiDamage",
+		"ClearMultiDamage__Fv",
+		{
+			"\xD9\xEE\x33\xC0\xD9\x00\x00\x00\x00\x00\xA3\x00\x00\x00\x00", 
+			"xxxxx?????x????", 
+			15,
+		},
+		{
+			"",
+			"", 0
+		}
+	},
+	{
+		NULL,
+		"ApplyMultiDamage",
+		"ApplyMultiDamage__FP9entvars_sT0",
+		{
+			"\x8B\x0D\x00\x00\x00\x00\x85\xC9\x74\x22", 
+			"xx????xxxx", 10,
+		},
+		{
+			"",
+			"", 0
+		}
+	},
+	{
+		NULL,
+		"CBasePlayer::SetAnimation",
+		"SetAnimation__11CBasePlayer11PLAYER_ANIM",
+		{
+			"\x83\xEC\x00\xA1\x00\x00\x00\x00\x33"
+			"\xC4\x89\x00\x00\x00\x53\x56\x8B\xD9",
+			"xx?x????xxx???xxxx", 18,
+		},
+		{
+			"\x83\xEC\x44\x53\x55\x8B\xE9\x33\xDB\x56\x57", 
+			"xxxxxxxxxxx", 11
+		}
+	},
+	{
+		NULL,
+		"UTIL_PrecacheOtherWeapon",
+		"UTIL_PrecacheOtherWeapon__FPCc",
+		{
+			"\x8B\x00\x00\x00\x00\x00\x8B\x00\x00\x00\x2B"
+			"\x00\x00\x00\x00\x00\x83\x00\x00\x53\x50",
+			"x?????x???x?????x??xx", 21,
+		},
+		{
+			"\x8B\x00\x00\x00\x00\x00\x8B\x00\x00\x00\x83"
+			"\x00\x00\x53\x56\x2B\x00\x00\x00\x00\x00\x50",
+			"x?????x???x??xxx?????x", 22
+		}
+	},
+	{
+		NULL,
+		"CBasePlayer::GiveNamedItem",
+		"GiveNamedItem__11CBasePlayerPCc",
+		{
+			"\x8B\x44\x00\x00\x56\x57\x8B\xF9\x8B\x0D\x00\x00\x00\x00",
+			"xx??xxxxxx????", 14,
+		},
+		{
+			""
+			"",
+			"", 0
+		}
+	},
+	{
+		NULL,
+		"CBasePlayer::CheatImpulseCommands",
+		"CheatImpulseCommands__11CBasePlayeri",
+		{
+			"\xD9\xEE\x81\xEC\x00\x00\x00\x00\xD8\x00\x00\x00\x00\x00\x56",
+			"xxxx????x?????x", 15,
+		},
+		{
+			""
+			"",
+			"", 0
+		}
+	}
+};
+
+
 #if defined _WIN32
 int FindModuleByAddr (void *addr, module *lib)
 {
@@ -202,8 +321,8 @@ int CreateFunctionHook(function *func, void *address, void *handler)
 
 		return (func->done = TRUE);
 	}
-	else
-		return (func->done = FALSE);
+	
+	return (func->done = FALSE);
 }
 
 int AllowWriteToMemory(void *address)

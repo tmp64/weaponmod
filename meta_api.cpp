@@ -38,130 +38,12 @@
 
 BOOL g_Initialized;
 
-extern CVirtHook g_VirtHook_Crowbar;
 
 
 
-dllFunc g_dllFuncs[Func_End] =
-{
-	{
-		NULL,
-		"RadiusDamage",
-		"RadiusDamage__FG6VectorP9entvars_sT1ffii",
-		{
-			"\x83\x00\x00\xD9\x00\xD9\x00\x00\x00\xD9\x00\x00\x00\xD9\x00"
-			"\x00\x00\xD9\x00\x00\x00\xD9\x00\x00\x00\xD9\x00\x00\x00",
-			"x??x?x???x???x???x???x???x???", 29,
-		},
-		{
-			"\xD9\x44\x24\x1C\xD8\x00\x00\x00\x00\x00\x83\xEC\x64", 
-			"xxxxx?????xxx", 13
-		}
-	},
-	{
-		NULL,
-		"CBasePlayer::GetAmmoIndex",
-		"GetAmmoIndex__11CBasePlayerPCc",
-		{
-			"\x57\x8B\x7C\x24\x08\x85\xFF\x75\x05", 
-			"xxxxxxxxx", 9,
-		},
-		{
-			"\x56\x57\x8B\x7C\x24\x0C\x85\xFF", 
-			"xxxxxxxx", 8
-		}
-	},
-	{
-		NULL,
-		"ClearMultiDamage",
-		"ClearMultiDamage__Fv",
-		{
-			"\xD9\xEE\x33\xC0\xD9\x00\x00\x00\x00\x00\xA3\x00\x00\x00\x00", 
-			"xxxxx?????x????", 
-			15,
-		},
-		{
-			"\x8B\x00\x00\x00\x00\x00\x8B\x00\x00\x00\x2B"
-			"\x00\x00\x00\x00\x00\x83\x00\x00\x53\x50",
-			"x?????x???x?????x??xx", 21
-		}
-	},
-	{
-		NULL,
-		"ApplyMultiDamage",
-		"ApplyMultiDamage__FP9entvars_sT0",
-		{
-			"\x8B\x0D\x00\x00\x00\x00\x85\xC9\x74\x22", 
-			"xx????xxxx", 10,
-		},
-		{
-			"\x57\x8B\x7C\x24\x08\x85\xFF\x75\x05",
-			"xxxxxxxxx", 9
-		}
-	},
-	{
-		NULL,
-		"CBasePlayer::SetAnimation",
-		"SetAnimation__11CBasePlayer11PLAYER_ANIM",
-		{
-			"\x83\xEC\x00\xA1\x00\x00\x00\x00\x33"
-			"\xC4\x89\x00\x00\x00\x53\x56\x8B\xD9",
-			"xx?x????xxx???xxxx", 18,
-		},
-		{
-			"\x83\xEC\x44\x53\x55\x8B\xE9\x33\xDB\x56\x57", 
-			"xxxxxxxxxxx", 11
-		}
-	},
-	{
-		NULL,
-		"UTIL_PrecacheOtherWeapon",
-		"UTIL_PrecacheOtherWeapon__FPCc",
-		{
-			"\x8B\x00\x00\x00\x00\x00\x8B\x00\x00\x00\x2B"
-			"\x00\x00\x00\x00\x00\x83\x00\x00\x53\x50",
-			"x?????x???x?????x??xx", 21,
-		},
-		{
-			"\x8B\x00\x00\x00\x00\x00\x8B\x00\x00\x00\x83"
-			"\x00\x00\x53\x56\x2B\x00\x00\x00\x00\x00\x50",
-			"x?????x???x??xxx?????x", 22
-		}
-	},
-	{
-		NULL,
-		"GiveNamedItem",
-		"",
-		{
-			"\x8B\x44\x00\x00\x56\x57\x8B\xF9\x8B\x0D\x00\x00\x00\x00",
-			"xx??xxxxxx????", 14,
-		},
-		{
-			""
-			"",
-			"", 0
-		}
-	}
-};
 
 
-function dll_GiveNamedItem;
 
-
-#ifdef _WIN32
-void __fastcall GiveNamedItem_HookHandler(void *pPrivate, int i, const char *pszName)
-#elif __linux__
-void GiveNamedItem_HookHandler(void *pPrivate, const char *pszName)
-#endif
-{
-	UnsetHook(&dll_GiveNamedItem);
-#ifdef _WIN32
-	reinterpret_cast<int (__fastcall *)(void *, int, const char *)>( dll_GiveNamedItem.address)(pPrivate, i, pszName);
-#elif __linux__
-	reinterpret_cast<int (*)(void *, const char *)>( dll_GiveNamedItem.address)(pPrivate, pszName);
-#endif
-	SetHook(&dll_GiveNamedItem);
-}
 
 
 int OnMetaAttach()
@@ -182,7 +64,7 @@ int OnMetaAttach()
 
 			dlclose(handle);
 		}
-#elif _WIN32
+#else
 		if (CVAR_GET_POINTER("aghl.ru"))
 		{
 			for (int i = 0; i < Func_End; i++)
@@ -201,6 +83,11 @@ int OnMetaAttach()
 		if (CreateFunctionHook(&dll_GiveNamedItem, g_dllFuncs[Func_GiveNamedItem].pAddress, (void*)GiveNamedItem_HookHandler))
 		{
 			SetHook(&dll_GiveNamedItem);
+		}
+
+		if (CreateFunctionHook(&dll_CheatImpulseCommands, g_dllFuncs[Func_CheatImpulseCommands].pAddress, (void*)CheatImpulseCommands_HookHandler))
+		{
+			SetHook(&dll_CheatImpulseCommands);
 		}
 	}
 
@@ -256,6 +143,11 @@ void OnAmxxDetach()
 	if (dll_GiveNamedItem.done)
 	{
 		UnsetHook(&dll_GiveNamedItem);
+	}
+
+	if (dll_CheatImpulseCommands.done)
+	{
+		UnsetHook(&dll_CheatImpulseCommands);
 	}
 
 	delete [] g_Ents;
@@ -358,52 +250,6 @@ void ClientCommand(edict_t *pEntity)
 		CLIENT_PRINT(pEntity, print_console, buf);
 
 		RETURN_META(MRES_SUPERCEDE);
-	}
-
-	RETURN_META(MRES_IGNORED);
-}
-
-
-
-void CmdStart(const edict_t *pPlayer, const struct usercmd_s *cmd, unsigned int random_seed)
-{
-	if (cmd->impulse == 101 && CVAR_GET_FLOAT("sv_cheats"))
-	{
-		edict_t *pItem = NULL;
-
-		// Give weapons;
-		for (int i = LIMITER_WEAPON + 1; i <= g_iWeaponIndex; i++)
-		{
-			pItem = Weapon_Spawn(i, pPlayer->v.origin, Vector (0, 0, 0));
-
-			if (IsValidPev(pItem))
-			{
-				pItem->v.spawnflags |= SF_NORESPAWN;
-				MDLL_Touch(pItem, (edict_t *)pPlayer);
-
-				if (pItem->v.modelindex)
-				{
-					REMOVE_ENTITY(pItem);
-				}
-			}
-		}
-
-		// Give ammo;
-		for (int i = 0; i < g_iAmmoBoxIndex; i++)
-		{
-			pItem = Ammo_Spawn(i, pPlayer->v.origin, Vector (0, 0, 0));
-
-			if (IsValidPev(pItem))
-			{
-				pItem->v.spawnflags |= SF_NORESPAWN;
-				MDLL_Touch(pItem, (edict_t *)pPlayer);
-
-				if (pItem->v.modelindex)
-				{
-					REMOVE_ENTITY(pItem);
-				}
-			}
-		}
 	}
 
 	RETURN_META(MRES_IGNORED);

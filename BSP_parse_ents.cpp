@@ -262,64 +262,6 @@ skipspace:
 	return true;
 }
 
-
-char* parse_arg(char** line, int& state)
-{
-	static char arg[3072];
-	char* dest = arg;
-	state = 0;
-	
-	while (**line)
-	{
-		if (isspace(**line))
-		{
-			if (state == 1)
-				break;
-			else if (!state)
-			{
-				(*line)++;
-				continue;
-			}
-		}
-		else if (state != 2)
-			state = 1;
-		
-		if (**line == '"')
-		{
-			(*line)++;
-			
-			if (state == 2)
-				break;
-			
-			state = 2;
-			continue;
-		}
-		
-		*dest++ = *(*line)++;
-	}
-	
-	*dest = '\0';
-	return arg;
-}
-
-
-Vector ParseVec(char *pString)
-{
-	char *pValue;
-	Vector vecResult;
-
-	vecResult.x = atoi(pValue = pString);
-
-	for (int i = 0; i < 2; i++)
-	{
-		pValue = strchr(pValue + i, ' ');
-		vecResult[i + 1] = atoi(pValue);
-	}
-
-	return vecResult;
-}
-
-
 void KeyValueFromBSP(char *pKey, char *pValue, int iNewent)
 {
 	static vec_t AngleY;

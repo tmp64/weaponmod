@@ -30,6 +30,7 @@
  *    version.
  *
  */
+
 #ifndef _LIBFUNC_H
 #define _LIBFUNC_H
 
@@ -47,6 +48,21 @@
 	#define Align(addr) (void*)((long)addr & ~(PAGE_SIZE-1))
 #endif
 
+
+enum e_DllFuncs
+{
+	Func_RadiusDamage,
+	Func_GetAmmoIndex,
+	Func_ClearMultiDamage,
+	Func_ApplyMultiDamage,
+	Func_PlayerSetAnimation,
+	Func_PrecacheOtherWeapon,
+	Func_GiveNamedItem,
+	Func_CheatImpulseCommands,
+
+	Func_End
+};
+
 struct module
 {
 	void             *base;
@@ -58,6 +74,17 @@ struct signature
 	const char       *text;
 	const char       *mask;
 	size_t           size;
+};
+
+struct dllFunc
+{
+	void			*pAddress;
+
+	const char		*name;
+	const char		*linuxName;
+
+	signature		sigAGHLru;
+	signature		sigStandart;
 };
 
 struct function
@@ -79,8 +106,6 @@ struct function
 
 int FindModuleByAddr (void *addr, module *lib);
 void *FindFunction (module *lib, signature sig);
-//void *FindFunction (module *lib, const char *name);
-//void *FindFunction (function *func);
 
 void SetHook (function *func);
 void UnsetHook (function *func);
@@ -89,5 +114,9 @@ int CreateFunctionHook (function *func, void *address, void *handler);
 int AllowWriteToMemory (void *address);
 
 extern module hl_dll;
+extern dllFunc g_dllFuncs[Func_End];
+
+extern function dll_GiveNamedItem;
+extern function dll_CheatImpulseCommands;
 
 #endif // _LIBFUNC_H

@@ -31,6 +31,9 @@
  *
  */
 
+#ifndef _UTILS_H
+#define _UTILS_H
+
 #include "amxxmodule.h"
 
 
@@ -66,13 +69,20 @@
 #define PrivateToEdict(pPrivate) (*(entvars_t **)pPrivate)->pContainingEntity
 #endif
 
-void print_srvconsole(char *fmt, ...);
 
-edict_t* INDEXENT2(int iEdictNum);
-edict_t *GetPrivateCbase(edict_t *pEntity, int iOffset);
+extern edict_t* INDEXENT2(int iEdictNum);
+extern edict_t *GetPrivateCbase(edict_t *pEntity, int iOffset);
 
-int Player_AmmoInventory(edict_t* pPlayer, edict_t* pWeapon, BOOL bPrimary);
-int Player_Set_AmmoInventory(edict_t* pPlayer, edict_t* pWeapon, BOOL bPrimary, int Amount);
+extern int Player_AmmoInventory(edict_t* pPlayer, edict_t* pWeapon, BOOL bPrimary);
+extern int Player_Set_AmmoInventory(edict_t* pPlayer, edict_t* pWeapon, BOOL bPrimary, int Amount);
 
-void UTIL_EjectBrass(const Vector &vecOrigin, const Vector &vecVelocity, float rotation, int model, int soundtype);
-void FireBulletsPlayer(edict_t* pPlayer, edict_t* pAttacker, int iShotsCount, Vector vecSpread, float flDistance, float flDamage, int bitsDamageType, BOOL bTracers);
+extern Vector ParseVec(char *pString);
+extern char* parse_arg(char** line, int& state);
+
+extern void print_srvconsole(char *fmt, ...);
+extern void GiveNamedItem(edict_t *pPlayer, const char *szName);
+
+extern void UTIL_EjectBrass(const Vector &vecOrigin, const Vector &vecVelocity, float rotation, int model, int soundtype);
+extern void FireBulletsPlayer(edict_t* pPlayer, edict_t* pAttacker, int iShotsCount, Vector vecSpread, float flDistance, float flDamage, int bitsDamageType, BOOL bTracers);
+
+#endif // _UTILS_H

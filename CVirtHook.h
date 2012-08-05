@@ -82,6 +82,7 @@ enum e_VirtFuncs
 	VirtFunc_End
 };
 
+extern CVirtHook g_VirtHook_Crowbar;
 extern int VirtualFunction[VirtFunc_End];
 
 #ifdef _WIN32
@@ -102,6 +103,6 @@ inline int CLASSIFY(edict_t* pEntity)
 
 inline void TRACE_ATTACK(edict_t* pEntity, edict_t* pAttacker, float flDamage, Vector vecDir, TraceResult tr, int bitsDamageType)
 {
-	reinterpret_cast<int (*)(void *, int, entvars_t *, float, Vector, TraceResult *, int)>((*((void***)(((char*)pEntity->pvPrivateData) + 0x60)))[VirtualFunction[VirtFunc_TraceAttack]])(pEntity->pvPrivateData, 0, &(pAttacker->v), flDamage, vecDir,  &tr, bitsDamageType);
+	reinterpret_cast<int (*)(void *, entvars_t *, float, Vector, TraceResult *, int)>((*((void***)(((char*)pEntity->pvPrivateData) + 0x60)))[VirtualFunction[VirtFunc_TraceAttack]])(pEntity->pvPrivateData, &(pAttacker->v), flDamage, vecDir,  &tr, bitsDamageType);
 }
 #endif

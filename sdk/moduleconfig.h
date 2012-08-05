@@ -163,7 +163,7 @@
 // #define FN_CreateBaseline			CreateBaseline				/* pfnCreateBaseline()			Tweak entity baseline for network encoding allows setup of player baselines too.; (wd) SDK2 */
 // #define FN_RegisterEncoders			RegisterEncoders			/* pfnRegisterEncoders()		Callbacks for network encoding; (wd) SDK2 */
 // #define FN_GetWeaponData				GetWeaponData				/* pfnGetWeaponData()			(wd) SDK2 */
-#define FN_CmdStart					CmdStart					/* pfnCmdStart()				(wd) SDK2 */
+// #define FN_CmdStart					CmdStart					/* pfnCmdStart()				(wd) SDK2 */
 // #define FN_CmdEnd					CmdEnd						/* pfnCmdEnd()					(wd) SDK2 */
 // #define FN_ConnectionlessPacket		ConnectionlessPacket		/* pfnConnectionlessPacket()	(wd) SDK2 */
 // #define FN_GetHullBounds				GetHullBounds				/* pfnGetHullBounds()			(wd) SDK2 */

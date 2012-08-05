@@ -64,18 +64,19 @@
 #define ITEM_FLAG_EXHAUSTIBLE				16
 
 #ifdef _WIN32
+#define m_pfnThink							4   
+#define m_pfnTouch							5
+
 #define XTRA_OFS_WEAPON						0
 #define XTRA_OFS_PLAYER						0
-
-#define	m_pfnTouch							5
 #elif __linux__
+#define m_pfnThink							3    
+#define m_pfnTouch							5
+
 #define XTRA_OFS_WEAPON						4
 #define XTRA_OFS_PLAYER						5
-
-#define	m_pfnTouch							6
 #endif
 
-#define	m_pfnThink							4
 #define m_flStartThrow						(XTRA_OFS_WEAPON + 16)
 #define m_flReleaseThrow					(XTRA_OFS_WEAPON + 17)
 #define m_chargeReady						(XTRA_OFS_WEAPON + 18)
@@ -103,12 +104,31 @@
 #define m_rgAmmo							(XTRA_OFS_PLAYER + 310)
 #define m_szAnimExtention					(XTRA_OFS_PLAYER + 387)
 
-#define Get_Think(ent) g_Ents[ent].iThink
-#define Get_Touch(ent) g_Ents[ent].iTouch
+#define GetThink_(ent) g_Ents[ent].iThink
+#define GetTouch_(ent) g_Ents[ent].iTouch
 
-#define Set_Think(ent,value) g_Ents[ent].iThink = value
-#define Set_Touch(ent,value) g_Ents[ent].iTouch = value
+#define PushThink_(ent,value) g_Ents[ent].iThink = value
+#define PushTouch_(ent,value) g_Ents[ent].iTouch = value
 
+inline void SetTouch_(edict_t* e, void* funcAddress) 
+{     
+#ifdef __linux__         
+	*((long*)e->pvPrivateData + m_pfnTouch) = funcAddress == NULL ? NULL : 0xFFFF0000;         
+	*((long*)e->pvPrivateData + m_pfnTouch + 1) = (long)(funcAddress);     
+#else         
+	*((long*)e->pvPrivateData + m_pfnTouch) = (long)(funcAddress);     
+#endif 
+}
+
+inline void SetThink_(edict_t* e, void* funcAddress) 
+{     
+#ifdef __linux__         
+	*((long*)e->pvPrivateData + m_pfnThink) = funcAddress == NULL ? NULL : 0xFFFF0000;         
+	*((long*)e->pvPrivateData + m_pfnThink + 1) = (long)(funcAddress);     
+#else         
+	*((long*)e->pvPrivateData + m_pfnThink) = (long)(funcAddress);     
+#endif 
+}
 
 enum e_AmmoFwds
 {
@@ -135,19 +155,6 @@ enum e_WpnFwds
 	Fwd_Wpn_End
 };
 
-enum e_DllFuncs
-{
-	Func_RadiusDamage,
-	Func_GetAmmoIndex,
-	Func_ClearMultiDamage,
-	Func_ApplyMultiDamage,
-	Func_PlayerSetAnimation,
-	Func_PrecacheOtherWeapon,
-	Func_GiveNamedItem,
-
-	Func_End
-};
-
 typedef enum
 {
 	PLAYER_IDLE,
@@ -157,26 +164,6 @@ typedef enum
 	PLAYER_DIE,
 	PLAYER_ATTACK1,
 } PLAYER_ANIM;
-
-typedef struct usercmd_s
-{
-	short	lerp_msec;      // Interpolation time on client
-	byte	msec;           // Duration in ms of command
-	vec3_t	viewangles;     // Command view angles.
-
-	// intended velocities
-	float	forwardmove;    // Forward velocity.
-	float	sidemove;       // Sideways velocity.
-	float	upmove;         // Upward velocity.
-	byte	lightlevel;     // Light level at spot where we are standing.
-	unsigned short  buttons;  // Attack buttons
-	byte    impulse;          // Impulse command issued.
-	byte	weaponselect;	// Current weapon id
-
-	// Experimental player impact stuff.
-	int		impact_index;
-	vec3_t	impact_position;
-} usercmd_t;
 
 typedef struct
 {
@@ -192,15 +179,6 @@ typedef struct
 	int		iFlags;
 	int		iWeight;// this value used to determine this weapon's importance in autoselection.
 } ItemInfo;
-
-typedef struct
-{
-	void			*pAddress;
-	const char		*name;
-	const char		*linuxName;
-	signature		sigAGHLru;
-	signature		sigStandart;
-} dllFunc;
 
 typedef struct
 {
@@ -223,10 +201,9 @@ typedef struct
 extern int g_iWeaponIndex;
 extern int g_iAmmoBoxIndex;
 
+extern EntData *g_Ents;
 extern WeaponData WeaponInfoArray[MAX_WEAPONS];
 extern AmmoBoxData AmmoBoxInfoArray[MAX_WEAPONS];
-extern dllFunc g_dllFuncs[Func_End];
-extern EntData *g_Ents;
 
 extern AMX_NATIVE_INFO Natives[];
 
@@ -235,17 +212,22 @@ extern BOOL g_InitWeapon;
 extern BOOL g_initialized;
 
 extern void WpnModCommand(void);
-#ifdef _WIN32
-extern void __fastcall Global_Think(CBaseEntity *pEntity);
-#elif __linux__
-extern void Global_Think(CBaseEntity *pEntity);
-#endif
-
 extern void ActivateCrowbarHooks();
-
-extern Vector ParseVec(char *pString);
 extern int ParseBSPEntData(char *file);
-extern char* parse_arg(char** line, int& state);
+
+#ifdef _WIN32
+extern BOOL __fastcall Weapon_CanDeploy(void *pPrivate);
+extern void __fastcall Global_Think(void *pPrivate);
+extern void __fastcall Global_Touch(void *pPrivate, int i, void *pPrivate2);
+extern void __fastcall CheatImpulseCommands_HookHandler(void *pPrivate, int i, int iImpulse);
+extern void __fastcall GiveNamedItem_HookHandler(void *pPrivate, int i, const char *szName);
+#else
+extern BOOL Weapon_CanDeploy(void *pPrivate);
+extern void Global_Think(void *pPrivate);
+extern void Global_Touch(void *pPrivate, void *pPrivate2);
+extern void CheatImpulseCommands_HookHandler(void *pPrivate, int iImpulse);
+extern void GiveNamedItem_HookHandler(void *pPrivate, const char *szName);
+#endif
 
 extern edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles);
 extern edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles);
@@ -260,13 +242,5 @@ inline const char	*pszName(const int iId)			{ return WeaponInfoArray[iId].ItemDa
 inline int			iMaxClip(const int iId)			{ return WeaponInfoArray[iId].ItemData.iMaxClip; }
 inline int			iWeight(const int iId)			{ return WeaponInfoArray[iId].ItemData.iWeight; }
 inline int			iFlags(const int iId)			{ return WeaponInfoArray[iId].ItemData.iFlags; }
-
-#ifdef _WIN32
-extern BOOL __fastcall Weapon_CanDeploy(void *pPrivate);
-extern void __fastcall Global_Touch(CBaseEntity *pEntity, int i, CBaseEntity *pEntity2);
-#elif __linux__
-extern BOOL Weapon_CanDeploy(void *pPrivate);
-extern void Global_Touch(CBaseEntity *pEntity, CBaseEntity *pOther);
-#endif
 
 #endif // _WPNMOD_H
