@@ -79,8 +79,8 @@ dllFunc g_dllFuncs[Func_End] =
 			15,
 		},
 		{
-			"",
-			"", 0
+			"\x33\xC0\xA3\x00\x00\x00\x00\xA3\x00\x00\x00\x00",
+			"xxx????x????", 12
 		}
 	},
 	{
@@ -92,8 +92,8 @@ dllFunc g_dllFuncs[Func_End] =
 			"xx????xxxx", 10,
 		},
 		{
-			"",
-			"", 0
+			"\x8B\x0D\x00\x00\x00\x00\x85\xC9\x74\x1D",
+			"xx????xxxx", 10
 		}
 	},
 	{
@@ -134,9 +134,8 @@ dllFunc g_dllFuncs[Func_End] =
 			"xx??xxxxxx????", 14,
 		},
 		{
-			""
-			"",
-			"", 0
+			"\x8B\x44\x00\x00\x56\x57\x8B\xF9\x8B\x0D\x00\x00\x00\x00",
+			"xx??xxxxxx????", 14,
 		}
 	},
 	{
@@ -148,9 +147,9 @@ dllFunc g_dllFuncs[Func_End] =
 			"xxxx????x?????x", 15,
 		},
 		{
-			""
-			"",
-			"", 0
+			"\xD9\x00\x00\x00\x00\x00\xDC\x00\x00\x00"
+			"\x00\x00\x81\x00\x00\x00\x00\x00\x56\x57",
+			"x?????x?????x?????xx", 19
 		}
 	}
 };
