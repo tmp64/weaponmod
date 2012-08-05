@@ -39,13 +39,6 @@
 BOOL g_Initialized;
 
 
-
-
-
-
-
-
-
 int OnMetaAttach()
 {
 	g_Ents = new EntData[gpGlobals->maxEntities];
@@ -199,6 +192,9 @@ int DispatchSpawn(edict_t *pEntity)
 
 		memset(WeaponInfoArray, 0, sizeof(WeaponInfoArray));
 		memset(AmmoBoxInfoArray, 0, sizeof(AmmoBoxInfoArray));
+
+		sv_cheats = CVAR_GET_POINTER("sv_cheats");
+		mp_weaponstay = CVAR_GET_POINTER("mp_weaponstay");
 	}
 
 	RETURN_META_VALUE(MRES_IGNORED, 0);

@@ -469,7 +469,7 @@ void FireBulletsPlayer(edict_t* pPlayer, edict_t* pAttacker, int iShotsCount, Ve
 	}
 #ifdef _WIN32
 	reinterpret_cast<int (__cdecl *)()>(g_dllFuncs[Func_ClearMultiDamage].pAddress)();
-#elif __linux__
+#else
 	reinterpret_cast<int (*)()>(g_dllFuncs[Func_ClearMultiDamage].pAddress)();
 #endif
 	for (int iShot = 1; iShot <= iShotsCount; iShot++)
@@ -517,7 +517,7 @@ void FireBulletsPlayer(edict_t* pPlayer, edict_t* pAttacker, int iShotsCount, Ve
 	}
 #ifdef _WIN32
 	reinterpret_cast<int (__cdecl *)(entvars_t*, entvars_t*)>(g_dllFuncs[Func_ApplyMultiDamage].pAddress)(&(pPlayer->v), &(pAttacker->v));
-#elif __linux__
+#else
 	reinterpret_cast<int (*)(entvars_t*, entvars_t*)>(g_dllFuncs[Func_ApplyMultiDamage].pAddress)(&(pPlayer->v), &(pAttacker->v));
 #endif
 }

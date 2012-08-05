@@ -941,6 +941,45 @@ static cell AMX_NATIVE_CALL wpnmod_register_ammobox_forward(AMX *amx, cell *para
 	return 1;
 }
 
+/**
+ * Resets the global multi damage accumulator.
+ *
+ * native wpnmod_clear_multi_damage();
+ */
+static cell AMX_NATIVE_CALL clear_multi_damage(AMX *amx, cell *params)
+{
+#ifdef _WIN32
+	reinterpret_cast<int (__cdecl *)()>(g_dllFuncs[Func_ClearMultiDamage].pAddress)();
+#else
+	reinterpret_cast<int (*)()>(g_dllFuncs[Func_ClearMultiDamage].pAddress)();
+#endif
+	return 1;
+}
+
+/**
+ * Inflicts contents of global multi damage register on entity.
+ *
+ * @param iInflictor		Entity which causes the damage impact.
+ * @param iAttacker			Attacker index.
+ *
+ * native wpnmod_apply_multi_damage(const iInflictor, const iAttacker);
+ */
+static cell AMX_NATIVE_CALL apply_multi_damage(AMX *amx, cell *params)
+{
+	int iInflictor = params[1];
+	int iAttacker = params[2];
+
+	CHECK_ENTITY(iInflictor)
+	CHECK_ENTITY(iAttacker)
+
+#ifdef _WIN32
+	reinterpret_cast<int (__cdecl *)(entvars_t*, entvars_t*)>(g_dllFuncs[Func_ApplyMultiDamage].pAddress)(&(INDEXENT2(iInflictor)->v), &(INDEXENT2(iAttacker)->v));
+#else
+	reinterpret_cast<int (*)(entvars_t*, entvars_t*)>(g_dllFuncs[Func_ApplyMultiDamage].pAddress)(&(INDEXENT2(iInflictor)->v), &(INDEXENT2(iAttacker)->v));
+#endif
+	return 1;
+}
+
 
 AMX_NATIVE_INFO Natives[] = 
 {
@@ -960,10 +999,11 @@ AMX_NATIVE_INFO Natives[] =
 	{ "wpnmod_default_reload", wpnmod_default_reload},
 	{ "wpnmod_fire_bullets", wpnmod_fire_bullets},
 	{ "wpnmod_radius_damage", wpnmod_radius_damage},
+	{ "wpnmod_clear_multi_damage", clear_multi_damage},
+	{ "wpnmod_apply_multi_damage", apply_multi_damage},
 	{ "wpnmod_eject_brass", wpnmod_eject_brass},
 	{ "wpnmod_reset_empty_sound", wpnmod_reset_empty_sound},
 	{ "wpnmod_play_empty_sound", wpnmod_play_empty_sound},
-	{ "wpnmod_create_item", wpnmod_create_item},
 	{ "wpnmod_create_item", wpnmod_create_item},
 	{ "wpnmod_register_ammobox", wpnmod_register_ammobox},
 	{ "wpnmod_register_ammobox_forward", wpnmod_register_ammobox_forward},

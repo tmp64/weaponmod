@@ -52,6 +52,9 @@ WeaponData WeaponInfoArray[MAX_WEAPONS];
 AmmoBoxData AmmoBoxInfoArray[MAX_WEAPONS];
 
 EntData *g_Ents = NULL;
+cvar_t *sv_cheats = NULL;
+cvar_t *mp_weaponstay = NULL;
+
 
 edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 {
@@ -715,7 +718,7 @@ void* Weapon_Respawn(void *pPrivate)
 	{
 		float flNextRespawn;
 
-		if (CVAR_GET_FLOAT("mp_weaponstay") && !(iFlags(g_iId) & ITEM_FLAG_LIMITINWORLD))
+		if (mp_weaponstay->value && !(iFlags(g_iId) & ITEM_FLAG_LIMITINWORLD))
 		{
 			flNextRespawn = 0;
 		}
@@ -946,7 +949,7 @@ void __fastcall GiveNamedItem_HookHandler(void *pPrivate, int i, const char *szN
 void GiveNamedItem_HookHandler(void *pPrivate, const char *szName)
 #endif
 {
-	if (CVAR_GET_FLOAT("sv_cheats"))
+	if (sv_cheats->value)
 	{
 		GiveNamedItem(PrivateToEdict(pPrivate), szName);
 	}
@@ -962,7 +965,6 @@ void GiveNamedItem_HookHandler(void *pPrivate, const char *szName)
 
 
 
-
 #ifdef _WIN32
 void __fastcall CheatImpulseCommands_HookHandler(void *pPrivate, int i, int iImpulse)
 #elif __linux__
@@ -970,7 +972,7 @@ void CheatImpulseCommands_HookHandler(void *pPrivate, int iImpulse)
 #endif
 {
 	// check cheat impulse command now
-	if (iImpulse == 101 && CVAR_GET_FLOAT("sv_cheats"))
+	if (iImpulse == 101 && sv_cheats->value)
 	{
 		edict_t *pPlayer = PrivateToEdict(pPrivate);
 

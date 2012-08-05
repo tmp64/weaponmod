@@ -202,6 +202,8 @@ extern int g_iWeaponIndex;
 extern int g_iAmmoBoxIndex;
 
 extern EntData *g_Ents;
+extern cvar_t *sv_cheats;
+extern cvar_t *mp_weaponstay;
 extern WeaponData WeaponInfoArray[MAX_WEAPONS];
 extern AmmoBoxData AmmoBoxInfoArray[MAX_WEAPONS];
 

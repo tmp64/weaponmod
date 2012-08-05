@@ -240,6 +240,19 @@ native wpnmod_fire_bullets(const iPlayer, const iAttacker, const iShotsCount, co
 native wpnmod_radius_damage(const Float: vecSrc[3], const iInflictor, const iAttacker, const Float: flDamage, const Float: flRadius, const iClassIgnore, const bitsDamageType);
 
 /**
+ * Resets the global multi damage accumulator.
+ */
+ native wpnmod_clear_multi_damage();
+
+ /**
+ * Inflicts contents of global multi damage register on entity.
+ *
+ * @param iInflictor		Entity which causes the damage impact.
+ * @param iAttacker			Attacker index.
+ */
+ native wpnmod_apply_multi_damage(const iInflictor, const iAttacker);
+
+/**
  * Eject a brass from player's weapon.
  *
  * @param iPlayer			Player index.
