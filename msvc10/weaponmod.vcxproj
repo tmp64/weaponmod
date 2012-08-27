@@ -77,18 +77,17 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\BSP_parse_ents.cpp" />
-    <ClCompile Include="..\CVirtHook.cpp" />
+    <ClCompile Include="..\bsp_parse.cpp" />
+    <ClCompile Include="..\hooks.cpp" />
     <ClCompile Include="..\libFunc.cpp" />
     <ClCompile Include="..\meta_api.cpp" />
     <ClCompile Include="..\natives.cpp" />
     <ClCompile Include="..\sdk\amxxmodule.cpp" />
     <ClCompile Include="..\srvcmd.cpp" />
     <ClCompile Include="..\utils.cpp" />
-    <ClCompile Include="..\weaponmod.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\CVirtHook.h" />
+    <ClInclude Include="..\hooks.h" />
     <ClInclude Include="..\libFunc.h" />
     <ClInclude Include="..\sdk\amxxmodule.h" />
     <ClInclude Include="..\sdk\moduleconfig.h" />

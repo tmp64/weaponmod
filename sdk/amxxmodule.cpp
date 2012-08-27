@@ -2311,7 +2311,7 @@ C_DLLEXPORT int Meta_Attach(PLUG_LOADTIME now, META_FUNCTIONS *pFunctionTable, m
 	gpGamedllFuncs=pGamedllFuncs;
 
 	// Let's go.
-	return FN_META_ATTACH();
+	return (TRUE);
 }
 
 C_DLLEXPORT int Meta_Detach(PLUG_LOADTIME now, PL_UNLOAD_REASON reason)

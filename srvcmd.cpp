@@ -32,6 +32,7 @@
  */
 
 #include "weaponmod.h"
+#include "utils.h"
 
 
 void WpnModCommand(void)

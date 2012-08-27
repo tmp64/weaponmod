@@ -32,8 +32,8 @@
  */
 
 #include "weaponmod.h"
-#include "CVirtHook.h"
-#include "libFunc.h"
+#include "hooks.h"
+#include "utils.h"
 
 
 edict_t* INDEXENT2(int iEdictNum)
@@ -211,17 +211,7 @@ void UTIL_EjectBrass(const Vector &vecOrigin, const Vector &vecVelocity, float r
 void UTIL_DecalGunshot(TraceResult *pTrace)
 {
 	int iEntity;
-
-	const char GunshotDecals[5][7] =
-	{
-		"{shot1",
-		"{shot2",
-		"{shot3",
-		"{shot4",
-		"{shot5"
-	};
-
-	int index = DECAL_INDEX(GunshotDecals[RANDOM_LONG(0, 4)]);
+	int index = DECAL_INDEX("{shot1") + RANDOM_LONG(0, 4);
 	
 	if (index < 0 || pTrace->flFraction == 1.0)
 	{
@@ -468,9 +458,9 @@ void FireBulletsPlayer(edict_t* pPlayer, edict_t* pAttacker, int iShotsCount, Ve
 		pAttacker = pPlayer;  // the default attacker is ourselves
 	}
 #ifdef _WIN32
-	reinterpret_cast<int (__cdecl *)()>(g_dllFuncs[Func_ClearMultiDamage].pAddress)();
+	reinterpret_cast<int (__cdecl *)()>(g_dllFuncs[Func_ClearMultiDamage].address)();
 #else
-	reinterpret_cast<int (*)()>(g_dllFuncs[Func_ClearMultiDamage].pAddress)();
+	reinterpret_cast<int (*)()>(g_dllFuncs[Func_ClearMultiDamage].address)();
 #endif
 	for (int iShot = 1; iShot <= iShotsCount; iShot++)
 	{
@@ -516,8 +506,8 @@ void FireBulletsPlayer(edict_t* pPlayer, edict_t* pAttacker, int iShotsCount, Ve
 		}
 	}
 #ifdef _WIN32
-	reinterpret_cast<int (__cdecl *)(entvars_t*, entvars_t*)>(g_dllFuncs[Func_ApplyMultiDamage].pAddress)(&(pPlayer->v), &(pAttacker->v));
+	reinterpret_cast<int (__cdecl *)(entvars_t*, entvars_t*)>(g_dllFuncs[Func_ApplyMultiDamage].address)(&(pPlayer->v), &(pAttacker->v));
 #else
-	reinterpret_cast<int (*)(entvars_t*, entvars_t*)>(g_dllFuncs[Func_ApplyMultiDamage].pAddress)(&(pPlayer->v), &(pAttacker->v));
+	reinterpret_cast<int (*)(entvars_t*, entvars_t*)>(g_dllFuncs[Func_ApplyMultiDamage].address)(&(pPlayer->v), &(pAttacker->v));
 #endif
 }

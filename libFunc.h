@@ -44,29 +44,20 @@
 	#include <sys/stat.h>
 	#include <sys/mman.h>
 	#include <unistd.h>
+
 	#define	PAGE_SIZE 4096
 	#define Align(addr) (void*)((long)addr & ~(PAGE_SIZE-1))
+	
+	typedef unsigned long DWORD;
+	typedef unsigned short WORD;
+	typedef unsigned int UNINT32;
 #endif
-
-
-enum e_DllFuncs
-{
-	Func_RadiusDamage,
-	Func_GetAmmoIndex,
-	Func_ClearMultiDamage,
-	Func_ApplyMultiDamage,
-	Func_PlayerSetAnimation,
-	Func_PrecacheOtherWeapon,
-	Func_GiveNamedItem,
-	Func_CheatImpulseCommands,
-
-	Func_End
-};
 
 struct module
 {
 	void             *base;
 	size_t           size;
+	void             *handler;
 };
 
 struct signature
@@ -76,15 +67,13 @@ struct signature
 	size_t           size;
 };
 
-struct dllFunc
+struct VirtHookData
 {
-	void			*pAddress;
+	int              offset;
+	int              done;
 
-	const char		*name;
-	const char		*linuxName;
-
-	signature		sigAGHLru;
-	signature		sigStandart;
+	void             *address;
+	void             *handler;
 };
 
 struct function
@@ -94,6 +83,7 @@ struct function
 	module           *lib;
 	
 	signature        sig;
+	signature        sigCustom;
 	
 	void             *address;
 	void             *handler;
@@ -104,19 +94,16 @@ struct function
 	int              done;
 };
 
-int FindModuleByAddr (void *addr, module *lib);
-void *FindFunction (module *lib, signature sig);
+int FindModuleByAddr(void *addr, module *lib);
+void *FindFunction(module *lib, signature sig);
+void *FindFunction(function *func);
 
-void SetHook (function *func);
-void UnsetHook (function *func);
+int CreateFunctionHook(function *func);
+int AllowWriteToMemory(void *address);
 
-int CreateFunctionHook (function *func, void *address, void *handler);
-int AllowWriteToMemory (void *address);
+void SetHook(function *func);
+void UnsetHook(function *func);
 
-extern module hl_dll;
-extern dllFunc g_dllFuncs[Func_End];
-
-extern function dll_GiveNamedItem;
-extern function dll_CheatImpulseCommands;
+int SetHookVirt(const char *classname, VirtHookData *HookData);
 
 #endif // _LIBFUNC_H

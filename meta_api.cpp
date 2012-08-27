@@ -32,81 +32,52 @@
  */
 
 #include "weaponmod.h"
-#include "libFunc.h"
-#include "CVirtHook.h"
+#include "hooks.h"
+#include "utils.h"
 
 
+EntData *g_Ents = NULL;
+
+BOOL g_InitWeapon;
 BOOL g_Initialized;
 
-
-int OnMetaAttach()
-{
-	g_Ents = new EntData[gpGlobals->maxEntities];
-
-	if (FindModuleByAddr((void*)MDLL_FUNC->pfnGetGameDescription(), &hl_dll))
-	{
-#ifdef __linux__
-		void* handle = dlopen(GET_GAME_INFO(PLID, GINFO_DLL_FULLPATH), RTLD_NOW);
-
-		if (handle != NULL) 
-		{
-			for (int i = 0; i < Func_End; i++)
-			{
-				g_dllFuncs[i].pAddress = dlsym(handle, g_dllFuncs[i].linuxName);
-			}
-
-			dlclose(handle);
-		}
-#else
-		if (CVAR_GET_POINTER("aghl.ru"))
-		{
-			for (int i = 0; i < Func_End; i++)
-			{
-				g_dllFuncs[i].pAddress = FindFunction(&hl_dll, g_dllFuncs[i].sigAGHLru);
-			}
-		}
-		else
-		{
-			for (int i = 0; i < Func_End; i++)
-			{
-				g_dllFuncs[i].pAddress = FindFunction(&hl_dll, g_dllFuncs[i].sigStandart);
-			}
-		}
-#endif
-		if (CreateFunctionHook(&dll_GiveNamedItem, g_dllFuncs[Func_GiveNamedItem].pAddress, (void*)GiveNamedItem_HookHandler))
-		{
-			SetHook(&dll_GiveNamedItem);
-		}
-
-		if (CreateFunctionHook(&dll_CheatImpulseCommands, g_dllFuncs[Func_CheatImpulseCommands].pAddress, (void*)CheatImpulseCommands_HookHandler))
-		{
-			SetHook(&dll_CheatImpulseCommands);
-		}
-	}
-
-	cvar_t	version = {"hl_wpnmod_version", Plugin_info.version, FCVAR_SERVER};
-	
-	REG_SVR_COMMAND("wpnmod", WpnModCommand);
-	CVAR_REGISTER (&version);
-
-	return 1;
-}
-
+cvar_t *cvar_aghlru = NULL;
+cvar_t *cvar_sv_cheats = NULL;
+cvar_t *cvar_mp_weaponstay = NULL;
 
 
 void OnAmxxAttach()
 {
 	BOOL bAddNatives = TRUE; 
 
-	if (!hl_dll.base)
+	cvar_aghlru = CVAR_GET_POINTER("aghl.ru");
+	cvar_sv_cheats = CVAR_GET_POINTER("sv_cheats");
+	cvar_mp_weaponstay = CVAR_GET_POINTER("mp_weaponstay");
+	
+	if (!FindModuleByAddr((void*)MDLL_FUNC->pfnGetGameDescription(), &hl_dll))
 	{
 		print_srvconsole("[WEAPONMOD] Failed to locate %s\n", GET_GAME_INFO(PLID, GINFO_DLL_FILENAME));
 		bAddNatives = FALSE;
 	}
+	else
+	{
+		for (int i = 0; i < Func_End; i++)
+		{
+			if (cvar_aghlru)
+			{
+				g_dllFuncs[i].sig = g_dllFuncs[i].sigCustom;
+			}
+
+			if (CreateFunctionHook(&g_dllFuncs[i]))
+			{
+				SetHook(&g_dllFuncs[i]);
+			}
+		}
+	}
 
 	for (int i = 0; i < Func_End; i++)
 	{
-		if (!g_dllFuncs[i].pAddress)
+		if (!g_dllFuncs[i].address)
 		{
 			print_srvconsole("[WEAPONMOD] Failed to find \"%s\" function.\n", g_dllFuncs[i].name);
 			bAddNatives = FALSE;
@@ -127,24 +98,28 @@ void OnAmxxAttach()
 		print_srvconsole("   This is free software and you are welcome to redistribute it under \n"
 						"   certain conditions; type 'wpnmod gpl' for details.\n  \n");
 	}
+
+	g_Ents = new EntData[gpGlobals->maxEntities];
+
+	cvar_t version = {"hl_wpnmod_version", Plugin_info.version, FCVAR_SERVER};
+	
+	REG_SVR_COMMAND("wpnmod", WpnModCommand);
+	CVAR_REGISTER (&version);
 }
 
 
 
 void OnAmxxDetach()
 {
-	if (dll_GiveNamedItem.done)
+	for (int i = 0; i < Func_End; i++)
 	{
-		UnsetHook(&dll_GiveNamedItem);
-	}
-
-	if (dll_CheatImpulseCommands.done)
-	{
-		UnsetHook(&dll_CheatImpulseCommands);
+		if (!g_dllFuncs[i].done)
+		{
+			UnsetHook(&g_dllFuncs[i]);
+		}
 	}
 
 	delete [] g_Ents;
-	g_VirtHook_Crowbar.clear();
 }
 
 
@@ -153,27 +128,6 @@ int AmxxCheckGame(const char *game)
 {
 	if (!strcasecmp(game, "valve"))
 	{
-#ifdef _WIN32
-		int extraoffset = 0;
-#elif __linux__
-		int extraoffset = 2;
-#endif
-		VirtualFunction[VirtFunc_Classify] =			8 + extraoffset;
-		VirtualFunction[VirtFunc_TraceAttack] =			10 + extraoffset;
-		VirtualFunction[VirtFunc_Think] =				43 + extraoffset;
-		VirtualFunction[VirtFunc_Touch] =				44 + extraoffset;
-		VirtualFunction[VirtFunc_Respawn] =				47 + extraoffset;
-		VirtualFunction[VirtFunc_AddToPlayer] =			58 + extraoffset;
-		VirtualFunction[VirtFunc_GetItemInfo] =			60 + extraoffset;
-		VirtualFunction[VirtFunc_CanDeploy] =			61 + extraoffset;
-		VirtualFunction[VirtFunc_Deploy] =				62 + extraoffset;
-		VirtualFunction[VirtFunc_CanHolster] =			63 + extraoffset;
-		VirtualFunction[VirtFunc_Holster] =				64 + extraoffset;
-		VirtualFunction[VirtFunc_ItemPostFrame] =		67 + extraoffset;
-		VirtualFunction[VirtFunc_Drop] =				68 + extraoffset;
-		VirtualFunction[VirtFunc_ItemSlot] =			75 + extraoffset;
-		VirtualFunction[VirtFunc_IsUseable] =			82 + extraoffset;
-
 		return AMXX_GAME_OK;
 	}
 	
@@ -192,9 +146,6 @@ int DispatchSpawn(edict_t *pEntity)
 
 		memset(WeaponInfoArray, 0, sizeof(WeaponInfoArray));
 		memset(AmmoBoxInfoArray, 0, sizeof(AmmoBoxInfoArray));
-
-		sv_cheats = CVAR_GET_POINTER("sv_cheats");
-		mp_weaponstay = CVAR_GET_POINTER("mp_weaponstay");
 	}
 
 	RETURN_META_VALUE(MRES_IGNORED, 0);

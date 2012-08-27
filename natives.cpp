@@ -32,7 +32,8 @@
  */
 
 #include "weaponmod.h"
-//#include "dllFunc.h"
+#include "hooks.h"
+#include "utils.h"
 
 
 #define CHECK_OFFSET(x) \
@@ -124,18 +125,14 @@ int PvDataOffsets[Offset_End] =
 	XTRA_OFS_WEAPON + 15,
 };
 
+int g_iWeaponIndex;
+int g_iAmmoBoxIndex;
 
-#ifdef __linux__
-//implement these with setjmp later.
-bool IsBadReadPtr(void *l, size_t size)
-{
-	return false;
-}
-bool IsBadWritePtr(void *l, size_t size)
-{
-	return false;
-}
-#endif
+BOOL g_CrowbarHooksEnabled;
+
+WeaponData WeaponInfoArray[MAX_WEAPONS];
+AmmoBoxData AmmoBoxInfoArray[MAX_WEAPONS];
+
 
 /**
  * Register new weapon in module.
@@ -181,15 +178,19 @@ static cell AMX_NATIVE_CALL wpnmod_register_weapon(AMX *amx, cell *params)
 	if (!g_CrowbarHooksEnabled)
 	{
 		g_CrowbarHooksEnabled = TRUE;
-		ActivateCrowbarHooks();
+		
+		for (int i = 0; i < CrowbarHook_End; i++)
+		{
+			SetHookVirt("weapon_crowbar", &g_CrowbarHooks[i]);
+		}
 	}
 
 	g_InitWeapon = TRUE;
 
 #ifdef _WIN32
-	reinterpret_cast<int (__cdecl *)(const char *)>(g_dllFuncs[Func_PrecacheOtherWeapon].pAddress)("weapon_crowbar");
+	reinterpret_cast<int (__cdecl *)(const char *)>(g_dllFuncs[Func_PrecacheOtherWeapon].address)("weapon_crowbar");
 #elif __linux__
-	reinterpret_cast<int (*)(const char *)>(g_dllFuncs[Func_PrecacheOtherWeapon].pAddress)("weapon_crowbar");
+	reinterpret_cast<int (*)(const char *)>(g_dllFuncs[Func_PrecacheOtherWeapon].address)("weapon_crowbar");
 #endif
 
 	return g_iWeaponIndex;
@@ -295,9 +296,9 @@ static cell AMX_NATIVE_CALL wpnmod_set_player_anim(AMX *amx, cell *params)
 	CHECK_ENTITY(iPlayer)
 
 #ifdef _WIN32
-		reinterpret_cast<void (__fastcall *)(void *, int, int)>(g_dllFuncs[Func_PlayerSetAnimation].pAddress)((void*)INDEXENT2(iPlayer)->pvPrivateData, 0, iPlayerAnim);
+		reinterpret_cast<void (__fastcall *)(void *, int, int)>(g_dllFuncs[Func_PlayerSetAnimation].address)((void*)INDEXENT2(iPlayer)->pvPrivateData, 0, iPlayerAnim);
 #elif __linux__
-	reinterpret_cast<void (*)(void *, int)>(g_dllFuncs[Func_PlayerSetAnimation].pAddress)((void*)INDEXENT2(iPlayer)->pvPrivateData, iPlayerAnim);
+	reinterpret_cast<void (*)(void *, int)>(g_dllFuncs[Func_PlayerSetAnimation].address)((void*)INDEXENT2(iPlayer)->pvPrivateData, iPlayerAnim);
 #endif
 
 	return 1;
@@ -320,9 +321,9 @@ static cell AMX_NATIVE_CALL wpnmod_get_player_ammo(AMX *amx, cell *params)
 	CHECK_ENTITY(iPlayer)
 
 #ifdef _WIN32
-	int iAmmoIndex = reinterpret_cast<int (__cdecl *)(const char *)>(g_dllFuncs[Func_GetAmmoIndex].pAddress)(STRING(ALLOC_STRING(MF_GetAmxString(amx, params[2], 0, NULL))));
+	int iAmmoIndex = reinterpret_cast<int (__cdecl *)(const char *)>(g_dllFuncs[Func_GetAmmoIndex].address)(STRING(ALLOC_STRING(MF_GetAmxString(amx, params[2], 0, NULL))));
 #elif __linux__
-	int iAmmoIndex = reinterpret_cast<int (*)(const char *)>(g_dllFuncs[Func_GetAmmoIndex].pAddress)(STRING(ALLOC_STRING(MF_GetAmxString(amx, params[2], 0, NULL))));
+	int iAmmoIndex = reinterpret_cast<int (*)(const char *)>(g_dllFuncs[Func_GetAmmoIndex].address)(STRING(ALLOC_STRING(MF_GetAmxString(amx, params[2], 0, NULL))));
 #endif
 
 	if (iAmmoIndex != -1)
@@ -349,9 +350,9 @@ static cell AMX_NATIVE_CALL wpnmod_set_player_ammo(AMX *amx, cell *params)
 	CHECK_ENTITY(iPlayer)
 
 #ifdef _WIN32
-	int iAmmoIndex = reinterpret_cast<int (__cdecl *)(const char *)>(g_dllFuncs[Func_GetAmmoIndex].pAddress)(STRING(ALLOC_STRING(MF_GetAmxString(amx, params[2], 0, NULL))));
+	int iAmmoIndex = reinterpret_cast<int (__cdecl *)(const char *)>(g_dllFuncs[Func_GetAmmoIndex].address)(STRING(ALLOC_STRING(MF_GetAmxString(amx, params[2], 0, NULL))));
 #elif __linux__
-	int iAmmoIndex = reinterpret_cast<int (*)(const char *)>(g_dllFuncs[Func_GetAmmoIndex].pAddress)(STRING(ALLOC_STRING(MF_GetAmxString(amx, params[2], 0, NULL))));
+	int iAmmoIndex = reinterpret_cast<int (*)(const char *)>(g_dllFuncs[Func_GetAmmoIndex].address)(STRING(ALLOC_STRING(MF_GetAmxString(amx, params[2], 0, NULL))));
 #endif
 
 	if (iAmmoIndex != -1)
@@ -602,9 +603,7 @@ static cell AMX_NATIVE_CALL wpnmod_set_think(AMX *amx, cell *params)
 		return 0;
 	}
 
-	PushThink_(iEntity, iForward);
-	SetThink_(INDEXENT2(iEntity), (void*)Global_Think);
-
+	SetEntForward(INDEXENT2(iEntity), Think, (void*)Global_Think, iForward);
 	return 1;
 }
 
@@ -639,9 +638,7 @@ static cell AMX_NATIVE_CALL wpnmod_set_touch(AMX *amx, cell *params)
 		return 0;
 	}
 
-	PushTouch_(iEntity, iForward);
-	SetTouch_(INDEXENT2(iEntity), (void*)Global_Touch);
-
+	SetEntForward(INDEXENT2(iEntity), Touch, (void*)Global_Touch, iForward);
 	return 1;
 }
 
@@ -720,10 +717,10 @@ static cell AMX_NATIVE_CALL wpnmod_radius_damage(AMX *amx, cell *params)
 	CHECK_ENTITY(iAttacker)
 
 #ifdef _WIN32
-	reinterpret_cast<int (__cdecl *)(Vector, entvars_t*, entvars_t*, float, float, int, int)>(g_dllFuncs[Func_RadiusDamage].pAddress)
+	reinterpret_cast<int (__cdecl *)(Vector, entvars_t*, entvars_t*, float, float, int, int)>(g_dllFuncs[Func_RadiusDamage].address)
 	(vecSrc, &INDEXENT2(iInflictor)->v, &INDEXENT2(iAttacker)->v, amx_ctof(params[4]), amx_ctof(params[5]), params[6], params[7]);
 #elif __linux__
-	reinterpret_cast<int (*)(Vector, entvars_t*, entvars_t*, float, float, int, int)>(g_dllFuncs[Func_RadiusDamage].pAddress)
+	reinterpret_cast<int (*)(Vector, entvars_t*, entvars_t*, float, float, int, int)>(g_dllFuncs[Func_RadiusDamage].address)
 	(vecSrc, &INDEXENT2(iInflictor)->v, &INDEXENT2(iAttacker)->v, amx_ctof(params[4]), amx_ctof(params[5]), params[6], params[7]);
 #endif
 
@@ -949,9 +946,9 @@ static cell AMX_NATIVE_CALL wpnmod_register_ammobox_forward(AMX *amx, cell *para
 static cell AMX_NATIVE_CALL clear_multi_damage(AMX *amx, cell *params)
 {
 #ifdef _WIN32
-	reinterpret_cast<int (__cdecl *)()>(g_dllFuncs[Func_ClearMultiDamage].pAddress)();
+	reinterpret_cast<int (__cdecl *)()>(g_dllFuncs[Func_ClearMultiDamage].address)();
 #else
-	reinterpret_cast<int (*)()>(g_dllFuncs[Func_ClearMultiDamage].pAddress)();
+	reinterpret_cast<int (*)()>(g_dllFuncs[Func_ClearMultiDamage].address)();
 #endif
 	return 1;
 }
@@ -973,9 +970,9 @@ static cell AMX_NATIVE_CALL apply_multi_damage(AMX *amx, cell *params)
 	CHECK_ENTITY(iAttacker)
 
 #ifdef _WIN32
-	reinterpret_cast<int (__cdecl *)(entvars_t*, entvars_t*)>(g_dllFuncs[Func_ApplyMultiDamage].pAddress)(&(INDEXENT2(iInflictor)->v), &(INDEXENT2(iAttacker)->v));
+	reinterpret_cast<int (__cdecl *)(entvars_t*, entvars_t*)>(g_dllFuncs[Func_ApplyMultiDamage].address)(&(INDEXENT2(iInflictor)->v), &(INDEXENT2(iAttacker)->v));
 #else
-	reinterpret_cast<int (*)(entvars_t*, entvars_t*)>(g_dllFuncs[Func_ApplyMultiDamage].pAddress)(&(INDEXENT2(iInflictor)->v), &(INDEXENT2(iAttacker)->v));
+	reinterpret_cast<int (*)(entvars_t*, entvars_t*)>(g_dllFuncs[Func_ApplyMultiDamage].address)(&(INDEXENT2(iInflictor)->v), &(INDEXENT2(iAttacker)->v));
 #endif
 	return 1;
 }

@@ -35,22 +35,8 @@
 #define _WPNMOD_H
 
 #include "amxxmodule.h"
-#include "libFunc.h"
 #include "cbase.h"
-#include "utils.h"
 
-#ifdef __linux__
-	#include <sys/mman.h>
-	#include <malloc.h>
-	#include <dlfcn.h>
-	#include <sys/types.h>
-	#include <sys/stat.h>
-	#include <unistd.h>
-
-	typedef unsigned long DWORD;
-	typedef unsigned short WORD;
-	typedef unsigned int UNINT32;
-#endif
 
 #define LIMITER_WEAPON						15
 
@@ -63,72 +49,12 @@
 #define ITEM_FLAG_LIMITINWORLD				8
 #define ITEM_FLAG_EXHAUSTIBLE				16
 
-#ifdef _WIN32
-#define m_pfnThink							4   
-#define m_pfnTouch							5
+#define SetEntForward(ent, call, handler, forward) \
+	g_Ents[ENTINDEX(ent)].i##call = forward; \
+	Set##call##_(ent, handler);
 
-#define XTRA_OFS_WEAPON						0
-#define XTRA_OFS_PLAYER						0
-#elif __linux__
-#define m_pfnThink							3    
-#define m_pfnTouch							5
+#define GetEntForward(ent, call) g_Ents[ENTINDEX(ent)].i##call
 
-#define XTRA_OFS_WEAPON						4
-#define XTRA_OFS_PLAYER						5
-#endif
-
-#define m_flStartThrow						(XTRA_OFS_WEAPON + 16)
-#define m_flReleaseThrow					(XTRA_OFS_WEAPON + 17)
-#define m_chargeReady						(XTRA_OFS_WEAPON + 18)
-#define m_fInAttack							(XTRA_OFS_WEAPON + 19)
-#define m_fireState							(XTRA_OFS_WEAPON + 20)
-#define m_pPlayer							(XTRA_OFS_WEAPON + 28)
-#define m_iId								(XTRA_OFS_WEAPON + 30)
-#define m_iPlayEmptySound					(XTRA_OFS_WEAPON + 31)
-#define m_fFireOnEmpty						(XTRA_OFS_WEAPON + 32)
-#define m_flPumpTime						(XTRA_OFS_WEAPON + 33)
-#define m_fInSpecialReload					(XTRA_OFS_WEAPON + 34)
-#define m_flNextPrimaryAttack				(XTRA_OFS_WEAPON + 35)
-#define m_flNextSecondaryAttack				(XTRA_OFS_WEAPON + 36)
-#define m_flTimeWeaponIdle					(XTRA_OFS_WEAPON + 37)
-#define m_iPrimaryAmmoType					(XTRA_OFS_WEAPON + 38)
-#define m_iSecondaryAmmoType				(XTRA_OFS_WEAPON + 39)
-#define m_iClip								(XTRA_OFS_WEAPON + 40)
-#define m_fInReload							(XTRA_OFS_WEAPON + 43)
-#define m_iDefaultAmmo						(XTRA_OFS_WEAPON + 44)
-#define m_LastHitGroup						(XTRA_OFS_PLAYER + 90)
-#define m_flNextAttack						(XTRA_OFS_PLAYER + 148)
-#define m_iWeaponVolume						(XTRA_OFS_PLAYER + 173)
-#define m_iWeaponFlash						(XTRA_OFS_PLAYER + 175)
-#define m_iFOV								(XTRA_OFS_PLAYER + 298)
-#define m_rgAmmo							(XTRA_OFS_PLAYER + 310)
-#define m_szAnimExtention					(XTRA_OFS_PLAYER + 387)
-
-#define GetThink_(ent) g_Ents[ent].iThink
-#define GetTouch_(ent) g_Ents[ent].iTouch
-
-#define PushThink_(ent,value) g_Ents[ent].iThink = value
-#define PushTouch_(ent,value) g_Ents[ent].iTouch = value
-
-inline void SetTouch_(edict_t* e, void* funcAddress) 
-{     
-#ifdef __linux__         
-	*((long*)e->pvPrivateData + m_pfnTouch) = funcAddress == NULL ? NULL : 0xFFFF0000;         
-	*((long*)e->pvPrivateData + m_pfnTouch + 1) = (long)(funcAddress);     
-#else         
-	*((long*)e->pvPrivateData + m_pfnTouch) = (long)(funcAddress);     
-#endif 
-}
-
-inline void SetThink_(edict_t* e, void* funcAddress) 
-{     
-#ifdef __linux__         
-	*((long*)e->pvPrivateData + m_pfnThink) = funcAddress == NULL ? NULL : 0xFFFF0000;         
-	*((long*)e->pvPrivateData + m_pfnThink + 1) = (long)(funcAddress);     
-#else         
-	*((long*)e->pvPrivateData + m_pfnThink) = (long)(funcAddress);     
-#endif 
-}
 
 enum e_AmmoFwds
 {
@@ -201,38 +127,23 @@ typedef struct
 extern int g_iWeaponIndex;
 extern int g_iAmmoBoxIndex;
 
+extern BOOL g_InitWeapon;
+extern BOOL g_initialized;
+extern BOOL g_CrowbarHooksEnabled;
+
 extern EntData *g_Ents;
-extern cvar_t *sv_cheats;
-extern cvar_t *mp_weaponstay;
+
+extern cvar_t *cvar_aghlru;
+extern cvar_t *cvar_sv_cheats;
+extern cvar_t *cvar_mp_weaponstay;
+
 extern WeaponData WeaponInfoArray[MAX_WEAPONS];
 extern AmmoBoxData AmmoBoxInfoArray[MAX_WEAPONS];
 
 extern AMX_NATIVE_INFO Natives[];
 
-extern BOOL g_CrowbarHooksEnabled;
-extern BOOL g_InitWeapon;
-extern BOOL g_initialized;
-
 extern void WpnModCommand(void);
-extern void ActivateCrowbarHooks();
 extern int ParseBSPEntData(char *file);
-
-#ifdef _WIN32
-extern BOOL __fastcall Weapon_CanDeploy(void *pPrivate);
-extern void __fastcall Global_Think(void *pPrivate);
-extern void __fastcall Global_Touch(void *pPrivate, int i, void *pPrivate2);
-extern void __fastcall CheatImpulseCommands_HookHandler(void *pPrivate, int i, int iImpulse);
-extern void __fastcall GiveNamedItem_HookHandler(void *pPrivate, int i, const char *szName);
-#else
-extern BOOL Weapon_CanDeploy(void *pPrivate);
-extern void Global_Think(void *pPrivate);
-extern void Global_Touch(void *pPrivate, void *pPrivate2);
-extern void CheatImpulseCommands_HookHandler(void *pPrivate, int iImpulse);
-extern void GiveNamedItem_HookHandler(void *pPrivate, const char *szName);
-#endif
-
-extern edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles);
-extern edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles);
 
 inline int			iSlot(const int iId)			{ return WeaponInfoArray[iId].ItemData.iSlot; }
 inline int			iItemPosition(const int iId)	{ return WeaponInfoArray[iId].ItemData.iPosition; }
@@ -244,5 +155,6 @@ inline const char	*pszName(const int iId)			{ return WeaponInfoArray[iId].ItemDa
 inline int			iMaxClip(const int iId)			{ return WeaponInfoArray[iId].ItemData.iMaxClip; }
 inline int			iWeight(const int iId)			{ return WeaponInfoArray[iId].ItemData.iWeight; }
 inline int			iFlags(const int iId)			{ return WeaponInfoArray[iId].ItemData.iFlags; }
+
 
 #endif // _WPNMOD_H

@@ -33,126 +33,6 @@
 
 #include "amxxmodule.h"
 #include "libFunc.h"
-#include "weaponmod.h"
-
-module hl_dll = {NULL, 0};
-
-function dll_GiveNamedItem;
-function dll_CheatImpulseCommands;
-
-dllFunc g_dllFuncs[Func_End] =
-{
-	{
-		NULL,
-		"RadiusDamage",
-		"RadiusDamage__FG6VectorP9entvars_sT1ffii",
-		{
-			"\x83\x00\x00\xD9\x00\xD9\x00\x00\x00\xD9\x00\x00\x00\xD9\x00"
-			"\x00\x00\xD9\x00\x00\x00\xD9\x00\x00\x00\xD9\x00\x00\x00",
-			"x??x?x???x???x???x???x???x???", 29,
-		},
-		{
-			"\xD9\x44\x24\x1C\xD8\x00\x00\x00\x00\x00\x83\xEC\x64", 
-			"xxxxx?????xxx", 13
-		}
-	},
-	{
-		NULL,
-		"CBasePlayer::GetAmmoIndex",
-		"GetAmmoIndex__11CBasePlayerPCc",
-		{
-			"\x57\x8B\x7C\x24\x08\x85\xFF\x75\x05", 
-			"xxxxxxxxx", 9,
-		},
-		{
-			"\x56\x57\x8B\x7C\x24\x0C\x85\xFF", 
-			"xxxxxxxx", 8
-		}
-	},
-	{
-		NULL,
-		"ClearMultiDamage",
-		"ClearMultiDamage__Fv",
-		{
-			"\xD9\xEE\x33\xC0\xD9\x00\x00\x00\x00\x00\xA3\x00\x00\x00\x00", 
-			"xxxxx?????x????", 
-			15,
-		},
-		{
-			"\x33\xC0\xA3\x00\x00\x00\x00\xA3\x00\x00\x00\x00",
-			"xxx????x????", 12
-		}
-	},
-	{
-		NULL,
-		"ApplyMultiDamage",
-		"ApplyMultiDamage__FP9entvars_sT0",
-		{
-			"\x8B\x0D\x00\x00\x00\x00\x85\xC9\x74\x22", 
-			"xx????xxxx", 10,
-		},
-		{
-			"\x8B\x0D\x00\x00\x00\x00\x85\xC9\x74\x1D",
-			"xx????xxxx", 10
-		}
-	},
-	{
-		NULL,
-		"CBasePlayer::SetAnimation",
-		"SetAnimation__11CBasePlayer11PLAYER_ANIM",
-		{
-			"\x83\xEC\x00\xA1\x00\x00\x00\x00\x33"
-			"\xC4\x89\x00\x00\x00\x53\x56\x8B\xD9",
-			"xx?x????xxx???xxxx", 18,
-		},
-		{
-			"\x83\xEC\x44\x53\x55\x8B\xE9\x33\xDB\x56\x57", 
-			"xxxxxxxxxxx", 11
-		}
-	},
-	{
-		NULL,
-		"UTIL_PrecacheOtherWeapon",
-		"UTIL_PrecacheOtherWeapon__FPCc",
-		{
-			"\x8B\x00\x00\x00\x00\x00\x8B\x00\x00\x00\x2B"
-			"\x00\x00\x00\x00\x00\x83\x00\x00\x53\x50",
-			"x?????x???x?????x??xx", 21,
-		},
-		{
-			"\x8B\x00\x00\x00\x00\x00\x8B\x00\x00\x00\x83"
-			"\x00\x00\x53\x56\x2B\x00\x00\x00\x00\x00\x50",
-			"x?????x???x??xxx?????x", 22
-		}
-	},
-	{
-		NULL,
-		"CBasePlayer::GiveNamedItem",
-		"GiveNamedItem__11CBasePlayerPCc",
-		{
-			"\x8B\x44\x00\x00\x56\x57\x8B\xF9\x8B\x0D\x00\x00\x00\x00",
-			"xx??xxxxxx????", 14,
-		},
-		{
-			"\x8B\x44\x00\x00\x56\x57\x8B\xF9\x8B\x0D\x00\x00\x00\x00",
-			"xx??xxxxxx????", 14,
-		}
-	},
-	{
-		NULL,
-		"CBasePlayer::CheatImpulseCommands",
-		"CheatImpulseCommands__11CBasePlayeri",
-		{
-			"\xD9\xEE\x81\xEC\x00\x00\x00\x00\xD8\x00\x00\x00\x00\x00\x56",
-			"xxxx????x?????x", 15,
-		},
-		{
-			"\xD9\x00\x00\x00\x00\x00\xDC\x00\x00\x00"
-			"\x00\x00\x81\x00\x00\x00\x00\x00\x56\x57",
-			"x?????x?????x?????xx", 19
-		}
-	}
-};
 
 
 #if defined _WIN32
@@ -168,13 +48,12 @@ int FindModuleByAddr (void *addr, module *lib)
     {
 		return FALSE;
 	}
-	else
-	{
-		lib->base = mem.AllocationBase;
-		lib->size = (size_t)pe->OptionalHeader.SizeOfImage;
 
-		return TRUE;
-	}
+	lib->base = mem.AllocationBase;
+	lib->size = (size_t)pe->OptionalHeader.SizeOfImage;
+	lib->handler = lib->base;
+
+	return TRUE;
 }
 #else
 // Code derived from code from David Anderson
@@ -254,13 +133,12 @@ int FindModuleByAddr (void *addr, module *lib)
 	{
 		return FALSE;
 	}
-	else
-	{
-		lib->base = info.dli_fbase;
-		lib->size = (size_t)getBaseLen(lib->base);
 
-		return TRUE;
-	}
+	lib->base = info.dli_fbase;
+	lib->size = (size_t)getBaseLen(lib->base);
+	lib->handler = dlopen(info.dli_fname, RTLD_NOW);
+
+	return TRUE;
 }
 #endif
 
@@ -292,35 +170,55 @@ void *FindFunction (module *lib, signature sig)
     return NULL;
 }
 
+void *FindFunction (module *lib, const char *name)
+{
+	if (!lib)
+		return NULL;
+	
+	return DLSYM((DLHANDLE)lib->handler, name);
+}
+
+void *FindFunction (function *func)
+{
+	if (!func)
+		return NULL;
+	
+	void *address = NULL;
+	if (NULL == (address = FindFunction(func->lib, func->name)))
+	{
+		return FindFunction(func->lib, func->sig);
+	}
+	
+	return address;
+}
+
 void SetHook(function *func)
 {
-	if (AllowWriteToMemory(func->address))
+	if(AllowWriteToMemory(func->address))
 		memcpy(func->address, func->patch, 5);
 }
 
 void UnsetHook(function *func)
 {
-	if (AllowWriteToMemory(func->address))
+	if(AllowWriteToMemory(func->address))
 		memcpy(func->address, func->origin, 5);
 }
 
-int CreateFunctionHook(function *func, void *address, void *handler)
+int CreateFunctionHook(function *func)
 {
 	if (!func)
 		return 0;
 
-	if (NULL != (func->address = (unsigned char*)address))
+	if (NULL != (func->address = (unsigned char*)FindFunction(func)) && func->handler)
 	{
 		memcpy(func->origin, func->address, 5);
 		
 		func->patch[0]=0xE9;
-		func->handler = handler;
-
 		*(unsigned long *)&func->patch[1] = (unsigned long)func->handler-(unsigned long)func->address-5;
-
+		
 		return (func->done = TRUE);
 	}
-	
+
 	return (func->done = FALSE);
 }
 
@@ -335,4 +233,47 @@ int AllowWriteToMemory(void *address)
 #endif
 		return TRUE;
 	return FALSE;
+}
+
+int SetHookVirt(const char *classname, VirtHookData *HookData)
+{
+	if (!HookData)
+	{
+		return FALSE;
+	}
+
+	edict_t *pEdict = CREATE_ENTITY();
+
+	CALL_GAME_ENTITY(PLID, classname, &pEdict->v);
+
+	if (pEdict->pvPrivateData == NULL)
+	{
+		REMOVE_ENTITY(pEdict);
+		return (HookData->done = FALSE);
+	}
+
+#ifdef _WIN32
+	DWORD OldFlags;
+    void **vtable = *((void***)((char*)pEdict->pvPrivateData));
+#elif __linux__
+    void **vtable = *((void***)(((char*)pEdict->pvPrivateData) + 0x60));
+#endif
+
+    if (vtable == NULL)
+	{
+        return (HookData->done = FALSE);
+	}
+
+	int **ivtable = (int **)vtable;
+
+	HookData->address = (void *)ivtable[HookData->offset];
+	
+#ifdef _WIN32
+	VirtualProtect(&ivtable[HookData->offset], sizeof(int *), PAGE_READWRITE, &OldFlags);
+#elif __linux__
+	mprotect(&ivtable[HookData->offset], sizeof(int*), PROT_READ | PROT_WRITE);
+#endif
+	ivtable[HookData->offset] = (int *)HookData->handler;
+	
+	return (HookData->done = TRUE);
 }
