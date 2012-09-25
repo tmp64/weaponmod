@@ -113,7 +113,7 @@ void OnAmxxDetach()
 {
 	for (int i = 0; i < Func_End; i++)
 	{
-		if (!g_dllFuncs[i].done)
+		if (g_dllFuncs[i].done)
 		{
 			UnsetHook(&g_dllFuncs[i]);
 		}
@@ -198,6 +198,15 @@ void ClientCommand(edict_t *pEntity)
 
 		RETURN_META(MRES_SUPERCEDE);
 	}
+	/*else if (_stricmp(cmd, "wpnmod_spawn") == 0)
+	{
+		char buffer[512];
+		int len = _snprintf(buffer, sizeof(buffer)-1, "1. LOL\n 2. Lol2\n");
+
+		UTIL_ShowMenu(pEntity, (1<<0) | (1<<1), -1, buffer, len);
+
+		RETURN_META(MRES_SUPERCEDE);
+	}*/
 
 	RETURN_META(MRES_IGNORED);
 }

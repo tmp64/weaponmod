@@ -158,6 +158,16 @@ extern BOOL __fastcall Weapon_IsUseable(void *pPrivate);
 extern BOOL __fastcall Weapon_Deploy(void *pPrivate);
 extern BOOL __fastcall Weapon_CanDeploy(void *pPrivate);
 
+inline void CLEAR_MULTI_DAMAGE()
+{
+	reinterpret_cast<int (__cdecl *)()>(g_dllFuncs[Func_ClearMultiDamage].address)();
+}
+
+inline void APPLY_MULTI_DAMAGE(edict_t* pInlictor, edict_t* pAttacker)
+{
+	reinterpret_cast<int (__cdecl *)(entvars_t*, entvars_t*)>(g_dllFuncs[Func_ApplyMultiDamage].address)(&(pInlictor->v), &(pAttacker->v));
+}
+
 inline int CLASSIFY(edict_t* pEntity)
 {
 	return reinterpret_cast<int (__fastcall *)(void *, int)>((*((void***)((char*)pEntity->pvPrivateData)))[VOffset_Classify])(pEntity->pvPrivateData, 0);
@@ -185,6 +195,16 @@ extern BOOL Weapon_CanHolster(void *pPrivate);
 extern BOOL Weapon_IsUseable(void *pPrivate);
 extern BOOL Weapon_Deploy(void *pPrivate);
 extern BOOL Weapon_CanDeploy(void *pPrivate);
+
+inline vod CLEAR_MULTI_DAMAGE()
+{
+	reinterpret_cast<int (*)()>(g_dllFuncs[Func_ClearMultiDamage].address)();
+}
+
+inline void APPLY_MULTI_DAMAGE(edict_t* pInlictor, edict_t* pAttacker)
+{
+	reinterpret_cast<int (*)(entvars_t*, entvars_t*)>(g_dllFuncs[Func_ApplyMultiDamage].address)(&(pInlictor->v), &(pAttacker->v));
+}
 
 inline int CLASSIFY(edict_t* pEntity)
 {

@@ -176,7 +176,7 @@ int Weapon_GetItemInfo(void *pPrivate, ItemInfo *p)
 {
 #ifdef _WIN32
 	reinterpret_cast<int (__fastcall *)(void *, int, ItemInfo *)>(g_CrowbarHooks[CrowbarHook_GetItemInfo].address)(pPrivate, 0, p);
-#elif __linux__
+#else
 	reinterpret_cast<int (*)(void *, ItemInfo *)>(g_CrowbarHooks[CrowbarHook_GetItemInfo].address)(pPrivate, p);
 #endif
 
@@ -241,7 +241,7 @@ BOOL Weapon_CanDeploy(void *pPrivate)
 	{
 #ifdef _WIN32
 		return reinterpret_cast<int (__fastcall *)(void *, int)>(g_CrowbarHooks[CrowbarHook_CanDeploy].address)(pPrivate, 0);
-#elif __linux__
+#else
 		return reinterpret_cast<int (*)(void *)>(g_CrowbarHooks[CrowbarHook_CanDeploy].address)(pPrivate);
 #endif
 	}
@@ -267,7 +267,7 @@ BOOL Weapon_CanDeploy(void *pPrivate)
 
 #ifdef _WIN32
 BOOL __fastcall Weapon_Deploy(void *pPrivate)
-#elif __linux__
+#else
 BOOL Weapon_Deploy(void *pPrivate)
 #endif
 {
@@ -284,7 +284,7 @@ BOOL Weapon_Deploy(void *pPrivate)
 	{
 #ifdef _WIN32
 		return reinterpret_cast<int (__fastcall *)(void *, int)>(g_CrowbarHooks[CrowbarHook_Deploy].address)(pPrivate, NULL);
-#elif __linux__
+#else
 		return reinterpret_cast<int (*)(void *)>(g_CrowbarHooks[CrowbarHook_Deploy].address)(pPrivate);
 #endif
 	}
@@ -317,7 +317,7 @@ BOOL Weapon_Deploy(void *pPrivate)
 
 #ifdef _WIN32
 void __fastcall Weapon_ItemPostFrame(void *pPrivate)
-#elif __linux__
+#else
 void Weapon_ItemPostFrame(void *pPrivate)
 #endif
 {
@@ -344,7 +344,7 @@ void Weapon_ItemPostFrame(void *pPrivate)
 	{
 #ifdef _WIN32
 		reinterpret_cast<int (__fastcall *)(void *, int)>(g_CrowbarHooks[CrowbarHook_ItemPostFrame].address)(pPrivate, 0);
-#elif __linux__
+#else
 		reinterpret_cast<int (*)(void *)>(g_CrowbarHooks[CrowbarHook_ItemPostFrame].address)(pPrivate);
 #endif
 		return;
@@ -456,7 +456,7 @@ void Weapon_ItemPostFrame(void *pPrivate)
 			// weapon isn't useable, switch.
 #ifdef _WIN32
 			reinterpret_cast<int (__fastcall *)(void *, int)>(g_CrowbarHooks[CrowbarHook_ItemPostFrame].address)(pPrivate, 0);
-#elif __linux__
+#else
 			reinterpret_cast<int (*)(void *)>(g_CrowbarHooks[CrowbarHook_ItemPostFrame].address)(pPrivate);
 #endif
 			return;
@@ -501,7 +501,7 @@ void Weapon_ItemPostFrame(void *pPrivate)
 
 #ifdef _WIN32
 BOOL __fastcall Weapon_IsUseable(void *pPrivate)
-#elif __linux__
+#else
 BOOL Weapon_IsUseable(void *pPrivate)
 #endif
 {
@@ -518,7 +518,7 @@ BOOL Weapon_IsUseable(void *pPrivate)
 	{
 #ifdef _WIN32
 		return reinterpret_cast<int (__fastcall *)(void *, int)>(g_CrowbarHooks[CrowbarHook_IsUseable].address)(pPrivate, 0);
-#elif __linux__
+#else
 		return reinterpret_cast<int (*)(void *)>(g_CrowbarHooks[CrowbarHook_IsUseable].address)(pPrivate);
 #endif
 	}
@@ -544,7 +544,7 @@ BOOL Weapon_IsUseable(void *pPrivate)
 
 #ifdef _WIN32
 BOOL __fastcall Weapon_CanHolster(void *pPrivate)
-#elif __linux__
+#else
 BOOL Weapon_CanHolster(void *pPrivate)
 #endif
 {
@@ -561,7 +561,7 @@ BOOL Weapon_CanHolster(void *pPrivate)
 	{
 #ifdef _WIN32
 		return reinterpret_cast<int (__fastcall *)(void *, int)>(g_CrowbarHooks[CrowbarHook_CanHolster].address)(pPrivate, 0);
-#elif __linux__
+#else
 		return reinterpret_cast<int (*)(void *)>(g_CrowbarHooks[CrowbarHook_CanHolster].address)(pPrivate);
 #endif
 	}
@@ -587,7 +587,7 @@ BOOL Weapon_CanHolster(void *pPrivate)
 
 #ifdef _WIN32
 void __fastcall Weapon_Holster(void *pPrivate, int i, int skiplocal)
-#elif __linux__
+#else
 void Weapon_Holster(void *pPrivate, int skiplocal)
 #endif
 {
@@ -604,7 +604,7 @@ void Weapon_Holster(void *pPrivate, int skiplocal)
 	{
 #ifdef _WIN32
 		reinterpret_cast<int (__fastcall *)(void *, int, int)>(g_CrowbarHooks[CrowbarHook_Holster].address)(pPrivate, 0, skiplocal);
-#elif __linux__
+#else
 		reinterpret_cast<int (*)(void *, int)>(g_CrowbarHooks[CrowbarHook_Holster].address)(pPrivate, skiplocal);
 #endif
 		return;
@@ -676,7 +676,7 @@ int Weapon_AddToPlayer(void *pPrivate, void *pPrivate2)
 
 #ifdef _WIN32
 	return reinterpret_cast<int (__fastcall *)(void *, int, void *)>(g_CrowbarHooks[CrowbarHook_AddToPlayer].address)(pPrivate, 0, pPrivate2);
-#elif __linux__
+#else
 	return reinterpret_cast<int (*)(void *, void *)>(g_CrowbarHooks[CrowbarHook_AddToPlayer].address)(pPrivate, pPrivate2);
 #endif
 }
@@ -703,14 +703,14 @@ int Weapon_ItemSlot(void *pPrivate)
 
 #ifdef _WIN32
 	return reinterpret_cast<int (__fastcall *)(void *, int)>(g_CrowbarHooks[CrowbarHook_ItemSlot].address)(pPrivate, 0);
-#elif __linux__
+#else
 	return reinterpret_cast<int (*)(void *)>(g_CrowbarHooks[CrowbarHook_ItemSlot].address)(pPrivate);
 #endif
 }
 
 #ifdef _WIN32
 void __fastcall Weapon_Drop(void *pPrivate)
-#elif __linux__
+#else
 void Weapon_Drop(void *pPrivate)
 #endif
 {
@@ -730,7 +730,7 @@ void Weapon_Drop(void *pPrivate)
 	}
 #ifdef _WIN32
 	reinterpret_cast<int (__fastcall *)(void *, int)>(g_CrowbarHooks[CrowbarHook_Drop].address)(pPrivate, 0);
-#elif __linux__
+#else
 	reinterpret_cast<int (*)(void *)>(g_CrowbarHooks[CrowbarHook_Drop].address)(pPrivate);
 #endif
 }

@@ -37,6 +37,7 @@
 #include "amxxmodule.h"
 #include "cbase.h"
 
+#pragma warning( disable : 164 ) 
 
 #define LIMITER_WEAPON						15
 

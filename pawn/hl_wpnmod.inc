@@ -240,6 +240,20 @@ native wpnmod_fire_bullets(const iPlayer, const iAttacker, const iShotsCount, co
 native wpnmod_radius_damage(const Float: vecSrc[3], const iInflictor, const iAttacker, const Float: flDamage, const Float: flRadius, const iClassIgnore, const bitsDamageType);
 
 /**
+ * Same as wpnmod_radius_damage, but blocks 'ghost mines' and 'ghost nades' 
+ *  by fixing two bugs found in HLDM gamedll and HL engine.
+ *
+ * @param vecSrc			Origin of explosion.
+ * @param iInflictor		Entity which causes the damage impact.
+ * @param iAttacker			Attacker index.
+ * @param flDamage			Damage amount.
+ * @param flRadius			Damage radius.
+ * @param iClassIgnore		Class to ignore.
+ * @param bitsDamageType	Damage type (DMG_BLAST and etc).
+ */
+native wpnmod_radius_damage2(const Float: vecSrc[3], const iInflictor, const iAttacker, const Float: flDamage, const Float: flRadius, const iClassIgnore, const bitsDamageType);
+
+/**
  * Resets the global multi damage accumulator.
  */
  native wpnmod_clear_multi_damage();

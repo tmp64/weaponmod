@@ -314,10 +314,40 @@ void UTIL_EmitAmbientSound( edict_t *entity, const Vector &vecOrigin, const char
 	EMIT_AMBIENT_SOUND(entity, rgfl, samp, vol, attenuation, fFlags, pitch);
 }
 
+/* warning - don't pass here const string */
+void UTIL_ShowMenu(edict_t* pEdict, int slots, int time, char *menu, int mlen)
+{
+	static int msgShowMenu = 0;
+
+	if (msgShowMenu || (msgShowMenu = REG_USER_MSG( "ShowMenu", 1 )))		
+	{
+		int a;
+		char c = 0;
+		char *n = menu;
+
+		while (*n)
+		{
+			a = mlen;
+			if (a > 175) a = 175;
+			mlen -= a;
+			c = *(n+=a);
+			*n = 0;
+		
+			MESSAGE_BEGIN(MSG_ONE, msgShowMenu, NULL, pEdict);
+			WRITE_SHORT(slots);
+			WRITE_CHAR(time);
+			WRITE_BYTE(c ? TRUE : FALSE);
+			WRITE_STRING(menu);
+			MESSAGE_END();
+			*n = c;
+			menu = n;
+		}
+	}
+}
+
+// hit the world, try to play sound based on texture material type
 float TEXTURETYPE_PlaySound(TraceResult *ptr,  Vector vecSrc, Vector vecEnd)
 {
-	// hit the world, try to play sound based on texture material type
-	
 	char chTextureType;
 	float fvol;
 	float fvolbar;
@@ -457,11 +487,9 @@ void FireBulletsPlayer(edict_t* pPlayer, edict_t* pAttacker, int iShotsCount, Ve
 	{
 		pAttacker = pPlayer;  // the default attacker is ourselves
 	}
-#ifdef _WIN32
-	reinterpret_cast<int (__cdecl *)()>(g_dllFuncs[Func_ClearMultiDamage].address)();
-#else
-	reinterpret_cast<int (*)()>(g_dllFuncs[Func_ClearMultiDamage].address)();
-#endif
+
+	CLEAR_MULTI_DAMAGE();
+
 	for (int iShot = 1; iShot <= iShotsCount; iShot++)
 	{
 		do // get circular gaussian spread
@@ -501,13 +529,109 @@ void FireBulletsPlayer(edict_t* pPlayer, edict_t* pAttacker, int iShotsCount, Ve
 			TRACE_ATTACK(tr.pHit, pAttacker, flDamage, vecDir, tr, bitsDamageType);
 			TEXTURETYPE_PlaySound(&tr, vecSrc, vecEnd);
 			UTIL_DecalGunshot(&tr);
-
-			//print_srvconsole("!!!! %d \n", ENTINDEX(tr.pHit));
 		}
 	}
-#ifdef _WIN32
-	reinterpret_cast<int (__cdecl *)(entvars_t*, entvars_t*)>(g_dllFuncs[Func_ApplyMultiDamage].address)(&(pPlayer->v), &(pAttacker->v));
-#else
-	reinterpret_cast<int (*)(entvars_t*, entvars_t*)>(g_dllFuncs[Func_ApplyMultiDamage].address)(&(pPlayer->v), &(pAttacker->v));
-#endif
+
+	APPLY_MULTI_DAMAGE(pPlayer, pAttacker);
+}
+
+// RadiusDamage - this entity is exploding, or otherwise needs to inflict damage upon entities within a certain range.
+// only damage ents that can clearly be seen by the explosion!
+//
+// Blocks 'ghost mines' and 'ghost nades' by fixing two bugs found in HLDM gamedll and HL engine.
+// Credits to Jussi Kivilinna and Lev.
+void RadiusDamage2(Vector vecSrc, edict_t* pInflictor, edict_t* pAttacker, float flDamage, float flRadius, int iClassIgnore, int bitsDamageType)
+{
+	TraceResult	tr;
+	TraceResult tr2;
+
+	edict_t* pEntity = NULL;
+
+	float flAdjustedDamage;
+	float falloff = flRadius ? flDamage / flRadius : 1.0;
+
+	int bInWater = (POINT_CONTENTS(vecSrc) == CONTENTS_WATER);
+
+	vecSrc.z += 1;// in case grenade is lying on the ground
+
+	if (!pAttacker)
+	{
+		pAttacker = pInflictor;
+	}
+
+	// iterate on all entities in the vicinity.
+	while (!FNullEnt((pEntity = FIND_ENTITY_IN_SPHERE(pEntity, vecSrc, flRadius))))
+	{
+		if (pEntity->v.takedamage != DAMAGE_NO)
+		{
+			// UNDONE: this should check a damage mask, not an ignore
+			if (iClassIgnore != CLASS_NONE && CLASSIFY(pEntity) == iClassIgnore)
+			{// houndeyes don't hurt other houndeyes with their attack
+				continue;
+			}
+
+			// blast's don't tavel into or out of water
+			if (bInWater && pEntity->v.waterlevel == 0)
+				continue;
+
+			if (!bInWater && pEntity->v.waterlevel == 3)
+				continue;
+			
+			TRACE_LINE(vecSrc, (pEntity->v.absmax + pEntity->v.absmin) * 0.5, dont_ignore_monsters, pInflictor, &tr);
+
+			if (tr.pHit != pEntity && (tr.flFraction == 1.0 && tr.fStartSolid == 1))
+			{
+				// Bug number 2: TraceLine starts from solid (BSP object) and doesn't hits anything on it's way.
+				// fStartSolid is set to '1', fAllSolid is set to '1' and flFraction is set to '1.0'.
+				// More over, pHit is set to 'worldspawn' and vecEndPos is correctly set to spot to where we asked it to trace to.
+				// Bug here may be in that that engine sets fAllSolid to '1' (part of the path is not in the wall) or
+				// in that that we doesn't hit an entity or
+				// in that that engine doesn't set flFraction and vecEndPos correctly when it hits same BSP object.
+				tr.flFraction = 0.0f;
+			}
+
+			if ((tr.flFraction == 1.0 || tr.pHit == pEntity) && tr.fStartSolid)
+			{
+				// Bug number 1: Explosion has been happen inside BSP object.
+				// But condition is the same as for explosion inside a player, so we just trace back and see what we will hit.
+				TRACE_LINE(tr.vecEndPos, vecSrc, dont_ignore_monsters, pInflictor, &tr2);
+
+				if (tr2.flFraction != 1.0 && !tr2.fStartSolid && tr2.pHit != pEntity)
+				{
+					tr.flFraction = 0.0f;
+					tr.pHit = tr2.pHit;
+				}
+			}
+
+			if (tr.flFraction == 1.0 || tr.pHit == pEntity)
+			{// the explosion can 'see' this entity, so hurt them!
+				if (tr.fStartSolid)
+				{
+					// if we're stuck inside them, fixup the position and distance
+					tr.vecEndPos = vecSrc;
+					tr.flFraction = 0.0;
+				}
+				
+				// decrease damage for an ent that's farther from the bomb.
+				flAdjustedDamage = (vecSrc - tr.vecEndPos).Length() * falloff;
+				flAdjustedDamage = flDamage - flAdjustedDamage;
+			
+				if (flAdjustedDamage < 0)
+				{
+					flAdjustedDamage = 0;
+				}
+
+				if (tr.flFraction != 1.0)
+				{
+					CLEAR_MULTI_DAMAGE();
+					TRACE_ATTACK(pEntity, pInflictor, flAdjustedDamage, (tr.vecEndPos - vecSrc).Normalize( ), tr, bitsDamageType);
+					APPLY_MULTI_DAMAGE(pInflictor, pAttacker);
+				}
+				//else
+				//{
+				//	pEntity->TakeDamage ( pevInflictor, pevAttacker, flAdjustedDamage, bitsDamageType );
+				//}
+			}
+		}
+	}
 }

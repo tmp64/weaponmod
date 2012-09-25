@@ -31,8 +31,10 @@
  *
  */
 
-#include "amxxmodule.h"
 #include "libFunc.h"
+
+#include <extdll.h>
+#include <meta_api.h>
 
 
 #if defined _WIN32
@@ -255,7 +257,7 @@ int SetHookVirt(const char *classname, VirtHookData *HookData)
 #ifdef _WIN32
 	DWORD OldFlags;
     void **vtable = *((void***)((char*)pEdict->pvPrivateData));
-#elif __linux__
+#else
     void **vtable = *((void***)(((char*)pEdict->pvPrivateData) + 0x60));
 #endif
 
@@ -270,7 +272,7 @@ int SetHookVirt(const char *classname, VirtHookData *HookData)
 	
 #ifdef _WIN32
 	VirtualProtect(&ivtable[HookData->offset], sizeof(int *), PAGE_READWRITE, &OldFlags);
-#elif __linux__
+#else
 	mprotect(&ivtable[HookData->offset], sizeof(int*), PROT_READ | PROT_WRITE);
 #endif
 	ivtable[HookData->offset] = (int *)HookData->handler;

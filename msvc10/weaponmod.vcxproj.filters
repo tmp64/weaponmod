@@ -25,6 +25,9 @@
     <ClCompile Include="..\hooks.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\effects.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\sdk\amxxmodule.h">
@@ -45,6 +48,9 @@
     <ClInclude Include="..\hooks.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\effects.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Makefile" />
@@ -52,6 +58,9 @@
       <Filter>Pawn Includes</Filter>
     </None>
     <None Include="..\pawn\hl_wpnmod_const.inc">
+      <Filter>Pawn Includes</Filter>
+    </None>
+    <None Include="..\pawn\beams.inc">
       <Filter>Pawn Includes</Filter>
     </None>
   </ItemGroup>

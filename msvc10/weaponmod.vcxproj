@@ -78,6 +78,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\bsp_parse.cpp" />
+    <ClCompile Include="..\effects.cpp" />
     <ClCompile Include="..\hooks.cpp" />
     <ClCompile Include="..\libFunc.cpp" />
     <ClCompile Include="..\meta_api.cpp" />
@@ -87,6 +88,7 @@
     <ClCompile Include="..\utils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\effects.h" />
     <ClInclude Include="..\hooks.h" />
     <ClInclude Include="..\libFunc.h" />
     <ClInclude Include="..\sdk\amxxmodule.h" />
@@ -96,6 +98,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Makefile" />
+    <None Include="..\pawn\beams.inc" />
     <None Include="..\pawn\hl_wpnmod.inc" />
     <None Include="..\pawn\hl_wpnmod_const.inc" />
   </ItemGroup>

@@ -32,6 +32,7 @@
  */
 
 #include "weaponmod.h"
+#include "effects.h"
 #include "hooks.h"
 #include "utils.h"
 
@@ -189,7 +190,7 @@ static cell AMX_NATIVE_CALL wpnmod_register_weapon(AMX *amx, cell *params)
 
 #ifdef _WIN32
 	reinterpret_cast<int (__cdecl *)(const char *)>(g_dllFuncs[Func_PrecacheOtherWeapon].address)("weapon_crowbar");
-#elif __linux__
+#else
 	reinterpret_cast<int (*)(const char *)>(g_dllFuncs[Func_PrecacheOtherWeapon].address)("weapon_crowbar");
 #endif
 
@@ -296,8 +297,8 @@ static cell AMX_NATIVE_CALL wpnmod_set_player_anim(AMX *amx, cell *params)
 	CHECK_ENTITY(iPlayer)
 
 #ifdef _WIN32
-		reinterpret_cast<void (__fastcall *)(void *, int, int)>(g_dllFuncs[Func_PlayerSetAnimation].address)((void*)INDEXENT2(iPlayer)->pvPrivateData, 0, iPlayerAnim);
-#elif __linux__
+	reinterpret_cast<void (__fastcall *)(void *, int, int)>(g_dllFuncs[Func_PlayerSetAnimation].address)((void*)INDEXENT2(iPlayer)->pvPrivateData, 0, iPlayerAnim);
+#else
 	reinterpret_cast<void (*)(void *, int)>(g_dllFuncs[Func_PlayerSetAnimation].address)((void*)INDEXENT2(iPlayer)->pvPrivateData, iPlayerAnim);
 #endif
 
@@ -322,7 +323,7 @@ static cell AMX_NATIVE_CALL wpnmod_get_player_ammo(AMX *amx, cell *params)
 
 #ifdef _WIN32
 	int iAmmoIndex = reinterpret_cast<int (__cdecl *)(const char *)>(g_dllFuncs[Func_GetAmmoIndex].address)(STRING(ALLOC_STRING(MF_GetAmxString(amx, params[2], 0, NULL))));
-#elif __linux__
+#else
 	int iAmmoIndex = reinterpret_cast<int (*)(const char *)>(g_dllFuncs[Func_GetAmmoIndex].address)(STRING(ALLOC_STRING(MF_GetAmxString(amx, params[2], 0, NULL))));
 #endif
 
@@ -351,7 +352,7 @@ static cell AMX_NATIVE_CALL wpnmod_set_player_ammo(AMX *amx, cell *params)
 
 #ifdef _WIN32
 	int iAmmoIndex = reinterpret_cast<int (__cdecl *)(const char *)>(g_dllFuncs[Func_GetAmmoIndex].address)(STRING(ALLOC_STRING(MF_GetAmxString(amx, params[2], 0, NULL))));
-#elif __linux__
+#else
 	int iAmmoIndex = reinterpret_cast<int (*)(const char *)>(g_dllFuncs[Func_GetAmmoIndex].address)(STRING(ALLOC_STRING(MF_GetAmxString(amx, params[2], 0, NULL))));
 #endif
 
@@ -715,15 +716,48 @@ static cell AMX_NATIVE_CALL wpnmod_radius_damage(AMX *amx, cell *params)
 
 	CHECK_ENTITY(iInflictor)
 	CHECK_ENTITY(iAttacker)
-
+	
 #ifdef _WIN32
 	reinterpret_cast<int (__cdecl *)(Vector, entvars_t*, entvars_t*, float, float, int, int)>(g_dllFuncs[Func_RadiusDamage].address)
 	(vecSrc, &INDEXENT2(iInflictor)->v, &INDEXENT2(iAttacker)->v, amx_ctof(params[4]), amx_ctof(params[5]), params[6], params[7]);
-#elif __linux__
+#else
 	reinterpret_cast<int (*)(Vector, entvars_t*, entvars_t*, float, float, int, int)>(g_dllFuncs[Func_RadiusDamage].address)
 	(vecSrc, &INDEXENT2(iInflictor)->v, &INDEXENT2(iAttacker)->v, amx_ctof(params[4]), amx_ctof(params[5]), params[6], params[7]);
 #endif
 
+	return 1;
+}
+
+/**
+ * Same as wpnmod_radius_damage, but blocks 'ghost mines' and 'ghost nades' 
+ *  by fixing two bugs found in HLDM gamedll and HL engine.
+ *
+ * @param vecSrc			Origin of explosion.
+ * @param iInflictor		Entity which causes the damage impact.
+ * @param iAttacker			Attacker index.
+ * @param flDamage			Damage amount.
+ * @param flRadius			Damage radius.
+ * @param iClassIgnore		Class to ignore.
+ * @param bitsDamageType	Damage type (see CLASSIFY defines).
+ *
+ * native wpnmod_radius_damage2(const Float: vecSrc[3], const iInflictor, const iAttacker, const Float: flDamage, const Float: flRadius, const iClassIgnore, const bitsDamageType);
+*/
+static cell AMX_NATIVE_CALL wpnmod_radius_damage2(AMX *amx, cell *params)
+{
+	Vector vecSrc;
+	cell *vSrc = MF_GetAmxAddr(amx, params[1]);
+
+	vecSrc.x = amx_ctof(vSrc[0]);
+	vecSrc.y = amx_ctof(vSrc[1]);
+	vecSrc.z = amx_ctof(vSrc[2]);
+
+	int iInflictor = params[2];
+	int iAttacker = params[3];
+
+	CHECK_ENTITY(iInflictor)
+	CHECK_ENTITY(iAttacker)
+
+	RadiusDamage2(vecSrc, INDEXENT2(iInflictor), INDEXENT2(iAttacker), amx_ctof(params[4]), amx_ctof(params[5]), params[6], params[7]);
 	return 1;
 }
 
@@ -943,13 +977,9 @@ static cell AMX_NATIVE_CALL wpnmod_register_ammobox_forward(AMX *amx, cell *para
  *
  * native wpnmod_clear_multi_damage();
  */
-static cell AMX_NATIVE_CALL clear_multi_damage(AMX *amx, cell *params)
+static cell AMX_NATIVE_CALL wpnmod_clear_multi_damage(AMX *amx, cell *params)
 {
-#ifdef _WIN32
-	reinterpret_cast<int (__cdecl *)()>(g_dllFuncs[Func_ClearMultiDamage].address)();
-#else
-	reinterpret_cast<int (*)()>(g_dllFuncs[Func_ClearMultiDamage].address)();
-#endif
+	CLEAR_MULTI_DAMAGE();
 	return 1;
 }
 
@@ -961,7 +991,7 @@ static cell AMX_NATIVE_CALL clear_multi_damage(AMX *amx, cell *params)
  *
  * native wpnmod_apply_multi_damage(const iInflictor, const iAttacker);
  */
-static cell AMX_NATIVE_CALL apply_multi_damage(AMX *amx, cell *params)
+static cell AMX_NATIVE_CALL wpnmod_apply_multi_damage(AMX *amx, cell *params)
 {
 	int iInflictor = params[1];
 	int iAttacker = params[2];
@@ -969,17 +999,139 @@ static cell AMX_NATIVE_CALL apply_multi_damage(AMX *amx, cell *params)
 	CHECK_ENTITY(iInflictor)
 	CHECK_ENTITY(iAttacker)
 
-#ifdef _WIN32
-	reinterpret_cast<int (__cdecl *)(entvars_t*, entvars_t*)>(g_dllFuncs[Func_ApplyMultiDamage].address)(&(INDEXENT2(iInflictor)->v), &(INDEXENT2(iAttacker)->v));
-#else
-	reinterpret_cast<int (*)(entvars_t*, entvars_t*)>(g_dllFuncs[Func_ApplyMultiDamage].address)(&(INDEXENT2(iInflictor)->v), &(INDEXENT2(iAttacker)->v));
-#endif
+	APPLY_MULTI_DAMAGE(INDEXENT2(iInflictor), INDEXENT2(iAttacker));
+	return 1;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// native wpnmod_beam_create(const szSpriteName[], const Float: flWidth);
+static cell AMX_NATIVE_CALL wpnmod_beam_create(AMX *amx, cell *params)
+{
+	edict_t* pBeam = Beam_Create(STRING(ALLOC_STRING(MF_GetAmxString(amx, params[1], 0, NULL))), amx_ctof(params[2]));
+
+	if (IsValidPev(pBeam))
+	{
+		return ENTINDEX(pBeam);
+	}	
+
+	return 1;
+}
+
+// native wpnmod_beam_init_points(const iBeamEntity, const Float: flVecStart[3], const Float: flVecEnd[3]);
+static cell AMX_NATIVE_CALL wpnmod_beam_init_points(AMX *amx, cell *params)
+{
+	int iBeamEntity = params[1];
+
+	Vector vecStart;
+	cell *vStart = MF_GetAmxAddr(amx, params[2]);
+
+	vecStart.x = amx_ctof(vStart[0]);
+	vecStart.y = amx_ctof(vStart[1]);
+	vecStart.z = amx_ctof(vStart[2]);
+
+	Vector vecEnd;
+	cell *vEnd = MF_GetAmxAddr(amx, params[3]);
+
+	vecEnd.x = amx_ctof(vEnd[0]);
+	vecEnd.y = amx_ctof(vEnd[1]);
+	vecEnd.z = amx_ctof(vEnd[2]);
+
+	CHECK_ENTITY(iBeamEntity)
+
+	Beam_PointsInit(INDEXENT2(iBeamEntity), vecStart, vecEnd);
+	return 1;
+}
+
+// native wpnmod_beam_init_point_ent(const iBeamEntity, const Float: flVecStart[3], const iEndIndex);
+static cell AMX_NATIVE_CALL wpnmod_beam_init_point_ent(AMX *amx, cell *params)
+{
+	int iBeamEntity = params[1];
+	int iEndIndex = params[3];
+
+	Vector vecStart;
+	cell *vStart = MF_GetAmxAddr(amx, params[2]);
+
+	vecStart.x = amx_ctof(vStart[0]);
+	vecStart.y = amx_ctof(vStart[1]);
+	vecStart.z = amx_ctof(vStart[2]);
+
+	CHECK_ENTITY(iBeamEntity)
+	CHECK_ENTITY(iEndIndex)
+
+	Beam_PointEntInit(INDEXENT2(iBeamEntity), vecStart, iEndIndex);
+	return 1;
+}
+
+// native wpnmod_beam_init_ents(const iBeamEntity, const iStartIndex, const iEndIndex);
+static cell AMX_NATIVE_CALL wpnmod_beam_init_ents(AMX *amx, cell *params)
+{
+	int iBeamEntity = params[1];
+	int iStartIndex = params[2];
+	int iEndIndex = params[3];
+
+	CHECK_ENTITY(iBeamEntity)
+	CHECK_ENTITY(iStartIndex)
+	CHECK_ENTITY(iEndIndex)
+
+	Beam_EntsInit(INDEXENT2(iBeamEntity), iStartIndex, iEndIndex);
+	return 1;
+}
+
+// native wpnmod_beam_init_hose(const iBeamEntity, const Float: flVecStart[3], const Float: flVecDirection[3]);
+static cell AMX_NATIVE_CALL wpnmod_beam_init_hose(AMX *amx, cell *params)
+{
+	int iBeamEntity = params[1];
+
+	Vector vecStart;
+	cell *vStart = MF_GetAmxAddr(amx, params[2]);
+
+	vecStart.x = amx_ctof(vStart[0]);
+	vecStart.y = amx_ctof(vStart[1]);
+	vecStart.z = amx_ctof(vStart[2]);
+
+	Vector vecDir;
+	cell *vDir = MF_GetAmxAddr(amx, params[3]);
+
+	vecDir.x = amx_ctof(vDir[0]);
+	vecDir.y = amx_ctof(vDir[1]);
+	vecDir.z = amx_ctof(vDir[2]);
+
+	CHECK_ENTITY(iBeamEntity)
+
+	Beam_HoseInit(INDEXENT2(iBeamEntity), vecStart, vecDir);
+	return 1;
+}
+
+// native wpnmod_beam_relink(const iBeamEntity);
+static cell AMX_NATIVE_CALL wpnmod_beam_relink(AMX *amx, cell *params)
+{
+	int iBeamEntity = params[1];
+
+	CHECK_ENTITY(iBeamEntity)
+
+	Beam_RelinkBeam(INDEXENT2(iBeamEntity));
 	return 1;
 }
 
 
 AMX_NATIVE_INFO Natives[] = 
 {
+	// Main
 	{ "wpnmod_register_weapon", wpnmod_register_weapon},
 	{ "wpnmod_register_weapon_forward", wpnmod_register_weapon_forward},
 	{ "wpnmod_send_weapon_anim", wpnmod_send_weapon_anim},
@@ -996,14 +1148,23 @@ AMX_NATIVE_INFO Natives[] =
 	{ "wpnmod_default_reload", wpnmod_default_reload},
 	{ "wpnmod_fire_bullets", wpnmod_fire_bullets},
 	{ "wpnmod_radius_damage", wpnmod_radius_damage},
-	{ "wpnmod_clear_multi_damage", clear_multi_damage},
-	{ "wpnmod_apply_multi_damage", apply_multi_damage},
+	{ "wpnmod_radius_damage2", wpnmod_radius_damage2},
+	{ "wpnmod_clear_multi_damage", wpnmod_clear_multi_damage},
+	{ "wpnmod_apply_multi_damage", wpnmod_apply_multi_damage},
 	{ "wpnmod_eject_brass", wpnmod_eject_brass},
 	{ "wpnmod_reset_empty_sound", wpnmod_reset_empty_sound},
 	{ "wpnmod_play_empty_sound", wpnmod_play_empty_sound},
 	{ "wpnmod_create_item", wpnmod_create_item},
 	{ "wpnmod_register_ammobox", wpnmod_register_ammobox},
 	{ "wpnmod_register_ammobox_forward", wpnmod_register_ammobox_forward},
+
+	// Beams
+	{ "wpnmod_beam_create", wpnmod_beam_create},
+	{ "wpnmod_beam_init_points", wpnmod_beam_init_points},
+	{ "wpnmod_beam_init_point_ent", wpnmod_beam_init_point_ent},
+	{ "wpnmod_beam_init_ents", wpnmod_beam_init_ents},
+	{ "wpnmod_beam_init_hose", wpnmod_beam_init_hose},
+	{ "wpnmod_beam_relink", wpnmod_beam_relink},
 
 	{ NULL, NULL }
 };
