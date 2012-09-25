@@ -268,9 +268,9 @@ void UTIL_DecalTrace(TraceResult *pTrace, int iDecalIndex)
 	}
 		
 	message = TE_DECAL;
-	if ( entityIndex != 0 )
+	if (entityIndex != 0)
 	{
-		if ( iDecalIndex > 255 )
+		if (iDecalIndex > 255)
 		{
 			message = TE_DECALHIGH;
 			iDecalIndex -= 256;
@@ -279,31 +279,26 @@ void UTIL_DecalTrace(TraceResult *pTrace, int iDecalIndex)
 	else
 	{
 		message = TE_WORLDDECAL;
-		if ( iDecalIndex > 255 )
+		if (iDecalIndex > 255)
 		{
 			message = TE_WORLDDECALHIGH;
 			iDecalIndex -= 256;
 		}
 	}
 	
-	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
-	WRITE_BYTE( message );
-	WRITE_COORD( pTrace->vecEndPos.x );
-	WRITE_COORD( pTrace->vecEndPos.y );
-	WRITE_COORD( pTrace->vecEndPos.z );
-	WRITE_BYTE( iDecalIndex );
+	MESSAGE_BEGIN(MSG_BROADCAST, SVC_TEMPENTITY);
+	WRITE_BYTE(message);
+	WRITE_COORD(pTrace->vecEndPos.x);
+	WRITE_COORD(pTrace->vecEndPos.y);
+	WRITE_COORD(pTrace->vecEndPos.z);
+	WRITE_BYTE(iDecalIndex);
 	
-	if ( entityIndex )
+	if (entityIndex)
 	{
-			WRITE_SHORT( entityIndex );
+			WRITE_SHORT(entityIndex);
 	}
 
 	MESSAGE_END();
-}
-
-void UTIL_MakeVectors( const Vector &vecAngles )
-{
-	MAKE_VECTORS( vecAngles );
 }
 
 void UTIL_EmitAmbientSound( edict_t *entity, const Vector &vecOrigin, const char *samp, float vol, float attenuation, int fFlags, int pitch )
@@ -356,7 +351,7 @@ void SendWeaponAnim(edict_t* pPlayer, edict_t* pWeapon, int iAnim)
 
 	edict_t* pSpectator = NULL;
 
-	// Send anim to all spectators too.
+	// Also send anim to all spectators.
 	for (int i = 0; i <= gpGlobals->maxClients; i++)
 	{
 		if (!MF_IsPlayerIngame(i))
@@ -510,7 +505,7 @@ void FireBulletsPlayer(edict_t* pPlayer, edict_t* pAttacker, int iShotsCount, Ve
 	TraceResult tr;
 	
 	Vector vecSrc = pPlayer->v.origin + pPlayer->v.view_ofs; 
-	UTIL_MakeVectors(pPlayer->v.v_angle + pPlayer->v.punchangle);
+	MAKE_VECTORS(pPlayer->v.v_angle + pPlayer->v.punchangle);
 	
 	Vector vecDirShooting = gpGlobals->v_forward;
 	Vector vecRight = gpGlobals->v_right;

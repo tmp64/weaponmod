@@ -39,7 +39,6 @@
 EntData *g_Ents = NULL;
 
 BOOL g_InitWeapon;
-BOOL g_Initialized;
 
 cvar_t *cvar_aghlru = NULL;
 cvar_t *cvar_sv_cheats = NULL;
@@ -124,6 +123,24 @@ void OnAmxxDetach()
 
 
 
+void ServerDeactivate()
+{
+	for (int i = LIMITER_WEAPON + 1; i <= g_iWeaponIndex; i++)
+	{
+		g_iCurrentSlots[iSlot(i)][iItemPosition(i)] = FALSE;
+	}
+
+	g_iAmmoBoxIndex = 0;
+	g_iWeaponIndex = LIMITER_WEAPON;
+		
+	memset(WeaponInfoArray, 0, sizeof(WeaponInfoArray));
+	memset(AmmoBoxInfoArray, 0, sizeof(AmmoBoxInfoArray));
+
+	RETURN_META(MRES_IGNORED);
+}
+
+
+
 int AmxxCheckGame(const char *game)
 {
 	if (!strcasecmp(game, "valve"))
@@ -132,23 +149,6 @@ int AmxxCheckGame(const char *game)
 	}
 	
 	return AMXX_GAME_BAD;
-}
-
-
-
-int DispatchSpawn(edict_t *pEntity)
-{
-	if (!g_Initialized)
-	{
-		g_Initialized = TRUE;
-		g_iWeaponIndex = LIMITER_WEAPON;
-		g_iAmmoBoxIndex = 0;
-
-		memset(WeaponInfoArray, 0, sizeof(WeaponInfoArray));
-		memset(AmmoBoxInfoArray, 0, sizeof(AmmoBoxInfoArray));
-	}
-
-	RETURN_META_VALUE(MRES_IGNORED, 0);
 }
 
 
@@ -280,18 +280,6 @@ void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 
 		print_srvconsole("[WEAPONMOD] \"%s.ini\": spawn %d weapons and %d ammoboxes.\n", STRING(gpGlobals->mapname), wpns, ammoboxes);
 		fclose(stream);
-	}
-
-	RETURN_META(MRES_IGNORED);
-}
-
-
-
-void ServerDeactivate()
-{
-	if (g_Initialized)
-	{
-		g_Initialized = FALSE;
 	}
 
 	RETURN_META(MRES_IGNORED);

@@ -44,6 +44,9 @@
 #define WEAPON_RESPAWN_TIME					20
 #define AMMO_RESPAWN_TIME					20
 
+#define MAX_WEAPON_SLOTS					5
+#define MAX_WEAPON_POSITIONS				5
+
 #define ITEM_FLAG_SELECTONEMPTY				1
 #define ITEM_FLAG_NOAUTORELOAD				2
 #define ITEM_FLAG_NOAUTOSWITCHEMPTY			4
@@ -131,7 +134,6 @@ extern int g_iWeaponIndex;
 extern int g_iAmmoBoxIndex;
 
 extern BOOL g_InitWeapon;
-extern BOOL g_initialized;
 extern BOOL g_CrowbarHooksEnabled;
 
 extern EntData *g_Ents;
@@ -147,6 +149,8 @@ extern AMX_NATIVE_INFO Natives[];
 
 extern void WpnModCommand(void);
 extern int ParseBSPEntData(char *file);
+
+extern int g_iCurrentSlots[MAX_WEAPON_SLOTS][MAX_WEAPON_POSITIONS];
 
 inline int			iSlot(const int iId)			{ return WeaponInfoArray[iId].ItemData.iSlot; }
 inline int			iItemPosition(const int iId)	{ return WeaponInfoArray[iId].ItemData.iPosition; }

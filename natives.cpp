@@ -126,14 +126,80 @@ int PvDataOffsets[Offset_End] =
 	XTRA_OFS_WEAPON + 15,
 };
 
-int g_iWeaponIndex;
-int g_iAmmoBoxIndex;
+int g_iAmmoBoxIndex = 0;
+int g_iWeaponIndex = LIMITER_WEAPON;
 
 BOOL g_CrowbarHooksEnabled;
 
 WeaponData WeaponInfoArray[MAX_WEAPONS];
 AmmoBoxData AmmoBoxInfoArray[MAX_WEAPONS];
 
+
+int g_iCurrentSlots[MAX_WEAPON_SLOTS][MAX_WEAPON_POSITIONS] = 
+{
+	{1 ,0, 0, 0, 0},
+	{1, 1, 0, 0, 0},
+	{1, 1, 1, 0, 0},
+	{1, 1, 1, 1, 0},
+	{1, 1, 1, 1, 1}
+};
+
+
+void AutoSlotDetection(int iWeaponID, int iSlot, int iPosition)
+{
+	print_srvconsole("!!!! %d \n", iWeaponID);
+
+	if (iSlot > MAX_WEAPON_SLOTS || iSlot < 0)
+	{
+		iSlot = MAX_WEAPON_SLOTS;
+	}
+
+	if (iPosition > MAX_WEAPON_POSITIONS || iPosition < 0)
+	{
+		iPosition = MAX_WEAPON_POSITIONS;
+	}
+
+	if (!g_iCurrentSlots[iSlot][iPosition])
+	{
+		// Slot is free, lets occupy it.
+		g_iCurrentSlots[iSlot][iPosition] = TRUE;
+
+		WeaponInfoArray[iWeaponID].ItemData.iSlot = iSlot;
+		WeaponInfoArray[iWeaponID].ItemData.iPosition = iPosition;
+	}
+	else
+	{
+		BOOL bFound = FALSE;
+
+		// Oops, slot is occupied, lets find another.
+		for (int k, i = 0; i < MAX_WEAPON_SLOTS && !bFound; i++)
+		{
+				for (k = 0; k < MAX_WEAPON_POSITIONS; k++)
+				{
+					if (!g_iCurrentSlots[i][k])
+					{
+						g_iCurrentSlots[i][k] = TRUE;
+
+						WeaponInfoArray[iWeaponID].ItemData.iSlot = i;
+						WeaponInfoArray[iWeaponID].ItemData.iPosition = k;
+
+						print_srvconsole("[WEAPONMOD] Item \"%s\" is moved to slot #%d and position in slot #%d.\n", pszName(iWeaponID), i + 1, k + 1);
+
+						bFound = TRUE;
+						break;
+					}
+				}
+		}
+
+		// TO DO:
+		//  Make weapon menu!
+		
+		/*if (!bFound)
+		{
+			print_srvconsole("[WEAPONMOD] No free slots in HUD! Item \"%s\" is moved to weapon menu.\n", pszName(iWeaponID), i + 1, k + 1);
+		}*/
+	}
+}
 
 /**
  * Register new weapon in module.
@@ -166,8 +232,6 @@ static cell AMX_NATIVE_CALL wpnmod_register_weapon(AMX *amx, cell *params)
 	g_iWeaponIndex++;
 
 	WeaponInfoArray[g_iWeaponIndex].ItemData.pszName = STRING(ALLOC_STRING(MF_GetAmxString(amx, params[1], 0, NULL)));
-	WeaponInfoArray[g_iWeaponIndex].ItemData.iSlot = params[2] - 1;
-	WeaponInfoArray[g_iWeaponIndex].ItemData.iPosition = params[3] - 1;
 	WeaponInfoArray[g_iWeaponIndex].ItemData.pszAmmo1 = STRING(ALLOC_STRING(MF_GetAmxString(amx, params[4], 0, NULL)));
 	WeaponInfoArray[g_iWeaponIndex].ItemData.iMaxAmmo1 = params[5];
 	WeaponInfoArray[g_iWeaponIndex].ItemData.pszAmmo2 = STRING(ALLOC_STRING(MF_GetAmxString(amx, params[6], 0, NULL)));
@@ -175,6 +239,8 @@ static cell AMX_NATIVE_CALL wpnmod_register_weapon(AMX *amx, cell *params)
 	WeaponInfoArray[g_iWeaponIndex].ItemData.iMaxClip = params[8];
 	WeaponInfoArray[g_iWeaponIndex].ItemData.iFlags = params[9];
 	WeaponInfoArray[g_iWeaponIndex].ItemData.iWeight = params[10];
+
+	AutoSlotDetection(g_iWeaponIndex, params[2] - 1, params[3] - 1);
 
 	if (!g_CrowbarHooksEnabled)
 	{
