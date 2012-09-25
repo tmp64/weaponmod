@@ -50,6 +50,8 @@
 #define ITEM_FLAG_LIMITINWORLD				8
 #define ITEM_FLAG_EXHAUSTIBLE				16
 
+#define OBS_IN_EYE							4
+
 #define SetEntForward(ent, call, handler, forward) \
 	g_Ents[ENTINDEX(ent)].i##call = forward; \
 	Set##call##_(ent, handler);

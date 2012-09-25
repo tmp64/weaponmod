@@ -258,12 +258,9 @@ static cell AMX_NATIVE_CALL wpnmod_register_weapon_forward(AMX *amx, cell *param
 */
 static cell AMX_NATIVE_CALL wpnmod_send_weapon_anim(AMX *amx, cell *params)
 {
-	int iEntity = params[1];
-	int iAnim = params[2];
+	CHECK_ENTITY(params[1])
 
-	CHECK_ENTITY(iEntity)
-
-	edict_t *pWeapon = INDEXENT(iEntity);
+	edict_t *pWeapon = INDEXENT(params[1]);
 	edict_t *pPlayer = GetPrivateCbase(pWeapon, m_pPlayer);
 
 	if (!IsValidPev(pPlayer))
@@ -271,13 +268,7 @@ static cell AMX_NATIVE_CALL wpnmod_send_weapon_anim(AMX *amx, cell *params)
 		return 0;
 	}
 
-	pPlayer->v.weaponanim = iAnim;
-
-	MESSAGE_BEGIN(MSG_ONE, SVC_WEAPONANIM, NULL, pPlayer);
-		WRITE_BYTE(iAnim);
-		WRITE_BYTE(pWeapon->v.body);
-	MESSAGE_END();
-
+	SendWeaponAnim(pPlayer, pWeapon, params[2]);
 	return 1;
 }
 
@@ -497,12 +488,7 @@ static cell AMX_NATIVE_CALL wpnmod_default_deploy(AMX *amx, cell *params)
 		strcpy(szData, szAnimExt);
 	}
 
-	pPlayer->v.weaponanim = iAnim;
-
-	MESSAGE_BEGIN(MSG_ONE, SVC_WEAPONANIM, NULL, pPlayer);
-		WRITE_BYTE(iAnim);
-		WRITE_BYTE(pItem->v.body);
-	MESSAGE_END();
+	SendWeaponAnim(pPlayer, pItem, iAnim);
 
 	*((float *)pPlayer->pvPrivateData + m_flNextAttack) = 0.5;
 	*((float *)pItem->pvPrivateData + m_flTimeWeaponIdle) = 1.0;
@@ -556,13 +542,7 @@ static cell AMX_NATIVE_CALL wpnmod_default_reload(AMX *amx, cell *params)
 	*((float *)pPlayer->pvPrivateData + m_flNextAttack) = flDelay;
 	*((float *)pItem->pvPrivateData + m_flTimeWeaponIdle) = flDelay;
 
-	pPlayer->v.weaponanim = iAnim;
-
-	MESSAGE_BEGIN(MSG_ONE, SVC_WEAPONANIM, NULL, pPlayer);
-		WRITE_BYTE(iAnim);
-		WRITE_BYTE(pItem->v.body);
-	MESSAGE_END();
-
+	SendWeaponAnim(pPlayer, pItem, iAnim);
 	return 1;
 }
 

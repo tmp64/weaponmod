@@ -345,6 +345,39 @@ void UTIL_ShowMenu(edict_t* pEdict, int slots, int time, char *menu, int mlen)
 	}
 }
 
+void SendWeaponAnim(edict_t* pPlayer, edict_t* pWeapon, int iAnim)
+{
+	pPlayer->v.weaponanim = iAnim;
+
+	MESSAGE_BEGIN(MSG_ONE, SVC_WEAPONANIM, NULL, pPlayer);
+		WRITE_BYTE(iAnim);
+		WRITE_BYTE(pWeapon->v.body);
+	MESSAGE_END();
+
+	edict_t* pSpectator = NULL;
+
+	// Send anim to all spectators too.
+	for (int i = 0; i <= gpGlobals->maxClients; i++)
+	{
+		if (!MF_IsPlayerIngame(i))
+		{
+			continue;
+		}
+
+		pSpectator = INDEXENT2(i);
+
+		if (pSpectator->v.iuser1 == OBS_IN_EYE && INDEXENT2(pSpectator->v.iuser2) == pPlayer)
+		{
+			pSpectator->v.weaponanim = iAnim;
+
+			MESSAGE_BEGIN(MSG_ONE, SVC_WEAPONANIM, NULL, pSpectator);
+				WRITE_BYTE(iAnim);
+				WRITE_BYTE(pWeapon->v.body);
+			MESSAGE_END();
+		}
+	}
+}
+
 // hit the world, try to play sound based on texture material type
 float TEXTURETYPE_PlaySound(TraceResult *ptr,  Vector vecSrc, Vector vecEnd)
 {

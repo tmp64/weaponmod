@@ -62,8 +62,8 @@ enum
 	BEAM_HOSE,
 };
 
-inline void	Beam_SetType(edict_t* pBeam, int type) { pBeam->v.rendermode = (pBeam->v.rendermode & 0xF0) | (type&0x0F); }
-inline void	Beam_SetFlags(edict_t* pBeam, int flags) { pBeam->v.rendermode = (pBeam->v.rendermode & 0x0F) | (flags&0xF0); }
+inline void Beam_SetType(edict_t* pBeam, int type) { pBeam->v.rendermode = (pBeam->v.rendermode & 0xF0) | (type&0x0F); }
+inline void Beam_SetFlags(edict_t* pBeam, int flags) { pBeam->v.rendermode = (pBeam->v.rendermode & 0x0F) | (flags&0xF0); }
 inline void Beam_SetStartPos(edict_t* pBeam, const Vector& pos) { pBeam->v.origin = pos; }
 inline void Beam_SetEndPos(edict_t* pBeam, const Vector& pos) { pBeam->v.angles = pos; }
 
