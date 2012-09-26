@@ -125,16 +125,12 @@ void OnAmxxDetach()
 
 void ServerDeactivate()
 {
-	for (int i = LIMITER_WEAPON + 1; i <= g_iWeaponIndex; i++)
-	{
-		g_iCurrentSlots[iSlot(i)][iItemPosition(i)] = FALSE;
-	}
-
 	g_iAmmoBoxIndex = 0;
 	g_iWeaponIndex = LIMITER_WEAPON;
 		
 	memset(WeaponInfoArray, 0, sizeof(WeaponInfoArray));
 	memset(AmmoBoxInfoArray, 0, sizeof(AmmoBoxInfoArray));
+	memset(g_iCurrentSlots, 0, sizeof(g_iCurrentSlots));
 
 	RETURN_META(MRES_IGNORED);
 }
@@ -179,7 +175,7 @@ void ClientCommand(edict_t *pEntity)
 		for (i = LIMITER_WEAPON + 1; i <= g_iWeaponIndex; i++)
 		{
 			items++;
-			sprintf(buf, " [%2d] %-23.22s\n", ++weapons, pszName(i));
+			sprintf(buf, " [%2d] %-23.22s\n", ++weapons, GetWeapon_pszName(i));
 			CLIENT_PRINT(pEntity, print_console, buf);
 		}
 
@@ -260,7 +256,7 @@ void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 				
 				for (i = LIMITER_WEAPON + 1; i <= g_iWeaponIndex; i++)
 				{
-					if (!_stricmp(pszName(i), szData[0]))
+					if (!_stricmp(GetWeapon_pszName(i), szData[0]))
 					{
 						Weapon_Spawn(i, strlen(szData[1]) ? ParseVec(szData[1]) : Vector(0, 0, 0), strlen(szData[2])  ? ParseVec(szData[2]) : Vector(0, 0, 0));
 						wpns++;

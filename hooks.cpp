@@ -136,7 +136,7 @@ function g_dllFuncs[Func_End] =
 			"\x8B\x00\x00\x00\x00\x00\x8B\x00\x00\x00\x2B\x00\x00\x00\x00\x00\x83\x00\x00\x53\x50",
 			"x?????x???x?????x??xx", 21,
 		},
-		NULL, NULL, {}, {}, 0
+		NULL, (void*)PrecacheOtherWeapon_HookHandler, {}, {}, 0
 	},
 	{
 		"GiveNamedItem__11CBasePlayerPCc", 
@@ -199,23 +199,23 @@ int Weapon_GetItemInfo(void *pPrivate, ItemInfo *p)
 	if (g_iId > LIMITER_WEAPON)
 	{
 		p->iId = g_iId;
-		p->pszName = pszName(g_iId);
-		p->iSlot = iSlot(g_iId);
-		p->iPosition = iItemPosition(g_iId);
-		p->iMaxAmmo1 = iMaxAmmo1(g_iId);
-		p->iMaxAmmo2 = iMaxAmmo2(g_iId);
-		p->iMaxClip = iMaxClip(g_iId);
-		p->iFlags = iFlags(g_iId);
-		p->iWeight = iWeight(g_iId);
+		p->pszName = GetWeapon_pszName(g_iId);
+		p->iSlot = GetWeapon_Slot(g_iId);
+		p->iPosition = GetWeapon_ItemPosition(g_iId);
+		p->iMaxAmmo1 = GetWeapon_MaxAmmo1(g_iId);
+		p->iMaxAmmo2 = GetWeapon_MaxAmmo2(g_iId);
+		p->iMaxClip = GetWeapon_MaxClip(g_iId);
+		p->iFlags = GetWeapon_Flags(g_iId);
+		p->iWeight = GetWeapon_Weight(g_iId);
 
-		if (pszAmmo1(g_iId)[0])
+		if (GetWeapon_pszAmmo1(g_iId)[0])
 		{
-			p->pszAmmo1 = pszAmmo1(g_iId);
+			p->pszAmmo1 = GetWeapon_pszAmmo1(g_iId);
 		}
 
-		if (pszAmmo2(g_iId)[0])
+		if (GetWeapon_pszAmmo2(g_iId)[0])
 		{
-			p->pszAmmo2 = pszAmmo2(g_iId);
+			p->pszAmmo2 = GetWeapon_pszAmmo2(g_iId);
 		}
 	}
 
@@ -370,7 +370,7 @@ void Weapon_ItemPostFrame(void *pPrivate)
 	if (iInReload && flNextAttack <= gpGlobals->time)
 	{
 		// complete the reload. 
-		int j = min(iMaxClip(g_iId) - iClip, iAmmoPrimary);	
+		int j = min(GetWeapon_MaxClip(g_iId) - iClip, iAmmoPrimary);	
 
 		iClip += j;
 		iAmmoPrimary -= j;
@@ -384,7 +384,7 @@ void Weapon_ItemPostFrame(void *pPrivate)
 
 	if ((g_pPlayer->v.button & IN_ATTACK2) && flNextSecondaryAttack < 0.0)
 	{
-		if (pszAmmo2(g_iId) && !iAmmoSecondary)
+		if (GetWeapon_pszAmmo2(g_iId) && !iAmmoSecondary)
 		{
 			*((int *)g_pWeapon->pvPrivateData + m_fFireOnEmpty) = TRUE;
 		}
@@ -407,7 +407,7 @@ void Weapon_ItemPostFrame(void *pPrivate)
 	}
 	else if ((g_pPlayer->v.button & IN_ATTACK) && flNextPrimaryAttack < 0.0)
 	{
-		if ((!iClip && pszAmmo1(g_iId)) || (iMaxClip(g_iId) == -1 && !iAmmoPrimary ) )
+		if ((!iClip && GetWeapon_pszAmmo1(g_iId)) || (GetWeapon_MaxClip(g_iId) == -1 && !iAmmoPrimary ) )
 		{
 			*((int *)g_pWeapon->pvPrivateData + m_fFireOnEmpty) = TRUE;
 		}
@@ -428,7 +428,7 @@ void Weapon_ItemPostFrame(void *pPrivate)
 
 		g_pPlayer->v.button &= ~IN_ATTACK;
 	}
-	else if (g_pPlayer->v.button & IN_RELOAD && iMaxClip(g_iId) != -1 && !iInReload ) 
+	else if (g_pPlayer->v.button & IN_RELOAD && GetWeapon_MaxClip(g_iId) != -1 && !iInReload ) 
 	{
 		// reload when reload is pressed, or if no buttons are down and weapon is empty.
 		if (WeaponInfoArray[g_iId].iForward[Fwd_Wpn_Reload])
@@ -451,7 +451,7 @@ void Weapon_ItemPostFrame(void *pPrivate)
 
 		*((int *)g_pWeapon->pvPrivateData + m_fFireOnEmpty) = FALSE;
 
-		if (iClip <= 0 && iAmmoPrimary <= 0 && iMaxAmmo1(g_iId) != -1 && flNextPrimaryAttack < 0.0) 
+		if (iClip <= 0 && iAmmoPrimary <= 0 && GetWeapon_MaxAmmo1(g_iId) != -1 && flNextPrimaryAttack < 0.0) 
 		{
 			// weapon isn't useable, switch.
 #ifdef _WIN32
@@ -464,7 +464,7 @@ void Weapon_ItemPostFrame(void *pPrivate)
 		else
 		{
 			// weapon is useable. Reload if empty and weapon has waited as long as it has to after firing
-			if (!iClip && !(iFlags(g_iId) & ITEM_FLAG_NOAUTORELOAD) && flNextPrimaryAttack < 0.0)
+			if (!iClip && !(GetWeapon_Flags(g_iId) & ITEM_FLAG_NOAUTORELOAD) && flNextPrimaryAttack < 0.0)
 			{
 				if (WeaponInfoArray[g_iId].iForward[Fwd_Wpn_Reload])
 				{
@@ -698,7 +698,7 @@ int Weapon_ItemSlot(void *pPrivate)
 
 	if (g_iId > LIMITER_WEAPON)
 	{
-		return iSlot(g_iId) + 1;
+		return GetWeapon_Slot(g_iId) + 1;
 	}
 
 #ifdef _WIN32
@@ -765,7 +765,7 @@ void* Weapon_Respawn(void *pPrivate)
 	{
 		float flNextRespawn;
 
-		if (cvar_mp_weaponstay->value && !(iFlags(g_iId) & ITEM_FLAG_LIMITINWORLD))
+		if (cvar_mp_weaponstay->value && !(GetWeapon_Flags(g_iId) & ITEM_FLAG_LIMITINWORLD))
 		{
 			flNextRespawn = 0;
 		}
@@ -781,6 +781,32 @@ void* Weapon_Respawn(void *pPrivate)
 	}
 
 	return pItem->pvPrivateData;
+}
+
+#ifdef _WIN32
+void __cdecl PrecacheOtherWeapon_HookHandler(const char *szClassname)
+#else
+void PrecacheOtherWeapon_HookHandler(const char *szClassname)
+#endif
+{
+	edict_t	*pEntity = CREATE_NAMED_ENTITY(MAKE_STRING(szClassname));
+	
+	if (IsValidPev(pEntity))
+	{
+		ItemInfo pII;
+		GET_ITEM_INFO(pEntity, &pII);
+
+		g_iCurrentSlots[pII.iSlot][pII.iPosition] = TRUE;
+		REMOVE_ENTITY(pEntity);
+	}
+
+	UnsetHook(&g_dllFuncs[Func_PrecacheOtherWeapon]);
+#ifdef _WIN32
+	reinterpret_cast<int (__cdecl *)(const char *)>(g_dllFuncs[Func_PrecacheOtherWeapon].address)(szClassname);
+#else
+	reinterpret_cast<int (*)(const char *)>(g_dllFuncs[Func_PrecacheOtherWeapon].address)(szClassname);
+#endif
+	SetHook(&g_dllFuncs[Func_PrecacheOtherWeapon]);
 }
 
 #ifdef _WIN32
@@ -816,7 +842,7 @@ void CheatImpulseCommands_HookHandler(void *pPrivate, int iImpulse)
 
 		for (int k = LIMITER_WEAPON + 1; k <= g_iWeaponIndex; k++)
 		{
-			GiveNamedItem(pPlayer, pszName(k));
+			GiveNamedItem(pPlayer, GetWeapon_pszName(k));
 		}
 
 		for (int k = 0; k < g_iAmmoBoxIndex; k++)
@@ -993,12 +1019,12 @@ edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 		MDLL_Spawn(pItem);
 		SET_ORIGIN(pItem, vecOrigin);
 
-		pItem->v.classname = MAKE_STRING(pszName(iId));
+		pItem->v.classname = MAKE_STRING(GetWeapon_pszName(iId));
 		pItem->v.angles = vecAngles;
 
 		*((int *)pItem->pvPrivateData + m_iId) = iId;
 
-		if (iMaxClip(iId) != -1)
+		if (GetWeapon_MaxClip(iId) != -1)
 		{
 			*((int *)pItem->pvPrivateData + m_iClip) = 0;
 		}

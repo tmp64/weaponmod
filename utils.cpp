@@ -92,7 +92,7 @@ void GiveNamedItem(edict_t *pPlayer, const char *szName)
 
 	for (k = LIMITER_WEAPON + 1; k <= g_iWeaponIndex; k++)
 	{
-		if (!_stricmp(pszName(k), szName))
+		if (!_stricmp(GetWeapon_pszName(k), szName))
 		{
 			pItem = Weapon_Spawn(k, pPlayer->v.origin, Vector (0, 0, 0));
 			break;

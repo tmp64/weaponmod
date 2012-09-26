@@ -37,7 +37,6 @@
 #include "amxxmodule.h"
 #include "cbase.h"
 
-#pragma warning( disable : 164 ) 
 
 #define LIMITER_WEAPON						15
 
@@ -142,6 +141,8 @@ extern cvar_t *cvar_aghlru;
 extern cvar_t *cvar_sv_cheats;
 extern cvar_t *cvar_mp_weaponstay;
 
+extern int g_iCurrentSlots[MAX_WEAPON_SLOTS][MAX_WEAPON_POSITIONS];
+
 extern WeaponData WeaponInfoArray[MAX_WEAPONS];
 extern AmmoBoxData AmmoBoxInfoArray[MAX_WEAPONS];
 
@@ -150,18 +151,16 @@ extern AMX_NATIVE_INFO Natives[];
 extern void WpnModCommand(void);
 extern int ParseBSPEntData(char *file);
 
-extern int g_iCurrentSlots[MAX_WEAPON_SLOTS][MAX_WEAPON_POSITIONS];
-
-inline int			iSlot(const int iId)			{ return WeaponInfoArray[iId].ItemData.iSlot; }
-inline int			iItemPosition(const int iId)	{ return WeaponInfoArray[iId].ItemData.iPosition; }
-inline const char	*pszAmmo1(const int iId)		{ return WeaponInfoArray[iId].ItemData.pszAmmo1; }
-inline int			iMaxAmmo1(const int iId)		{ return WeaponInfoArray[iId].ItemData.iMaxAmmo1; }
-inline const char	*pszAmmo2(const int iId)		{ return WeaponInfoArray[iId].ItemData.pszAmmo2; }
-inline int			iMaxAmmo2(const int iId)		{ return WeaponInfoArray[iId].ItemData.iMaxAmmo2; }
-inline const char	*pszName(const int iId)			{ return WeaponInfoArray[iId].ItemData.pszName; }
-inline int			iMaxClip(const int iId)			{ return WeaponInfoArray[iId].ItemData.iMaxClip; }
-inline int			iWeight(const int iId)			{ return WeaponInfoArray[iId].ItemData.iWeight; }
-inline int			iFlags(const int iId)			{ return WeaponInfoArray[iId].ItemData.iFlags; }
+inline int			GetWeapon_Slot(const int iId)			{ return WeaponInfoArray[iId].ItemData.iSlot; }
+inline int			GetWeapon_ItemPosition(const int iId)	{ return WeaponInfoArray[iId].ItemData.iPosition; }
+inline const char	*GetWeapon_pszAmmo1(const int iId)		{ return WeaponInfoArray[iId].ItemData.pszAmmo1; }
+inline int			GetWeapon_MaxAmmo1(const int iId)		{ return WeaponInfoArray[iId].ItemData.iMaxAmmo1; }
+inline const char	*GetWeapon_pszAmmo2(const int iId)		{ return WeaponInfoArray[iId].ItemData.pszAmmo2; }
+inline int			GetWeapon_MaxAmmo2(const int iId)		{ return WeaponInfoArray[iId].ItemData.iMaxAmmo2; }
+inline const char	*GetWeapon_pszName(const int iId)			{ return WeaponInfoArray[iId].ItemData.pszName; }
+inline int			GetWeapon_MaxClip(const int iId)			{ return WeaponInfoArray[iId].ItemData.iMaxClip; }
+inline int			GetWeapon_Weight(const int iId)			{ return WeaponInfoArray[iId].ItemData.iWeight; }
+inline int			GetWeapon_Flags(const int iId)			{ return WeaponInfoArray[iId].ItemData.iFlags; }
 
 
 #endif // _WPNMOD_H

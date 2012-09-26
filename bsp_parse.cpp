@@ -136,7 +136,7 @@ void KeyValueFromBSP(char *pKey, char *pValue, int iNewent)
 
 		for (i = LIMITER_WEAPON + 1; i <= g_iWeaponIndex; i++)
 		{
-			if (!_stricmp(pszName(i), pValue))
+			if (!_stricmp(GetWeapon_pszName(i), pValue))
 			{
 				Weapon_Spawn(i, vecOrigin, Vector (0, AngleY, 0));
 			}

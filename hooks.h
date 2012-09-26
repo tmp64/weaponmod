@@ -140,6 +140,7 @@ extern edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles);
 extern edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles);
 
 #ifdef _WIN32
+extern void __cdecl PrecacheOtherWeapon_HookHandler(const char *szClassname);
 extern int __fastcall Weapon_GetItemInfo(void *pPrivate, int i, ItemInfo *p);
 extern int __fastcall Weapon_AddToPlayer(void *pPrivate, int i, void *pPrivate2);
 extern int __fastcall Weapon_ItemSlot(void *pPrivate);
@@ -157,6 +158,11 @@ extern BOOL __fastcall Weapon_CanHolster(void *pPrivate);
 extern BOOL __fastcall Weapon_IsUseable(void *pPrivate);
 extern BOOL __fastcall Weapon_Deploy(void *pPrivate);
 extern BOOL __fastcall Weapon_CanDeploy(void *pPrivate);
+
+inline void GET_ITEM_INFO(edict_t* pItem, ItemInfo *p)
+{
+	reinterpret_cast<int (__fastcall *)(void *, int, ItemInfo *)>((*((void***)((char*)pItem->pvPrivateData)))[VOffset_GetItemInfo])(pItem->pvPrivateData, 0, p);
+}
 
 inline void CLEAR_MULTI_DAMAGE()
 {
@@ -181,6 +187,7 @@ inline void TRACE_ATTACK(edict_t* pEntity, edict_t* pAttacker, float flDamage, V
 extern int Weapon_GetItemInfo(void *pPrivate, ItemInfo *p);
 extern int Weapon_AddToPlayer(void *pPrivate, void *pPrivate2);
 extern int Weapon_ItemSlot(void *pPrivate);
+extern void PrecacheOtherWeapon_HookHandler(const char *szClassname);
 extern void Global_Touch(void *pPrivate, void *pPrivate2);
 extern void Global_Think(void *pPrivate);
 extern void Ammo_Materialize(void *pPrivate);
@@ -195,6 +202,11 @@ extern BOOL Weapon_CanHolster(void *pPrivate);
 extern BOOL Weapon_IsUseable(void *pPrivate);
 extern BOOL Weapon_Deploy(void *pPrivate);
 extern BOOL Weapon_CanDeploy(void *pPrivate);
+
+inline void GET_ITEM_INFO(edict_t* pItem, ItemInfo *p)
+{
+	reinterpret_cast<int (*)(void *, ItemInfo *)>((*((void***)(((char*)pItem->pvPrivateData) + 0x60)))[VOffset_GetItemInfo])(pItem->pvPrivateData, p);
+}
 
 inline vod CLEAR_MULTI_DAMAGE()
 {

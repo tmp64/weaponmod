@@ -126,29 +126,20 @@ int PvDataOffsets[Offset_End] =
 	XTRA_OFS_WEAPON + 15,
 };
 
+BOOL g_CrowbarHooksEnabled;
+
 int g_iAmmoBoxIndex = 0;
 int g_iWeaponIndex = LIMITER_WEAPON;
 
-BOOL g_CrowbarHooksEnabled;
+int g_iCurrentSlots[MAX_WEAPON_SLOTS][MAX_WEAPON_POSITIONS];
 
 WeaponData WeaponInfoArray[MAX_WEAPONS];
 AmmoBoxData AmmoBoxInfoArray[MAX_WEAPONS];
 
 
-int g_iCurrentSlots[MAX_WEAPON_SLOTS][MAX_WEAPON_POSITIONS] = 
-{
-	{1 ,0, 0, 0, 0},
-	{1, 1, 0, 0, 0},
-	{1, 1, 1, 0, 0},
-	{1, 1, 1, 1, 0},
-	{1, 1, 1, 1, 1}
-};
-
 
 void AutoSlotDetection(int iWeaponID, int iSlot, int iPosition)
 {
-	print_srvconsole("!!!! %d \n", iWeaponID);
-
 	if (iSlot > MAX_WEAPON_SLOTS || iSlot < 0)
 	{
 		iSlot = MAX_WEAPON_SLOTS;
@@ -183,7 +174,7 @@ void AutoSlotDetection(int iWeaponID, int iSlot, int iPosition)
 						WeaponInfoArray[iWeaponID].ItemData.iSlot = i;
 						WeaponInfoArray[iWeaponID].ItemData.iPosition = k;
 
-						print_srvconsole("[WEAPONMOD] Item \"%s\" is moved to slot #%d and position in slot #%d.\n", pszName(iWeaponID), i + 1, k + 1);
+						print_srvconsole("[WEAPONMOD] Item \"%s\" is moved to slot #%d and position in slot #%d.\n", GetWeapon_pszName(iWeaponID), i + 1, k + 1);
 
 						bFound = TRUE;
 						break;
@@ -253,12 +244,14 @@ static cell AMX_NATIVE_CALL wpnmod_register_weapon(AMX *amx, cell *params)
 	}
 
 	g_InitWeapon = TRUE;
-
+	
+	UnsetHook(&g_dllFuncs[Func_PrecacheOtherWeapon]);
 #ifdef _WIN32
 	reinterpret_cast<int (__cdecl *)(const char *)>(g_dllFuncs[Func_PrecacheOtherWeapon].address)("weapon_crowbar");
 #else
 	reinterpret_cast<int (*)(const char *)>(g_dllFuncs[Func_PrecacheOtherWeapon].address)("weapon_crowbar");
 #endif
+	SetHook(&g_dllFuncs[Func_PrecacheOtherWeapon]);
 
 	return g_iWeaponIndex;
 }
@@ -921,7 +914,7 @@ static cell AMX_NATIVE_CALL wpnmod_create_item(AMX *amx, cell *params)
 	for (i = LIMITER_WEAPON + 1; i <= g_iWeaponIndex; i++)
 	{
 
-		if (!_stricmp(pszName(i), wpnname))
+		if (!_stricmp(GetWeapon_pszName(i), wpnname))
 		{
 			edict_t* iItem = Weapon_Spawn(i, vecOrigin, vecAngles);
 
