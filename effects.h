@@ -37,7 +37,7 @@
 #include <extdll.h>
 #include <meta_api.h>
 
-
+/*
 #define SF_BEAM_STARTON			0x0001
 #define SF_BEAM_TOGGLE			0x0002
 #define SF_BEAM_RANDOM			0x0004
@@ -109,6 +109,6 @@ void Beam_HoseInit(edict_t* pBeam, const Vector &start, const Vector &direction)
 edict_t* Beam_Create( const char *pSpriteName, int width);
 
 // inline void LiveForTime( float time ) { SetThink(&CSprite::SUB_Remove); pev->nextthink = gpGlobals->time + time; }
-
+*/
 
 #endif // _EFFECTS_H

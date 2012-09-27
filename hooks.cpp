@@ -445,7 +445,7 @@ void Weapon_ItemPostFrame(void *pPrivate)
 			);
 		}
 	}
-	else if (!(g_pPlayer->v.button & (IN_ATTACK|IN_ATTACK2)))
+	else if (!(g_pPlayer->v.button & (IN_ATTACK | IN_ATTACK2)))
 	{
 		// no fire buttons down
 

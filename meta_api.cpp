@@ -125,12 +125,16 @@ void OnAmxxDetach()
 
 void ServerDeactivate()
 {
+	for (int i = LIMITER_WEAPON + 1; i <= (MAX_WEAPON_SLOTS * MAX_WEAPON_POSITIONS) + 1; i++)
+	{
+		g_iCurrentSlots[GetWeapon_Slot(i)][GetWeapon_ItemPosition(i)] = FALSE;
+	}
+
 	g_iAmmoBoxIndex = 0;
 	g_iWeaponIndex = LIMITER_WEAPON;
 		
 	memset(WeaponInfoArray, 0, sizeof(WeaponInfoArray));
 	memset(AmmoBoxInfoArray, 0, sizeof(AmmoBoxInfoArray));
-	memset(g_iCurrentSlots, 0, sizeof(g_iCurrentSlots));
 
 	RETURN_META(MRES_IGNORED);
 }
@@ -156,10 +160,10 @@ void ClientCommand(edict_t *pEntity)
 	if (cmd && _stricmp(cmd, "wpnmod") == 0)
 	{
 		int i = 0;
+		int ammo = 0;
 		int items = 0;
 		int weapons = 0;
-		int ammo = 0;
-
+		
 		static char buf[1024];
 		size_t len = 0;
 			
@@ -194,15 +198,6 @@ void ClientCommand(edict_t *pEntity)
 
 		RETURN_META(MRES_SUPERCEDE);
 	}
-	/*else if (_stricmp(cmd, "wpnmod_spawn") == 0)
-	{
-		char buffer[512];
-		int len = _snprintf(buffer, sizeof(buffer)-1, "1. LOL\n 2. Lol2\n");
-
-		UTIL_ShowMenu(pEntity, (1<<0) | (1<<1), -1, buffer, len);
-
-		RETURN_META(MRES_SUPERCEDE);
-	}*/
 
 	RETURN_META(MRES_IGNORED);
 }

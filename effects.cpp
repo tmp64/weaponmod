@@ -33,7 +33,7 @@
 
 #include "effects.h"
 
-
+/*
 edict_t* Beam_Create( const char *pSpriteName, int width)
 {
 	edict_t* pBeam = NULL;
@@ -161,3 +161,4 @@ const Vector &Beam_GetEndPos(edict_t* pBeam)
 		return pent->v.origin;
 	return pBeam->v.angles;
 }
+*/

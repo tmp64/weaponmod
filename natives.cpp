@@ -137,7 +137,6 @@ WeaponData WeaponInfoArray[MAX_WEAPONS];
 AmmoBoxData AmmoBoxInfoArray[MAX_WEAPONS];
 
 
-
 void AutoSlotDetection(int iWeaponID, int iSlot, int iPosition)
 {
 	if (iSlot > MAX_WEAPON_SLOTS || iSlot < 0)
@@ -152,8 +151,7 @@ void AutoSlotDetection(int iWeaponID, int iSlot, int iPosition)
 
 	if (!g_iCurrentSlots[iSlot][iPosition])
 	{
-		// Slot is free, lets occupy it.
-		g_iCurrentSlots[iSlot][iPosition] = TRUE;
+		g_iCurrentSlots[iSlot][iPosition] = iWeaponID;
 
 		WeaponInfoArray[iWeaponID].ItemData.iSlot = iSlot;
 		WeaponInfoArray[iWeaponID].ItemData.iPosition = iPosition;
@@ -162,33 +160,29 @@ void AutoSlotDetection(int iWeaponID, int iSlot, int iPosition)
 	{
 		BOOL bFound = FALSE;
 
-		// Oops, slot is occupied, lets find another.
 		for (int k, i = 0; i < MAX_WEAPON_SLOTS && !bFound; i++)
 		{
 				for (k = 0; k < MAX_WEAPON_POSITIONS; k++)
 				{
 					if (!g_iCurrentSlots[i][k])
 					{
-						g_iCurrentSlots[i][k] = TRUE;
+						g_iCurrentSlots[i][k] = iWeaponID;
 
 						WeaponInfoArray[iWeaponID].ItemData.iSlot = i;
 						WeaponInfoArray[iWeaponID].ItemData.iPosition = k;
 
-						print_srvconsole("[WEAPONMOD] Item \"%s\" is moved to slot #%d and position in slot #%d.\n", GetWeapon_pszName(iWeaponID), i + 1, k + 1);
+						print_srvconsole("[WEAPONMOD] \"%s\" is moved to slot %d-%d.\n", GetWeapon_pszName(iWeaponID), i + 1, k + 1);
 
 						bFound = TRUE;
 						break;
 					}
 				}
 		}
-
-		// TO DO:
-		//  Make weapon menu!
 		
-		/*if (!bFound)
+		if (!bFound)
 		{
-			print_srvconsole("[WEAPONMOD] No free slots in HUD! Item \"%s\" is moved to weapon menu.\n", pszName(iWeaponID), i + 1, k + 1);
-		}*/
+			print_srvconsole("[WEAPONMOD] No free slot for \"%s\" in HUD!\n", GetWeapon_pszName(iWeaponID));
+		}
 	}
 }
 
@@ -251,7 +245,7 @@ static cell AMX_NATIVE_CALL wpnmod_register_weapon(AMX *amx, cell *params)
 #else
 	reinterpret_cast<int (*)(const char *)>(g_dllFuncs[Func_PrecacheOtherWeapon].address)("weapon_crowbar");
 #endif
-	SetHook(&g_dllFuncs[Func_PrecacheOtherWeapon]);
+//	SetHook(&g_dllFuncs[Func_PrecacheOtherWeapon]);
 
 	return g_iWeaponIndex;
 }
@@ -1042,22 +1036,7 @@ static cell AMX_NATIVE_CALL wpnmod_apply_multi_damage(AMX *amx, cell *params)
 	return 1;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+/*
 // native wpnmod_beam_create(const szSpriteName[], const Float: flWidth);
 static cell AMX_NATIVE_CALL wpnmod_beam_create(AMX *amx, cell *params)
 {
@@ -1165,8 +1144,7 @@ static cell AMX_NATIVE_CALL wpnmod_beam_relink(AMX *amx, cell *params)
 
 	Beam_RelinkBeam(INDEXENT2(iBeamEntity));
 	return 1;
-}
-
+}*/
 
 AMX_NATIVE_INFO Natives[] = 
 {
@@ -1197,13 +1175,14 @@ AMX_NATIVE_INFO Natives[] =
 	{ "wpnmod_register_ammobox", wpnmod_register_ammobox},
 	{ "wpnmod_register_ammobox_forward", wpnmod_register_ammobox_forward},
 
-	// Beams
+	// Beams aborted :(, because we have beams.inc
+	/* 
 	{ "wpnmod_beam_create", wpnmod_beam_create},
 	{ "wpnmod_beam_init_points", wpnmod_beam_init_points},
 	{ "wpnmod_beam_init_point_ent", wpnmod_beam_init_point_ent},
 	{ "wpnmod_beam_init_ents", wpnmod_beam_init_ents},
 	{ "wpnmod_beam_init_hose", wpnmod_beam_init_hose},
 	{ "wpnmod_beam_relink", wpnmod_beam_relink},
-
+	*/
 	{ NULL, NULL }
 };
