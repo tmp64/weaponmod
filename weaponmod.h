@@ -38,7 +38,7 @@
 #include "cbase.h"
 
 
-#define LIMITER_WEAPON						15
+#define LIMITER_WEAPON						15 + 2
 
 #define WEAPON_RESPAWN_TIME					20
 #define AMMO_RESPAWN_TIME					20

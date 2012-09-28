@@ -139,14 +139,14 @@ AmmoBoxData AmmoBoxInfoArray[MAX_WEAPONS];
 
 void AutoSlotDetection(int iWeaponID, int iSlot, int iPosition)
 {
-	if (iSlot > MAX_WEAPON_SLOTS || iSlot < 0)
+	if (iSlot >= MAX_WEAPON_SLOTS || iSlot < 0)
 	{
-		iSlot = MAX_WEAPON_SLOTS;
+		iSlot = MAX_WEAPON_SLOTS - 1;
 	}
 
-	if (iPosition > MAX_WEAPON_POSITIONS || iPosition < 0)
+	if (iPosition >= MAX_WEAPON_POSITIONS || iPosition < 0)
 	{
-		iPosition = MAX_WEAPON_POSITIONS;
+		iPosition = MAX_WEAPON_POSITIONS - 1;
 	}
 
 	if (!g_iCurrentSlots[iSlot][iPosition])
@@ -162,21 +162,21 @@ void AutoSlotDetection(int iWeaponID, int iSlot, int iPosition)
 
 		for (int k, i = 0; i < MAX_WEAPON_SLOTS && !bFound; i++)
 		{
-				for (k = 0; k < MAX_WEAPON_POSITIONS; k++)
+			for (k = 0; k < MAX_WEAPON_POSITIONS; k++)
+			{
+				if (!g_iCurrentSlots[i][k])
 				{
-					if (!g_iCurrentSlots[i][k])
-					{
-						g_iCurrentSlots[i][k] = iWeaponID;
+					g_iCurrentSlots[i][k] = iWeaponID;
 
-						WeaponInfoArray[iWeaponID].ItemData.iSlot = i;
-						WeaponInfoArray[iWeaponID].ItemData.iPosition = k;
+					WeaponInfoArray[iWeaponID].ItemData.iSlot = i;
+					WeaponInfoArray[iWeaponID].ItemData.iPosition = k;
 
-						print_srvconsole("[WEAPONMOD] \"%s\" is moved to slot %d-%d.\n", GetWeapon_pszName(iWeaponID), i + 1, k + 1);
+					print_srvconsole("[WEAPONMOD] \"%s\" is moved to slot %d-%d.\n", GetWeapon_pszName(iWeaponID), i + 1, k + 1);
 
-						bFound = TRUE;
-						break;
-					}
+					bFound = TRUE;
+					break;
 				}
+			}
 		}
 		
 		if (!bFound)
@@ -208,7 +208,7 @@ static cell AMX_NATIVE_CALL wpnmod_register_weapon(AMX *amx, cell *params)
 {
 	//CHECK_PARAMS(10)
 
-	if (g_iWeaponIndex >= MAX_WEAPONS)
+	if (g_iWeaponIndex >= MAX_WEAPONS - 1)
 	{
 		MF_LogError(amx, AMX_ERR_NATIVE, "Weapon limit reached.");
 		return -1;
@@ -245,7 +245,6 @@ static cell AMX_NATIVE_CALL wpnmod_register_weapon(AMX *amx, cell *params)
 #else
 	reinterpret_cast<int (*)(const char *)>(g_dllFuncs[Func_PrecacheOtherWeapon].address)("weapon_crowbar");
 #endif
-//	SetHook(&g_dllFuncs[Func_PrecacheOtherWeapon]);
 
 	return g_iWeaponIndex;
 }
@@ -300,6 +299,129 @@ static cell AMX_NATIVE_CALL wpnmod_register_weapon_forward(AMX *amx, cell *param
 
 	return 1;
 }
+
+/**
+ * Returns any ItemInfo variable for weapon. Use the e_ItemInfo_* enum.
+ *
+ * @param iId			The ID of registered weapon or weapon entity Id.
+ * @param iInfoType		ItemInfo type.
+ *
+ * @return				Weapon's ItemInfo variable.
+ *
+ * native wpnmod_get_item_info(const iId, const e_ItemInfo: iInfoType, any:...);
+ */
+static cell AMX_NATIVE_CALL wpnmod_get_item_info(AMX *amx, cell *params)
+{
+	enum e_ItemInfo
+	{
+		ItemInfo_iSlot = 0,
+		ItemInfo_iPosition,
+		ItemInfo_iMaxAmmo1,
+		ItemInfo_iMaxAmmo2,
+		ItemInfo_iMaxClip,
+		ItemInfo_iId,
+		ItemInfo_iFlags,
+		ItemInfo_iWeight,
+		ItemInfo_szName,
+		ItemInfo_szAmmo1,
+		ItemInfo_szAmmo2
+	};
+
+	int iId = params[1];
+	int iSwitch = params[2];
+
+	edict_t* pItem = NULL;
+
+	if (iId > g_iWeaponIndex)
+	{
+		CHECK_ENTITY(iId)
+		pItem = INDEXENT2(iId);
+	}
+	else if (iId <= LIMITER_WEAPON)
+	{
+		MF_LogError(amx, AMX_ERR_NATIVE, "Invalid weapon id provided. Got: %d  Valid: 16 up to %d.", iId, MAX_WEAPONS - 1);
+		return 0;
+	}
+
+	if (iSwitch < ItemInfo_iSlot || iSwitch > ItemInfo_szAmmo2)
+	{
+		MF_LogError(amx, AMX_ERR_NATIVE, "Undefined e_ItemInfo index: %d", iSwitch);
+		return 0;
+	}
+
+	ItemInfo pII;
+	memset(&pII, 0, sizeof pII);
+
+	if (pItem)
+	{
+		GET_ITEM_INFO(pItem, &pII);
+	}
+	else
+	{
+		pII.iId = iId;
+		pII.iSlot = GetWeapon_Slot(iId);
+		pII.iPosition = GetWeapon_ItemPosition(iId);
+		pII.iMaxAmmo1 = GetWeapon_MaxAmmo1(iId);
+		pII.iMaxAmmo2 = GetWeapon_MaxAmmo2(iId);
+		pII.iMaxClip = GetWeapon_MaxClip(iId);
+		pII.iFlags = GetWeapon_Flags(iId);
+		pII.iWeight = GetWeapon_Weight(iId);
+		pII.pszName = GetWeapon_pszName(iId);
+		pII.pszAmmo1 = GetWeapon_pszAmmo1(iId);
+		pII.pszAmmo2 = GetWeapon_pszAmmo2(iId);
+	}
+
+	size_t paramnum = params[0] / sizeof(cell);
+
+	if (iSwitch >= ItemInfo_iSlot && iSwitch <= ItemInfo_iWeight && paramnum == 2)
+	{
+		switch (iSwitch)
+		{
+		case ItemInfo_iSlot:
+			return pII.iSlot;
+		case ItemInfo_iPosition:
+			return pII.iPosition;
+		case ItemInfo_iMaxAmmo1:
+			return pII.iMaxAmmo1;
+		case ItemInfo_iMaxAmmo2:
+			return pII.iMaxAmmo2;
+		case ItemInfo_iMaxClip:
+			return pII.iMaxClip;
+		case ItemInfo_iId:
+			return pII.iId;
+		case ItemInfo_iFlags:
+			return pII.iFlags;
+		case ItemInfo_iWeight:
+			return pII.iWeight;
+		}
+	}
+	else if (iSwitch >= ItemInfo_szName && iSwitch <= ItemInfo_szAmmo2 && paramnum == 4)
+	{
+		const char* szReturnValue = NULL;
+
+		switch (iSwitch)
+		{
+		case ItemInfo_szName:
+			szReturnValue = pII.pszName;
+			break;
+		case ItemInfo_szAmmo1:
+			szReturnValue = pII.pszAmmo1;
+			break;
+		case ItemInfo_szAmmo2:
+			szReturnValue = pII.pszAmmo2;
+			break;
+		}	
+
+		if (!szReturnValue)
+			szReturnValue = "";
+
+		return MF_SetAmxString(amx, params[3], szReturnValue, params[4]);
+	}
+
+	MF_LogError(amx, AMX_ERR_NATIVE, "Unknown e_ItemInfo index or return combination %d", iSwitch);
+	return 0;
+}
+
 
 /**
  * Plays weapon's animation.
@@ -1151,6 +1273,7 @@ AMX_NATIVE_INFO Natives[] =
 	// Main
 	{ "wpnmod_register_weapon", wpnmod_register_weapon},
 	{ "wpnmod_register_weapon_forward", wpnmod_register_weapon_forward},
+	{ "wpnmod_get_item_info", wpnmod_get_item_info},
 	{ "wpnmod_send_weapon_anim", wpnmod_send_weapon_anim},
 	{ "wpnmod_set_player_anim", wpnmod_set_player_anim},
 	{ "wpnmod_set_think", wpnmod_set_think},

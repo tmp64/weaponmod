@@ -141,6 +141,23 @@ enum e_WpnFwds
 	Fwd_Wpn_End
 };
 
+enum e_ItemInfo
+{
+	ItemInfo_iSlot,
+	ItemInfo_iPosition,
+	ItemInfo_iMaxAmmo1,
+	ItemInfo_iMaxAmmo2,
+	ItemInfo_iMaxClip,
+	ItemInfo_iId,
+	ItemInfo_iFlags,
+	ItemInfo_iWeight,
+	ItemInfo_szName,
+	ItemInfo_szAmmo1,
+	ItemInfo_szAmmo2,
+
+	ItemInfo_End
+};
+
 enum e_Offsets
 {
 	// Weapon

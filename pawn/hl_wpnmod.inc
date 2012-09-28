@@ -85,6 +85,16 @@ native wpnmod_register_weapon(const szName[], const iSlot, const iPosition, cons
 native wpnmod_register_weapon_forward(const iWeaponID, const e_WpnFwds: iForward, const szCallBack[]);
 
 /**
+ * Returns any ItemInfo variable for weapon. Use the e_ItemInfo_* enum.
+ *
+ * @param iId			The ID of registered weapon or weapon entity Id.
+ * @param iInfoType		ItemInfo type.
+ *
+ * @return				Weapon's ItemInfo variable.
+ */
+native wpnmod_get_item_info(const iId, const e_ItemInfo: iInfoType, any:...);
+
+/**
  * Register new ammobox in module.
  *
  * @param szName			The ammobox classname.

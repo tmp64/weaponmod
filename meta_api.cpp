@@ -36,9 +36,9 @@
 #include "utils.h"
 
 
-EntData *g_Ents = NULL;
-
 BOOL g_InitWeapon;
+
+EntData *g_Ents = NULL;
 
 cvar_t *cvar_aghlru = NULL;
 cvar_t *cvar_sv_cheats = NULL;
