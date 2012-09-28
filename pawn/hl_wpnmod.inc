@@ -88,11 +88,18 @@ native wpnmod_register_weapon_forward(const iWeaponID, const e_WpnFwds: iForward
  * Returns any ItemInfo variable for weapon. Use the e_ItemInfo_* enum.
  *
  * @param iId			The ID of registered weapon or weapon entity Id.
- * @param iInfoType		ItemInfo type.
+ * @param iInfoType		e_ItemInfo_* type.
  *
  * @return				Weapon's ItemInfo variable.
  */
-native wpnmod_get_item_info(const iId, const e_ItemInfo: iInfoType, any:...);
+native wpnmod_get_weapon_info(const iId, const e_ItemInfo: iInfoType, any:...);
+
+/**
+ * Gets number of registered weapons.
+ *
+ * @return		Number of registered weapons. (integer)
+ */
+native wpnmod_get_weapon_count();
 
 /**
  * Register new ammobox in module.
@@ -111,6 +118,23 @@ native wpnmod_register_ammobox(const szClassname[]);
  * @param szCallBack		The forward to call.
  */
 native wpnmod_register_ammobox_forward(const iWeaponID, const e_AmmoFwds: iForward, const szCallBack[]);
+
+/**
+ * Returns any AmmoInfo variable for ammobox. Use the e_AmmoInfo_* enum.
+ *
+ * @param iId			The ID of registered ammobox or ammobox entity Id.
+ * @param iInfoType		e_AmmoInfo_* type.
+ *
+ * @return				Ammobox's AmmoInfo variable.
+ */
+ native wpnmod_get_ammobox_info(const iId, const e_AmmoInfo: iInfoType, any:...);
+
+ /**
+ * Gets number of registered ammoboxes.
+ *
+ * @return		Number of registered ammoboxes. (integer)
+ */
+ native wpnmod_get_ammobox_count();
 
 /**
  * Sets weapon's think function. Analogue of set_task native.

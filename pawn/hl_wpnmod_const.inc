@@ -141,6 +141,13 @@ enum e_WpnFwds
 	Fwd_Wpn_End
 };
 
+enum e_AmmoInfo
+{
+	AmmoInfo_szName,
+
+	AmmoInfo_End
+};
+
 enum e_ItemInfo
 {
 	ItemInfo_iSlot,

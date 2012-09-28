@@ -308,9 +308,9 @@ static cell AMX_NATIVE_CALL wpnmod_register_weapon_forward(AMX *amx, cell *param
  *
  * @return				Weapon's ItemInfo variable.
  *
- * native wpnmod_get_item_info(const iId, const e_ItemInfo: iInfoType, any:...);
+ * native wpnmod_get_weapon_info(const iId, const e_ItemInfo: iInfoType, any:...);
  */
-static cell AMX_NATIVE_CALL wpnmod_get_item_info(AMX *amx, cell *params)
+static cell AMX_NATIVE_CALL wpnmod_get_weapon_info(AMX *amx, cell *params)
 {
 	enum e_ItemInfo
 	{
@@ -422,6 +422,103 @@ static cell AMX_NATIVE_CALL wpnmod_get_item_info(AMX *amx, cell *params)
 	return 0;
 }
 
+/**
+ * Returns any AmmoInfo variable for ammobox. Use the e_AmmoInfo_* enum.
+ *
+ * @param iId			The ID of registered ammobox or ammobox entity Id.
+ * @param iInfoType		e_AmmoInfo_* type.
+ *
+ * @return				Ammobox's AmmoInfo variable.
+ *
+ * native wpnmod_get_ammobox_info(const iId, const e_AmmoInfo: iInfoType, any:...);
+ */
+static cell AMX_NATIVE_CALL wpnmod_get_ammobox_info(AMX *amx, cell *params)
+{
+	enum e_AmmoInfo
+	{
+		AmmoInfo_szName
+	};
+
+	int iId = params[1];
+	int iSwitch = params[2];
+
+	edict_t* pAmmoBox = NULL;
+
+	if (iId > g_iAmmoBoxIndex)
+	{
+		CHECK_ENTITY(iId)
+		pAmmoBox = INDEXENT2(iId);
+	}
+	else if (iId < 0)
+	{
+		MF_LogError(amx, AMX_ERR_NATIVE, "Invalid ammobox id provided. Got: %d  Valid: 0 up to %d.", iId, MAX_WEAPONS - 1);
+		return 0;
+	}
+
+	if (iSwitch < AmmoInfo_szName || iSwitch > AmmoInfo_szName)
+	{
+		MF_LogError(amx, AMX_ERR_NATIVE, "Undefined e_AmmoInfo index: %d", iSwitch);
+		return 0;
+	}
+
+	if (pAmmoBox)
+	{
+		for (int i = 0; i < g_iAmmoBoxIndex; i++)
+		{
+			if (!_stricmp(AmmoBoxInfoArray[i].pszName, STRING(pAmmoBox->v.classname)))
+			{
+				iId = i;
+				break;
+			}
+		}
+	}
+
+	size_t paramnum = params[0] / sizeof(cell);
+
+	if (iSwitch >= AmmoInfo_szName && iSwitch <= AmmoInfo_szName && paramnum == 4)
+	{
+		const char* szReturnValue = NULL;
+
+		switch (iSwitch)
+		{
+		case AmmoInfo_szName:
+			szReturnValue = AmmoBoxInfoArray[iId].pszName;
+			break;
+		}	
+
+		if (!szReturnValue)
+			szReturnValue = "";
+
+		return MF_SetAmxString(amx, params[3], szReturnValue, params[4]);
+	}
+
+	MF_LogError(amx, AMX_ERR_NATIVE, "Unknown e_AmmoInfo index or return combination %d", iSwitch);
+	return 0;
+}
+
+/**
+ * Gets number of registered weapons.
+ *
+ * @return		Number of registered weapons. (integer)
+ *
+ * native wpnmod_get_weapon_count();
+*/
+static cell AMX_NATIVE_CALL wpnmod_get_weapon_count(AMX *amx, cell *params)
+{
+	return g_iWeaponIndex - LIMITER_WEAPON;
+}
+
+/**
+ * Gets number of registered ammoboxes.
+ *
+ * @return		Number of registered ammoboxes. (integer)
+ *
+ * native wpnmod_get_ammobox_count();
+*/
+static cell AMX_NATIVE_CALL wpnmod_get_ammobox_count(AMX *amx, cell *params)
+{
+	return g_iAmmoBoxIndex;
+}
 
 /**
  * Plays weapon's animation.
@@ -1068,14 +1165,13 @@ static cell AMX_NATIVE_CALL wpnmod_create_item(AMX *amx, cell *params)
  */
 static cell AMX_NATIVE_CALL wpnmod_register_ammobox(AMX *amx, cell *params)
 {
-	if (g_iAmmoBoxIndex >= MAX_WEAPONS)
+	if (g_iAmmoBoxIndex >= MAX_WEAPONS - 1)
 	{
 		MF_LogError(amx, AMX_ERR_NATIVE, "Ammobox limit reached.");
 		return -1;
 	}
 
 	AmmoBoxInfoArray[g_iAmmoBoxIndex].pszName = STRING(ALLOC_STRING(MF_GetAmxString(amx, params[1], 0, NULL)));
-
 	return g_iAmmoBoxIndex++;
 }
 
@@ -1273,7 +1369,12 @@ AMX_NATIVE_INFO Natives[] =
 	// Main
 	{ "wpnmod_register_weapon", wpnmod_register_weapon},
 	{ "wpnmod_register_weapon_forward", wpnmod_register_weapon_forward},
-	{ "wpnmod_get_item_info", wpnmod_get_item_info},
+	{ "wpnmod_register_ammobox", wpnmod_register_ammobox},
+	{ "wpnmod_register_ammobox_forward", wpnmod_register_ammobox_forward},
+	{ "wpnmod_get_weapon_info", wpnmod_get_weapon_info},
+	{ "wpnmod_get_ammobox_info", wpnmod_get_ammobox_info},
+	{ "wpnmod_get_weapon_count", wpnmod_get_weapon_count},
+	{ "wpnmod_get_ammobox_count", wpnmod_get_ammobox_count},
 	{ "wpnmod_send_weapon_anim", wpnmod_send_weapon_anim},
 	{ "wpnmod_set_player_anim", wpnmod_set_player_anim},
 	{ "wpnmod_set_think", wpnmod_set_think},
@@ -1295,8 +1396,6 @@ AMX_NATIVE_INFO Natives[] =
 	{ "wpnmod_reset_empty_sound", wpnmod_reset_empty_sound},
 	{ "wpnmod_play_empty_sound", wpnmod_play_empty_sound},
 	{ "wpnmod_create_item", wpnmod_create_item},
-	{ "wpnmod_register_ammobox", wpnmod_register_ammobox},
-	{ "wpnmod_register_ammobox_forward", wpnmod_register_ammobox_forward},
 
 	// Beams aborted :(, because we have beams.inc
 	/* 
