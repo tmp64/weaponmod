@@ -188,7 +188,7 @@ void ClientCommand(edict_t *pEntity)
 		for (i = 0; i < g_iAmmoBoxIndex; i++)
 		{
 			items++;
-			sprintf(buf, " [%2d] %-23.22s\n", ++ammo, AmmoBoxInfoArray[i].pszName);
+			sprintf(buf, " [%2d] %-23.22s\n", ++ammo, AmmoBoxInfoArray[i].classname.c_str());
 			CLIENT_PRINT(pEntity, print_console, buf);
 		}
 
@@ -260,7 +260,7 @@ void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 
 				for (i = 0; i < g_iAmmoBoxIndex; i++)
 				{
-					if (!_stricmp(AmmoBoxInfoArray[i].pszName, szData[0]))
+					if (!_stricmp(AmmoBoxInfoArray[i].classname.c_str(), szData[0]))
 					{
 						Ammo_Spawn(i, strlen(szData[1]) ? ParseVec(szData[1]) : Vector(0, 0, 0), strlen(szData[2]) ? ParseVec(szData[2]) : Vector(0, 0, 0));
 						ammoboxes++;

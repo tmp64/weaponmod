@@ -103,7 +103,7 @@ void GiveNamedItem(edict_t *pPlayer, const char *szName)
 	{
 		for (k = 0; k < g_iAmmoBoxIndex; k++)
 		{
-			if (!_stricmp(AmmoBoxInfoArray[k].pszName, szName))
+			if (!_stricmp(AmmoBoxInfoArray[k].classname.c_str(), szName))
 			{
 				pItem = Ammo_Spawn(k, pPlayer->v.origin, Vector (0, 0, 0));
 				break;
@@ -307,37 +307,6 @@ void UTIL_EmitAmbientSound( edict_t *entity, const Vector &vecOrigin, const char
 	vecOrigin.CopyToArray(rgfl);
 
 	EMIT_AMBIENT_SOUND(entity, rgfl, samp, vol, attenuation, fFlags, pitch);
-}
-
-/* warning - don't pass here const string */
-void UTIL_ShowMenu(edict_t* pEdict, int slots, int time, char *menu, int mlen)
-{
-	static int msgShowMenu = 0;
-
-	if (msgShowMenu || (msgShowMenu = REG_USER_MSG( "ShowMenu", 1 )))		
-	{
-		int a;
-		char c = 0;
-		char *n = menu;
-
-		while (*n)
-		{
-			a = mlen;
-			if (a > 175) a = 175;
-			mlen -= a;
-			c = *(n+=a);
-			*n = 0;
-		
-			MESSAGE_BEGIN(MSG_ONE, msgShowMenu, NULL, pEdict);
-			WRITE_SHORT(slots);
-			WRITE_CHAR(time);
-			WRITE_BYTE(c ? TRUE : FALSE);
-			WRITE_STRING(menu);
-			MESSAGE_END();
-			*n = c;
-			menu = n;
-		}
-	}
 }
 
 void SendWeaponAnim(edict_t* pPlayer, edict_t* pWeapon, int iAnim)

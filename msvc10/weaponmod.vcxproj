@@ -92,6 +92,7 @@
     <ClInclude Include="..\hooks.h" />
     <ClInclude Include="..\libFunc.h" />
     <ClInclude Include="..\sdk\amxxmodule.h" />
+    <ClInclude Include="..\sdk\CString.h" />
     <ClInclude Include="..\sdk\moduleconfig.h" />
     <ClInclude Include="..\utils.h" />
     <ClInclude Include="..\weaponmod.h" />

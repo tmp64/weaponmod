@@ -51,6 +51,9 @@
     <ClInclude Include="..\effects.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\sdk\CString.h">
+      <Filter>Module SDK</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Makefile" />

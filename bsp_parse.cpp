@@ -144,7 +144,7 @@ void KeyValueFromBSP(char *pKey, char *pValue, int iNewent)
 
 		for (i = 0; i < g_iAmmoBoxIndex; i++)
 		{
-			if (!_stricmp(AmmoBoxInfoArray[i].pszName, pValue))
+			if (!_stricmp(AmmoBoxInfoArray[i].classname.c_str(), pValue))
 			{
 				Ammo_Spawn(i, vecOrigin, Vector (0, AngleY, 0));
 			}

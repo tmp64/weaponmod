@@ -35,13 +35,12 @@
 #define _WPNMOD_H
 
 #include "amxxmodule.h"
+#include "CString.h"
 #include "cbase.h"
-
 
 #define LIMITER_WEAPON						15
 
 #define WEAPON_RESPAWN_TIME					20
-#define AMMO_RESPAWN_TIME					20
 
 #define MAX_WEAPON_SLOTS					5
 #define MAX_WEAPON_POSITIONS				5
@@ -119,15 +118,33 @@ typedef struct
 
 typedef struct
 {
+	String title;
+    String author;
+    String version;
+
 	ItemInfo ItemData;
+
 	int iForward[Fwd_Wpn_End];
 } WeaponData;
 
 typedef struct
 {
-	const char	*pszName;
+	String classname;
 	int iForward[Fwd_Ammo_End];
 } AmmoBoxData;
+
+class CPlugin
+{
+	public:
+    AMX           amx;
+    void*         code;
+
+    String        name;
+    String        version;
+	String        title;
+    String        author;
+    String        errorMsg;
+};
 
 extern int g_iWeaponIndex;
 extern int g_iAmmoBoxIndex;

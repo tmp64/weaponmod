@@ -161,6 +161,9 @@ enum e_ItemInfo
 	ItemInfo_szName,
 	ItemInfo_szAmmo1,
 	ItemInfo_szAmmo2,
+	ItemInfo_szTitle,
+	ItemInfo_szAuthor,
+	ItemInfo_szVersion,
 
 	ItemInfo_End
 };

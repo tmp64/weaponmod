@@ -126,7 +126,9 @@ int PvDataOffsets[Offset_End] =
 	XTRA_OFS_WEAPON + 15,
 };
 
+
 BOOL g_CrowbarHooksEnabled;
+BOOL g_AmmoBoxHooksEnabled;
 
 int g_iAmmoBoxIndex = 0;
 int g_iWeaponIndex = LIMITER_WEAPON;
@@ -208,6 +210,8 @@ static cell AMX_NATIVE_CALL wpnmod_register_weapon(AMX *amx, cell *params)
 {
 	//CHECK_PARAMS(10)
 
+	#define UD_FINDPLUGIN 3
+
 	if (g_iWeaponIndex >= MAX_WEAPONS - 1)
 	{
 		MF_LogError(amx, AMX_ERR_NATIVE, "Weapon limit reached.");
@@ -224,6 +228,12 @@ static cell AMX_NATIVE_CALL wpnmod_register_weapon(AMX *amx, cell *params)
 	WeaponInfoArray[g_iWeaponIndex].ItemData.iMaxClip = params[8];
 	WeaponInfoArray[g_iWeaponIndex].ItemData.iFlags = params[9];
 	WeaponInfoArray[g_iWeaponIndex].ItemData.iWeight = params[10];
+
+	CPlugin* plugin = (CPlugin*)amx->userdata[UD_FINDPLUGIN];
+
+	WeaponInfoArray[g_iWeaponIndex].title = plugin->title;
+	WeaponInfoArray[g_iWeaponIndex].author = plugin->author;
+	WeaponInfoArray[g_iWeaponIndex].version = plugin->version;
 
 	AutoSlotDetection(g_iWeaponIndex, params[2] - 1, params[3] - 1);
 
@@ -324,7 +334,10 @@ static cell AMX_NATIVE_CALL wpnmod_get_weapon_info(AMX *amx, cell *params)
 		ItemInfo_iWeight,
 		ItemInfo_szName,
 		ItemInfo_szAmmo1,
-		ItemInfo_szAmmo2
+		ItemInfo_szAmmo2,
+		ItemInfo_szTitle,
+		ItemInfo_szAuthor,
+		ItemInfo_szVersion
 	};
 
 	int iId = params[1];
@@ -343,7 +356,7 @@ static cell AMX_NATIVE_CALL wpnmod_get_weapon_info(AMX *amx, cell *params)
 		return 0;
 	}
 
-	if (iSwitch < ItemInfo_iSlot || iSwitch > ItemInfo_szAmmo2)
+	if (iSwitch < ItemInfo_iSlot || iSwitch > ItemInfo_szVersion)
 	{
 		MF_LogError(amx, AMX_ERR_NATIVE, "Undefined e_ItemInfo index: %d", iSwitch);
 		return 0;
@@ -355,6 +368,7 @@ static cell AMX_NATIVE_CALL wpnmod_get_weapon_info(AMX *amx, cell *params)
 	if (pItem)
 	{
 		GET_ITEM_INFO(pItem, &pII);
+		iId = pII.iId;
 	}
 	else
 	{
@@ -395,7 +409,7 @@ static cell AMX_NATIVE_CALL wpnmod_get_weapon_info(AMX *amx, cell *params)
 			return pII.iWeight;
 		}
 	}
-	else if (iSwitch >= ItemInfo_szName && iSwitch <= ItemInfo_szAmmo2 && paramnum == 4)
+	else if (iSwitch >= ItemInfo_szName && iSwitch <= ItemInfo_szVersion && paramnum == 4)
 	{
 		const char* szReturnValue = NULL;
 
@@ -409,6 +423,15 @@ static cell AMX_NATIVE_CALL wpnmod_get_weapon_info(AMX *amx, cell *params)
 			break;
 		case ItemInfo_szAmmo2:
 			szReturnValue = pII.pszAmmo2;
+			break;
+		case ItemInfo_szTitle:
+			szReturnValue = WeaponInfoArray[iId].title.c_str();
+			break;
+		case ItemInfo_szAuthor:
+			szReturnValue = WeaponInfoArray[iId].author.c_str();
+			break;
+		case ItemInfo_szVersion:
+			szReturnValue = WeaponInfoArray[iId].version.c_str();
 			break;
 		}	
 
@@ -465,7 +488,7 @@ static cell AMX_NATIVE_CALL wpnmod_get_ammobox_info(AMX *amx, cell *params)
 	{
 		for (int i = 0; i < g_iAmmoBoxIndex; i++)
 		{
-			if (!_stricmp(AmmoBoxInfoArray[i].pszName, STRING(pAmmoBox->v.classname)))
+			if (!_stricmp(AmmoBoxInfoArray[i].classname.c_str(), STRING(pAmmoBox->v.classname)))
 			{
 				iId = i;
 				break;
@@ -482,7 +505,7 @@ static cell AMX_NATIVE_CALL wpnmod_get_ammobox_info(AMX *amx, cell *params)
 		switch (iSwitch)
 		{
 		case AmmoInfo_szName:
-			szReturnValue = AmmoBoxInfoArray[iId].pszName;
+			szReturnValue = AmmoBoxInfoArray[iId].classname.c_str();
 			break;
 		}	
 
@@ -1140,7 +1163,7 @@ static cell AMX_NATIVE_CALL wpnmod_create_item(AMX *amx, cell *params)
 
 	for (i = 0; i < g_iAmmoBoxIndex; i++)
 	{
-		if (!_stricmp(AmmoBoxInfoArray[i].pszName, wpnname))
+		if (!_stricmp(AmmoBoxInfoArray[i].classname.c_str(), wpnname))
 		{
 			edict_t* iItem = Ammo_Spawn(i, vecOrigin, vecAngles);
 
@@ -1171,7 +1194,13 @@ static cell AMX_NATIVE_CALL wpnmod_register_ammobox(AMX *amx, cell *params)
 		return -1;
 	}
 
-	AmmoBoxInfoArray[g_iAmmoBoxIndex].pszName = STRING(ALLOC_STRING(MF_GetAmxString(amx, params[1], 0, NULL)));
+	if (!g_AmmoBoxHooksEnabled)
+	{
+		g_AmmoBoxHooksEnabled = TRUE;
+		SetHookVirt("ammo_rpgclip", &g_RpgAmmoHook);
+	}
+
+	AmmoBoxInfoArray[g_iAmmoBoxIndex].classname.assign(STRING(ALLOC_STRING(MF_GetAmxString(amx, params[1], 0, NULL))));
 	return g_iAmmoBoxIndex++;
 }
 

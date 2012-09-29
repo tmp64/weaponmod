@@ -43,6 +43,14 @@ edict_t* g_pPlayer;
 
 module hl_dll = {NULL, 0, NULL};
 
+VirtHookData g_RpgAmmoHook =
+{
+	VOffset_AddAmmo, 
+	NULL, 
+	NULL, 
+	(void*)AmmoBox_AddAmmo
+};
+
 VirtHookData g_CrowbarHooks[CrowbarHook_End] = 
 {
 	_CBHOOK(Respawn),
@@ -784,6 +792,49 @@ void* Weapon_Respawn(void *pPrivate)
 }
 
 #ifdef _WIN32
+BOOL __fastcall AmmoBox_AddAmmo(void *pPrivate, int i, void *pPrivateOther)
+#else
+BOOL AmmoBox_AddAmmo(void *pPrivate, void *pPrivateOther)
+#endif
+{
+	edict_t* pAmmobox = PrivateToEdict(pPrivate);
+	edict_t* pOther = PrivateToEdict(pPrivateOther);
+
+	if (!IsValidPev(pAmmobox) || !IsValidPev(pOther))
+	{
+		return FALSE;
+	}
+
+	if (!_strcmpi(STRING(pAmmobox->v.classname), "ammo_rpgclip"))
+	{
+#ifdef _WIN32
+		return reinterpret_cast<BOOL (__fastcall *)(void *, int, void *)>(g_RpgAmmoHook.address)(pPrivate, i, pPrivateOther);
+#else
+		return reinterpret_cast<BOOL (*)(void *, void *)>(g_RpgAmmoHook.address)(pPrivate, pPrivateOther);
+#endif
+	}
+
+	BOOL bReturn = FALSE;
+
+	for (int k = 0; k < g_iAmmoBoxIndex; k++)
+	{
+		if (!strcmp(STRING(pAmmobox->v.classname), AmmoBoxInfoArray[k].classname.c_str()) && AmmoBoxInfoArray[k].iForward[Fwd_Ammo_AddAmmo])
+		{
+			bReturn = MF_ExecuteForward
+			(
+				AmmoBoxInfoArray[k].iForward[Fwd_Ammo_AddAmmo], 
+				static_cast<cell>(ENTINDEX(pAmmobox)),
+				static_cast<cell>(ENTINDEX(pOther))
+			);
+
+			break;
+		}
+	}
+
+	return bReturn;
+}
+
+#ifdef _WIN32
 void __cdecl PrecacheOtherWeapon_HookHandler(const char *szClassname)
 #else
 void PrecacheOtherWeapon_HookHandler(const char *szClassname)
@@ -847,7 +898,7 @@ void CheatImpulseCommands_HookHandler(void *pPrivate, int iImpulse)
 
 		for (int k = 0; k < g_iAmmoBoxIndex; k++)
 		{
-			GiveNamedItem(pPlayer, AmmoBoxInfoArray[k].pszName);
+			GiveNamedItem(pPlayer, AmmoBoxInfoArray[k].classname.c_str());
 		}
 	}
 
@@ -860,70 +911,6 @@ void CheatImpulseCommands_HookHandler(void *pPrivate, int iImpulse)
 	SetHook(&g_dllFuncs[Func_CheatImpulseCommands]);
 }
 
-
-
-
-
-#ifdef _WIN32
-void __fastcall Ammo_Touch(void *pPrivate, int i, void *pPrivate2)
-#else
-void Ammo_Touch(void *pPrivate, void *pPrivate2)
-#endif
-{
-	static int k;
-	static edict_t* pOther;
-
-	g_pEntity = PrivateToEdict(pPrivate);
-	pOther = PrivateToEdict(pPrivate2);
-
-	if (!IsValidPev(g_pEntity))
-	{
-		return;
-	}
-
-	if (MF_IsPlayerAlive(ENTINDEX(pOther)))
-	{
-		for (k = 0; k < g_iAmmoBoxIndex; k++)
-		{
-			if (!strcmp(STRING(g_pEntity->v.classname), AmmoBoxInfoArray[k].pszName) && AmmoBoxInfoArray[k].iForward[Fwd_Ammo_AddAmmo])
-			{
-				if 
-				(
-					MF_ExecuteForward
-					(
-						AmmoBoxInfoArray[k].iForward[Fwd_Ammo_AddAmmo], 
-						static_cast<cell>(ENTINDEX(g_pEntity)),
-						static_cast<cell>(ENTINDEX(pOther))
-					)
-				)
-				{
-					(g_pEntity->v.spawnflags & SF_NORESPAWN) ? REMOVE_ENTITY(g_pEntity) : Ammo_Respawn(g_pEntity);
-					return;
-				}
-			}
-		}
-	}
-}
-
-#ifdef _WIN32
-void __fastcall Ammo_Materialize(void *pPrivate)
-#else
-void Ammo_Materialize(void *pPrivate)
-#endif
-{
-	g_pEntity = PrivateToEdict(pPrivate);
-
-	if (!IsValidPev(g_pEntity))
-	{
-		return;
-	}
-
-	EMIT_SOUND_DYN2(g_pEntity, CHAN_WEAPON, "items/suitchargeok1.wav", 1.0, ATTN_NORM, 0, 150);
-
-	g_pEntity->v.effects &= ~EF_NODRAW;
-	g_pEntity->v.effects |= EF_MUZZLEFLASH;
-	g_pEntity->v.solid = SOLID_TRIGGER;
-}
 
 #ifdef _WIN32
 void __fastcall Global_Think(void *pPrivate)
@@ -1053,14 +1040,18 @@ edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 
 	static int iszAllocStringCached;
 
-	if (iszAllocStringCached || (iszAllocStringCached = MAKE_STRING("info_target")))
+	if (iszAllocStringCached || (iszAllocStringCached = MAKE_STRING("ammo_rpgclip")))
 	{
 		pAmmoBox = CREATE_NAMED_ENTITY(iszAllocStringCached);
 	}
 
 	if (IsValidPev(pAmmoBox))
 	{
-		pAmmoBox->v.classname = MAKE_STRING(AmmoBoxInfoArray[iId].pszName);
+		MDLL_Spawn(pAmmoBox);
+		SET_ORIGIN(pAmmoBox, vecOrigin);
+
+		pAmmoBox->v.classname = MAKE_STRING(AmmoBoxInfoArray[iId].classname.c_str());
+		pAmmoBox->v.angles = vecAngles;
 
 		if (AmmoBoxInfoArray[iId].iForward[Fwd_Ammo_Spawn])
 		{
@@ -1071,31 +1062,7 @@ edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 				static_cast<cell>(0)
 			);
 		}
-
-		pAmmoBox->v.movetype = MOVETYPE_TOSS;
-		pAmmoBox->v.solid = SOLID_TRIGGER;
-
-		SET_SIZE(pAmmoBox, Vector(-16, -16, 0), Vector(16, 16, 16));
-		SET_ORIGIN(pAmmoBox, vecOrigin);
-
-		pAmmoBox->v.angles = vecAngles;
-
-		SetEntForward(pAmmoBox, Touch, (void*)Ammo_Touch, NULL);
 	}
 
 	return pAmmoBox;
-}
-
-void Ammo_Respawn(edict_t *pAmmoBox)
-{
-	if (pAmmoBox->v.spawnflags & SF_NORESPAWN)
-	{
-		return;
-	}
-
-	SetThink_(pAmmoBox, (void*)Ammo_Materialize);
-
-	pAmmoBox->v.nextthink = gpGlobals->time + AMMO_RESPAWN_TIME;
-	pAmmoBox->v.effects |= EF_NODRAW;
-	pAmmoBox->v.solid = SOLID_NOT;
 }

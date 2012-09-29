@@ -60,6 +60,7 @@
 #define VOffset_Classify					(XTRA_OFS_VTBL + 8)
 #define VOffset_TraceAttack					(XTRA_OFS_VTBL + 10)
 #define VOffset_Respawn						(XTRA_OFS_VTBL + 47)
+#define VOffset_AddAmmo						(XTRA_OFS_VTBL + 57)
 #define VOffset_AddToPlayer					(XTRA_OFS_VTBL + 58)
 #define VOffset_GetItemInfo					(XTRA_OFS_VTBL + 60)
 #define VOffset_CanDeploy					(XTRA_OFS_VTBL + 61)
@@ -134,9 +135,10 @@ enum e_CrowbarHooks
 
 extern module hl_dll;
 extern function g_dllFuncs[Func_End];
+
+extern VirtHookData g_RpgAmmoHook;
 extern VirtHookData g_CrowbarHooks[CrowbarHook_End];
 
-extern void Ammo_Respawn(edict_t *pAmmoBox);
 extern edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles);
 extern edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles);
 
@@ -147,8 +149,6 @@ extern int __fastcall Weapon_AddToPlayer(void *pPrivate, int i, void *pPrivate2)
 extern int __fastcall Weapon_ItemSlot(void *pPrivate);
 extern void __fastcall Global_Touch(void *pPrivate, int i, void *pPrivate2);
 extern void __fastcall Global_Think(void *pPrivate);
-extern void __fastcall Ammo_Materialize(void *pPrivate);
-extern void __fastcall Ammo_Touch(void *pPrivate, int i, void *pPrivate2);
 extern void __fastcall CheatImpulseCommands_HookHandler(void *pPrivate, int i, int iImpulse);
 extern void __fastcall GiveNamedItem_HookHandler(void *pPrivate, int i, const char *szName);
 extern void __fastcall Weapon_Holster(void *pPrivate, int i, int skiplocal);
@@ -159,6 +159,7 @@ extern BOOL __fastcall Weapon_CanHolster(void *pPrivate);
 extern BOOL __fastcall Weapon_IsUseable(void *pPrivate);
 extern BOOL __fastcall Weapon_Deploy(void *pPrivate);
 extern BOOL __fastcall Weapon_CanDeploy(void *pPrivate);
+extern BOOL __fastcall AmmoBox_AddAmmo(void *pPrivate, int i, void *pPrivateOther);
 
 inline void GET_ITEM_INFO(edict_t* pItem, ItemInfo *p)
 {
@@ -191,8 +192,6 @@ extern int Weapon_ItemSlot(void *pPrivate);
 extern void PrecacheOtherWeapon_HookHandler(const char *szClassname);
 extern void Global_Touch(void *pPrivate, void *pPrivate2);
 extern void Global_Think(void *pPrivate);
-extern void Ammo_Materialize(void *pPrivate);
-extern void Ammo_Touch(void *pPrivate, void *pPrivate2);
 extern void CheatImpulseCommands_HookHandler(void *pPrivate, int iImpulse);
 extern void GiveNamedItem_HookHandler(void *pPrivate, const char *szName);
 extern void Weapon_Holster(void *pPrivate, int skiplocal);
@@ -203,6 +202,7 @@ extern BOOL Weapon_CanHolster(void *pPrivate);
 extern BOOL Weapon_IsUseable(void *pPrivate);
 extern BOOL Weapon_Deploy(void *pPrivate);
 extern BOOL Weapon_CanDeploy(void *pPrivate);
+extern BOOL AmmoBox_AddAmmo(void *pPrivate, void *pPrivateOther);
 
 inline void GET_ITEM_INFO(edict_t* pItem, ItemInfo *p)
 {

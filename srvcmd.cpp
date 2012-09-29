@@ -70,7 +70,7 @@ void WpnModCommand(void)
 		for (i = 0; i < g_iAmmoBoxIndex; i++)
 		{
 			items++;
-			print_srvconsole(" [%2d] %-23.22s\n", ++ammo, AmmoBoxInfoArray[i].pszName);
+			print_srvconsole(" [%2d] %-23.22s\n", ++ammo, AmmoBoxInfoArray[i].classname.c_str());
 		}
 
 		print_srvconsole("\nTotal:\n");
