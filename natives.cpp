@@ -183,6 +183,7 @@ void AutoSlotDetection(int iWeaponID, int iSlot, int iPosition)
 		
 		if (!bFound)
 		{
+			WeaponInfoArray[iWeaponID].ItemData.iPosition = MAX_WEAPONS;
 			print_srvconsole("[WEAPONMOD] No free slot for \"%s\" in HUD!\n", GetWeapon_pszName(iWeaponID));
 		}
 	}

@@ -83,7 +83,6 @@ extern void print_srvconsole(char *fmt, ...);
 extern void GiveNamedItem(edict_t *pPlayer, const char *szName);
 extern void SendWeaponAnim(edict_t* pPlayer, edict_t* pWeapon, int iAnim);
 
-extern void UTIL_ShowMenu(edict_t* pEdict, int slots, int time, char *menu, int mlen);
 extern void UTIL_EjectBrass(const Vector &vecOrigin, const Vector &vecVelocity, float rotation, int model, int soundtype);
 
 extern void FireBulletsPlayer(edict_t* pPlayer, edict_t* pAttacker, int iShotsCount, Vector vecSpread, float flDistance, float flDamage, int bitsDamageType, BOOL bTracers);

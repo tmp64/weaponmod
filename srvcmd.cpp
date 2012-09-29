@@ -48,7 +48,7 @@ void WpnModCommand(void)
 	}
 	else if (!strcmp(cmd, "credits"))
 	{
-		print_srvconsole("Credits:\n\t6a6kin, GordonFreeman, Lev, noo00oob.\n");
+		print_srvconsole("Credits:\n\tAMXX Dev team, 6a6kin, GordonFreeman, Lev, noo00oob.\n");
 	}
 	else if (!strcmp(cmd, "items"))
 	{

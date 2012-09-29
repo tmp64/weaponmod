@@ -125,9 +125,12 @@ void OnAmxxDetach()
 
 void ServerDeactivate()
 {
-	for (int i = LIMITER_WEAPON + 1; i <= (MAX_WEAPON_SLOTS * MAX_WEAPON_POSITIONS) + 1; i++)
+	for (int i = LIMITER_WEAPON + 1; i <= g_iWeaponIndex; i++)
 	{
-		g_iCurrentSlots[GetWeapon_Slot(i)][GetWeapon_ItemPosition(i)] = FALSE;
+		if (GetWeapon_ItemPosition(i) != MAX_WEAPONS)
+		{
+			g_iCurrentSlots[GetWeapon_Slot(i)][GetWeapon_ItemPosition(i)] = FALSE;
+		}
 	}
 
 	g_iAmmoBoxIndex = 0;
@@ -170,7 +173,7 @@ void ClientCommand(edict_t *pEntity)
 		sprintf(buf, "\n%s %s\n", Plugin_info.name, Plugin_info.version);
 		CLIENT_PRINT(pEntity, print_console, buf);
 		len = sprintf(buf, "Author: \n         KORD_12.7 (AGHL.RU Dev Team)\n");
-		len += sprintf(&buf[len], "Credits: \n         6a6kin, GordonFreeman, Lev, noo00oob\n");
+		len += sprintf(&buf[len], "Credits: \n         AMXX Dev team, 6a6kin, GordonFreeman, Lev, noo00oob\n");
 		len += sprintf(&buf[len], "Compiled: %s\nURL: http://www.aghl.ru/ - Russian Half-Life and Adrenaline Gamer Community.\n\n", __DATE__ ", " __TIME__);
 		CLIENT_PRINT(pEntity, print_console, buf);
 
@@ -275,3 +278,4 @@ void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 
 	RETURN_META(MRES_IGNORED);
 }
+
