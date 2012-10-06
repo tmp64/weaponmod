@@ -88,11 +88,11 @@ native wpnmod_register_weapon_forward(const iWeaponID, const e_WpnFwds: iForward
  * Returns any ItemInfo variable for weapon. Use the e_ItemInfo_* enum.
  *
  * @param iId			The ID of registered weapon or weapon entity Id.
- * @param iInfoType		e_ItemInfo_* type.
+ * @param iInfoType		ItemInfo type.
  *
  * @return				Weapon's ItemInfo variable.
  */
-native wpnmod_get_weapon_info(const e_ItemInfo: iInfoType, any:...);
+native wpnmod_get_weapon_info(const iId, const e_ItemInfo: iInfoType, any:...);
 
 /**
  * Gets number of registered weapons.

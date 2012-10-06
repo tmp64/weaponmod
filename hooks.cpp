@@ -197,14 +197,13 @@ int Weapon_GetItemInfo(void *pPrivate, ItemInfo *p)
 
 	g_iId = (int)*((int *)g_pWeapon->pvPrivateData + m_iId);
 
-	if (g_InitWeapon)
+	if (g_iWeaponInitID)
 	{
-		g_InitWeapon = FALSE;
-
-		g_iId = g_iWeaponIndex;
+		g_iId = g_iWeaponInitID;
+		g_iWeaponInitID = 0;
 	}
 
-	if (g_iId > LIMITER_WEAPON)
+	if (WeaponInfoArray[g_iId].iType == Wpn_Custom)
 	{
 		p->iId = g_iId;
 		p->pszName = GetWeapon_pszName(g_iId);
@@ -245,7 +244,7 @@ BOOL Weapon_CanDeploy(void *pPrivate)
 
 	g_iId = (int)*((int *)g_pWeapon->pvPrivateData + m_iId);
 
-	if (g_iId <= LIMITER_WEAPON || !WeaponInfoArray[g_iId].iForward[Fwd_Wpn_CanDeploy])
+	if (WeaponInfoArray[g_iId].iType == Wpn_Default || !WeaponInfoArray[g_iId].iForward[Fwd_Wpn_CanDeploy])
 	{
 #ifdef _WIN32
 		return reinterpret_cast<int (__fastcall *)(void *, int)>(g_CrowbarHooks[CrowbarHook_CanDeploy].address)(pPrivate, 0);
@@ -288,7 +287,7 @@ BOOL Weapon_Deploy(void *pPrivate)
 
 	g_iId = (int)*((int *)g_pWeapon->pvPrivateData + m_iId);
 
-	if (g_iId <= LIMITER_WEAPON)
+	if (WeaponInfoArray[g_iId].iType == Wpn_Default)
 	{
 #ifdef _WIN32
 		return reinterpret_cast<int (__fastcall *)(void *, int)>(g_CrowbarHooks[CrowbarHook_Deploy].address)(pPrivate, NULL);
@@ -348,7 +347,7 @@ void Weapon_ItemPostFrame(void *pPrivate)
 
 	g_iId = (int)*((int *)g_pWeapon->pvPrivateData + m_iId);
 
-	if (g_iId <= LIMITER_WEAPON)
+	if (WeaponInfoArray[g_iId].iType == Wpn_Default)
 	{
 #ifdef _WIN32
 		reinterpret_cast<int (__fastcall *)(void *, int)>(g_CrowbarHooks[CrowbarHook_ItemPostFrame].address)(pPrivate, 0);
@@ -522,7 +521,7 @@ BOOL Weapon_IsUseable(void *pPrivate)
 
 	g_iId = (int)*((int *)g_pWeapon->pvPrivateData + m_iId);
 
-	if (g_iId <= LIMITER_WEAPON || !WeaponInfoArray[g_iId].iForward[Fwd_Wpn_IsUseable])
+	if (WeaponInfoArray[g_iId].iType == Wpn_Default || !WeaponInfoArray[g_iId].iForward[Fwd_Wpn_IsUseable])
 	{
 #ifdef _WIN32
 		return reinterpret_cast<int (__fastcall *)(void *, int)>(g_CrowbarHooks[CrowbarHook_IsUseable].address)(pPrivate, 0);
@@ -565,7 +564,7 @@ BOOL Weapon_CanHolster(void *pPrivate)
 
 	g_iId = (int)*((int *)g_pWeapon->pvPrivateData + m_iId);
 
-	if (g_iId <= LIMITER_WEAPON || !WeaponInfoArray[g_iId].iForward[Fwd_Wpn_CanHolster])
+	if (WeaponInfoArray[g_iId].iType == Wpn_Default || !WeaponInfoArray[g_iId].iForward[Fwd_Wpn_CanHolster])
 	{
 #ifdef _WIN32
 		return reinterpret_cast<int (__fastcall *)(void *, int)>(g_CrowbarHooks[CrowbarHook_CanHolster].address)(pPrivate, 0);
@@ -608,7 +607,7 @@ void Weapon_Holster(void *pPrivate, int skiplocal)
 
 	g_iId = (int)*((int *)g_pWeapon->pvPrivateData + m_iId);
 
-	if (g_iId <= LIMITER_WEAPON)
+	if (WeaponInfoArray[g_iId].iType == Wpn_Default)
 	{
 #ifdef _WIN32
 		reinterpret_cast<int (__fastcall *)(void *, int, int)>(g_CrowbarHooks[CrowbarHook_Holster].address)(pPrivate, 0, skiplocal);
@@ -654,7 +653,7 @@ int Weapon_AddToPlayer(void *pPrivate, void *pPrivate2)
 	g_iId = (int)*((int *)g_pWeapon->pvPrivateData + m_iId);
 	g_pPlayer = PrivateToEdict(pPrivate2);
 
-	if (g_iId > LIMITER_WEAPON && IsValidPev(g_pPlayer))
+	if (WeaponInfoArray[g_iId].iType == Wpn_Custom && IsValidPev(g_pPlayer))
 	{
 		if (!cvar_aghlru)
 		{
@@ -704,7 +703,7 @@ int Weapon_ItemSlot(void *pPrivate)
 
 	g_iId = (int)*((int *)g_pWeapon->pvPrivateData + m_iId);
 
-	if (g_iId > LIMITER_WEAPON)
+	if (WeaponInfoArray[g_iId].iType == Wpn_Custom)
 	{
 		return GetWeapon_Slot(g_iId) + 1;
 	}
@@ -731,7 +730,7 @@ void Weapon_Drop(void *pPrivate)
 
 	g_iId = (int)*((int *)g_pWeapon->pvPrivateData + m_iId);
 
-	if (g_iId > LIMITER_WEAPON)
+	if (WeaponInfoArray[g_iId].iType == Wpn_Custom)
 	{
 		REMOVE_ENTITY(g_pWeapon);
 		return;
@@ -758,7 +757,7 @@ void* Weapon_Respawn(void *pPrivate)
 
 	g_iId = (int)*((int *)g_pWeapon->pvPrivateData + m_iId);
 
-	if (g_iId <= LIMITER_WEAPON)
+	if (WeaponInfoArray[g_iId].iType == Wpn_Default)
 	{
 #ifdef _WIN32
 		return reinterpret_cast<void* (__fastcall *)(void *, int)>(g_CrowbarHooks[CrowbarHook_Respawn].address)(pPrivate, NULL);
@@ -847,8 +846,13 @@ void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 		ItemInfo pII;
 		GET_ITEM_INFO(pEntity, &pII);
 
+		WeaponInfoArray[pII.iId].ItemData = pII;
+		WeaponInfoArray[pII.iId].iType = Wpn_Default;
+
 		g_iCurrentSlots[pII.iSlot][pII.iPosition] = TRUE;
 		REMOVE_ENTITY(pEntity);
+
+		g_iWeaponsCount++;
 	}
 
 	UnsetHook(&g_dllFuncs[Func_PrecacheOtherWeapon]);
@@ -891,7 +895,7 @@ void CheatImpulseCommands_HookHandler(void *pPrivate, int iImpulse)
 	{
 		edict_t *pPlayer = PrivateToEdict(pPrivate);
 
-		for (int k = LIMITER_WEAPON + 1; k <= g_iWeaponIndex; k++)
+		for (int k = 1; k <= g_iWeaponsCount; k++)
 		{
 			GiveNamedItem(pPlayer, GetWeapon_pszName(k));
 		}

@@ -38,7 +38,6 @@
 #include "CString.h"
 #include "cbase.h"
 
-#define LIMITER_WEAPON						15
 
 #define WEAPON_RESPAWN_TIME					20
 
@@ -66,6 +65,15 @@ enum e_AmmoFwds
 	Fwd_Ammo_AddAmmo,
 
 	Fwd_Ammo_End
+};
+
+enum e_WpnType
+{
+	Wpn_None,
+	Wpn_Default,
+	Wpn_Custom,
+
+	Wpn_End
 };
 
 enum e_WpnFwds
@@ -122,6 +130,7 @@ typedef struct
     String author;
     String version;
 
+	e_WpnType iType;
 	ItemInfo ItemData;
 
 	int iForward[Fwd_Wpn_End];
@@ -146,10 +155,10 @@ class CPlugin
     String        errorMsg;
 };
 
-extern int g_iWeaponIndex;
+extern int g_iWeaponsCount;
+extern int g_iWeaponInitID;
 extern int g_iAmmoBoxIndex;
 
-extern BOOL g_InitWeapon;
 extern BOOL g_CrowbarHooksEnabled;
 
 extern EntData *g_Ents;

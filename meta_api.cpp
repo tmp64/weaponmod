@@ -36,7 +36,6 @@
 #include "utils.h"
 
 
-BOOL g_InitWeapon;
 
 EntData *g_Ents = NULL;
 
@@ -125,16 +124,17 @@ void OnAmxxDetach()
 
 void ServerDeactivate()
 {
-	for (int i = LIMITER_WEAPON + 1; i <= g_iWeaponIndex; i++)
+	for (int i = 1; i <= g_iWeaponsCount; i++)
 	{
-		if (GetWeapon_ItemPosition(i) != MAX_WEAPONS)
+		if (WeaponInfoArray[i].iType == Wpn_Custom && GetWeapon_ItemPosition(i) != MAX_WEAPONS)
 		{
 			g_iCurrentSlots[GetWeapon_Slot(i)][GetWeapon_ItemPosition(i)] = FALSE;
 		}
 	}
 
+	g_iWeaponsCount = 0;
+	g_iWeaponInitID = 0;
 	g_iAmmoBoxIndex = 0;
-	g_iWeaponIndex = LIMITER_WEAPON;
 		
 	memset(WeaponInfoArray, 0, sizeof(WeaponInfoArray));
 	memset(AmmoBoxInfoArray, 0, sizeof(AmmoBoxInfoArray));
@@ -179,11 +179,14 @@ void ClientCommand(edict_t *pEntity)
 
 		CLIENT_PRINT(pEntity, print_console, "Currently loaded weapons:\n");
 
-		for (i = LIMITER_WEAPON + 1; i <= g_iWeaponIndex; i++)
+		for (i = 1; i <= g_iWeaponsCount; i++)
 		{
-			items++;
-			sprintf(buf, " [%2d] %-23.22s\n", ++weapons, GetWeapon_pszName(i));
-			CLIENT_PRINT(pEntity, print_console, buf);
+			if (WeaponInfoArray[i].iType == Wpn_Custom)
+			{
+				items++;
+				sprintf(buf, " [%2d] %-23.22s\n", ++weapons, GetWeapon_pszName(i));
+				CLIENT_PRINT(pEntity, print_console, buf);
+			}
 		}
 
 		CLIENT_PRINT(pEntity, print_console, "\nCurrently loaded ammo:\n");
@@ -252,14 +255,16 @@ void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 					strcpy(szData[i], arg);
 				}
 				
-				for (i = LIMITER_WEAPON + 1; i <= g_iWeaponIndex; i++)
+				for (i = 1; i <= g_iWeaponsCount; i++)
 				{
-					if (!_stricmp(GetWeapon_pszName(i), szData[0]))
+					if (WeaponInfoArray[i].iType == Wpn_Custom && !_stricmp(GetWeapon_pszName(i), szData[0]))
 					{
 						Weapon_Spawn(i, strlen(szData[1]) ? ParseVec(szData[1]) : Vector(0, 0, 0), strlen(szData[2])  ? ParseVec(szData[2]) : Vector(0, 0, 0));
 						wpns++;
 					}
 				}
+
+				
 
 				for (i = 0; i < g_iAmmoBoxIndex; i++)
 				{

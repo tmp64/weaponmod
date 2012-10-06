@@ -90,9 +90,9 @@ void GiveNamedItem(edict_t *pPlayer, const char *szName)
 	int k = 0;
 	edict_t *pItem = NULL;
 
-	for (k = LIMITER_WEAPON + 1; k <= g_iWeaponIndex; k++)
+	for (k = 1; k <= g_iWeaponsCount; k++)
 	{
-		if (!_stricmp(GetWeapon_pszName(k), szName))
+		if (WeaponInfoArray[k].iType == Wpn_Custom && !_stricmp(GetWeapon_pszName(k), szName))
 		{
 			pItem = Weapon_Spawn(k, pPlayer->v.origin, Vector (0, 0, 0));
 			break;

@@ -59,10 +59,13 @@ void WpnModCommand(void)
 
 		print_srvconsole("\nCurrently loaded weapons:\n");
 
-		for (i = LIMITER_WEAPON + 1; i <= g_iWeaponIndex; i++)
+		for (i = 1; i <= g_iWeaponsCount; i++)
 		{
-			items++;
-			print_srvconsole(" [%2d] %-23.22s\n", ++weapons, GetWeapon_pszName(i));
+			if (WeaponInfoArray[i].iType == Wpn_Custom)
+			{
+				items++;
+				print_srvconsole(" [%2d] %-23.22s\n", ++weapons, GetWeapon_pszName(i));
+			}
 		}
 
 		print_srvconsole("\nCurrently loaded ammo:\n");

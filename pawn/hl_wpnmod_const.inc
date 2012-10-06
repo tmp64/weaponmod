@@ -150,6 +150,8 @@ enum e_AmmoInfo
 
 enum e_ItemInfo
 {
+	ItemInfo_bCustom,
+
 	ItemInfo_iSlot,
 	ItemInfo_iPosition,
 	ItemInfo_iMaxAmmo1,
@@ -158,6 +160,7 @@ enum e_ItemInfo
 	ItemInfo_iId,
 	ItemInfo_iFlags,
 	ItemInfo_iWeight,
+
 	ItemInfo_szName,
 	ItemInfo_szAmmo1,
 	ItemInfo_szAmmo2,

@@ -127,16 +127,19 @@ int PvDataOffsets[Offset_End] =
 };
 
 
-BOOL g_CrowbarHooksEnabled;
-BOOL g_AmmoBoxHooksEnabled;
 
+int g_iWeaponsCount = 0;
+int g_iWeaponInitID = 0;
 int g_iAmmoBoxIndex = 0;
-int g_iWeaponIndex = LIMITER_WEAPON;
 
 int g_iCurrentSlots[MAX_WEAPON_SLOTS][MAX_WEAPON_POSITIONS];
 
+BOOL g_CrowbarHooksEnabled;
+BOOL g_AmmoBoxHooksEnabled;
+
 WeaponData WeaponInfoArray[MAX_WEAPONS];
 AmmoBoxData AmmoBoxInfoArray[MAX_WEAPONS];
+
 
 
 void AutoSlotDetection(int iWeaponID, int iSlot, int iPosition)
@@ -209,55 +212,67 @@ void AutoSlotDetection(int iWeaponID, int iSlot, int iPosition)
 */
 static cell AMX_NATIVE_CALL wpnmod_register_weapon(AMX *amx, cell *params)
 {
-	//CHECK_PARAMS(10)
-
 	#define UD_FINDPLUGIN 3
 
-	if (g_iWeaponIndex >= MAX_WEAPONS - 1)
+	const char *szWeaponName = MF_GetAmxString(amx, params[1], 0, NULL);
+
+	for (int i = 1; i < MAX_WEAPONS; i++)
 	{
-		MF_LogError(amx, AMX_ERR_NATIVE, "Weapon limit reached.");
-		return -1;
-	}
-
-	g_iWeaponIndex++;
-
-	WeaponInfoArray[g_iWeaponIndex].ItemData.pszName = STRING(ALLOC_STRING(MF_GetAmxString(amx, params[1], 0, NULL)));
-	WeaponInfoArray[g_iWeaponIndex].ItemData.pszAmmo1 = STRING(ALLOC_STRING(MF_GetAmxString(amx, params[4], 0, NULL)));
-	WeaponInfoArray[g_iWeaponIndex].ItemData.iMaxAmmo1 = params[5];
-	WeaponInfoArray[g_iWeaponIndex].ItemData.pszAmmo2 = STRING(ALLOC_STRING(MF_GetAmxString(amx, params[6], 0, NULL)));
-	WeaponInfoArray[g_iWeaponIndex].ItemData.iMaxAmmo2 = params[7];
-	WeaponInfoArray[g_iWeaponIndex].ItemData.iMaxClip = params[8];
-	WeaponInfoArray[g_iWeaponIndex].ItemData.iFlags = params[9];
-	WeaponInfoArray[g_iWeaponIndex].ItemData.iWeight = params[10];
-
-	CPlugin* plugin = (CPlugin*)amx->userdata[UD_FINDPLUGIN];
-
-	WeaponInfoArray[g_iWeaponIndex].title = plugin->title;
-	WeaponInfoArray[g_iWeaponIndex].author = plugin->author;
-	WeaponInfoArray[g_iWeaponIndex].version = plugin->version;
-
-	AutoSlotDetection(g_iWeaponIndex, params[2] - 1, params[3] - 1);
-
-	if (!g_CrowbarHooksEnabled)
-	{
-		g_CrowbarHooksEnabled = TRUE;
-		
-		for (int i = 0; i < CrowbarHook_End; i++)
+		if (WeaponInfoArray[i].iType != Wpn_None && !_strcmpi(GetWeapon_pszName(i), szWeaponName))
 		{
-			SetHookVirt("weapon_crowbar", &g_CrowbarHooks[i]);
+			MF_LogError(amx, AMX_ERR_NATIVE, "Weapon name is duplicated.");
+			return -1;
+		}
+
+		if (WeaponInfoArray[i].iType == Wpn_None)
+		{
+			g_iWeaponsCount++;
+
+			WeaponInfoArray[i].iType = Wpn_Custom;
+
+			WeaponInfoArray[i].ItemData.pszName = STRING(ALLOC_STRING(szWeaponName));
+			WeaponInfoArray[i].ItemData.pszAmmo1 = STRING(ALLOC_STRING(MF_GetAmxString(amx, params[4], 0, NULL)));
+			WeaponInfoArray[i].ItemData.iMaxAmmo1 = params[5];
+			WeaponInfoArray[i].ItemData.pszAmmo2 = STRING(ALLOC_STRING(MF_GetAmxString(amx, params[6], 0, NULL)));
+			WeaponInfoArray[i].ItemData.iMaxAmmo2 = params[7];
+			WeaponInfoArray[i].ItemData.iMaxClip = params[8];
+			WeaponInfoArray[i].ItemData.iFlags = params[9];
+			WeaponInfoArray[i].ItemData.iWeight = params[10];
+
+			CPlugin* plugin = (CPlugin*)amx->userdata[UD_FINDPLUGIN];
+
+			WeaponInfoArray[i].title = plugin->title;
+			WeaponInfoArray[i].author = plugin->author;
+			WeaponInfoArray[i].version = plugin->version;
+
+			AutoSlotDetection(i, params[2] - 1, params[3] - 1);
+
+			if (!g_CrowbarHooksEnabled)
+			{
+				g_CrowbarHooksEnabled = TRUE;
+		
+				for (int k = 0; k < CrowbarHook_End; k++)
+				{
+					SetHookVirt("weapon_crowbar", &g_CrowbarHooks[k]);
+				}
+			}
+
+			g_iWeaponInitID = i;
+			
+			UnsetHook(&g_dllFuncs[Func_PrecacheOtherWeapon]);
+		#ifdef _WIN32
+			reinterpret_cast<int (__cdecl *)(const char *)>(g_dllFuncs[Func_PrecacheOtherWeapon].address)("weapon_crowbar");
+		#else
+			reinterpret_cast<int (*)(const char *)>(g_dllFuncs[Func_PrecacheOtherWeapon].address)("weapon_crowbar");
+		#endif
+			SetHook(&g_dllFuncs[Func_PrecacheOtherWeapon]);
+
+			return i;
 		}
 	}
 
-	g_InitWeapon = TRUE;
-	
-	UnsetHook(&g_dllFuncs[Func_PrecacheOtherWeapon]);
-#ifdef _WIN32
-	reinterpret_cast<int (__cdecl *)(const char *)>(g_dllFuncs[Func_PrecacheOtherWeapon].address)("weapon_crowbar");
-#else
-	reinterpret_cast<int (*)(const char *)>(g_dllFuncs[Func_PrecacheOtherWeapon].address)("weapon_crowbar");
-#endif
-
-	return g_iWeaponIndex;
+	MF_LogError(amx, AMX_ERR_NATIVE, "Weapon limit reached.");
+	return -1;
 }
 
 /**
@@ -273,7 +288,7 @@ static cell AMX_NATIVE_CALL wpnmod_register_weapon_forward(AMX *amx, cell *param
 {
 	int iId = params[1];
 
-	if (iId < LIMITER_WEAPON || iId >= MAX_WEAPONS)
+	if (iId >= MAX_WEAPONS || WeaponInfoArray[iId ].iType != Wpn_Custom)
 	{
 		MF_LogError(amx, AMX_ERR_NATIVE, "Invalid weapon id provided. Got: %d  Valid: 16 up to %d.", iId, MAX_WEAPONS - 1);
 		return 0;
@@ -314,17 +329,19 @@ static cell AMX_NATIVE_CALL wpnmod_register_weapon_forward(AMX *amx, cell *param
 /**
  * Returns any ItemInfo variable for weapon. Use the e_ItemInfo_* enum.
  *
+ * @param iId			The ID of registered weapon or weapon entity Id.
  * @param iInfoType		ItemInfo type.
  *
  * @return				Weapon's ItemInfo variable.
  *
- * native wpnmod_get_weapon_info(const e_ItemInfo: iInfoType, any:...);
+ * native wpnmod_get_weapon_info(const iId, const e_ItemInfo: iInfoType, any:...);
  */
 static cell AMX_NATIVE_CALL wpnmod_get_weapon_info(AMX *amx, cell *params)
 {
 	enum e_ItemInfo
 	{
-		ItemInfo_iSlot = 0,
+		ItemInfo_isCustom = 0,
+		ItemInfo_iSlot,
 		ItemInfo_iPosition,
 		ItemInfo_iMaxAmmo1,
 		ItemInfo_iMaxAmmo2,
@@ -340,43 +357,23 @@ static cell AMX_NATIVE_CALL wpnmod_get_weapon_info(AMX *amx, cell *params)
 		ItemInfo_szVersion
 	};
 
-	int iId = 0;
-	int iSwitch = params[1];
-	
-	const char *name = MF_GetAmxString(amx, params[2], 0, NULL);
-
-	if (name)
-	{
-		for (int i = LIMITER_WEAPON + 1; i <= g_iWeaponIndex; i++)
-		{
-			if (!_strcmpi(GetWeapon_pszName(i), name))
-			{
-				iId = i;
-				break;
-			}
-		}
-	}
-
-	if (!iId)
-	{
-		cell *iCell = MF_GetAmxAddr(amx, params[2]);
-		iId = iCell[0];
-	}
+	int iId = params[1];
+	int iSwitch = params[2];
 
 	edict_t* pItem = NULL;
 
-	if (iId > g_iWeaponIndex)
+	if (iId > g_iWeaponsCount)
 	{
 		CHECK_ENTITY(iId)
 		pItem = INDEXENT2(iId);
 	}
-	else if (iId <= LIMITER_WEAPON)
+	else if (WeaponInfoArray[iId].iType == Wpn_None)
 	{
-		MF_LogError(amx, AMX_ERR_NATIVE, "Invalid weapon id provided. Got: %d  Valid: 16 up to %d.", iId, MAX_WEAPONS - 1);
+		MF_LogError(amx, AMX_ERR_NATIVE, "Invalid weapon id provided (%d).", iId);
 		return 0;
 	}
-
-	if (iSwitch < ItemInfo_iSlot || iSwitch > ItemInfo_szVersion)
+	
+	if (iSwitch < ItemInfo_isCustom || iSwitch > ItemInfo_szVersion)
 	{
 		MF_LogError(amx, AMX_ERR_NATIVE, "Undefined e_ItemInfo index: %d", iSwitch);
 		return 0;
@@ -407,10 +404,12 @@ static cell AMX_NATIVE_CALL wpnmod_get_weapon_info(AMX *amx, cell *params)
 
 	size_t paramnum = params[0] / sizeof(cell);
 
-	if (iSwitch >= ItemInfo_iSlot && iSwitch <= ItemInfo_iWeight && paramnum == 2)
+	if (iSwitch >= ItemInfo_isCustom && iSwitch <= ItemInfo_iWeight && paramnum == 2)
 	{
 		switch (iSwitch)
 		{
+		case ItemInfo_isCustom:
+			return WeaponInfoArray[iId].iType != Wpn_Default;
 		case ItemInfo_iSlot:
 			return pII.iSlot;
 		case ItemInfo_iPosition:
@@ -548,7 +547,7 @@ static cell AMX_NATIVE_CALL wpnmod_get_ammobox_info(AMX *amx, cell *params)
 */
 static cell AMX_NATIVE_CALL wpnmod_get_weapon_count(AMX *amx, cell *params)
 {
-	return g_iWeaponIndex - LIMITER_WEAPON;
+	return g_iWeaponsCount;
 }
 
 /**
@@ -1167,10 +1166,9 @@ static cell AMX_NATIVE_CALL wpnmod_create_item(AMX *amx, cell *params)
 
 	int i;
 
-	for (i = LIMITER_WEAPON + 1; i <= g_iWeaponIndex; i++)
+	for (i = 1; i <= g_iWeaponsCount; i++)
 	{
-
-		if (!_stricmp(GetWeapon_pszName(i), wpnname))
+		if (WeaponInfoArray[i].iType == Wpn_Custom && !_stricmp(GetWeapon_pszName(i), wpnname))
 		{
 			edict_t* iItem = Weapon_Spawn(i, vecOrigin, vecAngles);
 
