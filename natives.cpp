@@ -314,12 +314,11 @@ static cell AMX_NATIVE_CALL wpnmod_register_weapon_forward(AMX *amx, cell *param
 /**
  * Returns any ItemInfo variable for weapon. Use the e_ItemInfo_* enum.
  *
- * @param iId			The ID of registered weapon or weapon entity Id.
  * @param iInfoType		ItemInfo type.
  *
  * @return				Weapon's ItemInfo variable.
  *
- * native wpnmod_get_weapon_info(const iId, const e_ItemInfo: iInfoType, any:...);
+ * native wpnmod_get_weapon_info(const e_ItemInfo: iInfoType, any:...);
  */
 static cell AMX_NATIVE_CALL wpnmod_get_weapon_info(AMX *amx, cell *params)
 {
@@ -341,8 +340,28 @@ static cell AMX_NATIVE_CALL wpnmod_get_weapon_info(AMX *amx, cell *params)
 		ItemInfo_szVersion
 	};
 
-	int iId = params[1];
-	int iSwitch = params[2];
+	int iId = 0;
+	int iSwitch = params[1];
+	
+	const char *name = MF_GetAmxString(amx, params[2], 0, NULL);
+
+	if (name)
+	{
+		for (int i = LIMITER_WEAPON + 1; i <= g_iWeaponIndex; i++)
+		{
+			if (!_strcmpi(GetWeapon_pszName(i), name))
+			{
+				iId = i;
+				break;
+			}
+		}
+	}
+
+	if (!iId)
+	{
+		cell *iCell = MF_GetAmxAddr(amx, params[2]);
+		iId = iCell[0];
+	}
 
 	edict_t* pItem = NULL;
 

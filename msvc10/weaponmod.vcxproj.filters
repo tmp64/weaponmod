@@ -54,6 +54,9 @@
     <ClInclude Include="..\sdk\CString.h">
       <Filter>Module SDK</Filter>
     </ClInclude>
+    <ClInclude Include="..\sdk\CVector.h">
+      <Filter>Module SDK</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Makefile" />

@@ -92,7 +92,7 @@ native wpnmod_register_weapon_forward(const iWeaponID, const e_WpnFwds: iForward
  *
  * @return				Weapon's ItemInfo variable.
  */
-native wpnmod_get_weapon_info(const iId, const e_ItemInfo: iInfoType, any:...);
+native wpnmod_get_weapon_info(const e_ItemInfo: iInfoType, any:...);
 
 /**
  * Gets number of registered weapons.
