@@ -124,18 +124,11 @@ void OnAmxxDetach()
 
 void ServerDeactivate()
 {
-	for (int i = 1; i <= g_iWeaponsCount; i++)
-	{
-		if (WeaponInfoArray[i].iType == Wpn_Custom && GetWeapon_ItemPosition(i) != MAX_WEAPONS)
-		{
-			g_iCurrentSlots[GetWeapon_Slot(i)][GetWeapon_ItemPosition(i)] = FALSE;
-		}
-	}
-
 	g_iWeaponsCount = 0;
 	g_iWeaponInitID = 0;
 	g_iAmmoBoxIndex = 0;
 		
+	memset(g_iCurrentSlots, 0, sizeof(g_iCurrentSlots));
 	memset(WeaponInfoArray, 0, sizeof(WeaponInfoArray));
 	memset(AmmoBoxInfoArray, 0, sizeof(AmmoBoxInfoArray));
 
