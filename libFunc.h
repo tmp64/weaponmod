@@ -105,5 +105,6 @@ void SetHook(function *func);
 void UnsetHook(function *func);
 
 int SetHookVirt(const char *classname, VirtHookData *HookData);
+void UnsetHookVirt(const char *classname, VirtHookData *HookData);
 
 #endif // _LIBFUNC_H

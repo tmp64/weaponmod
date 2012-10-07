@@ -35,7 +35,9 @@
 #define _WPNMOD_H
 
 #include "amxxmodule.h"
+#include "libFunc.h"
 #include "CString.h"
+#include "CVector.h"
 #include "cbase.h"
 
 
@@ -142,9 +144,22 @@ typedef struct
 	int iForward[Fwd_Ammo_End];
 } AmmoBoxData;
 
+class CBlockItem
+{
+public:
+	~CBlockItem()
+	{
+		UnsetHookVirt(strName.c_str(), &VHook);
+		strName.clear();
+	}
+
+	VirtHookData VHook;
+	String strName;
+};
+
 class CPlugin
 {
-	public:
+public:
     AMX           amx;
     void*         code;
 
@@ -155,13 +170,13 @@ class CPlugin
     String        errorMsg;
 };
 
+extern EntData *g_Ents;
+
 extern int g_iWeaponsCount;
 extern int g_iWeaponInitID;
 extern int g_iAmmoBoxIndex;
 
 extern BOOL g_CrowbarHooksEnabled;
-
-extern EntData *g_Ents;
 
 extern cvar_t *cvar_aghlru;
 extern cvar_t *cvar_sv_cheats;
@@ -171,6 +186,8 @@ extern int g_iCurrentSlots[MAX_WEAPON_SLOTS][MAX_WEAPON_POSITIONS];
 
 extern WeaponData WeaponInfoArray[MAX_WEAPONS];
 extern AmmoBoxData AmmoBoxInfoArray[MAX_WEAPONS];
+
+extern CVector <CBlockItem *> g_BlockedItems;
 
 extern AMX_NATIVE_INFO Natives[];
 

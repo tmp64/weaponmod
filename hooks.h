@@ -57,6 +57,7 @@
 	#define XTRA_OFS_PLAYER						5
 #endif
 
+#define VOffset_Precache					(XTRA_OFS_VTBL + 1)
 #define VOffset_Classify					(XTRA_OFS_VTBL + 8)
 #define VOffset_TraceAttack					(XTRA_OFS_VTBL + 10)
 #define VOffset_Respawn						(XTRA_OFS_VTBL + 47)
@@ -136,7 +137,8 @@ enum e_CrowbarHooks
 extern module hl_dll;
 extern function g_dllFuncs[Func_End];
 
-extern VirtHookData g_RpgAmmoHook;
+extern VirtHookData g_RpgAddAmmo_Hook;
+extern VirtHookData g_WorldPrecache_Hook;
 extern VirtHookData g_CrowbarHooks[CrowbarHook_End];
 
 extern edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles);
@@ -154,6 +156,7 @@ extern void __fastcall GiveNamedItem_HookHandler(void *pPrivate, int i, const ch
 extern void __fastcall Weapon_Holster(void *pPrivate, int i, int skiplocal);
 extern void __fastcall Weapon_ItemPostFrame(void *pPrivate);
 extern void __fastcall Weapon_Drop(void *pPrivate);
+extern void __fastcall World_Precache(void *pPrivate);
 extern void* __fastcall Weapon_Respawn(void *pPrivate);
 extern BOOL __fastcall Weapon_CanHolster(void *pPrivate);
 extern BOOL __fastcall Weapon_IsUseable(void *pPrivate);
@@ -197,6 +200,7 @@ extern void GiveNamedItem_HookHandler(void *pPrivate, const char *szName);
 extern void Weapon_Holster(void *pPrivate, int skiplocal);
 extern void Weapon_ItemPostFrame(void *pPrivate);
 extern void Weapon_Drop(void *pPrivate);
+extern void World_Precache(void *pPrivate);
 extern void* Weapon_Respawn(void *pPrivate);
 extern BOOL Weapon_CanHolster(void *pPrivate);
 extern BOOL Weapon_IsUseable(void *pPrivate);

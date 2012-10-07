@@ -36,12 +36,13 @@
 #include "utils.h"
 
 
-
 EntData *g_Ents = NULL;
 
 cvar_t *cvar_aghlru = NULL;
 cvar_t *cvar_sv_cheats = NULL;
 cvar_t *cvar_mp_weaponstay = NULL;
+
+CVector <CBlockItem *> g_BlockedItems;
 
 
 void OnAmxxAttach()
@@ -89,6 +90,8 @@ void OnAmxxAttach()
 	else
 	{
 		MF_AddNatives(Natives);
+		SetHookVirt("worldspawn", &g_WorldPrecache_Hook);
+
 		print_srvconsole("[WEAPONMOD] Found %s at %p\n", GET_GAME_INFO(PLID, GINFO_DLL_FILENAME), hl_dll.base);
 
 		print_srvconsole("\n   Half-Life Weapon Mod version %s Copyright (c) 2012 AGHL.RU Dev Team. \n"
@@ -109,13 +112,23 @@ void OnAmxxAttach()
 
 void OnAmxxDetach()
 {
-	for (int i = 0; i < Func_End; i++)
+	int i;
+
+	for (i = 0; i < Func_End; i++)
 	{
 		if (g_dllFuncs[i].done)
 		{
 			UnsetHook(&g_dllFuncs[i]);
 		}
 	}
+
+	for (i = 0; i < CrowbarHook_End; i++)
+	{
+		UnsetHookVirt("weapon_crowbar", &g_CrowbarHooks[i]);
+	}
+
+	UnsetHookVirt("worldspawn", &g_WorldPrecache_Hook);
+	UnsetHookVirt("ammo_rpgclip", &g_RpgAddAmmo_Hook);
 
 	delete [] g_Ents;
 }
@@ -127,7 +140,14 @@ void ServerDeactivate()
 	g_iWeaponsCount = 0;
 	g_iWeaponInitID = 0;
 	g_iAmmoBoxIndex = 0;
-		
+
+	for (int i = 0; i < (int)g_BlockedItems.size(); i++)
+	{
+		delete g_BlockedItems[i];
+	}
+
+	g_BlockedItems.clear();
+
 	memset(g_iCurrentSlots, 0, sizeof(g_iCurrentSlots));
 	memset(WeaponInfoArray, 0, sizeof(WeaponInfoArray));
 	memset(AmmoBoxInfoArray, 0, sizeof(AmmoBoxInfoArray));
@@ -148,6 +168,20 @@ int AmxxCheckGame(const char *game)
 }
 
 
+
+
+
+void Player_SendAmmoUpdate(edict_t* pPlayer)
+{
+	for (int i = 0; i < MAX_AMMO_SLOTS; i++)
+	{
+		// send "Ammo" update message
+		MESSAGE_BEGIN( MSG_ONE, REG_USER_MSG("AmmoX", 2), NULL, pPlayer);
+			WRITE_BYTE( i );
+			WRITE_BYTE( max( min( (int)*((int *)pPlayer->pvPrivateData + m_rgAmmo + i - 1), 254 ), 0 ) );  // clamp the value to one byte
+		MESSAGE_END();
+	}
+}
 
 void ClientCommand(edict_t *pEntity)
 {
@@ -197,19 +231,56 @@ void ClientCommand(edict_t *pEntity)
 
 		RETURN_META(MRES_SUPERCEDE);
 	}
+	else if(cmd && _stricmp(cmd, "test1") == 0)
+	{
+		MESSAGE_BEGIN( MSG_ONE, REG_USER_MSG("ResetHUD", 1), NULL, pEntity );
+			WRITE_BYTE( 0 );
+		MESSAGE_END();
+
+
+		//WeaponInfoArray[5].ItemData.iSlot = -1;
+		//WeaponInfoArray[5].ItemData.iPosition = -1;
+
+		//if (msgWeaponList || (msgWeaponList = REG_USER_MSG( "WeaponList", -1)))		
+		{
+			MESSAGE_BEGIN(MSG_ONE, REG_USER_MSG( "WeaponList", -1), NULL, pEntity);
+			WRITE_STRING("weapon_rpg7");
+			WRITE_BYTE(-1);
+			WRITE_BYTE(-1);
+			WRITE_BYTE(-1);
+			WRITE_BYTE(-1);
+			WRITE_BYTE(0);
+			WRITE_BYTE(2);
+			WRITE_BYTE(5);
+			WRITE_BYTE(0);
+			MESSAGE_END();
+		}
+
+		{
+			MESSAGE_BEGIN(MSG_ONE, REG_USER_MSG( "WeaponList", -1), NULL, pEntity);
+			WRITE_STRING("weapon_sniperrifle");
+			WRITE_BYTE(-1);
+			WRITE_BYTE(-1);
+			WRITE_BYTE(-1);
+			WRITE_BYTE(-1);
+			WRITE_BYTE(0);
+			WRITE_BYTE(1);
+			WRITE_BYTE(16);
+			WRITE_BYTE(0);
+			MESSAGE_END();
+		}
+
+		Player_SendAmmoUpdate(pEntity);
+
+		
+	}
 
 	RETURN_META(MRES_IGNORED);
 }
 
 
 
-static const char* get_localinfo(const char* name , const char* def = 0)
-{
-	const char* b = LOCALINFO((char*)name);
-	if (((b==0)||(*b==0)) && def)
-		SET_LOCALINFO((char*)name,(char*)(b = def));
-	return b;
-}
+
 
 
 
@@ -256,8 +327,6 @@ void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 						wpns++;
 					}
 				}
-
-				
 
 				for (i = 0; i < g_iAmmoBoxIndex; i++)
 				{

@@ -87,6 +87,11 @@ int Player_Set_AmmoInventory(edict_t* pPlayer, edict_t* pWeapon, BOOL bPrimary, 
 
 void GiveNamedItem(edict_t *pPlayer, const char *szName)
 {
+	if (!szName)
+	{
+		return;
+	}
+
 	int k = 0;
 	edict_t *pItem = NULL;
 
@@ -122,6 +127,14 @@ void GiveNamedItem(edict_t *pPlayer, const char *szName)
 		}
 	}
 
+}
+
+const char* get_localinfo(const char* name , const char* def = 0)
+{
+	const char* b = LOCALINFO((char*)name);
+	if (((b==0)||(*b==0)) && def)
+		SET_LOCALINFO((char*)name,(char*)(b = def));
+	return b;
 }
 
 void print_srvconsole(char *fmt, ...)

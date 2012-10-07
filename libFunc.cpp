@@ -279,3 +279,45 @@ int SetHookVirt(const char *classname, VirtHookData *HookData)
 	
 	return (HookData->done = TRUE);
 }
+
+void UnsetHookVirt(const char *classname, VirtHookData *HookData)
+{
+	if (!HookData || !HookData->done)
+	{
+		return;
+	}
+
+	edict_t *pEdict = CREATE_ENTITY();
+
+	CALL_GAME_ENTITY(PLID, classname, &pEdict->v);
+
+	if (pEdict->pvPrivateData == NULL)
+	{
+		REMOVE_ENTITY(pEdict);
+		return;
+	}
+
+#ifdef _WIN32
+	DWORD OldFlags;
+    void **vtable = *((void***)((char*)pEdict->pvPrivateData));
+#else
+    void **vtable = *((void***)(((char*)pEdict->pvPrivateData) + 0x60));
+#endif
+
+    if (vtable == NULL)
+	{
+        return;
+	}
+
+	int **ivtable = (int **)vtable;
+	
+#ifdef _WIN32
+	VirtualProtect(&ivtable[HookData->offset], sizeof(int *), PAGE_READWRITE, &OldFlags);
+#else
+	mprotect(&ivtable[HookData->offset], sizeof(int*), PROT_READ | PROT_WRITE);
+#endif
+	ivtable[HookData->offset] = (int *)HookData->address;
+
+	HookData->address = NULL;
+	HookData->done = FALSE;
+}

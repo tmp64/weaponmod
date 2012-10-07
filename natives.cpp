@@ -267,6 +267,7 @@ static cell AMX_NATIVE_CALL wpnmod_register_weapon(AMX *amx, cell *params)
 		#endif
 			SetHook(&g_dllFuncs[Func_PrecacheOtherWeapon]);
 
+			print_srvconsole("!REGISTER! %d  %s \n", i, GetWeapon_pszName(i));
 			return i;
 		}
 	}
@@ -1215,10 +1216,21 @@ static cell AMX_NATIVE_CALL wpnmod_register_ammobox(AMX *amx, cell *params)
 	if (!g_AmmoBoxHooksEnabled)
 	{
 		g_AmmoBoxHooksEnabled = TRUE;
-		SetHookVirt("ammo_rpgclip", &g_RpgAmmoHook);
+		SetHookVirt("ammo_rpgclip", &g_RpgAddAmmo_Hook);
 	}
 
-	AmmoBoxInfoArray[g_iAmmoBoxIndex].classname.assign(STRING(ALLOC_STRING(MF_GetAmxString(amx, params[1], 0, NULL))));
+	const char *szAmmoboxName = MF_GetAmxString(amx, params[1], 0, NULL);
+
+	for (int i = 0; i < g_iAmmoBoxIndex; i++)
+	{
+		if (!_stricmp(AmmoBoxInfoArray[i].classname.c_str(), szAmmoboxName))
+		{
+			MF_LogError(amx, AMX_ERR_NATIVE, "Ammobox name is duplicated.");
+			return -1;
+		}
+	}
+
+	AmmoBoxInfoArray[g_iAmmoBoxIndex].classname.assign(STRING(ALLOC_STRING(szAmmoboxName)));
 	return g_iAmmoBoxIndex++;
 }
 

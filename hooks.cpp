@@ -43,12 +43,20 @@ edict_t* g_pPlayer;
 
 module hl_dll = {NULL, 0, NULL};
 
-VirtHookData g_RpgAmmoHook =
+VirtHookData g_RpgAddAmmo_Hook =
 {
 	VOffset_AddAmmo, 
 	NULL, 
 	NULL, 
 	(void*)AmmoBox_AddAmmo
+};
+
+VirtHookData g_WorldPrecache_Hook = 
+{
+	VOffset_Precache, 
+	NULL, 
+	NULL, 
+	(void*)World_Precache
 };
 
 VirtHookData g_CrowbarHooks[CrowbarHook_End] = 
@@ -298,12 +306,14 @@ BOOL Weapon_Deploy(void *pPrivate)
 
 	g_pPlayer = GetPrivateCbase(g_pWeapon, m_pPlayer);
 
+	int iReturn = FALSE;
+
 	if (!IsValidPev(g_pPlayer))
 	{
-		return FALSE;
+		return iReturn;
 	}
 
-	int iReturn = FALSE;
+	g_engfuncs.pfnSetClientKeyValue(ENTINDEX(g_pPlayer), g_engfuncs.pfnGetInfoKeyBuffer(g_pPlayer), "cl_lw", "0");
 
 	if (WeaponInfoArray[g_iId].iForward[Fwd_Wpn_Deploy])
 	{
@@ -635,6 +645,8 @@ void Weapon_Holster(void *pPrivate, int skiplocal)
 			static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, FALSE))
 		);
 	}
+
+	g_engfuncs.pfnSetClientKeyValue(ENTINDEX(g_pPlayer), g_engfuncs.pfnGetInfoKeyBuffer(g_pPlayer), "cl_lw", "1");
 }
 
 #ifdef _WIN32
@@ -807,9 +819,9 @@ BOOL AmmoBox_AddAmmo(void *pPrivate, void *pPrivateOther)
 	if (!_strcmpi(STRING(pAmmobox->v.classname), "ammo_rpgclip"))
 	{
 #ifdef _WIN32
-		return reinterpret_cast<BOOL (__fastcall *)(void *, int, void *)>(g_RpgAmmoHook.address)(pPrivate, i, pPrivateOther);
+		return reinterpret_cast<BOOL (__fastcall *)(void *, int, void *)>(g_RpgAddAmmo_Hook.address)(pPrivate, i, pPrivateOther);
 #else
-		return reinterpret_cast<BOOL (*)(void *, void *)>(g_RpgAmmoHook.address)(pPrivate, pPrivateOther);
+		return reinterpret_cast<BOOL (*)(void *, void *)>(g_RpgAddAmmo_Hook.address)(pPrivate, pPrivateOther);
 #endif
 	}
 
@@ -834,6 +846,89 @@ BOOL AmmoBox_AddAmmo(void *pPrivate, void *pPrivateOther)
 }
 
 #ifdef _WIN32
+int __fastcall Item_Block(void *pPrivate, int i, void *pPrivate2)
+#else
+int Item_Block(void *pPrivate, void *pPrivate2)
+#endif
+{
+	g_pWeapon = PrivateToEdict(pPrivate);
+
+	if (IsValidPev(g_pWeapon))
+	{
+		g_pWeapon->v.flags |= FL_KILLME;
+	}
+
+	return FALSE;
+}
+
+#ifdef _WIN32
+void __fastcall World_Precache(void *pPrivate)
+#else
+void World_Precache(void *pPrivate)
+#endif
+{
+	char filepath[1024];
+
+	MF_BuildPathnameR(filepath, sizeof(filepath) - 1, "%s/weaponmod/_%s.ini", get_localinfo("amxx_configsdir", "addons/amxmodx/configs"), STRING(gpGlobals->mapname));
+	FILE *stream = fopen(filepath, "r");
+
+	if (stream)
+	{
+		char data[2048];
+
+		while (!feof(stream))
+		{
+			fgets(data, sizeof(data) - 1, stream);
+			
+			char *b = &data[0];
+
+			if (*b != ';')
+			{
+				CBlockItem *p = new CBlockItem;
+
+				p->strName.assign(b);
+				p->strName.trim();
+
+				p->VHook.handler = (void*)Item_Block;
+
+				if (strstr(b, "weapon_"))
+				{
+					p->VHook.offset = VOffset_AddToPlayer;
+				}
+				else if (strstr(b, "ammo_"))
+				{
+					p->VHook.offset = VOffset_AddAmmo;
+				}
+				else
+				{
+					delete p;
+					continue;
+				}
+
+				SetHookVirt(p->strName.c_str(), &p->VHook);
+				g_BlockedItems.push_back(p);
+			}
+		}
+
+		print_srvconsole("\n[WEAPONMOD] default items blocked \"_%s.ini\":\n", STRING(gpGlobals->mapname));
+
+		for (int i = 0; i < (int)g_BlockedItems.size(); i++)
+		{
+			print_srvconsole("   %s\n", g_BlockedItems[i]->strName.c_str());
+		}
+
+		print_srvconsole("\n");
+		fclose(stream);
+	}
+
+#ifdef _WIN32
+	reinterpret_cast<int (__fastcall *)(void *, int)>(g_WorldPrecache_Hook.address)(pPrivate, 0);
+#else
+	reinterpret_cast<int (*)(void *)>(g_WorldPrecache_Hook.address)(pPrivate);
+#endif
+}
+
+#ifdef _WIN32
 void __cdecl PrecacheOtherWeapon_HookHandler(const char *szClassname)
 #else
 void PrecacheOtherWeapon_HookHandler(const char *szClassname)
@@ -843,6 +938,16 @@ void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 	
 	if (IsValidPev(pEntity))
 	{
+		for (int i = 0; i < (int)g_BlockedItems.size(); i++)
+		{
+			if (!_strcmpi(g_BlockedItems[i]->strName.c_str(),szClassname))
+			{
+				MDLL_Spawn(pEntity);
+				REMOVE_ENTITY(pEntity);
+				return;
+			}
+		}
+
 		ItemInfo pII;
 		GET_ITEM_INFO(pEntity, &pII);
 

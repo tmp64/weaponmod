@@ -78,6 +78,7 @@ extern int Player_Set_AmmoInventory(edict_t* pPlayer, edict_t* pWeapon, BOOL bPr
 
 extern Vector ParseVec(char *pString);
 extern char* parse_arg(char** line, int& state);
+extern const char* get_localinfo(const char* name, const char* def);
 
 extern void print_srvconsole(char *fmt, ...);
 extern void GiveNamedItem(edict_t *pPlayer, const char *szName);
