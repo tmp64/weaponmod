@@ -148,12 +148,18 @@ typedef struct
 class CBlockItem
 {
 public:
+	CBlockItem()
+	{
+		VHook.done = NULL;
+		VHook.offset = NULL;
+		VHook.handler = NULL;
+		VHook.address = NULL;
+	}
+
 	~CBlockItem()
 	{
 		UnsetHookVirt(strName.c_str(), &VHook);
 		strName.clear();
-
-		delete &VHook;
 	}
 
 	VirtHookData VHook;

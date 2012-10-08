@@ -146,7 +146,7 @@ void ServerDeactivate()
 	g_iWeaponsCount = 0;
 	g_iWeaponInitID = 0;
 	g_iAmmoBoxIndex = 0;
-
+	
 	for (int i = 0; i < (int)g_BlockedItems.size(); i++)
 	{
 		delete g_BlockedItems[i];
