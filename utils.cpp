@@ -87,11 +87,6 @@ int Player_Set_AmmoInventory(edict_t* pPlayer, edict_t* pWeapon, BOOL bPrimary, 
 
 void GiveNamedItem(edict_t *pPlayer, const char *szName)
 {
-	if (!szName)
-	{
-		return;
-	}
-
 	int k = 0;
 	edict_t *pItem = NULL;
 
@@ -147,45 +142,6 @@ void print_srvconsole(char *fmt, ...)
 	va_end(argptr);
        
 	SERVER_PRINT(string);
-}
-
-char* parse_arg(char** line, int& state)
-{
-	static char arg[3072];
-	char* dest = arg;
-	state = 0;
-	
-	while (**line)
-	{
-		if (isspace(**line))
-		{
-			if (state == 1)
-				break;
-			else if (!state)
-			{
-				(*line)++;
-				continue;
-			}
-		}
-		else if (state != 2)
-			state = 1;
-		
-		if (**line == '"')
-		{
-			(*line)++;
-			
-			if (state == 2)
-				break;
-			
-			state = 2;
-			continue;
-		}
-		
-		*dest++ = *(*line)++;
-	}
-	
-	*dest = '\0';
-	return arg;
 }
 
 Vector ParseVec(char *pString)

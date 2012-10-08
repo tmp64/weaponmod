@@ -83,6 +83,7 @@
     <ClCompile Include="..\libFunc.cpp" />
     <ClCompile Include="..\meta_api.cpp" />
     <ClCompile Include="..\natives.cpp" />
+    <ClCompile Include="..\parser.cpp" />
     <ClCompile Include="..\sdk\amxxmodule.cpp" />
     <ClCompile Include="..\srvcmd.cpp" />
     <ClCompile Include="..\utils.cpp" />
@@ -91,6 +92,7 @@
     <ClInclude Include="..\effects.h" />
     <ClInclude Include="..\hooks.h" />
     <ClInclude Include="..\libFunc.h" />
+    <ClInclude Include="..\parser.h" />
     <ClInclude Include="..\sdk\amxxmodule.h" />
     <ClInclude Include="..\sdk\CString.h" />
     <ClInclude Include="..\sdk\CVector.h" />

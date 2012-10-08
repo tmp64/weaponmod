@@ -69,7 +69,6 @@ VirtHookData g_CrowbarHooks[CrowbarHook_End] =
 	_CBHOOK(CanHolster),
 	_CBHOOK(Holster),
 	_CBHOOK(ItemPostFrame),
-	_CBHOOK(Drop),
 	_CBHOOK(ItemSlot),
 	_CBHOOK(IsUseable)
 };
@@ -667,6 +666,12 @@ int Weapon_AddToPlayer(void *pPrivate, void *pPrivate2)
 
 	if (WeaponInfoArray[g_iId].iType == Wpn_Custom && IsValidPev(g_pPlayer))
 	{
+		if (!_strcmpi(STRING(g_pWeapon->v.classname), "weapon_crowbar"))
+		{
+			g_pWeapon->v.flags |= FL_KILLME;
+			return 0;
+		}
+
 		if (!cvar_aghlru)
 		{
 			static int msgWeapPickup = 0;
@@ -724,33 +729,6 @@ int Weapon_ItemSlot(void *pPrivate)
 	return reinterpret_cast<int (__fastcall *)(void *, int)>(g_CrowbarHooks[CrowbarHook_ItemSlot].address)(pPrivate, 0);
 #else
 	return reinterpret_cast<int (*)(void *)>(g_CrowbarHooks[CrowbarHook_ItemSlot].address)(pPrivate);
-#endif
-}
-
-#ifdef _WIN32
-void __fastcall Weapon_Drop(void *pPrivate)
-#else
-void Weapon_Drop(void *pPrivate)
-#endif
-{
-	g_pWeapon = PrivateToEdict(pPrivate);
-
-	if (!IsValidPev(g_pWeapon))
-	{
-		return;
-	}
-
-	g_iId = (int)*((int *)g_pWeapon->pvPrivateData + m_iId);
-
-	if (WeaponInfoArray[g_iId].iType == Wpn_Custom)
-	{
-		REMOVE_ENTITY(g_pWeapon);
-		return;
-	}
-#ifdef _WIN32
-	reinterpret_cast<int (__fastcall *)(void *, int)>(g_CrowbarHooks[CrowbarHook_Drop].address)(pPrivate, 0);
-#else
-	reinterpret_cast<int (*)(void *)>(g_CrowbarHooks[CrowbarHook_Drop].address)(pPrivate);
 #endif
 }
 
@@ -818,6 +796,15 @@ BOOL AmmoBox_AddAmmo(void *pPrivate, void *pPrivateOther)
 
 	if (!_strcmpi(STRING(pAmmobox->v.classname), "ammo_rpgclip"))
 	{
+		for (int k = 0; k < (int)g_BlockedItems.size(); k++)
+		{
+			if (!_strcmpi(g_BlockedItems[k]->strName.c_str(), "ammo_rpgclip"))
+			{
+				pAmmobox->v.flags |= FL_KILLME;
+				return FALSE;
+			}
+		}
+
 #ifdef _WIN32
 		return reinterpret_cast<BOOL (__fastcall *)(void *, int, void *)>(g_RpgAddAmmo_Hook.address)(pPrivate, i, pPrivateOther);
 #else
@@ -867,50 +854,11 @@ void __fastcall World_Precache(void *pPrivate)
 void World_Precache(void *pPrivate)
 #endif
 {
-	char filepath[1024];
+	SetConfigFile();
 
-	MF_BuildPathnameR(filepath, sizeof(filepath) - 1, "%s/weaponmod/_%s.ini", get_localinfo("amxx_configsdir", "addons/amxmodx/configs"), STRING(gpGlobals->mapname));
-	FILE *stream = fopen(filepath, "r");
-
-	if (stream)
+	if (ParseConfigSection("[block]", ParseBlockItems_Handler))
 	{
-		char data[2048];
-
-		while (!feof(stream))
-		{
-			fgets(data, sizeof(data) - 1, stream);
-			
-			char *b = &data[0];
-
-			if (*b != ';')
-			{
-				CBlockItem *p = new CBlockItem;
-
-				p->strName.assign(b);
-				p->strName.trim();
-
-				p->VHook.handler = (void*)Item_Block;
-
-				if (strstr(b, "weapon_"))
-				{
-					p->VHook.offset = VOffset_AddToPlayer;
-				}
-				else if (strstr(b, "ammo_"))
-				{
-					p->VHook.offset = VOffset_AddAmmo;
-				}
-				else
-				{
-					delete p;
-					continue;
-				}
-
-				SetHookVirt(p->strName.c_str(), &p->VHook);
-				g_BlockedItems.push_back(p);
-			}
-		}
-
-		print_srvconsole("\n[WEAPONMOD] default items blocked \"_%s.ini\":\n", STRING(gpGlobals->mapname));
+		print_srvconsole("\n[WEAPONMOD] default items blocked:\n");
 
 		for (int i = 0; i < (int)g_BlockedItems.size(); i++)
 		{
@@ -918,9 +866,8 @@ void World_Precache(void *pPrivate)
 		}
 
 		print_srvconsole("\n");
-		fclose(stream);
 	}
-
+	
 #ifdef _WIN32
 	reinterpret_cast<int (__fastcall *)(void *, int)>(g_WorldPrecache_Hook.address)(pPrivate, 0);
 #else
@@ -1002,7 +949,10 @@ void CheatImpulseCommands_HookHandler(void *pPrivate, int iImpulse)
 
 		for (int k = 1; k <= g_iWeaponsCount; k++)
 		{
-			GiveNamedItem(pPlayer, GetWeapon_pszName(k));
+			if (WeaponInfoArray[k].iType == Wpn_Custom)
+			{
+				GiveNamedItem(pPlayer, GetWeapon_pszName(k));
+			}
 		}
 
 		for (int k = 0; k < g_iAmmoBoxIndex; k++)

@@ -318,6 +318,12 @@ void UnsetHookVirt(const char *classname, VirtHookData *HookData)
 #endif
 	ivtable[HookData->offset] = (int *)HookData->address;
 
+#if defined _WIN32
+	VirtualFree(HookData->handler, 0, MEM_RELEASE);
+#elif __linux__
+	free(HookData->handler);
+#endif
+
 	HookData->address = NULL;
 	HookData->done = FALSE;
 }

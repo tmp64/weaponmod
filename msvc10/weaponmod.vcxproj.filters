@@ -28,6 +28,9 @@
     <ClCompile Include="..\effects.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\parser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\sdk\amxxmodule.h">
@@ -56,6 +59,9 @@
     </ClInclude>
     <ClInclude Include="..\sdk\CVector.h">
       <Filter>Module SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\parser.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -36,6 +36,9 @@
 #include "utils.h"
 
 
+int g_SpawnedWpns = 0;
+int g_SpawnedAmmo = 0;
+
 EntData *g_Ents = NULL;
 
 cvar_t *cvar_aghlru = NULL;
@@ -121,7 +124,7 @@ void OnAmxxDetach()
 			UnsetHook(&g_dllFuncs[i]);
 		}
 	}
-
+	
 	for (i = 0; i < CrowbarHook_End; i++)
 	{
 		UnsetHookVirt("weapon_crowbar", &g_CrowbarHooks[i]);
@@ -129,7 +132,7 @@ void OnAmxxDetach()
 
 	UnsetHookVirt("worldspawn", &g_WorldPrecache_Hook);
 	UnsetHookVirt("ammo_rpgclip", &g_RpgAddAmmo_Hook);
-
+	
 	delete [] g_Ents;
 }
 
@@ -137,6 +140,9 @@ void OnAmxxDetach()
 
 void ServerDeactivate()
 {
+	g_SpawnedWpns = 0;
+	g_SpawnedAmmo = 0;
+
 	g_iWeaponsCount = 0;
 	g_iWeaponInitID = 0;
 	g_iAmmoBoxIndex = 0;
@@ -167,10 +173,7 @@ int AmxxCheckGame(const char *game)
 	return AMXX_GAME_BAD;
 }
 
-
-
-
-
+/*
 void Player_SendAmmoUpdate(edict_t* pPlayer)
 {
 	for (int i = 0; i < MAX_AMMO_SLOTS; i++)
@@ -182,7 +185,7 @@ void Player_SendAmmoUpdate(edict_t* pPlayer)
 		MESSAGE_END();
 	}
 }
-
+*/
 void ClientCommand(edict_t *pEntity)
 {
 	const char* cmd = CMD_ARGV(0);
@@ -231,7 +234,7 @@ void ClientCommand(edict_t *pEntity)
 
 		RETURN_META(MRES_SUPERCEDE);
 	}
-	else if(cmd && _stricmp(cmd, "test1") == 0)
+	/*else if(cmd && _stricmp(cmd, "test1") == 0)
 	{
 		MESSAGE_BEGIN( MSG_ONE, REG_USER_MSG("ResetHUD", 1), NULL, pEntity );
 			WRITE_BYTE( 0 );
@@ -273,14 +276,10 @@ void ClientCommand(edict_t *pEntity)
 		Player_SendAmmoUpdate(pEntity);
 
 		
-	}
+	}*/
 
 	RETURN_META(MRES_IGNORED);
 }
-
-
-
-
 
 
 
@@ -291,58 +290,12 @@ void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 	MF_BuildPathnameR(filepath, sizeof(filepath) - 1, "maps/%s.bsp", STRING(gpGlobals->mapname));
 	ParseBSPEntData(filepath);
 
-	MF_BuildPathnameR(filepath, sizeof(filepath) - 1, "%s/weaponmod/%s.ini", get_localinfo("amxx_configsdir", "addons/amxmodx/configs"), STRING(gpGlobals->mapname));
-	FILE *stream = fopen(filepath, "r");
 
-	if (stream)
+
+	if (ParseConfigSection("[spawns]", ParseSpawnPoints_Handler))
 	{
-		char data[2048];
-		int wpns = 0, ammoboxes = 0;
-
-		while (!feof(stream))
-		{
-			fgets(data, sizeof(data) - 1, stream);
-			
-			char *b = &data[0];
-
-			if (*b != ';')
-			{
-				int i;
-				int state;
-				
-				char* arg;
-				char szData[3][32];
-
-				for (i = 0; i < 3; i++)
-				{
-					arg = parse_arg(&b, state);
-					strcpy(szData[i], arg);
-				}
-				
-				for (i = 1; i <= g_iWeaponsCount; i++)
-				{
-					if (WeaponInfoArray[i].iType == Wpn_Custom && !_stricmp(GetWeapon_pszName(i), szData[0]))
-					{
-						Weapon_Spawn(i, strlen(szData[1]) ? ParseVec(szData[1]) : Vector(0, 0, 0), strlen(szData[2])  ? ParseVec(szData[2]) : Vector(0, 0, 0));
-						wpns++;
-					}
-				}
-
-				for (i = 0; i < g_iAmmoBoxIndex; i++)
-				{
-					if (!_stricmp(AmmoBoxInfoArray[i].classname.c_str(), szData[0]))
-					{
-						Ammo_Spawn(i, strlen(szData[1]) ? ParseVec(szData[1]) : Vector(0, 0, 0), strlen(szData[2]) ? ParseVec(szData[2]) : Vector(0, 0, 0));
-						ammoboxes++;
-					}
-				}
-			}
-		}
-
-		print_srvconsole("[WEAPONMOD] \"%s.ini\": spawn %d weapons and %d ammoboxes.\n", STRING(gpGlobals->mapname), wpns, ammoboxes);
-		fclose(stream);
+		print_srvconsole("[WEAPONMOD] spawn %d weapons and %d ammoboxes from config.\n", g_SpawnedWpns, g_SpawnedAmmo);
 	}
-
+	
 	RETURN_META(MRES_IGNORED);
 }
-

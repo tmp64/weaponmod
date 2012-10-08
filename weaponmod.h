@@ -38,6 +38,7 @@
 #include "libFunc.h"
 #include "CString.h"
 #include "CVector.h"
+#include "parser.h"
 #include "cbase.h"
 
 
@@ -151,6 +152,8 @@ public:
 	{
 		UnsetHookVirt(strName.c_str(), &VHook);
 		strName.clear();
+
+		delete &VHook;
 	}
 
 	VirtHookData VHook;
@@ -171,6 +174,9 @@ public:
 };
 
 extern EntData *g_Ents;
+
+extern int g_SpawnedWpns;
+extern int g_SpawnedAmmo;
 
 extern int g_iWeaponsCount;
 extern int g_iWeaponInitID;

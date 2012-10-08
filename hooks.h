@@ -69,7 +69,6 @@
 #define VOffset_CanHolster					(XTRA_OFS_VTBL + 63)
 #define VOffset_Holster						(XTRA_OFS_VTBL + 64)
 #define VOffset_ItemPostFrame				(XTRA_OFS_VTBL + 67)
-#define VOffset_Drop						(XTRA_OFS_VTBL + 68)
 #define VOffset_ItemSlot					(XTRA_OFS_VTBL + 75)
 #define VOffset_IsUseable					(XTRA_OFS_VTBL + 82)
 
@@ -127,7 +126,6 @@ enum e_CrowbarHooks
 	CrowbarHook_CanHolster,
 	CrowbarHook_Holster,
 	CrowbarHook_ItemPostFrame,
-	CrowbarHook_Drop,
 	CrowbarHook_ItemSlot,
 	CrowbarHook_IsUseable,
 
@@ -146,6 +144,7 @@ extern edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles);
 
 #ifdef _WIN32
 extern void __cdecl PrecacheOtherWeapon_HookHandler(const char *szClassname);
+extern int __fastcall Item_Block(void *pPrivate, int i, void *pPrivate2);
 extern int __fastcall Weapon_GetItemInfo(void *pPrivate, int i, ItemInfo *p);
 extern int __fastcall Weapon_AddToPlayer(void *pPrivate, int i, void *pPrivate2);
 extern int __fastcall Weapon_ItemSlot(void *pPrivate);
@@ -155,7 +154,6 @@ extern void __fastcall CheatImpulseCommands_HookHandler(void *pPrivate, int i, i
 extern void __fastcall GiveNamedItem_HookHandler(void *pPrivate, int i, const char *szName);
 extern void __fastcall Weapon_Holster(void *pPrivate, int i, int skiplocal);
 extern void __fastcall Weapon_ItemPostFrame(void *pPrivate);
-extern void __fastcall Weapon_Drop(void *pPrivate);
 extern void __fastcall World_Precache(void *pPrivate);
 extern void* __fastcall Weapon_Respawn(void *pPrivate);
 extern BOOL __fastcall Weapon_CanHolster(void *pPrivate);
@@ -189,17 +187,17 @@ inline void TRACE_ATTACK(edict_t* pEntity, edict_t* pAttacker, float flDamage, V
 	reinterpret_cast<int (__fastcall *)(void *, int, entvars_t *, float, Vector, TraceResult *, int)>((*((void***)((char*)pEntity->pvPrivateData)))[VOffset_TraceAttack])(pEntity->pvPrivateData, 0, &(pAttacker->v), flDamage, vecDir,  &tr, bitsDamageType);
 }
 #else
+extern int Item_Block(void *pPrivate, void *pPrivate2);
 extern int Weapon_GetItemInfo(void *pPrivate, ItemInfo *p);
 extern int Weapon_AddToPlayer(void *pPrivate, void *pPrivate2);
 extern int Weapon_ItemSlot(void *pPrivate);
-extern void PrecacheOtherWeapon_HookHandler(const char *szClassname);
 extern void Global_Touch(void *pPrivate, void *pPrivate2);
 extern void Global_Think(void *pPrivate);
-extern void CheatImpulseCommands_HookHandler(void *pPrivate, int iImpulse);
 extern void GiveNamedItem_HookHandler(void *pPrivate, const char *szName);
+extern void PrecacheOtherWeapon_HookHandler(const char *szClassname);
+extern void CheatImpulseCommands_HookHandler(void *pPrivate, int iImpulse);
 extern void Weapon_Holster(void *pPrivate, int skiplocal);
 extern void Weapon_ItemPostFrame(void *pPrivate);
-extern void Weapon_Drop(void *pPrivate);
 extern void World_Precache(void *pPrivate);
 extern void* Weapon_Respawn(void *pPrivate);
 extern BOOL Weapon_CanHolster(void *pPrivate);
