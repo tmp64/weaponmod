@@ -292,7 +292,7 @@ void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 	ParseBSPEntData(filepath);
 
 
-
+	// Remove blocked items
 	for (int i = 0; i < (int)g_BlockedItems.size(); i++)
 	{
 		edict_t *pFind = FIND_ENTITY_BY_CLASSNAME(NULL, g_BlockedItems[i]->classname);

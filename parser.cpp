@@ -88,7 +88,6 @@ BOOL ParseConfigSection(char *pSection, void *pHandler)
 void ParseBlockItems_Handler(char* szBlockItem)
 {
 	VirtHookData *p = new VirtHookData;
-	
 	p->classname = STRING(ALLOC_STRING(szBlockItem));
 
 	if (strstr(szBlockItem, "weapon_"))
