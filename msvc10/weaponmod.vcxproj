@@ -91,7 +91,7 @@
     <ClInclude Include="..\effects.h" />
     <ClInclude Include="..\hooks.h" />
     <ClInclude Include="..\libFunc.h" />
-    <ClInclude Include="..\parser.h" />
+    <ClInclude Include="..\parse.h" />
     <ClInclude Include="..\sdk\amxxmodule.h" />
     <ClInclude Include="..\sdk\CString.h" />
     <ClInclude Include="..\sdk\CVector.h" />

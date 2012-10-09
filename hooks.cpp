@@ -54,6 +54,11 @@ VirtHookData g_WorldPrecache_Hook =
 	"worldspawn", VOffset_Precache, NULL, NULL, (void*)World_Precache
 };
 
+VirtHookData g_PlayerSpawn_Hook = 
+{
+	"player", VOffset_Spawn, NULL, NULL, (void*)Player_Spawn
+};
+
 VirtHookData g_CrowbarHooks[CrowbarHook_End] = 
 {
 	_CBHOOK(Respawn),
@@ -896,6 +901,69 @@ void World_Precache(void *pPrivate)
 #else
 	reinterpret_cast<int (*)(void *)>(g_WorldPrecache_Hook.address)(pPrivate);
 #endif
+}
+
+
+
+#ifdef _WIN32
+void __fastcall Equipment_Think(void *pPrivate)
+#else
+void Equipment_Think(void *pPrivate)
+#endif
+{
+	g_pEntity = PrivateToEdict(pPrivate);
+
+	if (!IsValidPev(g_pEntity) || !IsValidPev(g_EquipEnt))
+	{
+		return;
+	}
+
+	int iPlayer = *((int *)g_pEntity->pvPrivateData + m_fireState);
+
+	if (MF_IsPlayerValid(iPlayer) && MF_IsPlayerAlive(iPlayer))
+	{
+		MDLL_Touch(g_EquipEnt, INDEXENT(iPlayer));
+	}
+}
+
+
+
+#ifdef _WIN32
+void __fastcall Player_Spawn(void *pPrivate)
+#else
+void Player_Spawn(void *pPrivate)
+#endif
+{
+#ifdef _WIN32
+	reinterpret_cast<void (__fastcall *)(void *, int)>(g_PlayerSpawn_Hook.address)(pPrivate, 0);
+#else
+	reinterpret_cast<void (*)(void *)>(g_PlayerSpawn_Hook.address)(pPrivate);
+#endif
+
+	g_pPlayer = PrivateToEdict(pPrivate);
+
+	if (!IsValidPev(g_pPlayer))
+	{
+		return;
+	}
+
+	edict_t* pTaskEnt = NULL;
+
+	static int iszAllocStringCached;
+
+	if (iszAllocStringCached || (iszAllocStringCached = MAKE_STRING("info_target")))
+	{
+		pTaskEnt = CREATE_NAMED_ENTITY(iszAllocStringCached);
+	}
+
+	if (IsValidPev(pTaskEnt))
+	{
+		SetThink_(pTaskEnt, Equipment_Think);
+		*((int *)pTaskEnt->pvPrivateData + m_fireState) = ENTINDEX(g_pPlayer);
+
+		pTaskEnt->v.classname = MAKE_STRING("equipment_task");
+		pTaskEnt->v.nextthink = gpGlobals->time + 0.08;
+	}
 }
 
 

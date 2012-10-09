@@ -57,6 +57,7 @@
 	#define XTRA_OFS_PLAYER						5
 #endif
 
+#define VOffset_Spawn						(XTRA_OFS_VTBL + 0)
 #define VOffset_Precache					(XTRA_OFS_VTBL + 1)
 #define VOffset_Classify					(XTRA_OFS_VTBL + 8)
 #define VOffset_TraceAttack					(XTRA_OFS_VTBL + 10)
@@ -136,6 +137,7 @@ extern module hl_dll;
 extern function g_dllFuncs[Func_End];
 
 extern VirtHookData g_RpgAddAmmo_Hook;
+extern VirtHookData g_PlayerSpawn_Hook;
 extern VirtHookData g_WorldPrecache_Hook;
 extern VirtHookData g_CrowbarHooks[CrowbarHook_End];
 
@@ -148,6 +150,7 @@ extern int __fastcall Item_Block(void *pPrivate, int i, void *pPrivate2);
 extern int __fastcall Weapon_GetItemInfo(void *pPrivate, int i, ItemInfo *p);
 extern int __fastcall Weapon_AddToPlayer(void *pPrivate, int i, void *pPrivate2);
 extern int __fastcall Weapon_ItemSlot(void *pPrivate);
+extern void __fastcall Player_Spawn(void *pPrivate);
 extern void __fastcall Global_Touch(void *pPrivate, int i, void *pPrivate2);
 extern void __fastcall Global_Think(void *pPrivate);
 extern void __fastcall CheatImpulseCommands_HookHandler(void *pPrivate, int i, int iImpulse);
@@ -191,6 +194,7 @@ extern int Item_Block(void *pPrivate, void *pPrivate2);
 extern int Weapon_GetItemInfo(void *pPrivate, ItemInfo *p);
 extern int Weapon_AddToPlayer(void *pPrivate, void *pPrivate2);
 extern int Weapon_ItemSlot(void *pPrivate);
+extern void Player_Spawn(void *pPrivate);
 extern void Global_Touch(void *pPrivate, void *pPrivate2);
 extern void Global_Think(void *pPrivate);
 extern void GiveNamedItem_HookHandler(void *pPrivate, const char *szName);

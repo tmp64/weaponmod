@@ -167,6 +167,8 @@ extern int g_iWeaponsCount;
 extern int g_iWeaponInitID;
 extern int g_iAmmoBoxIndex;
 
+extern edict_t* g_EquipEnt;
+
 extern BOOL g_CrowbarHooksEnabled;
 
 extern cvar_t *cvar_aghlru;

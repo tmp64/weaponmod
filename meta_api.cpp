@@ -47,6 +47,8 @@ cvar_t *cvar_mp_weaponstay = NULL;
 
 CVector <VirtHookData *> g_BlockedItems;
 
+edict_t* g_EquipEnt = NULL;
+
 
 void OnAmxxAttach()
 {
@@ -140,6 +142,8 @@ void OnAmxxDetach()
 
 void ServerDeactivate()
 {
+	g_EquipEnt = NULL;
+
 	g_SpawnedWpns = 0;
 	g_SpawnedAmmo = 0;
 
@@ -159,6 +163,7 @@ void ServerDeactivate()
 	memset(WeaponInfoArray, 0, sizeof(WeaponInfoArray));
 	memset(AmmoBoxInfoArray, 0, sizeof(AmmoBoxInfoArray));
 
+	UnsetHookVirt(&g_PlayerSpawn_Hook);
 	RETURN_META(MRES_IGNORED);
 }
 
@@ -288,6 +293,9 @@ void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 {
 	// Get spawn point and create item from map's bsp file.
 	ParseBSP();
+
+	// Parse and create default equipment
+	ParseConfigSection("[equipment]", ParseEquipment_Handler);
 
 	// Remove blocked items
 	for (int i = 0; i < (int)g_BlockedItems.size(); i++)

@@ -154,6 +154,60 @@ void ParseSpawnPoints_Handler(char* data)
 	}
 }
 
+void ParseEquipment_Handler(char* data)
+{
+	if (g_EquipEnt == NULL)
+	{
+		edict_t* pFind = FIND_ENTITY_BY_CLASSNAME(NULL, "game_player_equip");
+
+		while (!FNullEnt(pFind))
+		{
+			pFind->v.flags |= FL_KILLME;
+			pFind = FIND_ENTITY_BY_CLASSNAME(pFind, "game_player_equip");
+		}
+
+		pFind = CREATE_NAMED_ENTITY(MAKE_STRING("game_player_equip"));
+		
+		if (IsValidPev(pFind))
+		{
+			MDLL_Spawn(pFind);
+
+			g_EquipEnt = CREATE_NAMED_ENTITY(MAKE_STRING("game_player_equip"));
+
+			if (IsValidPev(g_EquipEnt))
+			{
+				g_EquipEnt->v.classname = MAKE_STRING("weaponmod_equipment");
+				MDLL_Spawn(g_EquipEnt);
+
+				SetHookVirt(&g_PlayerSpawn_Hook);
+			}
+		}
+
+		return;
+	}
+
+	char* arg;
+	int i, state;
+	char szData[2][32];
+
+	KeyValueData kvd;
+
+	for (i = 0; i < 2; i++)
+	{
+		arg = parse_arg(&data, state);
+		
+		trim_line(arg);
+		strcpy(szData[i], arg);
+	}
+
+	kvd.szClassName = (char*)STRING(g_EquipEnt->v.classname);
+	kvd.szKeyName = szData[0];
+	kvd.szValue = szData[1];
+	kvd.fHandled = 0;
+
+	MDLL_KeyValue(g_EquipEnt, &kvd);
+}
+
 // Thanks to Eg@r4$il{ and HLSDK.
 void KeyValueFromBSP(char *pKey, char *pValue, int iNewent)
 {
@@ -379,7 +433,7 @@ char* parse_arg(char** line, int& state)
 		else if (state != 2)
 			state = 1;
 		
-		if (**line == '"')
+		if (**line == '"' || **line == ':')
 		{
 			(*line)++;
 			

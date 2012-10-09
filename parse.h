@@ -47,6 +47,7 @@ extern char *COM_ParseFile(char *data, char *token);
 extern bool FileExists(const char *dir);
 
 extern void ParseBSP();
+extern void ParseEquipment_Handler(char* data);
 extern void ParseSpawnPoints_Handler(char* data);
 extern void ParseBlockItems_Handler(char* szBlockItem);
 

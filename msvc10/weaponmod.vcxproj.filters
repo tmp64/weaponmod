@@ -57,7 +57,7 @@
     <ClInclude Include="..\sdk\CVector.h">
       <Filter>Module SDK</Filter>
     </ClInclude>
-    <ClInclude Include="..\parser.h">
+    <ClInclude Include="..\parse.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
