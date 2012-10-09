@@ -237,11 +237,11 @@ int AllowWriteToMemory(void *address)
 	return FALSE;
 }
 
-int SetHookVirt(VirtHookData *HookData)
+void SetHookVirt(VirtHookData *HookData)
 {
 	if (!HookData)
 	{
-		return FALSE;
+		return;
 	}
 
 	edict_t *pEdict = CREATE_ENTITY();
@@ -251,7 +251,7 @@ int SetHookVirt(VirtHookData *HookData)
 	if (pEdict->pvPrivateData == NULL)
 	{
 		REMOVE_ENTITY(pEdict);
-		return (HookData->done = FALSE);
+		return;
 	}
 
 #ifdef _WIN32
@@ -263,7 +263,7 @@ int SetHookVirt(VirtHookData *HookData)
 
     if (vtable == NULL)
 	{
-        return (HookData->done = FALSE);
+        return;
 	}
 
 	int **ivtable = (int **)vtable;
@@ -276,8 +276,6 @@ int SetHookVirt(VirtHookData *HookData)
 	mprotect(&ivtable[HookData->offset], sizeof(int*), PROT_READ | PROT_WRITE);
 #endif
 	ivtable[HookData->offset] = (int *)HookData->handler;
-	
-	return (HookData->done = TRUE);
 }
 
 void UnsetHookVirt(VirtHookData *HookData)

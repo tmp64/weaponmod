@@ -106,7 +106,7 @@ int AllowWriteToMemory(void *address);
 void SetHook(function *func);
 void UnsetHook(function *func);
 
-int SetHookVirt(VirtHookData *HookData);
+void SetHookVirt(VirtHookData *HookData);
 void UnsetHookVirt(VirtHookData *HookData);
 
 #endif // _LIBFUNC_H

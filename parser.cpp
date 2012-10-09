@@ -87,8 +87,9 @@ BOOL ParseConfigSection(char *pSection, void *pHandler)
 
 void ParseBlockItems_Handler(char* szBlockItem)
 {
-	CBlockItem *p = new CBlockItem;
-	p->strName.assign(szBlockItem);
+	VirtHookData *p = new VirtHookData;
+	
+	p->classname = STRING(ALLOC_STRING(szBlockItem));
 
 	if (strstr(szBlockItem, "weapon_"))
 	{
@@ -98,7 +99,7 @@ void ParseBlockItems_Handler(char* szBlockItem)
 			return;
 		}
 
-		p->VHook.offset = VOffset_AddToPlayer;
+		p->offset = VOffset_AddToPlayer;
 	}
 	else if (strstr(szBlockItem, "ammo_"))
 	{
@@ -108,7 +109,7 @@ void ParseBlockItems_Handler(char* szBlockItem)
 			return;
 		}
 
-		p->VHook.offset = VOffset_AddAmmo;
+		p->offset = VOffset_AddAmmo;
 	}
 	else
 	{
@@ -116,9 +117,8 @@ void ParseBlockItems_Handler(char* szBlockItem)
 		return;
 	}
 
-	p->VHook.classname = p->strName.c_str();
-	p->VHook.handler = (void*)Item_Block;
-	SetHookVirt(&p->VHook);
+	p->handler = (void*)Item_Block;
+	SetHookVirt(p);
 
 	g_BlockedItems.push_back(p);
 }

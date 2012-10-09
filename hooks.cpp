@@ -792,7 +792,7 @@ BOOL AmmoBox_AddAmmo(void *pPrivate, void *pPrivateOther)
 	{
 		for (int k = 0; k < (int)g_BlockedItems.size(); k++)
 		{
-			if (!_strcmpi(g_BlockedItems[k]->strName.c_str(), "ammo_rpgclip"))
+			if (!_strcmpi(g_BlockedItems[k]->classname, "ammo_rpgclip"))
 			{
 				pAmmobox->v.flags |= FL_KILLME;
 				return FALSE;
@@ -856,7 +856,7 @@ void World_Precache(void *pPrivate)
 
 		for (int i = 0; i < (int)g_BlockedItems.size(); i++)
 		{
-			print_srvconsole("   %s\n", g_BlockedItems[i]->strName.c_str());
+			print_srvconsole("   %s\n", g_BlockedItems[i]->classname);
 		}
 
 		print_srvconsole("\n");
@@ -881,7 +881,7 @@ void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 	{
 		for (int i = 0; i < (int)g_BlockedItems.size(); i++)
 		{
-			if (!_strcmpi(g_BlockedItems[i]->strName.c_str(),szClassname))
+			if (!_strcmpi(g_BlockedItems[i]->classname,szClassname))
 			{
 				MDLL_Spawn(pEntity);
 				REMOVE_ENTITY(pEntity);

@@ -45,7 +45,7 @@ cvar_t *cvar_aghlru = NULL;
 cvar_t *cvar_sv_cheats = NULL;
 cvar_t *cvar_mp_weaponstay = NULL;
 
-CVector <CBlockItem *> g_BlockedItems;
+CVector <VirtHookData *> g_BlockedItems;
 
 
 void OnAmxxAttach()
@@ -149,6 +149,7 @@ void ServerDeactivate()
 	
 	for (int i = 0; i < (int)g_BlockedItems.size(); i++)
 	{
+		UnsetHookVirt(g_BlockedItems[i]);
 		delete g_BlockedItems[i];
 	}
 

@@ -145,27 +145,6 @@ typedef struct
 	int iForward[Fwd_Ammo_End];
 } AmmoBoxData;
 
-class CBlockItem
-{
-public:
-	CBlockItem()
-	{
-		VHook.done = NULL;
-		VHook.offset = NULL;
-		VHook.handler = NULL;
-		VHook.address = NULL;
-	}
-
-	~CBlockItem()
-	{
-		UnsetHookVirt(&VHook);
-		strName.clear();
-	}
-
-	VirtHookData VHook;
-	String strName;
-};
-
 class CPlugin
 {
 public:
@@ -199,7 +178,7 @@ extern int g_iCurrentSlots[MAX_WEAPON_SLOTS][MAX_WEAPON_POSITIONS];
 extern WeaponData WeaponInfoArray[MAX_WEAPONS];
 extern AmmoBoxData AmmoBoxInfoArray[MAX_WEAPONS];
 
-extern CVector <CBlockItem *> g_BlockedItems;
+extern CVector <VirtHookData *> g_BlockedItems;
 
 extern AMX_NATIVE_INFO Natives[];
 
