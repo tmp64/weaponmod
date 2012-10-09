@@ -267,7 +267,6 @@ static cell AMX_NATIVE_CALL wpnmod_register_weapon(AMX *amx, cell *params)
 		#endif
 			SetHook(&g_dllFuncs[Func_PrecacheOtherWeapon]);
 
-			//print_srvconsole("!REGISTER! %d  %s \n", i, GetWeapon_pszName(i));
 			return i;
 		}
 	}

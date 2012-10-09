@@ -269,13 +269,14 @@ void SetHookVirt(VirtHookData *HookData)
 	int **ivtable = (int **)vtable;
 
 	HookData->address = (void *)ivtable[HookData->offset];
-	
 #ifdef _WIN32
 	VirtualProtect(&ivtable[HookData->offset], sizeof(int *), PAGE_READWRITE, &OldFlags);
 #else
 	mprotect(&ivtable[HookData->offset], sizeof(int*), PROT_READ | PROT_WRITE);
 #endif
 	ivtable[HookData->offset] = (int *)HookData->handler;
+
+	HookData->done = TRUE;
 }
 
 void UnsetHookVirt(VirtHookData *HookData)
@@ -322,6 +323,5 @@ void UnsetHookVirt(VirtHookData *HookData)
 	free(HookData->handler);
 #endif
 
-	HookData->address = NULL;
 	HookData->done = FALSE;
 }
