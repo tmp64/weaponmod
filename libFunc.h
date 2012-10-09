@@ -69,6 +69,8 @@ struct signature
 
 struct VirtHookData
 {
+	const char       *classname;
+
 	int              offset;
 	int              done;
 
@@ -104,7 +106,7 @@ int AllowWriteToMemory(void *address);
 void SetHook(function *func);
 void UnsetHook(function *func);
 
-int SetHookVirt(const char *classname, VirtHookData *HookData);
-void UnsetHookVirt(const char *classname, VirtHookData *HookData);
+int SetHookVirt(VirtHookData *HookData);
+void UnsetHookVirt(VirtHookData *HookData);
 
 #endif // _LIBFUNC_H

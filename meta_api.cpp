@@ -93,7 +93,7 @@ void OnAmxxAttach()
 	else
 	{
 		MF_AddNatives(Natives);
-		SetHookVirt("worldspawn", &g_WorldPrecache_Hook);
+		SetHookVirt(&g_WorldPrecache_Hook);
 
 		print_srvconsole("[WEAPONMOD] Found %s at %p\n", GET_GAME_INFO(PLID, GINFO_DLL_FILENAME), hl_dll.base);
 
@@ -127,11 +127,11 @@ void OnAmxxDetach()
 	
 	for (i = 0; i < CrowbarHook_End; i++)
 	{
-		UnsetHookVirt("weapon_crowbar", &g_CrowbarHooks[i]);
+		UnsetHookVirt(&g_CrowbarHooks[i]);
 	}
 
-	UnsetHookVirt("worldspawn", &g_WorldPrecache_Hook);
-	UnsetHookVirt("ammo_rpgclip", &g_RpgAddAmmo_Hook);
+	UnsetHookVirt(&g_WorldPrecache_Hook);
+	UnsetHookVirt( &g_RpgAddAmmo_Hook);
 	
 	delete [] g_Ents;
 }

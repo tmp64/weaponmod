@@ -112,11 +112,13 @@ void ParseBlockItems_Handler(char* szBlockItem)
 	}
 	else
 	{
+		delete p;
 		return;
 	}
 
+	p->VHook.classname = p->strName.c_str();
 	p->VHook.handler = (void*)Item_Block;
-	SetHookVirt(p->strName.c_str(), &p->VHook);
+	SetHookVirt(&p->VHook);
 
 	g_BlockedItems.push_back(p);
 }

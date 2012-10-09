@@ -253,7 +253,7 @@ static cell AMX_NATIVE_CALL wpnmod_register_weapon(AMX *amx, cell *params)
 		
 				for (int k = 0; k < CrowbarHook_End; k++)
 				{
-					SetHookVirt("weapon_crowbar", &g_CrowbarHooks[k]);
+					SetHookVirt(&g_CrowbarHooks[k]);
 				}
 			}
 
@@ -1216,7 +1216,7 @@ static cell AMX_NATIVE_CALL wpnmod_register_ammobox(AMX *amx, cell *params)
 	if (!g_AmmoBoxHooksEnabled)
 	{
 		g_AmmoBoxHooksEnabled = TRUE;
-		SetHookVirt("ammo_rpgclip", &g_RpgAddAmmo_Hook);
+		SetHookVirt(&g_RpgAddAmmo_Hook);
 	}
 
 	const char *szAmmoboxName = MF_GetAmxString(amx, params[1], 0, NULL);

@@ -237,7 +237,7 @@ int AllowWriteToMemory(void *address)
 	return FALSE;
 }
 
-int SetHookVirt(const char *classname, VirtHookData *HookData)
+int SetHookVirt(VirtHookData *HookData)
 {
 	if (!HookData)
 	{
@@ -246,7 +246,7 @@ int SetHookVirt(const char *classname, VirtHookData *HookData)
 
 	edict_t *pEdict = CREATE_ENTITY();
 
-	CALL_GAME_ENTITY(PLID, classname, &pEdict->v);
+	CALL_GAME_ENTITY(PLID, HookData->classname, &pEdict->v);
 
 	if (pEdict->pvPrivateData == NULL)
 	{
@@ -280,7 +280,7 @@ int SetHookVirt(const char *classname, VirtHookData *HookData)
 	return (HookData->done = TRUE);
 }
 
-void UnsetHookVirt(const char *classname, VirtHookData *HookData)
+void UnsetHookVirt(VirtHookData *HookData)
 {
 	if (!HookData || !HookData->done)
 	{
@@ -289,7 +289,7 @@ void UnsetHookVirt(const char *classname, VirtHookData *HookData)
 
 	edict_t *pEdict = CREATE_ENTITY();
 
-	CALL_GAME_ENTITY(PLID, classname, &pEdict->v);
+	CALL_GAME_ENTITY(PLID, HookData->classname, &pEdict->v);
 
 	if (pEdict->pvPrivateData == NULL)
 	{

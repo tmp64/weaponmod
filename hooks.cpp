@@ -45,18 +45,12 @@ module hl_dll = {NULL, 0, NULL};
 
 VirtHookData g_RpgAddAmmo_Hook =
 {
-	VOffset_AddAmmo, 
-	NULL, 
-	NULL, 
-	(void*)AmmoBox_AddAmmo
+	"ammo_rpgclip", VOffset_AddAmmo, NULL, NULL, (void*)AmmoBox_AddAmmo
 };
 
 VirtHookData g_WorldPrecache_Hook = 
 {
-	VOffset_Precache, 
-	NULL, 
-	NULL, 
-	(void*)World_Precache
+	"worldspawn", VOffset_Precache, NULL, NULL, (void*)World_Precache
 };
 
 VirtHookData g_CrowbarHooks[CrowbarHook_End] = 

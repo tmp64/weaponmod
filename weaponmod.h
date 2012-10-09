@@ -158,7 +158,7 @@ public:
 
 	~CBlockItem()
 	{
-		UnsetHookVirt(strName.c_str(), &VHook);
+		UnsetHookVirt(&VHook);
 		strName.clear();
 	}
 

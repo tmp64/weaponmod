@@ -40,7 +40,7 @@
 
 #define _CBHOOK(call) \
 	{ \
-		VOffset_##call, NULL, NULL, (void*)Weapon_##call, \
+		"weapon_crowbar", VOffset_##call, NULL, NULL, (void*)Weapon_##call, \
 	} 
 
 #ifdef _WIN32
