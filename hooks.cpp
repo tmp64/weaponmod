@@ -35,6 +35,7 @@
 #include "hooks.h"
 #include "utils.h"
 
+
 int g_iId;
 
 edict_t* g_pEntity;
@@ -177,6 +178,7 @@ function g_dllFuncs[Func_End] =
 };
 
 
+
 #ifdef _WIN32
 int __fastcall Weapon_GetItemInfo(void *pPrivate, int i, ItemInfo *p)
 #else
@@ -230,6 +232,8 @@ int Weapon_GetItemInfo(void *pPrivate, ItemInfo *p)
 	return 1;
 }
 
+
+
 #ifdef _WIN32
 BOOL __fastcall Weapon_CanDeploy(void *pPrivate)
 #else
@@ -272,6 +276,8 @@ BOOL Weapon_CanDeploy(void *pPrivate)
 		static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, FALSE))
 	);
 }
+
+
 
 #ifdef _WIN32
 BOOL __fastcall Weapon_Deploy(void *pPrivate)
@@ -324,6 +330,8 @@ BOOL Weapon_Deploy(void *pPrivate)
 
 	return iReturn;
 }
+
+
 
 #ifdef _WIN32
 void __fastcall Weapon_ItemPostFrame(void *pPrivate)
@@ -509,6 +517,8 @@ void Weapon_ItemPostFrame(void *pPrivate)
 	}
 }
 
+
+
 #ifdef _WIN32
 BOOL __fastcall Weapon_IsUseable(void *pPrivate)
 #else
@@ -552,6 +562,8 @@ BOOL Weapon_IsUseable(void *pPrivate)
 	);
 }
 
+
+
 #ifdef _WIN32
 BOOL __fastcall Weapon_CanHolster(void *pPrivate)
 #else
@@ -594,6 +606,8 @@ BOOL Weapon_CanHolster(void *pPrivate)
 		static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, FALSE))
 	);
 }
+
+
 
 #ifdef _WIN32
 void __fastcall Weapon_Holster(void *pPrivate, int i, int skiplocal)
@@ -641,6 +655,8 @@ void Weapon_Holster(void *pPrivate, int skiplocal)
 
 	g_engfuncs.pfnSetClientKeyValue(ENTINDEX(g_pPlayer), g_engfuncs.pfnGetInfoKeyBuffer(g_pPlayer), "cl_lw", "1");
 }
+
+
 
 #ifdef _WIN32
 int __fastcall Weapon_AddToPlayer(void *pPrivate, int i, void *pPrivate2)
@@ -702,6 +718,8 @@ int Weapon_AddToPlayer(void *pPrivate, void *pPrivate2)
 	);
 }
 
+
+
 #ifdef _WIN32
 int __fastcall Weapon_ItemSlot(void *pPrivate)
 #else
@@ -728,6 +746,8 @@ int Weapon_ItemSlot(void *pPrivate)
 	return reinterpret_cast<int (*)(void *)>(g_CrowbarHooks[CrowbarHook_ItemSlot].address)(pPrivate);
 #endif
 }
+
+
 
 #ifdef _WIN32
 void* __fastcall Weapon_Respawn(void *pPrivate)
@@ -776,6 +796,8 @@ void* Weapon_Respawn(void *pPrivate)
 
 	return pItem->pvPrivateData;
 }
+
+
 
 #ifdef _WIN32
 BOOL __fastcall AmmoBox_AddAmmo(void *pPrivate, int i, void *pPrivateOther)
@@ -829,6 +851,8 @@ BOOL AmmoBox_AddAmmo(void *pPrivate, void *pPrivateOther)
 	return bReturn;
 }
 
+
+
 #ifdef _WIN32
 int __fastcall Item_Block(void *pPrivate, int i, void *pPrivate2)
 #else
@@ -844,6 +868,8 @@ int Item_Block(void *pPrivate, void *pPrivate2)
 
 	return FALSE;
 }
+
+
 
 #ifdef _WIN32
 void __fastcall World_Precache(void *pPrivate)
@@ -871,6 +897,8 @@ void World_Precache(void *pPrivate)
 	reinterpret_cast<int (*)(void *)>(g_WorldPrecache_Hook.address)(pPrivate);
 #endif
 }
+
+
 
 #ifdef _WIN32
 void __cdecl PrecacheOtherWeapon_HookHandler(const char *szClassname)
@@ -913,6 +941,8 @@ void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 	SetHook(&g_dllFuncs[Func_PrecacheOtherWeapon]);
 }
 
+
+
 #ifdef _WIN32
 void __fastcall GiveNamedItem_HookHandler(void *pPrivate, int i, const char *szName)
 #else
@@ -932,6 +962,8 @@ void GiveNamedItem_HookHandler(void *pPrivate, const char *szName)
 #endif
 	SetHook(&g_dllFuncs[Func_GiveNamedItem]);
 }
+
+
 
 #ifdef _WIN32
 void __fastcall CheatImpulseCommands_HookHandler(void *pPrivate, int i, int iImpulse)
@@ -966,6 +998,7 @@ void CheatImpulseCommands_HookHandler(void *pPrivate, int iImpulse)
 #endif
 	SetHook(&g_dllFuncs[Func_CheatImpulseCommands]);
 }
+
 
 
 #ifdef _WIN32
@@ -1016,6 +1049,8 @@ void Global_Think(void *pPrivate)
 	}
 }
 
+
+
 #ifdef _WIN32
 void __fastcall Global_Touch(void *pPrivate, int i, void *pPrivate2)
 #else
@@ -1045,6 +1080,8 @@ void Global_Touch(void *pPrivate, void *pPrivate2)
 		);
 	}
 }
+
+
 
 edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 {
@@ -1089,6 +1126,8 @@ edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 
 	return pItem;
 }
+
+
 
 edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 {

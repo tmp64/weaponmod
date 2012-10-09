@@ -77,13 +77,12 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\bsp_parse.cpp" />
     <ClCompile Include="..\effects.cpp" />
     <ClCompile Include="..\hooks.cpp" />
     <ClCompile Include="..\libFunc.cpp" />
     <ClCompile Include="..\meta_api.cpp" />
     <ClCompile Include="..\natives.cpp" />
-    <ClCompile Include="..\parser.cpp" />
+    <ClCompile Include="..\parse.cpp" />
     <ClCompile Include="..\sdk\amxxmodule.cpp" />
     <ClCompile Include="..\srvcmd.cpp" />
     <ClCompile Include="..\utils.cpp" />

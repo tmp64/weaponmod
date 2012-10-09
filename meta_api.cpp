@@ -286,11 +286,8 @@ void ClientCommand(edict_t *pEntity)
 
 void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 {
-	char filepath[1024];
-
-	MF_BuildPathnameR(filepath, sizeof(filepath) - 1, "maps/%s.bsp", STRING(gpGlobals->mapname));
-	ParseBSPEntData(filepath);
-
+	// Get spawn point and create item from map's bsp file.
+	ParseBSP();
 
 	// Remove blocked items
 	for (int i = 0; i < (int)g_BlockedItems.size(); i++)
@@ -304,10 +301,11 @@ void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 		}
 	}
 
+	// Spawn items from ini file.
 	if (ParseConfigSection("[spawns]", ParseSpawnPoints_Handler))
 	{
 		print_srvconsole("[WEAPONMOD] spawn %d weapons and %d ammoboxes from config.\n", g_SpawnedWpns, g_SpawnedAmmo);
 	}
-	
+
 	RETURN_META(MRES_IGNORED);
 }

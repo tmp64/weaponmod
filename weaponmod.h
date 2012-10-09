@@ -38,7 +38,7 @@
 #include "libFunc.h"
 #include "CString.h"
 #include "CVector.h"
-#include "parser.h"
+#include "parse.h"
 #include "cbase.h"
 
 
@@ -183,7 +183,6 @@ extern CVector <VirtHookData *> g_BlockedItems;
 extern AMX_NATIVE_INFO Natives[];
 
 extern void WpnModCommand(void);
-extern int ParseBSPEntData(char *file);
 
 inline int			GetWeapon_Slot(const int iId)			{ return WeaponInfoArray[iId].ItemData.iSlot; }
 inline int			GetWeapon_ItemPosition(const int iId)	{ return WeaponInfoArray[iId].ItemData.iPosition; }

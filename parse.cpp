@@ -154,6 +154,124 @@ void ParseSpawnPoints_Handler(char* data)
 	}
 }
 
+// Thanks to Eg@r4$il{ and HLSDK.
+void KeyValueFromBSP(char *pKey, char *pValue, int iNewent)
+{
+	static vec_t AngleY;
+	static Vector vecOrigin;
+
+	if (iNewent)
+	{
+		AngleY = vecOrigin.x = vecOrigin.y = vecOrigin.z = 0;
+	}
+
+	if (!strcmp(pKey, "angle"))
+	{
+		AngleY = atoi(pValue);
+	}
+
+	if (!strcmp(pKey, "origin"))
+	{
+		vecOrigin = ParseVec(pValue);
+	}
+
+	if (!strcmp(pKey, "classname"))
+	{
+		int i;
+
+		for (i = 1; i <= g_iWeaponsCount; i++)
+		{
+			if (WeaponInfoArray[i].iType == Wpn_Custom && !_stricmp(GetWeapon_pszName(i), pValue))
+			{
+				Weapon_Spawn(i, vecOrigin, Vector (0, AngleY, 0));
+			}
+		}
+
+		for (i = 0; i < g_iAmmoBoxIndex; i++)
+		{
+			if (!_stricmp(AmmoBoxInfoArray[i].classname.c_str(), pValue))
+			{
+				Ammo_Spawn(i, vecOrigin, Vector (0, AngleY, 0));
+			}
+		}
+	}
+}
+
+void ParseBSP()
+{
+	FILE *fp;
+
+	int tmp, size;
+	char key[512];
+	char value[512];
+	bool newent = false;
+
+	char filepath[1024];
+	MF_BuildPathnameR(filepath, sizeof(filepath) - 1, "maps/%s.bsp", STRING(gpGlobals->mapname));
+
+	fp = fopen(filepath, "rb");
+	
+	if (!fp)
+	{
+		return;
+	}
+
+	fread(&tmp, 4, 1, fp);
+
+	if (tmp != 30)
+	{
+		return;
+	}
+
+	fread(&tmp, 4, 1, fp);
+	fread(&size, 4, 1, fp);
+	
+	char *data = (char*)malloc(size);
+	
+	if (!data)
+	{
+		return;
+	}
+
+	fseek(fp, tmp, SEEK_SET);
+	fread(data, size, 1, fp);
+	fclose(fp);
+
+	char token[2048];
+
+	while(( data = COM_ParseFile(data, token)) != NULL )
+	{
+		if (strcmp(token, "{"))
+		{
+			return;
+		}
+
+		newent = true;
+
+		while (true)
+		{
+			if (!( data = COM_ParseFile(data, token)))
+			{
+				return;
+			}
+
+			if (!strcmp(token, "}"))
+			{
+				break;
+			}
+
+			strcpy(key, token);
+			data = COM_ParseFile(data, token);
+			strcpy(value, token);
+
+			KeyValueFromBSP(key, value, newent);
+			newent = false;
+		}
+	}
+
+	free(data);
+}
+
 void SetConfigFile()
 {
 	MF_BuildPathnameR(g_ConfigFilepath, sizeof(g_ConfigFilepath) - 1, "%s/weaponmod/maps/%s.ini", get_localinfo("amxx_configsdir", "addons/amxmodx/configs"), STRING(gpGlobals->mapname));
@@ -277,4 +395,77 @@ char* parse_arg(char** line, int& state)
 	
 	*dest = '\0';
 	return arg;
+}
+
+char *COM_ParseFile( char *data, char *token )
+{
+	int	c, len;
+
+	if( !token )
+		return NULL;
+	
+	len = 0;
+	token[0] = 0;
+	
+	if( !data )
+		return NULL;
+		
+// skip whitespace
+skipwhite:
+	while(( c = ((byte)*data)) <= ' ' )
+	{
+		if( c == 0 )
+			return NULL;	// end of file;
+		data++;
+	}
+	
+	// skip // comments
+	if( c=='/' && data[1] == '/' )
+	{
+		while( *data && *data != '\n' )
+			data++;
+		goto skipwhite;
+	}
+
+	// handle quoted strings specially
+	if( c == '\"' )
+	{
+		data++;
+		while( 1 )
+		{
+			c = (byte)*data++;
+			if( c == '\"' || !c )
+			{
+				token[len] = 0;
+				return data;
+			}
+			token[len] = c;
+			len++;
+		}
+	}
+
+	// parse single characters
+	if( c == '{' || c == '}' || c == ')' || c == '(' || c == '\'' || c == ',' )
+	{
+		token[len] = c;
+		len++;
+		token[len] = 0;
+		return data + 1;
+	}
+
+	// parse a regular word
+	do
+	{
+		token[len] = c;
+		data++;
+		len++;
+		c = ((byte)*data);
+
+		if( c == '{' || c == '}' || c == ')' || c == '(' || c == '\'' || c == ',' )
+			break;
+	} while( c > 32 );
+	
+	token[len] = 0;
+
+	return data;
 }
