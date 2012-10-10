@@ -133,7 +133,7 @@ void OnAmxxDetach()
 	}
 
 	UnsetHookVirt(&g_WorldPrecache_Hook);
-	UnsetHookVirt( &g_RpgAddAmmo_Hook);
+	UnsetHookVirt(&g_RpgAddAmmo_Hook);
 	
 	delete [] g_Ents;
 }

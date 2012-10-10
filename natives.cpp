@@ -288,7 +288,7 @@ static cell AMX_NATIVE_CALL wpnmod_register_weapon_forward(AMX *amx, cell *param
 {
 	int iId = params[1];
 
-	if (iId >= MAX_WEAPONS || WeaponInfoArray[iId ].iType != Wpn_Custom)
+	if (iId <= 0 || iId >= MAX_WEAPONS || WeaponInfoArray[iId].iType != Wpn_Custom)
 	{
 		MF_LogError(amx, AMX_ERR_NATIVE, "Invalid weapon id provided. Got: %d  Valid: 16 up to %d.", iId, MAX_WEAPONS - 1);
 		return 0;

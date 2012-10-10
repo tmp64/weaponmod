@@ -666,50 +666,47 @@ int Weapon_AddToPlayer(void *pPrivate, void *pPrivate2)
 	}
 
 	g_iId = (int)*((int *)g_pWeapon->pvPrivateData + m_iId);
-
-	if (WeaponInfoArray[g_iId].iType == Wpn_Custom && !_strcmpi(STRING(g_pWeapon->v.classname), "weapon_crowbar"))
-	{
-			g_pWeapon->v.flags |= FL_KILLME;
-			return 0;
-	}
-
 	g_pPlayer = PrivateToEdict(pPrivate2);
 
-	if (!IsValidPev(g_pPlayer))
+	if (WeaponInfoArray[g_iId].iType == Wpn_Custom && IsValidPev(g_pPlayer))
 	{
-		return 0;
-	}
-
-	if (!cvar_aghlru)
-	{
-		static int msgWeapPickup = 0;
-		if (msgWeapPickup || (msgWeapPickup = REG_USER_MSG( "WeapPickup", 1 )))		
+		if (!_strcmpi(STRING(g_pWeapon->v.classname), "weapon_crowbar"))
 		{
-			MESSAGE_BEGIN(MSG_ONE, msgWeapPickup, NULL, g_pPlayer);
-			WRITE_BYTE(g_iId);
-			MESSAGE_END();
+			g_pWeapon->v.flags |= FL_KILLME;
+			return 0;
+		}
+
+		if (!cvar_aghlru)
+		{
+			static int msgWeapPickup = 0;
+			if (msgWeapPickup || (msgWeapPickup = REG_USER_MSG( "WeapPickup", 1 )))		
+			{
+				MESSAGE_BEGIN(MSG_ONE, msgWeapPickup, NULL, g_pPlayer);
+				WRITE_BYTE(g_iId);
+				MESSAGE_END();
+			}
+		}
+
+		if (WeaponInfoArray[g_iId].iForward[Fwd_Wpn_AddToPlayer])
+		{
+			MF_ExecuteForward
+			(
+				WeaponInfoArray[g_iId].iForward[Fwd_Wpn_AddToPlayer],
+
+				static_cast<cell>(ENTINDEX(g_pWeapon)), 
+				static_cast<cell>(ENTINDEX(g_pPlayer)), 
+				static_cast<cell>((int)*((int *)g_pWeapon->pvPrivateData + m_iClip)), 
+				static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, TRUE)),
+				static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, FALSE))
+			);
 		}
 	}
 
-	if (WeaponInfoArray[g_iId].iType == Wpn_Default || !WeaponInfoArray[g_iId].iForward[Fwd_Wpn_AddToPlayer])
-	{
 #ifdef _WIN32
-		return reinterpret_cast<int (__fastcall *)(void *, int, void *)>(g_CrowbarHooks[CrowbarHook_AddToPlayer].address)(pPrivate, 0, pPrivate2);
+	return reinterpret_cast<int (__fastcall *)(void *, int, void *)>(g_CrowbarHooks[CrowbarHook_AddToPlayer].address)(pPrivate, 0, pPrivate2);
 #else
-		return reinterpret_cast<int (*)(void *, void *)>(g_CrowbarHooks[CrowbarHook_AddToPlayer].address)(pPrivate, pPrivate2);
+	return reinterpret_cast<int (*)(void *, void *)>(g_CrowbarHooks[CrowbarHook_AddToPlayer].address)(pPrivate, pPrivate2);
 #endif
-	}
-
-	return MF_ExecuteForward
-	(
-		WeaponInfoArray[g_iId].iForward[Fwd_Wpn_AddToPlayer],
-
-		static_cast<cell>(ENTINDEX(g_pWeapon)), 
-		static_cast<cell>(ENTINDEX(g_pPlayer)), 
-		static_cast<cell>((int)*((int *)g_pWeapon->pvPrivateData + m_iClip)), 
-		static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, TRUE)),
-		static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, FALSE))
-	);
 }
 
 
