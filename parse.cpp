@@ -89,9 +89,9 @@ void ParseBlockItems_Handler(char* szBlockItem)
 {
 	VirtHookData *p = new VirtHookData;
 	
-	p->done = FALSE;
-	p->handler = FALSE;
-	p->address = FALSE;
+	p->done = NULL;
+	p->handler = NULL;
+	p->address = NULL;
 	p->classname = STRING(ALLOC_STRING(szBlockItem));
 
 	if (!_strcmpi(szBlockItem, "weapon_crowbar") || !_strcmpi(szBlockItem, "ammo_rpgclip"))

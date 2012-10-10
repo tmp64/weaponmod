@@ -362,7 +362,7 @@ static cell AMX_NATIVE_CALL wpnmod_get_weapon_info(AMX *amx, cell *params)
 
 	edict_t* pItem = NULL;
 
-	if (iId > g_iWeaponsCount)
+	if (iId >= MAX_WEAPONS)
 	{
 		CHECK_ENTITY(iId)
 		pItem = INDEXENT2(iId);
