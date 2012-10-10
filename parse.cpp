@@ -88,26 +88,24 @@ BOOL ParseConfigSection(char *pSection, void *pHandler)
 void ParseBlockItems_Handler(char* szBlockItem)
 {
 	VirtHookData *p = new VirtHookData;
+	
+	p->done = FALSE;
+	p->handler = FALSE;
+	p->address = FALSE;
 	p->classname = STRING(ALLOC_STRING(szBlockItem));
+
+	if (!_strcmpi(szBlockItem, "weapon_crowbar") || !_strcmpi(szBlockItem, "ammo_rpgclip"))
+	{
+		g_BlockedItems.push_back(p);
+		return;
+	}
 
 	if (strstr(szBlockItem, "weapon_"))
 	{
-		if (!_strcmpi(szBlockItem, "weapon_crowbar"))
-		{
-			g_BlockedItems.push_back(p);
-			return;
-		}
-
 		p->offset = VOffset_AddToPlayer;
 	}
 	else if (strstr(szBlockItem, "ammo_"))
 	{
-		if (!_strcmpi(szBlockItem, "ammo_rpgclip"))
-		{
-			g_BlockedItems.push_back(p);
-			return;
-		}
-
 		p->offset = VOffset_AddAmmo;
 	}
 	else

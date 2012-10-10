@@ -44,20 +44,9 @@ edict_t* g_pPlayer;
 
 module hl_dll = {NULL, 0, NULL};
 
-VirtHookData g_RpgAddAmmo_Hook =
-{
-	"ammo_rpgclip", VOffset_AddAmmo, NULL, NULL, (void*)AmmoBox_AddAmmo
-};
-
-VirtHookData g_WorldPrecache_Hook = 
-{
-	"worldspawn", VOffset_Precache, NULL, NULL, (void*)World_Precache
-};
-
-VirtHookData g_PlayerSpawn_Hook = 
-{
-	"player", VOffset_Spawn, NULL, NULL, (void*)Player_Spawn
-};
+VirtHookData g_PlayerSpawn_Hook = { "player", VOffset_Spawn, NULL, NULL, (void*)Player_Spawn };
+VirtHookData g_RpgAddAmmo_Hook = { "ammo_rpgclip", VOffset_AddAmmo, NULL, NULL, (void*)AmmoBox_AddAmmo };
+VirtHookData g_WorldPrecache_Hook = { "worldspawn", VOffset_Precache, NULL, NULL, (void*)World_Precache };
 
 VirtHookData g_CrowbarHooks[CrowbarHook_End] = 
 {
@@ -923,6 +912,7 @@ void Equipment_Think(void *pPrivate)
 	if (MF_IsPlayerValid(iPlayer) && MF_IsPlayerAlive(iPlayer))
 	{
 		MDLL_Touch(g_EquipEnt, INDEXENT(iPlayer));
+		g_pEntity->v.flags |= FL_KILLME;
 	}
 }
 
