@@ -764,7 +764,7 @@ void* Weapon_Respawn(void *pPrivate)
 #endif
 	}
 
-	edict_t* pItem = Weapon_Spawn(g_iId, g_pWeapon->v.origin, g_pWeapon->v.angles);
+	edict_t* pItem = Weapon_Spawn(GetWeapon_pszName(g_iId), g_pWeapon->v.origin, g_pWeapon->v.angles);
 
 	if (IsValidPev(pItem))
 	{
@@ -1004,7 +1004,7 @@ void __fastcall GiveNamedItem_HookHandler(void *pPrivate, int i, const char *szN
 void GiveNamedItem_HookHandler(void *pPrivate, const char *szName)
 #endif
 {
-	if (cvar_sv_cheats->value)
+	if (szName)
 	{
 		GiveNamedItem(PrivateToEdict(pPrivate), szName);
 	}
@@ -1138,12 +1138,32 @@ void Global_Touch(void *pPrivate, void *pPrivate2)
 
 
 
-edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
+edict_t* Weapon_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles)
 {
+	if (!szName)
+	{
+		return NULL;
+	}
+
+	int iId = 0;
+	
+	for (int i = 1; i <= g_iWeaponsCount; i++)
+	{
+		if (WeaponInfoArray[i].iType == Wpn_Custom && !_stricmp(GetWeapon_pszName(i), szName))
+		{
+			iId = i;
+			break;
+		}
+	}
+
+	if (!iId)
+	{
+		return NULL;
+	}
+
 	edict_t* pItem = NULL;
 
 	static int iszAllocStringCached;
-
 	if (iszAllocStringCached || (iszAllocStringCached = MAKE_STRING("weapon_crowbar")))
 	{
 		pItem = CREATE_NAMED_ENTITY(iszAllocStringCached);
@@ -1176,20 +1196,42 @@ edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 				static_cast<cell>(0),
 				static_cast<cell>(0)
 			);
-		}
+		}	
+
+		return pItem;
 	}
 
-	return pItem;
+	return NULL;
 }
 
 
 
-edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
+edict_t* Ammo_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles)
 {
+	if (!szName)
+	{
+		return NULL;
+	}
+
+	int iId = 0;
+	
+	for (int i = 0; i < g_iAmmoBoxIndex; i++)
+	{
+		if (!_stricmp(AmmoBoxInfoArray[i].classname.c_str(), szName))
+		{
+			iId = i;
+			break;
+		}
+	}
+
+	if (!iId)
+	{
+		return NULL;
+	}
+
 	edict_t* pAmmoBox = NULL;
 
 	static int iszAllocStringCached;
-
 	if (iszAllocStringCached || (iszAllocStringCached = MAKE_STRING("ammo_rpgclip")))
 	{
 		pAmmoBox = CREATE_NAMED_ENTITY(iszAllocStringCached);
@@ -1212,7 +1254,9 @@ edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles)
 				static_cast<cell>(0)
 			);
 		}
+
+		return pAmmoBox;
 	}
 
-	return pAmmoBox;
+	return NULL;
 }

@@ -1148,7 +1148,7 @@ static cell AMX_NATIVE_CALL wpnmod_play_empty_sound(AMX *amx, cell *params)
 */
 static cell AMX_NATIVE_CALL wpnmod_create_item(AMX *amx, cell *params)
 {
-	char *wpnname = MF_GetAmxString(amx, params[1], 0, NULL);
+	char *itemname = MF_GetAmxString(amx, params[1], 0, NULL);
 
 	Vector vecOrigin;
 	cell *vOrigin = MF_GetAmxAddr(amx, params[2]);
@@ -1164,32 +1164,20 @@ static cell AMX_NATIVE_CALL wpnmod_create_item(AMX *amx, cell *params)
 	vecAngles.y = amx_ctof(vAngles[1]);
 	vecAngles.z = amx_ctof(vAngles[2]);
 
-	int i;
+	edict_t* iItem = Weapon_Spawn(itemname, vecOrigin, vecAngles);
 
-	for (i = 1; i <= g_iWeaponsCount; i++)
+	if (IsValidPev(iItem))
 	{
-		if (WeaponInfoArray[i].iType == Wpn_Custom && !_stricmp(GetWeapon_pszName(i), wpnname))
-		{
-			edict_t* iItem = Weapon_Spawn(i, vecOrigin, vecAngles);
-
-			if (IsValidPev(iItem))
-			{
-				return ENTINDEX(iItem);
-			}
-		}
+		return ENTINDEX(iItem);
 	}
-
-	for (i = 0; i < g_iAmmoBoxIndex; i++)
+	else
 	{
-		if (!_stricmp(AmmoBoxInfoArray[i].classname.c_str(), wpnname))
-		{
-			edict_t* iItem = Ammo_Spawn(i, vecOrigin, vecAngles);
+		edict_t* iItem = Ammo_Spawn(itemname, vecOrigin, vecAngles);
 
-			if (IsValidPev(iItem))
-			{
-				return ENTINDEX(iItem);
-			}	
-		}
+		if (IsValidPev(iItem))
+		{
+			return ENTINDEX(iItem);
+		}	
 	}
 
 	return -1;

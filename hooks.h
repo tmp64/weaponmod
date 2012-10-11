@@ -141,8 +141,8 @@ extern VirtHookData g_PlayerSpawn_Hook;
 extern VirtHookData g_WorldPrecache_Hook;
 extern VirtHookData g_CrowbarHooks[CrowbarHook_End];
 
-extern edict_t* Weapon_Spawn(int iId, Vector vecOrigin, Vector vecAngles);
-extern edict_t* Ammo_Spawn(int iId, Vector vecOrigin, Vector vecAngles);
+extern edict_t* Ammo_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles);
+extern edict_t* Weapon_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles);
 
 #ifdef _WIN32
 extern void __cdecl PrecacheOtherWeapon_HookHandler(const char *szClassname);

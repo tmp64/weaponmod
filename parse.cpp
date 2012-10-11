@@ -125,30 +125,22 @@ void ParseSpawnPoints_Handler(char* data)
 	char* arg;
 	char szData[3][32];
 
-	int i, state;
+	int state;
 
-	for (i = 0; i < 3; i++)
+	for (int i = 0; i < 3; i++)
 	{
 		arg = parse_arg(&data, state);
 		strcpy(szData[i], arg);
 	}
-				
-	for (i = 1; i <= g_iWeaponsCount; i++)
+
+	if (Weapon_Spawn(szData[0], strlen(szData[1]) ? ParseVec(szData[1]) : Vector(0, 0, 0), strlen(szData[2])  ? ParseVec(szData[2]) : Vector(0, 0, 0)))
 	{
-		if (WeaponInfoArray[i].iType == Wpn_Custom && !_stricmp(GetWeapon_pszName(i), szData[0]))
-		{
-			Weapon_Spawn(i, strlen(szData[1]) ? ParseVec(szData[1]) : Vector(0, 0, 0), strlen(szData[2])  ? ParseVec(szData[2]) : Vector(0, 0, 0));
-			g_SpawnedWpns++;
-		}
+		g_SpawnedWpns++;
 	}
 
-	for (i = 0; i < g_iAmmoBoxIndex; i++)
+	if (Ammo_Spawn(szData[0], strlen(szData[1]) ? ParseVec(szData[1]) : Vector(0, 0, 0), strlen(szData[2]) ? ParseVec(szData[2]) : Vector(0, 0, 0)))
 	{
-		if (!_stricmp(AmmoBoxInfoArray[i].classname.c_str(), szData[0]))
-		{
-			Ammo_Spawn(i, strlen(szData[1]) ? ParseVec(szData[1]) : Vector(0, 0, 0), strlen(szData[2]) ? ParseVec(szData[2]) : Vector(0, 0, 0));
-			g_SpawnedAmmo++;
-		}
+		g_SpawnedAmmo++;
 	}
 }
 
@@ -165,7 +157,7 @@ void ParseEquipment_Handler(char* data)
 		}
 
 		pFind = CREATE_NAMED_ENTITY(MAKE_STRING("game_player_equip"));
-		
+
 		if (IsValidPev(pFind))
 		{
 			MDLL_Spawn(pFind);
@@ -180,8 +172,6 @@ void ParseEquipment_Handler(char* data)
 				SetHookVirt(&g_PlayerSpawn_Hook);
 			}
 		}
-
-		return;
 	}
 
 	char* arg;
@@ -229,23 +219,8 @@ void KeyValueFromBSP(char *pKey, char *pValue, int iNewent)
 
 	if (!strcmp(pKey, "classname"))
 	{
-		int i;
-
-		for (i = 1; i <= g_iWeaponsCount; i++)
-		{
-			if (WeaponInfoArray[i].iType == Wpn_Custom && !_stricmp(GetWeapon_pszName(i), pValue))
-			{
-				Weapon_Spawn(i, vecOrigin, Vector (0, AngleY, 0));
-			}
-		}
-
-		for (i = 0; i < g_iAmmoBoxIndex; i++)
-		{
-			if (!_stricmp(AmmoBoxInfoArray[i].classname.c_str(), pValue))
-			{
-				Ammo_Spawn(i, vecOrigin, Vector (0, AngleY, 0));
-			}
-		}
+		Ammo_Spawn(pValue, vecOrigin, Vector (0, AngleY, 0));
+		Weapon_Spawn(pValue, vecOrigin, Vector (0, AngleY, 0));
 	}
 }
 

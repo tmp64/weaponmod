@@ -87,28 +87,11 @@ int Player_Set_AmmoInventory(edict_t* pPlayer, edict_t* pWeapon, BOOL bPrimary, 
 
 void GiveNamedItem(edict_t *pPlayer, const char *szName)
 {
-	int k = 0;
-	edict_t *pItem = NULL;
-
-	for (k = 1; k <= g_iWeaponsCount; k++)
-	{
-		if (WeaponInfoArray[k].iType == Wpn_Custom && !_stricmp(GetWeapon_pszName(k), szName))
-		{
-			pItem = Weapon_Spawn(k, pPlayer->v.origin, Vector (0, 0, 0));
-			break;
-		}
-	}
+	edict_t *pItem = Weapon_Spawn(szName, pPlayer->v.origin, Vector (0, 0, 0));
 
 	if (pItem == NULL)
 	{
-		for (k = 0; k < g_iAmmoBoxIndex; k++)
-		{
-			if (!_stricmp(AmmoBoxInfoArray[k].classname.c_str(), szName))
-			{
-				pItem = Ammo_Spawn(k, pPlayer->v.origin, Vector (0, 0, 0));
-				break;
-			}
-		}
+		pItem = Ammo_Spawn(szName, pPlayer->v.origin, Vector (0, 0, 0));
 	}
 
 	if (IsValidPev(pItem))
@@ -121,7 +104,6 @@ void GiveNamedItem(edict_t *pPlayer, const char *szName)
 			REMOVE_ENTITY(pItem);
 		}
 	}
-
 }
 
 const char* get_localinfo(const char* name , const char* def = 0)

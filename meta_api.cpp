@@ -196,7 +196,16 @@ void ClientCommand(edict_t *pEntity)
 {
 	const char* cmd = CMD_ARGV(0);
 
-	if (cmd && _stricmp(cmd, "wpnmod") == 0)
+	if (cmd && !_stricmp(cmd, "give") && cvar_sv_cheats->value)
+	{
+		const char* item = CMD_ARGV(1);
+
+		if (item)
+		{
+			GiveNamedItem(pEntity, item);
+		}
+	}
+	else if (cmd && !_stricmp(cmd, "wpnmod"))
 	{
 		int i = 0;
 		int ammo = 0;
@@ -209,7 +218,7 @@ void ClientCommand(edict_t *pEntity)
 		sprintf(buf, "\n%s %s\n", Plugin_info.name, Plugin_info.version);
 		CLIENT_PRINT(pEntity, print_console, buf);
 		len = sprintf(buf, "Author: \n         KORD_12.7 (AGHL.RU Dev Team)\n");
-		len += sprintf(&buf[len], "Credits: \n         AMXX Dev team, 6a6kin, GordonFreeman, Lev, noo00oob\n");
+		len += sprintf(&buf[len], "Credits: \n         AMXX Dev team, 6a6kin, GordonFreeman, Koshak, Lev, noo00oob\n");
 		len += sprintf(&buf[len], "Compiled: %s\nURL: http://www.aghl.ru/ - Russian Half-Life and Adrenaline Gamer Community.\n\n", __DATE__ ", " __TIME__);
 		CLIENT_PRINT(pEntity, print_console, buf);
 
