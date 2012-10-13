@@ -44,18 +44,16 @@ BOOL ParseConfigSection(char *pSection, void *pHandler)
 {
 	BOOL bFound = FALSE;
 	BOOL bResult = FALSE;
+
 	FILE *stream = fopen(g_ConfigFilepath, "r");
 
 	if (stream)
 	{
 		char data[2048];
 
-		while (!feof(stream))
+		while (!feof(stream) && fgets(data, sizeof(data) - 1, stream))
 		{
-			fgets(data, sizeof(data) - 1, stream);
-			
 			char *b = &data[0];
-
 			trim_line(b);
 
 			if (*b && *b != ';')
@@ -66,7 +64,7 @@ BOOL ParseConfigSection(char *pSection, void *pHandler)
 					continue;
 				}
 
-				if (bFound)
+				else if (bFound)
 				{
 					if (*b == '[')
 					{
@@ -137,8 +135,7 @@ void ParseSpawnPoints_Handler(char* data)
 	{
 		g_SpawnedWpns++;
 	}
-
-	if (Ammo_Spawn(szData[0], strlen(szData[1]) ? ParseVec(szData[1]) : Vector(0, 0, 0), strlen(szData[2]) ? ParseVec(szData[2]) : Vector(0, 0, 0)))
+	else if (Ammo_Spawn(szData[0], strlen(szData[1]) ? ParseVec(szData[1]) : Vector(0, 0, 0), strlen(szData[2]) ? ParseVec(szData[2]) : Vector(0, 0, 0)))
 	{
 		g_SpawnedAmmo++;
 	}
@@ -148,28 +145,28 @@ void ParseEquipment_Handler(char* data)
 {
 	if (g_EquipEnt == NULL)
 	{
-		edict_t* pFind = FIND_ENTITY_BY_CLASSNAME(NULL, "game_player_equip");
+		const char* equip_classname = "game_player_equip";
+
+		edict_t* pFind = FIND_ENTITY_BY_CLASSNAME(NULL, equip_classname);
 
 		while (!FNullEnt(pFind))
 		{
 			pFind->v.flags |= FL_KILLME;
-			pFind = FIND_ENTITY_BY_CLASSNAME(pFind, "game_player_equip");
+			pFind = FIND_ENTITY_BY_CLASSNAME(pFind, equip_classname);
 		}
 
-		pFind = CREATE_NAMED_ENTITY(MAKE_STRING("game_player_equip"));
+		pFind = CREATE_NAMED_ENTITY(MAKE_STRING(equip_classname));
 
 		if (IsValidPev(pFind))
 		{
 			MDLL_Spawn(pFind);
 
-			g_EquipEnt = CREATE_NAMED_ENTITY(MAKE_STRING("game_player_equip"));
+			g_EquipEnt = CREATE_NAMED_ENTITY(MAKE_STRING(equip_classname));
 
 			if (IsValidPev(g_EquipEnt))
 			{
 				g_EquipEnt->v.classname = MAKE_STRING("weaponmod_equipment");
 				MDLL_Spawn(g_EquipEnt);
-
-				SetHookVirt(&g_PlayerSpawn_Hook);
 			}
 		}
 	}
@@ -196,6 +193,28 @@ void ParseEquipment_Handler(char* data)
 	MDLL_KeyValue(g_EquipEnt, &kvd);
 }
 
+void ParseAmmo_Handler(char* data)
+{
+	char* arg;
+	int i, state;
+	char szData[2][32];
+
+	for (i = 0; i < 2; i++)
+	{
+		arg = parse_arg(&data, state);
+		
+		trim_line(arg);
+		strcpy(szData[i], arg);
+	}
+
+	StartAmmo *p = new StartAmmo;
+
+	p->ammoname = STRING(ALLOC_STRING(szData[0]));
+	p->count = max(min(atoi(szData[1]), 254 ), 0);
+
+	g_StartAmmo.push_back(p);
+}
+
 // Thanks to Eg@r4$il{ and HLSDK.
 void KeyValueFromBSP(char *pKey, char *pValue, int iNewent)
 {
@@ -217,9 +236,8 @@ void KeyValueFromBSP(char *pKey, char *pValue, int iNewent)
 		vecOrigin = ParseVec(pValue);
 	}
 
-	if (!strcmp(pKey, "classname"))
+	if (!strcmp(pKey, "classname") && !Ammo_Spawn(pValue, vecOrigin, Vector (0, AngleY, 0)))
 	{
-		Ammo_Spawn(pValue, vecOrigin, Vector (0, AngleY, 0));
 		Weapon_Spawn(pValue, vecOrigin, Vector (0, AngleY, 0));
 	}
 }
@@ -332,6 +350,22 @@ bool FileExists(const char *file)
 	
 	return 1;
 #endif
+}
+
+Vector ParseVec(char *pString)
+{
+	char *pValue;
+	Vector vecResult;
+
+	vecResult.x = atoi(pValue = pString);
+
+	for (int i = 0; i < 2; i++)
+	{
+		pValue = strchr(pValue + i, ' ');
+		vecResult[i + 1] = atoi(pValue);
+	}
+
+	return vecResult;
 }
 
 void trim_line(char *input)

@@ -40,14 +40,14 @@ int g_SpawnedWpns = 0;
 int g_SpawnedAmmo = 0;
 
 EntData *g_Ents = NULL;
+edict_t* g_EquipEnt = NULL;
 
 cvar_t *cvar_aghlru = NULL;
 cvar_t *cvar_sv_cheats = NULL;
 cvar_t *cvar_mp_weaponstay = NULL;
 
+CVector <StartAmmo *> g_StartAmmo;
 CVector <VirtHookData *> g_BlockedItems;
-
-edict_t* g_EquipEnt = NULL;
 
 
 void OnAmxxAttach()
@@ -140,9 +140,41 @@ void OnAmxxDetach()
 
 
 
+void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
+{
+	// Get spawn point and create item from map's bsp file.
+	ParseBSP();
+
+	// Parse default equipments and ammo.
+	ParseConfigSection("[ammo]", ParseAmmo_Handler);
+	ParseConfigSection("[equipment]", ParseEquipment_Handler);
+
+	// Remove blocked items.
+	for (int i = 0; i < (int)g_BlockedItems.size(); i++)
+	{
+		edict_t *pFind = FIND_ENTITY_BY_CLASSNAME(NULL, g_BlockedItems[i]->classname);
+
+		while (!FNullEnt(pFind))
+		{
+			pFind->v.flags |= FL_KILLME;
+			pFind = FIND_ENTITY_BY_CLASSNAME(pFind, g_BlockedItems[i]->classname);
+		}
+	}
+
+	// Spawn items from ini file.
+	if (ParseConfigSection("[spawns]", ParseSpawnPoints_Handler))
+	{
+		print_srvconsole("[WEAPONMOD] spawn %d weapons and %d ammoboxes from config.\n", g_SpawnedWpns, g_SpawnedAmmo);
+	}
+
+	SetHookVirt(&g_PlayerSpawn_Hook);
+	RETURN_META(MRES_IGNORED);
+}
+
+
 void ServerDeactivate()
 {
-	g_EquipEnt = NULL;
+	g_EquipEnt = 0;
 
 	g_SpawnedWpns = 0;
 	g_SpawnedAmmo = 0;
@@ -150,18 +182,24 @@ void ServerDeactivate()
 	g_iWeaponsCount = 0;
 	g_iWeaponInitID = 0;
 	g_iAmmoBoxIndex = 0;
-	
+
+	memset(g_iCurrentSlots, 0, sizeof(g_iCurrentSlots));
+	memset(WeaponInfoArray, 0, sizeof(WeaponInfoArray));
+	memset(AmmoBoxInfoArray, 0, sizeof(AmmoBoxInfoArray));
+
+	for (int i = 0; i < (int)g_StartAmmo.size(); i++)
+	{
+		delete g_StartAmmo[i];
+	}
+
 	for (int i = 0; i < (int)g_BlockedItems.size(); i++)
 	{
 		UnsetHookVirt(g_BlockedItems[i]);
 		delete g_BlockedItems[i];
 	}
 
+	g_StartAmmo.clear();
 	g_BlockedItems.clear();
-
-	memset(g_iCurrentSlots, 0, sizeof(g_iCurrentSlots));
-	memset(WeaponInfoArray, 0, sizeof(WeaponInfoArray));
-	memset(AmmoBoxInfoArray, 0, sizeof(AmmoBoxInfoArray));
 
 	UnsetHookVirt(&g_PlayerSpawn_Hook);
 	RETURN_META(MRES_IGNORED);
@@ -292,37 +330,6 @@ void ClientCommand(edict_t *pEntity)
 
 		
 	}*/
-
-	RETURN_META(MRES_IGNORED);
-}
-
-
-
-void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
-{
-	// Get spawn point and create item from map's bsp file.
-	ParseBSP();
-
-	// Parse and create default equipment
-	ParseConfigSection("[equipment]", ParseEquipment_Handler);
-
-	// Remove blocked items
-	for (int i = 0; i < (int)g_BlockedItems.size(); i++)
-	{
-		edict_t *pFind = FIND_ENTITY_BY_CLASSNAME(NULL, g_BlockedItems[i]->classname);
-
-		while (!FNullEnt(pFind))
-		{
-			pFind->v.flags |= FL_KILLME;
-			pFind = FIND_ENTITY_BY_CLASSNAME(pFind, g_BlockedItems[i]->classname);
-		}
-	}
-
-	// Spawn items from ini file.
-	if (ParseConfigSection("[spawns]", ParseSpawnPoints_Handler))
-	{
-		print_srvconsole("[WEAPONMOD] spawn %d weapons and %d ammoboxes from config.\n", g_SpawnedWpns, g_SpawnedAmmo);
-	}
 
 	RETURN_META(MRES_IGNORED);
 }

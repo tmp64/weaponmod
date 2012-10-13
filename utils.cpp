@@ -126,22 +126,6 @@ void print_srvconsole(char *fmt, ...)
 	SERVER_PRINT(string);
 }
 
-Vector ParseVec(char *pString)
-{
-	char *pValue;
-	Vector vecResult;
-
-	vecResult.x = atoi(pValue = pString);
-
-	for (int i = 0; i < 2; i++)
-	{
-		pValue = strchr(pValue + i, ' ');
-		vecResult[i + 1] = atoi(pValue);
-	}
-
-	return vecResult;
-}
-
 void UTIL_EjectBrass(const Vector &vecOrigin, const Vector &vecVelocity, float rotation, int model, int soundtype)
 {
 	MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, vecOrigin );

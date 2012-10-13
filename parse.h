@@ -41,12 +41,14 @@ extern char g_ConfigFilepath[1024];
 
 
 extern void trim_line(char *input);
+extern Vector ParseVec(char *pString);
 extern char* parse_arg(char** line, int& state);
 extern char *COM_ParseFile(char *data, char *token);
 
 extern bool FileExists(const char *dir);
 
 extern void ParseBSP();
+extern void ParseAmmo_Handler(char* data);
 extern void ParseEquipment_Handler(char* data);
 extern void ParseSpawnPoints_Handler(char* data);
 extern void ParseBlockItems_Handler(char* szBlockItem);

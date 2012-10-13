@@ -189,6 +189,11 @@ inline void TRACE_ATTACK(edict_t* pEntity, edict_t* pAttacker, float flDamage, V
 {
 	reinterpret_cast<int (__fastcall *)(void *, int, entvars_t *, float, Vector, TraceResult *, int)>((*((void***)((char*)pEntity->pvPrivateData)))[VOffset_TraceAttack])(pEntity->pvPrivateData, 0, &(pAttacker->v), flDamage, vecDir,  &tr, bitsDamageType);
 }
+
+inline int GET_AMMO_INDEX(const char *ammoname)
+{
+	return reinterpret_cast<int (__cdecl *)(const char *)>(g_dllFuncs[Func_GetAmmoIndex].address)(ammoname);
+}
 #else
 extern int Item_Block(void *pPrivate, void *pPrivate2);
 extern int Weapon_GetItemInfo(void *pPrivate, ItemInfo *p);
@@ -233,6 +238,11 @@ inline int CLASSIFY(edict_t* pEntity)
 inline void TRACE_ATTACK(edict_t* pEntity, edict_t* pAttacker, float flDamage, Vector vecDir, TraceResult tr, int bitsDamageType)
 {
 	reinterpret_cast<int (*)(void *, entvars_t *, float, Vector, TraceResult *, int)>((*((void***)(((char*)pEntity->pvPrivateData) + 0x60)))[VOffset_TraceAttack])(pEntity->pvPrivateData, &(pAttacker->v), flDamage, vecDir,  &tr, bitsDamageType);
+}
+
+inline int GET_AMMO_INDEX(const char *ammoname)
+{
+	return reinterpret_cast<int (*)(const char *)>(g_dllFuncs[Func_GetAmmoIndex].address)(ammoname);
 }
 
 //implement these with setjmp later.

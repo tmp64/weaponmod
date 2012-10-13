@@ -934,14 +934,7 @@ void Player_Spawn(void *pPrivate)
 		return;
 	}
 
-	edict_t* pTaskEnt = NULL;
-
-	static int iszAllocStringCached;
-
-	if (iszAllocStringCached || (iszAllocStringCached = MAKE_STRING("info_target")))
-	{
-		pTaskEnt = CREATE_NAMED_ENTITY(iszAllocStringCached);
-	}
+	edict_t* pTaskEnt = CREATE_NAMED_ENTITY(MAKE_STRING("info_target"));
 
 	if (IsValidPev(pTaskEnt))
 	{
@@ -950,6 +943,18 @@ void Player_Spawn(void *pPrivate)
 
 		pTaskEnt->v.classname = MAKE_STRING("equipment_task");
 		pTaskEnt->v.nextthink = gpGlobals->time + 0.08;
+	}
+
+	int iAmmoIndex;
+
+	for (int i = 0; i < (int)g_StartAmmo.size(); i++)
+	{
+		iAmmoIndex = GET_AMMO_INDEX(g_StartAmmo[i]->ammoname);
+
+		if (iAmmoIndex != -1)
+		{
+			*((int *)g_pPlayer->pvPrivateData + m_rgAmmo + iAmmoIndex - 1) = g_StartAmmo[i]->count;
+		}
 	}
 }
 
@@ -1033,10 +1038,10 @@ void CheatImpulseCommands_HookHandler(void *pPrivate, int iImpulse)
 
 		for (int k = 1; k <= g_iWeaponsCount; k++)
 		{
-			if (WeaponInfoArray[k].iType == Wpn_Custom)
-			{
+		//	if (WeaponInfoArray[k].iType == Wpn_Custom)
+		//	{
 				GiveNamedItem(pPlayer, GetWeapon_pszName(k));
-			}
+		//	}
 		}
 
 		for (int k = 0; k < g_iAmmoBoxIndex; k++)
@@ -1161,13 +1166,7 @@ edict_t* Weapon_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles)
 		return NULL;
 	}
 
-	edict_t* pItem = NULL;
-
-	static int iszAllocStringCached;
-	if (iszAllocStringCached || (iszAllocStringCached = MAKE_STRING("weapon_crowbar")))
-	{
-		pItem = CREATE_NAMED_ENTITY(iszAllocStringCached);
-	}
+	edict_t* pItem = CREATE_NAMED_ENTITY(MAKE_STRING("weapon_crowbar"));
 
 	if (IsValidPev(pItem))
 	{
@@ -1229,13 +1228,7 @@ edict_t* Ammo_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles)
 		return NULL;
 	}
 
-	edict_t* pAmmoBox = NULL;
-
-	static int iszAllocStringCached;
-	if (iszAllocStringCached || (iszAllocStringCached = MAKE_STRING("ammo_rpgclip")))
-	{
-		pAmmoBox = CREATE_NAMED_ENTITY(iszAllocStringCached);
-	}
+	edict_t* pAmmoBox = CREATE_NAMED_ENTITY(MAKE_STRING("ammo_rpgclip"));
 
 	if (IsValidPev(pAmmoBox))
 	{

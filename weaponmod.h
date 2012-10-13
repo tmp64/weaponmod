@@ -145,6 +145,12 @@ typedef struct
 	int iForward[Fwd_Ammo_End];
 } AmmoBoxData;
 
+typedef struct
+{
+	const char *ammoname;
+	int count;
+} StartAmmo;
+
 class CPlugin
 {
 public:
@@ -180,6 +186,7 @@ extern int g_iCurrentSlots[MAX_WEAPON_SLOTS][MAX_WEAPON_POSITIONS];
 extern WeaponData WeaponInfoArray[MAX_WEAPONS];
 extern AmmoBoxData AmmoBoxInfoArray[MAX_WEAPONS];
 
+extern CVector <StartAmmo *> g_StartAmmo;
 extern CVector <VirtHookData *> g_BlockedItems;
 
 extern AMX_NATIVE_INFO Natives[];

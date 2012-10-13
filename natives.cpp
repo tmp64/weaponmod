@@ -626,11 +626,7 @@ static cell AMX_NATIVE_CALL wpnmod_get_player_ammo(AMX *amx, cell *params)
 
 	CHECK_ENTITY(iPlayer)
 
-#ifdef _WIN32
-	int iAmmoIndex = reinterpret_cast<int (__cdecl *)(const char *)>(g_dllFuncs[Func_GetAmmoIndex].address)(STRING(ALLOC_STRING(MF_GetAmxString(amx, params[2], 0, NULL))));
-#else
-	int iAmmoIndex = reinterpret_cast<int (*)(const char *)>(g_dllFuncs[Func_GetAmmoIndex].address)(STRING(ALLOC_STRING(MF_GetAmxString(amx, params[2], 0, NULL))));
-#endif
+	int iAmmoIndex = GET_AMMO_INDEX(STRING(ALLOC_STRING(MF_GetAmxString(amx, params[2], 0, NULL))));
 
 	if (iAmmoIndex != -1)
 	{
@@ -655,11 +651,7 @@ static cell AMX_NATIVE_CALL wpnmod_set_player_ammo(AMX *amx, cell *params)
 
 	CHECK_ENTITY(iPlayer)
 
-#ifdef _WIN32
-	int iAmmoIndex = reinterpret_cast<int (__cdecl *)(const char *)>(g_dllFuncs[Func_GetAmmoIndex].address)(STRING(ALLOC_STRING(MF_GetAmxString(amx, params[2], 0, NULL))));
-#else
-	int iAmmoIndex = reinterpret_cast<int (*)(const char *)>(g_dllFuncs[Func_GetAmmoIndex].address)(STRING(ALLOC_STRING(MF_GetAmxString(amx, params[2], 0, NULL))));
-#endif
+	int iAmmoIndex = GET_AMMO_INDEX(STRING(ALLOC_STRING(MF_GetAmxString(amx, params[2], 0, NULL))));
 
 	if (iAmmoIndex != -1)
 	{
