@@ -676,6 +676,26 @@ int Weapon_AddToPlayer(void *pPrivate, void *pPrivate2)
 			return 0;
 		}
 
+		if (WeaponInfoArray[g_iId].iForward[Fwd_Wpn_AddToPlayer2])
+		{
+			if 
+			(
+				!MF_ExecuteForward
+				(
+					WeaponInfoArray[g_iId].iForward[Fwd_Wpn_AddToPlayer2],
+
+					static_cast<cell>(ENTINDEX(g_pWeapon)), 
+					static_cast<cell>(ENTINDEX(g_pPlayer)), 
+					static_cast<cell>((int)*((int *)g_pWeapon->pvPrivateData + m_iClip)), 
+					static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, TRUE)),
+					static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, FALSE))
+				)
+			)
+			{
+				return FALSE;
+			}
+		}
+
 		if (!cvar_aghlru)
 		{
 			static int msgWeapPickup = 0;
@@ -824,7 +844,7 @@ BOOL AmmoBox_AddAmmo(void *pPrivate, void *pPrivateOther)
 
 	BOOL bReturn = FALSE;
 
-	for (int k = 0; k < g_iAmmoBoxIndex; k++)
+	for (int k = 1; k <= g_iAmmoBoxIndex; k++)
 	{
 		if (!strcmp(STRING(pAmmobox->v.classname), AmmoBoxInfoArray[k].classname.c_str()) && AmmoBoxInfoArray[k].iForward[Fwd_Ammo_AddAmmo])
 		{
@@ -1038,13 +1058,10 @@ void CheatImpulseCommands_HookHandler(void *pPrivate, int iImpulse)
 
 		for (int k = 1; k <= g_iWeaponsCount; k++)
 		{
-		//	if (WeaponInfoArray[k].iType == Wpn_Custom)
-		//	{
-				GiveNamedItem(pPlayer, GetWeapon_pszName(k));
-		//	}
+			GiveNamedItem(pPlayer, GetWeapon_pszName(k));
 		}
 
-		for (int k = 0; k < g_iAmmoBoxIndex; k++)
+		for (int k = 1; k <= g_iAmmoBoxIndex; k++)
 		{
 			GiveNamedItem(pPlayer, AmmoBoxInfoArray[k].classname.c_str());
 		}
@@ -1214,7 +1231,7 @@ edict_t* Ammo_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles)
 
 	int iId = 0;
 	
-	for (int i = 0; i < g_iAmmoBoxIndex; i++)
+	for (int i = 1; i <= g_iAmmoBoxIndex; i++)
 	{
 		if (!_stricmp(AmmoBoxInfoArray[i].classname.c_str(), szName))
 		{

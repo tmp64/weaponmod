@@ -135,7 +135,8 @@ void ParseSpawnPoints_Handler(char* data)
 	{
 		g_SpawnedWpns++;
 	}
-	else if (Ammo_Spawn(szData[0], strlen(szData[1]) ? ParseVec(szData[1]) : Vector(0, 0, 0), strlen(szData[2]) ? ParseVec(szData[2]) : Vector(0, 0, 0)))
+
+	if (Ammo_Spawn(szData[0], strlen(szData[1]) ? ParseVec(szData[1]) : Vector(0, 0, 0), strlen(szData[2]) ? ParseVec(szData[2]) : Vector(0, 0, 0)))
 	{
 		g_SpawnedAmmo++;
 	}

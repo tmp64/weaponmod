@@ -505,7 +505,7 @@ static cell AMX_NATIVE_CALL wpnmod_get_ammobox_info(AMX *amx, cell *params)
 
 	if (pAmmoBox)
 	{
-		for (int i = 0; i < g_iAmmoBoxIndex; i++)
+		for (int i = 1; i <= g_iAmmoBoxIndex; i++)
 		{
 			if (!_stricmp(AmmoBoxInfoArray[i].classname.c_str(), STRING(pAmmoBox->v.classname)))
 			{
@@ -1200,7 +1200,7 @@ static cell AMX_NATIVE_CALL wpnmod_register_ammobox(AMX *amx, cell *params)
 
 	const char *szAmmoboxName = MF_GetAmxString(amx, params[1], 0, NULL);
 
-	for (int i = 0; i < g_iAmmoBoxIndex; i++)
+	for (int i = 1; i <= g_iAmmoBoxIndex; i++)
 	{
 		if (!_stricmp(AmmoBoxInfoArray[i].classname.c_str(), szAmmoboxName))
 		{
@@ -1209,8 +1209,8 @@ static cell AMX_NATIVE_CALL wpnmod_register_ammobox(AMX *amx, cell *params)
 		}
 	}
 
-	AmmoBoxInfoArray[g_iAmmoBoxIndex].classname.assign(STRING(ALLOC_STRING(szAmmoboxName)));
-	return g_iAmmoBoxIndex++;
+	AmmoBoxInfoArray[++g_iAmmoBoxIndex].classname.assign(STRING(ALLOC_STRING(szAmmoboxName)));
+	return g_iAmmoBoxIndex;
 }
 
 /**
@@ -1226,9 +1226,9 @@ static cell AMX_NATIVE_CALL wpnmod_register_ammobox_forward(AMX *amx, cell *para
 {
 	int iId = params[1];
 
-	if (iId < 0 || iId >= MAX_WEAPONS)
+	if (iId <= 0 || iId >= MAX_WEAPONS)
 	{
-		MF_LogError(amx, AMX_ERR_NATIVE, "Invalid ammobox id provided. Got: %d  Valid: 0 up to %d.", iId, MAX_WEAPONS - 1);
+		MF_LogError(amx, AMX_ERR_NATIVE, "Invalid ammobox id provided. Got: %d  Valid: 1 up to %d.", iId, MAX_WEAPONS - 1);
 		return 0;
 	}
 
@@ -1292,115 +1292,6 @@ static cell AMX_NATIVE_CALL wpnmod_apply_multi_damage(AMX *amx, cell *params)
 	return 1;
 }
 
-/*
-// native wpnmod_beam_create(const szSpriteName[], const Float: flWidth);
-static cell AMX_NATIVE_CALL wpnmod_beam_create(AMX *amx, cell *params)
-{
-	edict_t* pBeam = Beam_Create(STRING(ALLOC_STRING(MF_GetAmxString(amx, params[1], 0, NULL))), amx_ctof(params[2]));
-
-	if (IsValidPev(pBeam))
-	{
-		return ENTINDEX(pBeam);
-	}	
-
-	return 1;
-}
-
-// native wpnmod_beam_init_points(const iBeamEntity, const Float: flVecStart[3], const Float: flVecEnd[3]);
-static cell AMX_NATIVE_CALL wpnmod_beam_init_points(AMX *amx, cell *params)
-{
-	int iBeamEntity = params[1];
-
-	Vector vecStart;
-	cell *vStart = MF_GetAmxAddr(amx, params[2]);
-
-	vecStart.x = amx_ctof(vStart[0]);
-	vecStart.y = amx_ctof(vStart[1]);
-	vecStart.z = amx_ctof(vStart[2]);
-
-	Vector vecEnd;
-	cell *vEnd = MF_GetAmxAddr(amx, params[3]);
-
-	vecEnd.x = amx_ctof(vEnd[0]);
-	vecEnd.y = amx_ctof(vEnd[1]);
-	vecEnd.z = amx_ctof(vEnd[2]);
-
-	CHECK_ENTITY(iBeamEntity)
-
-	Beam_PointsInit(INDEXENT2(iBeamEntity), vecStart, vecEnd);
-	return 1;
-}
-
-// native wpnmod_beam_init_point_ent(const iBeamEntity, const Float: flVecStart[3], const iEndIndex);
-static cell AMX_NATIVE_CALL wpnmod_beam_init_point_ent(AMX *amx, cell *params)
-{
-	int iBeamEntity = params[1];
-	int iEndIndex = params[3];
-
-	Vector vecStart;
-	cell *vStart = MF_GetAmxAddr(amx, params[2]);
-
-	vecStart.x = amx_ctof(vStart[0]);
-	vecStart.y = amx_ctof(vStart[1]);
-	vecStart.z = amx_ctof(vStart[2]);
-
-	CHECK_ENTITY(iBeamEntity)
-	CHECK_ENTITY(iEndIndex)
-
-	Beam_PointEntInit(INDEXENT2(iBeamEntity), vecStart, iEndIndex);
-	return 1;
-}
-
-// native wpnmod_beam_init_ents(const iBeamEntity, const iStartIndex, const iEndIndex);
-static cell AMX_NATIVE_CALL wpnmod_beam_init_ents(AMX *amx, cell *params)
-{
-	int iBeamEntity = params[1];
-	int iStartIndex = params[2];
-	int iEndIndex = params[3];
-
-	CHECK_ENTITY(iBeamEntity)
-	CHECK_ENTITY(iStartIndex)
-	CHECK_ENTITY(iEndIndex)
-
-	Beam_EntsInit(INDEXENT2(iBeamEntity), iStartIndex, iEndIndex);
-	return 1;
-}
-
-// native wpnmod_beam_init_hose(const iBeamEntity, const Float: flVecStart[3], const Float: flVecDirection[3]);
-static cell AMX_NATIVE_CALL wpnmod_beam_init_hose(AMX *amx, cell *params)
-{
-	int iBeamEntity = params[1];
-
-	Vector vecStart;
-	cell *vStart = MF_GetAmxAddr(amx, params[2]);
-
-	vecStart.x = amx_ctof(vStart[0]);
-	vecStart.y = amx_ctof(vStart[1]);
-	vecStart.z = amx_ctof(vStart[2]);
-
-	Vector vecDir;
-	cell *vDir = MF_GetAmxAddr(amx, params[3]);
-
-	vecDir.x = amx_ctof(vDir[0]);
-	vecDir.y = amx_ctof(vDir[1]);
-	vecDir.z = amx_ctof(vDir[2]);
-
-	CHECK_ENTITY(iBeamEntity)
-
-	Beam_HoseInit(INDEXENT2(iBeamEntity), vecStart, vecDir);
-	return 1;
-}
-
-// native wpnmod_beam_relink(const iBeamEntity);
-static cell AMX_NATIVE_CALL wpnmod_beam_relink(AMX *amx, cell *params)
-{
-	int iBeamEntity = params[1];
-
-	CHECK_ENTITY(iBeamEntity)
-
-	Beam_RelinkBeam(INDEXENT2(iBeamEntity));
-	return 1;
-}*/
 
 AMX_NATIVE_INFO Natives[] = 
 {
@@ -1435,14 +1326,5 @@ AMX_NATIVE_INFO Natives[] =
 	{ "wpnmod_play_empty_sound", wpnmod_play_empty_sound},
 	{ "wpnmod_create_item", wpnmod_create_item},
 
-	// Beams aborted :(, because we have beams.inc
-	/* 
-	{ "wpnmod_beam_create", wpnmod_beam_create},
-	{ "wpnmod_beam_init_points", wpnmod_beam_init_points},
-	{ "wpnmod_beam_init_point_ent", wpnmod_beam_init_point_ent},
-	{ "wpnmod_beam_init_ents", wpnmod_beam_init_ents},
-	{ "wpnmod_beam_init_hose", wpnmod_beam_init_hose},
-	{ "wpnmod_beam_relink", wpnmod_beam_relink},
-	*/
 	{ NULL, NULL }
 };

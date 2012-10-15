@@ -274,7 +274,7 @@ void ClientCommand(edict_t *pEntity)
 
 		CLIENT_PRINT(pEntity, print_console, "\nCurrently loaded ammo:\n");
 
-		for (i = 0; i < g_iAmmoBoxIndex; i++)
+		for (i = 1; i <= g_iAmmoBoxIndex; i++)
 		{
 			items++;
 			sprintf(buf, " [%2d] %-23.22s\n", ++ammo, AmmoBoxInfoArray[i].classname.c_str());

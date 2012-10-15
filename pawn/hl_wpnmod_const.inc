@@ -137,6 +137,7 @@ enum e_WpnFwds
 	Fwd_Wpn_Holster,				/* Holsters a weapon. */
 	Fwd_Wpn_IsUseable,				/* Whether or not the weapon is usable. (has ammo, etc.) */
 	Fwd_Wpn_AddToPlayer,
+	Fwd_Wpn_AddToPlayer2,
 
 	Fwd_Wpn_End
 };
