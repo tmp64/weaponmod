@@ -37,6 +37,10 @@
 #include <meta_api.h>
 
 
+extern unsigned long g_Pev = 0;
+extern unsigned long g_Base = 0;
+
+
 #if defined _WIN32
 int FindModuleByAddr (void *addr, module *lib)
 {
@@ -237,6 +241,16 @@ int AllowWriteToMemory(void *address)
 	return FALSE;
 }
 
+void SetPev(int value)
+{
+	g_Pev = value;
+}
+
+void SetBase(int value)
+{
+	g_Base = value;
+}
+
 void SetHookVirt(VirtHookData *HookData)
 {
 	if (!HookData)
@@ -258,7 +272,7 @@ void SetHookVirt(VirtHookData *HookData)
 	DWORD OldFlags;
     void **vtable = *((void***)((char*)pEdict->pvPrivateData));
 #else
-    void **vtable = *((void***)(((char*)pEdict->pvPrivateData) + 0x60));
+    void **vtable = *((void***)(((char*)pEdict->pvPrivateData) + g_Base));
 #endif
 
     if (vtable == NULL)
@@ -300,7 +314,7 @@ void UnsetHookVirt(VirtHookData *HookData)
 	DWORD OldFlags;
     void **vtable = *((void***)((char*)pEdict->pvPrivateData));
 #else
-    void **vtable = *((void***)(((char*)pEdict->pvPrivateData) + 0x60));
+    void **vtable = *((void***)(((char*)pEdict->pvPrivateData) + g_Base));
 #endif
 
     if (vtable == NULL)

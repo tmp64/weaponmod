@@ -53,6 +53,15 @@
 	typedef unsigned int UNINT32;
 #endif
 
+extern unsigned long g_Pev;
+extern unsigned long g_Base;
+
+#ifdef _WIN32
+	#define PrivateToEdict(pPrivate) (*(entvars_t **)((char*)pPrivate + g_Pev))->pContainingEntity
+#else
+	#define PrivateToEdict(pPrivate) (*(entvars_t **)pPrivate)->pContainingEntity
+#endif
+
 struct module
 {
 	void             *base;
@@ -85,7 +94,6 @@ struct function
 	module           *lib;
 	
 	signature        sig;
-	signature        sigCustom;
 	
 	void             *address;
 	void             *handler;
@@ -105,6 +113,9 @@ int AllowWriteToMemory(void *address);
 
 void SetHook(function *func);
 void UnsetHook(function *func);
+
+extern void SetPev(int value);
+extern void SetBase(int value);
 
 void SetHookVirt(VirtHookData *HookData);
 void UnsetHookVirt(VirtHookData *HookData);

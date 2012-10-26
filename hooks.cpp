@@ -44,9 +44,11 @@ edict_t* g_pPlayer;
 
 module hl_dll = {NULL, 0, NULL};
 
-VirtHookData g_PlayerSpawn_Hook = { "player", VOffset_Spawn, NULL, NULL, (void*)Player_Spawn };
-VirtHookData g_RpgAddAmmo_Hook = { "ammo_rpgclip", VOffset_AddAmmo, NULL, NULL, (void*)AmmoBox_AddAmmo };
-VirtHookData g_WorldPrecache_Hook = { "worldspawn", VOffset_Precache, NULL, NULL, (void*)World_Precache };
+int g_vtblOffsets[VO_End];
+
+VirtHookData g_PlayerSpawn_Hook = { "player", NULL, NULL, NULL, (void*)Player_Spawn };
+VirtHookData g_RpgAddAmmo_Hook = { "ammo_rpgclip", NULL, NULL, NULL, (void*)AmmoBox_AddAmmo };
+VirtHookData g_WorldPrecache_Hook = { "worldspawn", NULL, NULL, NULL, (void*)World_Precache };
 
 VirtHookData g_CrowbarHooks[CrowbarHook_End] = 
 {
@@ -65,109 +67,79 @@ VirtHookData g_CrowbarHooks[CrowbarHook_End] =
 function g_dllFuncs[Func_End] =
 {
 	{
-		"RadiusDamage__FG6VectorP9entvars_sT1ffii", 
+		"", 
 		&hl_dll,
-		{
+		/*{
 			"\xD9\x44\x24\x1C\xD8\x00\x00\x00\x00\x00\x83\xEC\x64", 
 			"xxxxx?????xxx", 13
 		},
-		{
-			"\x83\x00\x00\xD9\x00\xD9\x00\x00\x00\xD9\x00\x00\x00\xD9\x00\x00\x00\xD9\x00\x00\x00\xD9\x00\x00\x00\xD9\x00\x00\x00",
-			"x??x?x???x???x???x???x???x???", 29
-		},
-		NULL, NULL, {}, {}, 0
+		*/
+		{"", "", 0}, NULL, NULL, {}, {}, 0
 	},
 	{
-		"GetAmmoIndex__11CBasePlayerPCc", 
+		"", 
 		&hl_dll,
-		{
+		/*{
 			"\x56\x57\x8B\x7C\x24\x0C\x85\xFF", 
 			"xxxxxxxx", 8
-		},
-		{
-			"\x57\x8B\x7C\x24\x08\x85\xFF\x75\x05", 
-			"xxxxxxxxx", 9
-		},
-		NULL, NULL, {}, {}, 0
+		},*/
+		{"", "", 0}, NULL, NULL, {}, {}, 0
 	},
 	{
-		"ClearMultiDamage__Fv", 
+		""/*"ClearMultiDamage__Fv"*/, 
 		&hl_dll,
-		{
+		/*{
 			"\x33\xC0\xA3\x00\x00\x00\x00\xA3\x00\x00\x00\x00",
 			"xxx????x????", 12
-		},
-		{
-			"\xD9\xEE\x33\xC0\xD9\x00\x00\x00\x00\x00\xA3\x00\x00\x00\x00", 
-			"xxxxx?????x????", 15
-		},
-		NULL, NULL, {}, {}, 0
+		},*/
+		{"", "", 0}, NULL, NULL, {}, {}, 0
 	},
 	{
-		"ApplyMultiDamage__FP9entvars_sT0", 
+		""/*"ApplyMultiDamage__FP9entvars_sT0"*/, 
 		&hl_dll,
-		{
+		/*{
 			"\x8B\x0D\x00\x00\x00\x00\x85\xC9\x74\x1D",
 			"xx????xxxx", 10
-		},
-		{
-			"\x8B\x0D\x00\x00\x00\x00\x85\xC9\x74\x22", 
-			"xx????xxxx", 10
-		},
-		NULL, NULL, {}, {}, 0
+		}*/
+		{"", "", 0}, NULL, NULL, {}, {}, 0
 	},
 	{
-		"SetAnimation__11CBasePlayer11PLAYER_ANIM",
+		""/*"SetAnimation__11CBasePlayer11PLAYER_ANIM"*/,
 		&hl_dll,
-		{
+		/*{
 			"\x83\xEC\x44\x53\x55\x8B\xE9\x33\xDB\x56\x57", 
 			"xxxxxxxxxxx", 11
-		},
-		{
-			"\x83\xEC\x00\xA1\x00\x00\x00\x00\x33\xC4\x89\x00\x00\x00\x53\x56\x8B\xD9",
-			"xx?x????xxx???xxxx", 18
-		},
-		NULL, NULL, {}, {}, 0
+		}*/
+		{"", "", 0}, NULL, NULL, {}, {}, 0
 	},
 	{
-		"UTIL_PrecacheOtherWeapon__FPCc", 
+		""/*"UTIL_PrecacheOtherWeapon__FPCc"*/, 
 		&hl_dll,
-		{
+		/*{
 			"\x8B\x00\x00\x00\x00\x00\x8B\x00\x00\x00\x83\x00\x00\x53\x56\x2B\x00\x00\x00\x00\x00\x50",
 			"x?????x???x??xxx?????x", 22
-		},
-		{
-			"\x8B\x00\x00\x00\x00\x00\x8B\x00\x00\x00\x2B\x00\x00\x00\x00\x00\x83\x00\x00\x53\x50",
-			"x?????x???x?????x??xx", 21,
-		},
-		NULL, (void*)PrecacheOtherWeapon_HookHandler, {}, {}, 0
+		}*/
+		{"", "", 0}, NULL, (void*)PrecacheOtherWeapon_HookHandler, {}, {}, 0
 	},
 	{
-		"GiveNamedItem__11CBasePlayerPCc", 
+		""/*"GiveNamedItem__11CBasePlayerPCc"*/, 
 		&hl_dll,
-		{
+		/*{
 			"\x8B\x44\x00\x00\x56\x57\x8B\xF9\x8B\x0D\x00\x00\x00\x00",
 			"xx??xxxxxx????", 14
 		},
-		{
-			"\x8B\x44\x00\x00\x56\x57\x8B\xF9\x8B\x0D\x00\x00\x00\x00",
-			"xx??xxxxxx????", 14
-		},
-		NULL, (void*)GiveNamedItem_HookHandler, {}, {}, 0
+		*/
+		{"", "", 0}, NULL, (void*)GiveNamedItem_HookHandler, {}, {}, 0
 	},
 	{
-		"CheatImpulseCommands__11CBasePlayeri", 
+		""/*"CheatImpulseCommands__11CBasePlayeri"*/, 
 		&hl_dll,
-		{
+		/*{
 			"\xD9\x00\x00\x00\x00\x00\xDC\x00\x00\x00\x00\x00\x81\x00\x00\x00\x00\x00\x56\x57",
 			"x?????x?????x?????xx", 20
 		},
-		{
-			"\xD9\xEE\x81\xEC\x00\x00\x00\x00\xD8\x00\x00\x00\x00\x00\x56",
-			"xxxx????x?????x", 15
-		},
-		NULL, 
-		(void*)CheatImpulseCommands_HookHandler, {}, {}, 0
+		*/
+		{"", "", 0}, NULL, (void*)CheatImpulseCommands_HookHandler, {}, {}, 0
 	}
 };
 
@@ -890,7 +862,7 @@ void World_Precache(void *pPrivate)
 {
 	SetConfigFile();
 
-	if (ParseConfigSection("[block]", ParseBlockItems_Handler))
+	if (ParseConfigSection(g_ConfigFilepath, "[block]", (void*)ParseBlockItems_Handler))
 	{
 		print_srvconsole("\n[WEAPONMOD] default items blocked:\n");
 
@@ -1269,4 +1241,23 @@ edict_t* Ammo_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles)
 	}
 
 	return NULL;
+}
+
+
+void SetVDataOffsets()
+{
+	g_RpgAddAmmo_Hook.offset = g_vtblOffsets[VO_AddAmmo];
+	g_PlayerSpawn_Hook.offset = g_vtblOffsets[VO_Spawn];
+	g_WorldPrecache_Hook.offset = g_vtblOffsets[VO_Precache];
+
+	g_CrowbarHooks[CrowbarHook_Respawn].offset = g_vtblOffsets[VO_Respawn];
+	g_CrowbarHooks[CrowbarHook_AddToPlayer].offset = g_vtblOffsets[VO_AddToPlayer];
+	g_CrowbarHooks[CrowbarHook_GetItemInfo].offset = g_vtblOffsets[VO_GetItemInfo];
+	g_CrowbarHooks[CrowbarHook_CanDeploy].offset = g_vtblOffsets[VO_CanDeploy];
+	g_CrowbarHooks[CrowbarHook_Deploy].offset = g_vtblOffsets[VO_Deploy];
+	g_CrowbarHooks[CrowbarHook_CanHolster].offset = g_vtblOffsets[VO_CanHolster];
+	g_CrowbarHooks[CrowbarHook_Holster].offset = g_vtblOffsets[VO_Holster];
+	g_CrowbarHooks[CrowbarHook_ItemPostFrame].offset = g_vtblOffsets[VO_ItemPostFrame];
+	g_CrowbarHooks[CrowbarHook_ItemSlot].offset = g_vtblOffsets[VO_ItemSlot];
+	g_CrowbarHooks[CrowbarHook_IsUseable].offset = g_vtblOffsets[VO_IsUseable];
 }

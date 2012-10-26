@@ -63,13 +63,6 @@
 
 #define IsValidPev(pEntity) (!FNullEnt(pEntity) && pEntity->pvPrivateData)
 
-#ifdef _WIN32
-#define PrivateToEdict(pPrivate) (*(entvars_t **)((char*)pPrivate + 4))->pContainingEntity
-#else
-#define PrivateToEdict(pPrivate) (*(entvars_t **)pPrivate)->pContainingEntity
-#endif
-
-
 extern edict_t* INDEXENT2(int iEdictNum);
 extern edict_t *GetPrivateCbase(edict_t *pEntity, int iOffset);
 

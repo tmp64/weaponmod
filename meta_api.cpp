@@ -57,37 +57,57 @@ void OnAmxxAttach()
 	cvar_aghlru = CVAR_GET_POINTER("aghl.ru");
 	cvar_sv_cheats = CVAR_GET_POINTER("sv_cheats");
 	cvar_mp_weaponstay = CVAR_GET_POINTER("mp_weaponstay");
+
+	char filepath[1024];
 	
+	const char *prefix = "";
+	const char *modname = MF_GetModname();
+
+	if (cvar_aghlru)
+	{
+		prefix = "_aghlru";
+	}
+	else if (!_stricmp(modname, "valve") && CVAR_GET_POINTER("sv_ag_version"))
+	{
+		prefix = "_miniag";
+	}
+	
+	MF_BuildPathnameR(filepath, sizeof(filepath) - 1, "%s/weaponmod/mods/%s%s.ini", get_localinfo("amxx_configsdir", "addons/amxmodx/configs"), modname, prefix);
+
 	if (!FindModuleByAddr((void*)MDLL_FUNC->pfnGetGameDescription(), &hl_dll))
 	{
 		print_srvconsole("[WEAPONMOD] Failed to locate %s\n", GET_GAME_INFO(PLID, GINFO_DLL_FILENAME));
 		bAddNatives = FALSE;
 	}
+
+	if (!FileExists(filepath))
+	{
+		print_srvconsole("[WEAPONMOD] Failed to find main INI file. \"%s\"\n", filepath);
+		bAddNatives = FALSE;
+	}
 	else
 	{
+		ParseConfigSection(filepath, "[signatures]", (void*)ParseSignatures_Handler);
+		ParseConfigSection(filepath, "[vtable_base]", (void*)ParseVtableBase_Handler);
+		ParseConfigSection(filepath, "[vtable_offsets]", (void*)ParseVtableOffsets_Handler);
+		
+		SetVDataOffsets();
+
 		for (int i = 0; i < Func_End; i++)
 		{
-			if (cvar_aghlru)
-			{
-				g_dllFuncs[i].sig = g_dllFuncs[i].sigCustom;
-			}
-
 			if (CreateFunctionHook(&g_dllFuncs[i]))
 			{
 				SetHook(&g_dllFuncs[i]);
 			}
+
+			if (!g_dllFuncs[i].address)
+			{
+				print_srvconsole("[WEAPONMOD] Failed to find \"%s\" function.\n", g_dllFuncs[i].name);
+				bAddNatives = FALSE;
+			}
 		}
 	}
 
-	for (int i = 0; i < Func_End; i++)
-	{
-		if (!g_dllFuncs[i].address)
-		{
-			print_srvconsole("[WEAPONMOD] Failed to find \"%s\" function.\n", g_dllFuncs[i].name);
-			bAddNatives = FALSE;
-		}
-	}
-	
 	if (!bAddNatives)
 	{
 		print_srvconsole("[WEAPONMOD] Cannot register natives.\n");
@@ -146,8 +166,8 @@ void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 	ParseBSP();
 
 	// Parse default equipments and ammo.
-	ParseConfigSection("[ammo]", ParseAmmo_Handler);
-	ParseConfigSection("[equipment]", ParseEquipment_Handler);
+	ParseConfigSection(g_ConfigFilepath, "[ammo]", (void*)ParseAmmo_Handler);
+	ParseConfigSection(g_ConfigFilepath, "[equipment]", (void*)ParseEquipment_Handler);
 
 	// Remove blocked items.
 	for (int i = 0; i < (int)g_BlockedItems.size(); i++)
@@ -162,7 +182,7 @@ void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 	}
 
 	// Spawn items from ini file.
-	if (ParseConfigSection("[spawns]", ParseSpawnPoints_Handler))
+	if (ParseConfigSection(g_ConfigFilepath, "[spawns]", (void*)ParseSpawnPoints_Handler))
 	{
 		print_srvconsole("[WEAPONMOD] spawn %d weapons and %d ammoboxes from config.\n", g_SpawnedWpns, g_SpawnedAmmo);
 	}
@@ -209,12 +229,12 @@ void ServerDeactivate()
 
 int AmxxCheckGame(const char *game)
 {
-	if (!strcasecmp(game, "valve"))
+	if (!strcasecmp(game, "cstrike") || !strcasecmp(game, "czero"))
 	{
-		return AMXX_GAME_OK;
+		return AMXX_GAME_BAD;
 	}
 	
-	return AMXX_GAME_BAD;
+	return AMXX_GAME_OK;
 }
 
 /*

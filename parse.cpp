@@ -40,12 +40,12 @@
 char g_ConfigFilepath[1024];
 
 
-BOOL ParseConfigSection(char *pSection, void *pHandler)
+BOOL ParseConfigSection(char *Filepath, char *pSection, void *pHandler)
 {
 	BOOL bFound = FALSE;
 	BOOL bResult = FALSE;
 
-	FILE *stream = fopen(g_ConfigFilepath, "r");
+	FILE *stream = fopen(Filepath, "r");
 
 	if (stream)
 	{
@@ -100,22 +100,17 @@ void ParseBlockItems_Handler(char* szBlockItem)
 
 	if (strstr(szBlockItem, "weapon_"))
 	{
-		p->offset = VOffset_AddToPlayer;
+		p->offset = g_vtblOffsets[VO_AddToPlayer];
 	}
 	else if (strstr(szBlockItem, "ammo_"))
 	{
-		p->offset = VOffset_AddAmmo;
+		p->offset = g_vtblOffsets[VO_AddAmmo];
 	}
-	else
-	{
-		delete p;
-		return;
-	}
-
+	
 	p->handler = (void*)Item_Block;
 	SetHookVirt(p);
 
-	g_BlockedItems.push_back(p);
+	p->done ? g_BlockedItems.push_back(p) : delete p;
 }
 
 void ParseSpawnPoints_Handler(char* data)
@@ -127,7 +122,7 @@ void ParseSpawnPoints_Handler(char* data)
 
 	for (int i = 0; i < 3; i++)
 	{
-		arg = parse_arg(&data, state);
+		arg = parse_arg(&data, state, '"');
 		strcpy(szData[i], arg);
 	}
 
@@ -180,7 +175,7 @@ void ParseEquipment_Handler(char* data)
 
 	for (i = 0; i < 2; i++)
 	{
-		arg = parse_arg(&data, state);
+		arg = parse_arg(&data, state, ':');
 		
 		trim_line(arg);
 		strcpy(szData[i], arg);
@@ -202,7 +197,7 @@ void ParseAmmo_Handler(char* data)
 
 	for (i = 0; i < 2; i++)
 	{
-		arg = parse_arg(&data, state);
+		arg = parse_arg(&data, state, ':');
 		
 		trim_line(arg);
 		strcpy(szData[i], arg);
@@ -214,6 +209,109 @@ void ParseAmmo_Handler(char* data)
 	p->count = max(min(atoi(szData[1]), 254 ), 0);
 
 	g_StartAmmo.push_back(p);
+}
+
+signature ParseSig(char *input)
+{
+	signature sig;
+
+	char *arg;
+	char szData[256][3];
+
+	char *sigText = new char[256];
+	char *sigMask = new char[256];
+	
+	int sigLen = 0, state = 0;
+
+	while ((arg = parse_arg(&input, state, '"')) && state)
+	{
+		strcpy(szData[sigLen], arg);
+		sigLen++;
+	}
+
+	for (int i = 0; i < sigLen; i++)
+	{
+		sigMask[i] = (*szData[i] == '*') ? '?' : 'x';
+		sigText[i] = strtoul(szData[i], NULL, 16);
+	}
+
+	sigMask[sigLen] = 0;
+	sigText[sigLen] = 0;
+
+	sig.mask = sigMask;
+	sig.text = sigText;
+	sig.size = sigLen;
+
+	return sig;
+}
+
+void ParseSignatures_Handler(char* data)
+{
+	char* arg;
+	char szData[2][256];
+
+	for (int state = 0, i = 0; i < 2; i++)
+	{
+		arg = parse_arg(&data, state, '"');
+		strcpy(szData[i], arg);
+	}
+
+	static int iIndex = 0;
+
+	if (iIndex < Func_End)
+	{
+		g_dllFuncs[iIndex].name = STRING(ALLOC_STRING(szData[0]));
+		g_dllFuncs[iIndex].sig = ParseSig(szData[1]);
+	}
+
+	iIndex++;
+}
+
+int read_number(char *input)
+{
+	if (*input == '0' && (*(input + 1) == 'x' || *(input + 1) == 'X'))
+	{
+		return strtoul(input, NULL, 16);
+	}
+
+	return strtoul(input, NULL, 10);
+}
+
+void ParseVtableBase_Handler(char* data)
+{
+	if (!g_Base)
+	{
+		SetBase(read_number(data));
+	}
+	else if (!g_Pev)
+	{
+		SetPev(read_number(data));
+	}
+}
+
+void ParseVtableOffsets_Handler(char* data)
+{
+	char* arg;
+	char szData[2][4];
+
+	for (int state = 0, i = 0; i < 2; i++)
+	{
+		arg = parse_arg(&data, state, ':');
+		strcpy(szData[i], arg);
+	}
+
+	static int iIndex = 0;
+
+	if (iIndex < VO_End)
+	{
+#ifdef _WIN32
+		g_vtblOffsets[iIndex] = atoi(szData[0]);
+#else
+		g_vtblOffsets[iIndex] = atoi(szData[0]) + atoi(szData[1]);
+#endif
+	}
+
+	iIndex++;
 }
 
 // Thanks to Eg@r4$il{ and HLSDK.
@@ -420,7 +518,7 @@ void trim_line(char *input)
 	}
 }
 
-char* parse_arg(char** line, int& state)
+char* parse_arg(char** line, int& state, char delimiter)
 {
 	static char arg[3072];
 	char* dest = arg;
@@ -441,7 +539,7 @@ char* parse_arg(char** line, int& state)
 		else if (state != 2)
 			state = 1;
 		
-		if (**line == '"' || **line == ':')
+		if (**line == delimiter)
 		{
 			(*line)++;
 			

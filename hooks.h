@@ -40,38 +40,21 @@
 
 #define _CBHOOK(call) \
 	{ \
-		"weapon_crowbar", VOffset_##call, NULL, NULL, (void*)Weapon_##call, \
+		"weapon_crowbar", NULL, NULL, NULL, (void*)Weapon_##call, \
 	} 
 
 #ifdef _WIN32
 	#define m_pfnThink							4  
 
-	#define XTRA_OFS_VTBL						0
 	#define XTRA_OFS_WEAPON						0
 	#define XTRA_OFS_PLAYER						0
 #else
 	#define m_pfnThink							3    
 
-	#define XTRA_OFS_VTBL						2
 	#define XTRA_OFS_WEAPON						4
 	#define XTRA_OFS_PLAYER						5
 #endif
 
-#define VOffset_Spawn						(XTRA_OFS_VTBL + 0)
-#define VOffset_Precache					(XTRA_OFS_VTBL + 1)
-#define VOffset_Classify					(XTRA_OFS_VTBL + 8)
-#define VOffset_TraceAttack					(XTRA_OFS_VTBL + 10)
-#define VOffset_Respawn						(XTRA_OFS_VTBL + 47)
-#define VOffset_AddAmmo						(XTRA_OFS_VTBL + 57)
-#define VOffset_AddToPlayer					(XTRA_OFS_VTBL + 58)
-#define VOffset_GetItemInfo					(XTRA_OFS_VTBL + 60)
-#define VOffset_CanDeploy					(XTRA_OFS_VTBL + 61)
-#define VOffset_Deploy						(XTRA_OFS_VTBL + 62)
-#define VOffset_CanHolster					(XTRA_OFS_VTBL + 63)
-#define VOffset_Holster						(XTRA_OFS_VTBL + 64)
-#define VOffset_ItemPostFrame				(XTRA_OFS_VTBL + 67)
-#define VOffset_ItemSlot					(XTRA_OFS_VTBL + 75)
-#define VOffset_IsUseable					(XTRA_OFS_VTBL + 82)
 
 #define m_pfnTouch							5
 #define m_flStartThrow						(XTRA_OFS_WEAPON + 16)
@@ -102,6 +85,27 @@
 #define m_rgAmmo							(XTRA_OFS_PLAYER + 310)
 #define m_szAnimExtention					(XTRA_OFS_PLAYER + 387)
 
+enum e_VtblOffsets
+{
+	VO_Spawn,
+	VO_Precache,
+	VO_Classify,
+	VO_TraceAttack,
+	VO_Respawn,
+	VO_AddAmmo,
+	VO_AddToPlayer,
+	VO_GetItemInfo,
+	VO_CanDeploy,
+	VO_Deploy,
+	VO_CanHolster,
+	VO_Holster,
+	VO_ItemPostFrame,
+	VO_ItemSlot,
+	VO_IsUseable,
+
+	VO_End
+};
+
 enum e_DllFuncs
 {
 	Func_RadiusDamage,
@@ -113,7 +117,6 @@ enum e_DllFuncs
 	Func_GiveNamedItem,
 	Func_CheatImpulseCommands,
 
-	
 	Func_End
 };
 
@@ -134,6 +137,8 @@ enum e_CrowbarHooks
 };
 
 extern module hl_dll;
+
+extern int g_vtblOffsets[VO_End];
 extern function g_dllFuncs[Func_End];
 
 extern VirtHookData g_RpgAddAmmo_Hook;
@@ -143,6 +148,8 @@ extern VirtHookData g_CrowbarHooks[CrowbarHook_End];
 
 extern edict_t* Ammo_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles);
 extern edict_t* Weapon_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles);
+
+extern void SetVDataOffsets();
 
 #ifdef _WIN32
 extern void __cdecl PrecacheOtherWeapon_HookHandler(const char *szClassname);
@@ -167,7 +174,7 @@ extern BOOL __fastcall AmmoBox_AddAmmo(void *pPrivate, int i, void *pPrivateOthe
 
 inline void GET_ITEM_INFO(edict_t* pItem, ItemInfo *p)
 {
-	reinterpret_cast<int (__fastcall *)(void *, int, ItemInfo *)>((*((void***)((char*)pItem->pvPrivateData)))[VOffset_GetItemInfo])(pItem->pvPrivateData, 0, p);
+	reinterpret_cast<int (__fastcall *)(void *, int, ItemInfo *)>((*((void***)((char*)pItem->pvPrivateData)))[g_vtblOffsets[VO_GetItemInfo]])(pItem->pvPrivateData, 0, p);
 }
 
 inline void CLEAR_MULTI_DAMAGE()
@@ -182,12 +189,12 @@ inline void APPLY_MULTI_DAMAGE(edict_t* pInlictor, edict_t* pAttacker)
 
 inline int CLASSIFY(edict_t* pEntity)
 {
-	return reinterpret_cast<int (__fastcall *)(void *, int)>((*((void***)((char*)pEntity->pvPrivateData)))[VOffset_Classify])(pEntity->pvPrivateData, 0);
+	return reinterpret_cast<int (__fastcall *)(void *, int)>((*((void***)((char*)pEntity->pvPrivateData)))[g_vtblOffsets[VO_Classify]])(pEntity->pvPrivateData, 0);
 }
 
 inline void TRACE_ATTACK(edict_t* pEntity, edict_t* pAttacker, float flDamage, Vector vecDir, TraceResult tr, int bitsDamageType)
 {
-	reinterpret_cast<int (__fastcall *)(void *, int, entvars_t *, float, Vector, TraceResult *, int)>((*((void***)((char*)pEntity->pvPrivateData)))[VOffset_TraceAttack])(pEntity->pvPrivateData, 0, &(pAttacker->v), flDamage, vecDir,  &tr, bitsDamageType);
+	reinterpret_cast<int (__fastcall *)(void *, int, entvars_t *, float, Vector, TraceResult *, int)>((*((void***)((char*)pEntity->pvPrivateData)))[g_vtblOffsets[VO_TraceAttack]])(pEntity->pvPrivateData, 0, &(pAttacker->v), flDamage, vecDir,  &tr, bitsDamageType);
 }
 
 inline int GET_AMMO_INDEX(const char *ammoname)
@@ -217,7 +224,7 @@ extern BOOL AmmoBox_AddAmmo(void *pPrivate, void *pPrivateOther);
 
 inline void GET_ITEM_INFO(edict_t* pItem, ItemInfo *p)
 {
-	reinterpret_cast<int (*)(void *, ItemInfo *)>((*((void***)(((char*)pItem->pvPrivateData) + 0x60)))[VOffset_GetItemInfo])(pItem->pvPrivateData, p);
+	reinterpret_cast<int (*)(void *, ItemInfo *)>((*((void***)(((char*)pItem->pvPrivateData) + g_Base)))[g_vtblOffsets[VO_GetItemInfo]])(pItem->pvPrivateData, p);
 }
 
 inline vod CLEAR_MULTI_DAMAGE()
@@ -232,12 +239,12 @@ inline void APPLY_MULTI_DAMAGE(edict_t* pInlictor, edict_t* pAttacker)
 
 inline int CLASSIFY(edict_t* pEntity)
 {
-	return reinterpret_cast<int (*)(void *)>((*((void***)(((char*)pEntity->pvPrivateData) + 0x60)))[VOffset_Classify])(pEntity->pvPrivateData);
+	return reinterpret_cast<int (*)(void *)>((*((void***)(((char*)pEntity->pvPrivateData) + g_Base)))[g_vtblOffsets[VO_Classify]])(pEntity->pvPrivateData);
 }
 
 inline void TRACE_ATTACK(edict_t* pEntity, edict_t* pAttacker, float flDamage, Vector vecDir, TraceResult tr, int bitsDamageType)
 {
-	reinterpret_cast<int (*)(void *, entvars_t *, float, Vector, TraceResult *, int)>((*((void***)(((char*)pEntity->pvPrivateData) + 0x60)))[VOffset_TraceAttack])(pEntity->pvPrivateData, &(pAttacker->v), flDamage, vecDir,  &tr, bitsDamageType);
+	reinterpret_cast<int (*)(void *, entvars_t *, float, Vector, TraceResult *, int)>((*((void***)(((char*)pEntity->pvPrivateData) + g_Base)))[g_vtblOffsets[VO_TraceAttack]])(pEntity->pvPrivateData, &(pAttacker->v), flDamage, vecDir,  &tr, bitsDamageType);
 }
 
 inline int GET_AMMO_INDEX(const char *ammoname)

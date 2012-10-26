@@ -35,6 +35,7 @@
 #include "effects.h"
 #include "hooks.h"
 #include "utils.h"
+#include "studio.h"
 
 
 #define CHECK_OFFSET(x) \
@@ -218,13 +219,22 @@ static cell AMX_NATIVE_CALL wpnmod_register_weapon(AMX *amx, cell *params)
 
 	for (int i = 1; i < MAX_WEAPONS; i++)
 	{
-		if (WeaponInfoArray[i].iType != Wpn_None && !_strcmpi(GetWeapon_pszName(i), szWeaponName))
+		if (WeaponInfoArray[i].iType != Wpn_None)
 		{
-			MF_LogError(amx, AMX_ERR_NATIVE, "Weapon name is duplicated.");
-			return -1;
-		}
+			if (!_strcmpi(GetWeapon_pszName(i), szWeaponName))
+			{
+				MF_LogError(amx, AMX_ERR_NATIVE, "Weapon name is duplicated.");
+				return -1;
+			}
 
-		if (WeaponInfoArray[i].iType == Wpn_None)
+			if (GetWeapon_pszAmmo1(i) && GET_AMMO_INDEX(GetWeapon_pszAmmo1(i)) >= MAX_AMMO_SLOTS 
+				|| GetWeapon_pszAmmo2(i) && GET_AMMO_INDEX(GetWeapon_pszAmmo2(i)) >= MAX_AMMO_SLOTS)
+			{
+				MF_LogError(amx, AMX_ERR_NATIVE, "Ammo limit reached.");
+				return -1;
+			}
+		}
+		else if (WeaponInfoArray[i].iType == Wpn_None)
 		{
 			g_iWeaponsCount++;
 
@@ -1186,7 +1196,7 @@ static cell AMX_NATIVE_CALL wpnmod_create_item(AMX *amx, cell *params)
  */
 static cell AMX_NATIVE_CALL wpnmod_register_ammobox(AMX *amx, cell *params)
 {
-	if (g_iAmmoBoxIndex >= MAX_WEAPONS - 1)
+	if (g_iAmmoBoxIndex >= MAX_WEAPONS)
 	{
 		MF_LogError(amx, AMX_ERR_NATIVE, "Ammobox limit reached.");
 		return -1;
