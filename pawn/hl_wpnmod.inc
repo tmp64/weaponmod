@@ -173,6 +173,23 @@ native wpnmod_send_weapon_anim(const iItem, const iAnim);
 native wpnmod_set_player_anim(const iPlayer, const PLAYER_ANIM: iPlayerAnim);
 
 /**
+ * Set animation extension for player.
+ *
+ * @param iPlayer		Player id.
+ * @param szAnimExt[]	Animation extension prefix.
+ */
+native wpnmod_set_anim_ext(const iPlayer, const szAnimExt[]);
+
+/**
+ * Get animation extension for player.
+ *
+ * @param iPlayer		Player id.
+ * @param szDest[]		Buffer.
+ * @param iMaxLen		Max buffer size.
+ */
+ native wpnmod_get_anim_ext(const iPlayer, szDest[], iMaxLen);
+
+/**
  * Sets an integer from private data.
  *
  * @param iEntity			Entity index.

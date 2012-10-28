@@ -46,6 +46,7 @@ cvar_t *cvar_aghlru = NULL;
 cvar_t *cvar_sv_cheats = NULL;
 cvar_t *cvar_mp_weaponstay = NULL;
 
+CVector <DecalList *> g_Decals;
 CVector <StartAmmo *> g_StartAmmo;
 CVector <VirtHookData *> g_BlockedItems;
 
@@ -90,6 +91,7 @@ void OnAmxxAttach()
 		ParseConfigSection(filepath, "[signatures]", (void*)ParseSignatures_Handler);
 		ParseConfigSection(filepath, "[vtable_base]", (void*)ParseVtableBase_Handler);
 		ParseConfigSection(filepath, "[vtable_offsets]", (void*)ParseVtableOffsets_Handler);
+		ParseConfigSection(filepath, "[pvdata_offsets]", (void*)ParsePvDataOffsets_Handler);
 		
 		SetVDataOffsets();
 
@@ -162,8 +164,8 @@ void OnAmxxDetach()
 
 void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 {
-	// Get spawn point and create item from map's bsp file.
 	ParseBSP();
+	SetConfigFile();
 
 	// Parse default equipments and ammo.
 	ParseConfigSection(g_ConfigFilepath, "[ammo]", (void*)ParseAmmo_Handler);
@@ -192,6 +194,20 @@ void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 }
 
 
+
+int FN_DecalIndex_Post(const char *name)
+{
+	DecalList *p = new DecalList;
+
+	p->name = STRING(ALLOC_STRING(name));
+	p->index = META_RESULT_ORIG_RET(int);
+
+	g_Decals.push_back(p);
+
+	RETURN_META_VALUE(MRES_IGNORED, 0);
+}
+
+
 void ServerDeactivate()
 {
 	g_EquipEnt = 0;
@@ -207,6 +223,11 @@ void ServerDeactivate()
 	memset(WeaponInfoArray, 0, sizeof(WeaponInfoArray));
 	memset(AmmoBoxInfoArray, 0, sizeof(AmmoBoxInfoArray));
 
+	for (int i = 0; i < (int)g_Decals.size(); i++)
+	{
+		delete g_Decals[i];
+	}
+
 	for (int i = 0; i < (int)g_StartAmmo.size(); i++)
 	{
 		delete g_StartAmmo[i];
@@ -218,6 +239,7 @@ void ServerDeactivate()
 		delete g_BlockedItems[i];
 	}
 
+	g_Decals.clear();
 	g_StartAmmo.clear();
 	g_BlockedItems.clear();
 
@@ -236,6 +258,8 @@ int AmxxCheckGame(const char *game)
 	
 	return AMXX_GAME_OK;
 }
+
+
 
 /*
 void Player_SendAmmoUpdate(edict_t* pPlayer)

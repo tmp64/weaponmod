@@ -45,6 +45,7 @@ edict_t* g_pPlayer;
 module hl_dll = {NULL, 0, NULL};
 
 int g_vtblOffsets[VO_End];
+int g_pvDataOffsets[pvData_End];
 
 VirtHookData g_PlayerSpawn_Hook = { "player", NULL, NULL, NULL, (void*)Player_Spawn };
 VirtHookData g_RpgAddAmmo_Hook = { "ammo_rpgclip", NULL, NULL, NULL, (void*)AmmoBox_AddAmmo };
@@ -164,7 +165,7 @@ int Weapon_GetItemInfo(void *pPrivate, ItemInfo *p)
 		return 0;
 	}
 
-	g_iId = (int)*((int *)g_pWeapon->pvPrivateData + m_iId);
+	g_iId = (int)*((int *)g_pWeapon->pvPrivateData + g_pvDataOffsets[pvData_iId]);
 
 	if (g_iWeaponInitID)
 	{
@@ -213,7 +214,7 @@ BOOL Weapon_CanDeploy(void *pPrivate)
 		return FALSE;
 	}
 
-	g_iId = (int)*((int *)g_pWeapon->pvPrivateData + m_iId);
+	g_iId = (int)*((int *)g_pWeapon->pvPrivateData + g_pvDataOffsets[pvData_iId]);
 
 	if (WeaponInfoArray[g_iId].iType == Wpn_Default || !WeaponInfoArray[g_iId].iForward[Fwd_Wpn_CanDeploy])
 	{
@@ -224,7 +225,7 @@ BOOL Weapon_CanDeploy(void *pPrivate)
 #endif
 	}
 
-	g_pPlayer = GetPrivateCbase(g_pWeapon, m_pPlayer);
+	g_pPlayer = GetPrivateCbase(g_pWeapon, g_pvDataOffsets[pvData_pPlayer]);
 
 	if (!IsValidPev(g_pPlayer))
 	{
@@ -237,7 +238,7 @@ BOOL Weapon_CanDeploy(void *pPrivate)
 
 		static_cast<cell>(ENTINDEX(g_pWeapon)), 
 		static_cast<cell>(ENTINDEX(g_pPlayer)), 
-		static_cast<cell>((int)*((int *)g_pWeapon->pvPrivateData + m_iClip)), 
+		static_cast<cell>((int)*((int *)g_pWeapon->pvPrivateData + g_pvDataOffsets[pvData_iClip])), 
 		static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, TRUE)),
 		static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, FALSE))
 	);
@@ -258,7 +259,7 @@ BOOL Weapon_Deploy(void *pPrivate)
 		return FALSE;
 	}
 
-	g_iId = (int)*((int *)g_pWeapon->pvPrivateData + m_iId);
+	g_iId = (int)*((int *)g_pWeapon->pvPrivateData + g_pvDataOffsets[pvData_iId]);
 
 	if (WeaponInfoArray[g_iId].iType == Wpn_Default)
 	{
@@ -269,7 +270,7 @@ BOOL Weapon_Deploy(void *pPrivate)
 #endif
 	}
 
-	g_pPlayer = GetPrivateCbase(g_pWeapon, m_pPlayer);
+	g_pPlayer = GetPrivateCbase(g_pWeapon, g_pvDataOffsets[pvData_pPlayer]);
 
 	int iReturn = FALSE;
 
@@ -288,7 +289,7 @@ BOOL Weapon_Deploy(void *pPrivate)
 
 			static_cast<cell>(ENTINDEX(g_pWeapon)), 
 			static_cast<cell>(ENTINDEX(g_pPlayer)), 
-			static_cast<cell>((int)*((int *)g_pWeapon->pvPrivateData + m_iClip)), 
+			static_cast<cell>((int)*((int *)g_pWeapon->pvPrivateData + g_pvDataOffsets[pvData_iClip])), 
 			static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, TRUE)),
 			static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, FALSE))
 		);
@@ -322,7 +323,7 @@ void Weapon_ItemPostFrame(void *pPrivate)
 		return;
 	}
 
-	g_iId = (int)*((int *)g_pWeapon->pvPrivateData + m_iId);
+	g_iId = (int)*((int *)g_pWeapon->pvPrivateData + g_pvDataOffsets[pvData_iId]);
 
 	if (WeaponInfoArray[g_iId].iType == Wpn_Default)
 	{
@@ -334,22 +335,22 @@ void Weapon_ItemPostFrame(void *pPrivate)
 		return;
 	}
 
-	g_pPlayer = GetPrivateCbase(g_pWeapon, m_pPlayer);
+	g_pPlayer = GetPrivateCbase(g_pWeapon, g_pvDataOffsets[pvData_pPlayer]);
 
 	if (!IsValidPev(g_pPlayer))
 	{
 		return;
 	}
 
-	flNextAttack = (float)*((float *)g_pPlayer->pvPrivateData + m_flNextAttack);
-	flNextPrimaryAttack = (float)*((float *)g_pWeapon->pvPrivateData + m_flNextPrimaryAttack);
-	flNextSecondaryAttack = (float)*((float *)g_pWeapon->pvPrivateData + m_flNextSecondaryAttack);
+	flNextAttack = (float)*((float *)g_pPlayer->pvPrivateData + g_pvDataOffsets[pvData_flNextAttack]);
+	flNextPrimaryAttack = (float)*((float *)g_pWeapon->pvPrivateData + g_pvDataOffsets[pvData_flNextPrimaryAttack]);
+	flNextSecondaryAttack = (float)*((float *)g_pWeapon->pvPrivateData + g_pvDataOffsets[pvData_flNextSecondaryAttack]);
 
 	iAmmoPrimary = Player_AmmoInventory(g_pPlayer, g_pWeapon, TRUE);
 	iAmmoSecondary = Player_AmmoInventory(g_pPlayer, g_pWeapon, FALSE);
 
-	iClip = (int)*((int *)g_pWeapon->pvPrivateData + m_iClip);
-	iInReload = (int)*((int *)g_pWeapon->pvPrivateData + m_fInReload);
+	iClip = (int)*((int *)g_pWeapon->pvPrivateData + g_pvDataOffsets[pvData_iClip]);
+	iInReload = (int)*((int *)g_pWeapon->pvPrivateData + g_pvDataOffsets[pvData_fInReload]);
 
 	if (iInReload && flNextAttack <= gpGlobals->time)
 	{
@@ -360,8 +361,8 @@ void Weapon_ItemPostFrame(void *pPrivate)
 		iAmmoPrimary -= j;
 
 		// Add them to the clip
-		*((int *)g_pWeapon->pvPrivateData + m_iClip) = iClip;
-		*((int *)g_pWeapon->pvPrivateData + m_fInReload) = FALSE;	
+		*((int *)g_pWeapon->pvPrivateData + g_pvDataOffsets[pvData_iClip]) = iClip;
+		*((int *)g_pWeapon->pvPrivateData + g_pvDataOffsets[pvData_fInReload]) = FALSE;	
 
 		Player_Set_AmmoInventory(g_pPlayer, g_pWeapon, TRUE, iAmmoPrimary);
 	}
@@ -370,7 +371,7 @@ void Weapon_ItemPostFrame(void *pPrivate)
 	{
 		if (GetWeapon_pszAmmo2(g_iId) && !iAmmoSecondary)
 		{
-			*((int *)g_pWeapon->pvPrivateData + m_fFireOnEmpty) = TRUE;
+			*((int *)g_pWeapon->pvPrivateData + g_pvDataOffsets[pvData_fFireOnEmpty]) = TRUE;
 		}
 
 		if (WeaponInfoArray[g_iId].iForward[Fwd_Wpn_SecondaryAttack])
@@ -393,7 +394,7 @@ void Weapon_ItemPostFrame(void *pPrivate)
 	{
 		if ((!iClip && GetWeapon_pszAmmo1(g_iId)) || (GetWeapon_MaxClip(g_iId) == -1 && !iAmmoPrimary ) )
 		{
-			*((int *)g_pWeapon->pvPrivateData + m_fFireOnEmpty) = TRUE;
+			*((int *)g_pWeapon->pvPrivateData + g_pvDataOffsets[pvData_fFireOnEmpty]) = TRUE;
 		}
 
 		if (WeaponInfoArray[g_iId].iForward[Fwd_Wpn_PrimaryAttack])
@@ -433,7 +434,7 @@ void Weapon_ItemPostFrame(void *pPrivate)
 	{
 		// no fire buttons down
 
-		*((int *)g_pWeapon->pvPrivateData + m_fFireOnEmpty) = FALSE;
+		*((int *)g_pWeapon->pvPrivateData + g_pvDataOffsets[pvData_fFireOnEmpty]) = FALSE;
 
 		if (iClip <= 0 && iAmmoPrimary <= 0 && GetWeapon_MaxAmmo1(g_iId) != -1 && flNextPrimaryAttack < 0.0) 
 		{
@@ -498,7 +499,7 @@ BOOL Weapon_IsUseable(void *pPrivate)
 		return FALSE;
 	}
 
-	g_iId = (int)*((int *)g_pWeapon->pvPrivateData + m_iId);
+	g_iId = (int)*((int *)g_pWeapon->pvPrivateData + g_pvDataOffsets[pvData_iId]);
 
 	if (WeaponInfoArray[g_iId].iType == Wpn_Default || !WeaponInfoArray[g_iId].iForward[Fwd_Wpn_IsUseable])
 	{
@@ -509,7 +510,7 @@ BOOL Weapon_IsUseable(void *pPrivate)
 #endif
 	}
 
-	g_pPlayer = GetPrivateCbase(g_pWeapon, m_pPlayer);
+	g_pPlayer = GetPrivateCbase(g_pWeapon, g_pvDataOffsets[pvData_pPlayer]);
 
 	if (!IsValidPev(g_pPlayer))
 	{
@@ -522,7 +523,7 @@ BOOL Weapon_IsUseable(void *pPrivate)
 
 		static_cast<cell>(ENTINDEX(g_pWeapon)), 
 		static_cast<cell>(ENTINDEX(g_pPlayer)), 
-		static_cast<cell>((int)*((int *)g_pWeapon->pvPrivateData + m_iClip)), 
+		static_cast<cell>((int)*((int *)g_pWeapon->pvPrivateData + g_pvDataOffsets[pvData_iClip])), 
 		static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, TRUE)),
 		static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, FALSE))
 	);
@@ -543,7 +544,7 @@ BOOL Weapon_CanHolster(void *pPrivate)
 		return FALSE;
 	}
 
-	g_iId = (int)*((int *)g_pWeapon->pvPrivateData + m_iId);
+	g_iId = (int)*((int *)g_pWeapon->pvPrivateData + g_pvDataOffsets[pvData_iId]);
 
 	if (WeaponInfoArray[g_iId].iType == Wpn_Default || !WeaponInfoArray[g_iId].iForward[Fwd_Wpn_CanHolster])
 	{
@@ -554,7 +555,7 @@ BOOL Weapon_CanHolster(void *pPrivate)
 #endif
 	}
 
-	g_pPlayer = GetPrivateCbase(g_pWeapon, m_pPlayer);
+	g_pPlayer = GetPrivateCbase(g_pWeapon, g_pvDataOffsets[pvData_pPlayer]);
 
 	if (!IsValidPev(g_pPlayer))
 	{
@@ -567,7 +568,7 @@ BOOL Weapon_CanHolster(void *pPrivate)
 
 		static_cast<cell>(ENTINDEX(g_pWeapon)), 
 		static_cast<cell>(ENTINDEX(g_pPlayer)), 
-		static_cast<cell>((int)*((int *)g_pWeapon->pvPrivateData + m_iClip)), 
+		static_cast<cell>((int)*((int *)g_pWeapon->pvPrivateData + g_pvDataOffsets[pvData_iClip])), 
 		static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, TRUE)),
 		static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, FALSE))
 	);
@@ -588,7 +589,7 @@ void Weapon_Holster(void *pPrivate, int skiplocal)
 		return;
 	}
 
-	g_iId = (int)*((int *)g_pWeapon->pvPrivateData + m_iId);
+	g_iId = (int)*((int *)g_pWeapon->pvPrivateData + g_pvDataOffsets[pvData_iId]);
 
 	if (WeaponInfoArray[g_iId].iType == Wpn_Default)
 	{
@@ -603,7 +604,7 @@ void Weapon_Holster(void *pPrivate, int skiplocal)
 	SetEntForward(g_pWeapon, Think, NULL, NULL);
 	SetEntForward(g_pWeapon, Touch, NULL, NULL);
 
-	g_pPlayer = GetPrivateCbase(g_pWeapon, m_pPlayer);
+	g_pPlayer = GetPrivateCbase(g_pWeapon, g_pvDataOffsets[pvData_pPlayer]);
 
 	if (IsValidPev(g_pPlayer) && WeaponInfoArray[g_iId].iForward[Fwd_Wpn_Holster])
 	{
@@ -613,7 +614,7 @@ void Weapon_Holster(void *pPrivate, int skiplocal)
 
 			static_cast<cell>(ENTINDEX(g_pWeapon)), 
 			static_cast<cell>(ENTINDEX(g_pPlayer)), 
-			static_cast<cell>((int)*((int *)g_pWeapon->pvPrivateData + m_iClip)), 
+			static_cast<cell>((int)*((int *)g_pWeapon->pvPrivateData + g_pvDataOffsets[pvData_iClip])), 
 			static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, TRUE)),
 			static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, FALSE))
 		);
@@ -637,7 +638,7 @@ int Weapon_AddToPlayer(void *pPrivate, void *pPrivate2)
 		return 0;
 	}
 
-	g_iId = (int)*((int *)g_pWeapon->pvPrivateData + m_iId);
+	g_iId = (int)*((int *)g_pWeapon->pvPrivateData + g_pvDataOffsets[pvData_iId]);
 	g_pPlayer = PrivateToEdict(pPrivate2);
 
 	if (WeaponInfoArray[g_iId].iType == Wpn_Custom && IsValidPev(g_pPlayer))
@@ -658,7 +659,7 @@ int Weapon_AddToPlayer(void *pPrivate, void *pPrivate2)
 
 					static_cast<cell>(ENTINDEX(g_pWeapon)), 
 					static_cast<cell>(ENTINDEX(g_pPlayer)), 
-					static_cast<cell>((int)*((int *)g_pWeapon->pvPrivateData + m_iClip)), 
+					static_cast<cell>((int)*((int *)g_pWeapon->pvPrivateData + g_pvDataOffsets[pvData_iClip])), 
 					static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, TRUE)),
 					static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, FALSE))
 				)
@@ -687,7 +688,7 @@ int Weapon_AddToPlayer(void *pPrivate, void *pPrivate2)
 
 				static_cast<cell>(ENTINDEX(g_pWeapon)), 
 				static_cast<cell>(ENTINDEX(g_pPlayer)), 
-				static_cast<cell>((int)*((int *)g_pWeapon->pvPrivateData + m_iClip)), 
+				static_cast<cell>((int)*((int *)g_pWeapon->pvPrivateData + g_pvDataOffsets[pvData_iClip])), 
 				static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, TRUE)),
 				static_cast<cell>(Player_AmmoInventory(g_pPlayer, g_pWeapon, FALSE))
 			);
@@ -716,7 +717,7 @@ int Weapon_ItemSlot(void *pPrivate)
 		return 0;
 	}
 
-	g_iId = (int)*((int *)g_pWeapon->pvPrivateData + m_iId);
+	g_iId = (int)*((int *)g_pWeapon->pvPrivateData + g_pvDataOffsets[pvData_iId]);
 
 	if (WeaponInfoArray[g_iId].iType == Wpn_Custom)
 	{
@@ -745,7 +746,7 @@ void* Weapon_Respawn(void *pPrivate)
 		return 0;
 	}
 
-	g_iId = (int)*((int *)g_pWeapon->pvPrivateData + m_iId);
+	g_iId = (int)*((int *)g_pWeapon->pvPrivateData + g_pvDataOffsets[pvData_iId]);
 
 	if (WeaponInfoArray[g_iId].iType == Wpn_Default)
 	{
@@ -896,7 +897,7 @@ void Equipment_Think(void *pPrivate)
 		return;
 	}
 
-	int iPlayer = *((int *)g_pEntity->pvPrivateData + m_fireState);
+	int iPlayer = *((int *)g_pEntity->pvPrivateData + g_pvDataOffsets[pvData_fireState]);
 
 	if (MF_IsPlayerValid(iPlayer) && MF_IsPlayerAlive(iPlayer))
 	{
@@ -931,7 +932,7 @@ void Player_Spawn(void *pPrivate)
 	if (IsValidPev(pTaskEnt))
 	{
 		SetThink_(pTaskEnt, Equipment_Think);
-		*((int *)pTaskEnt->pvPrivateData + m_fireState) = ENTINDEX(g_pPlayer);
+		*((int *)pTaskEnt->pvPrivateData + g_pvDataOffsets[pvData_fireState]) = ENTINDEX(g_pPlayer);
 
 		pTaskEnt->v.classname = MAKE_STRING("equipment_task");
 		pTaskEnt->v.nextthink = gpGlobals->time + 0.08;
@@ -945,7 +946,7 @@ void Player_Spawn(void *pPrivate)
 
 		if (iAmmoIndex != -1)
 		{
-			*((int *)g_pPlayer->pvPrivateData + m_rgAmmo + iAmmoIndex - 1) = g_StartAmmo[i]->count;
+			*((int *)g_pPlayer->pvPrivateData + g_pvDataOffsets[pvData_rgAmmo] + iAmmoIndex - 1) = g_StartAmmo[i]->count;
 		}
 	}
 }
@@ -1082,7 +1083,7 @@ void Global_Think(void *pPrivate)
 		}
 		else
 		{
-			edict_t* pPlayer = GetPrivateCbase(g_pEntity, m_pPlayer);
+			edict_t* pPlayer = GetPrivateCbase(g_pEntity, g_pvDataOffsets[pvData_pPlayer]);
 
 			MF_ExecuteForward
 			(
@@ -1090,7 +1091,7 @@ void Global_Think(void *pPrivate)
 
 				static_cast<cell>(ENTINDEX(g_pEntity)), 
 				static_cast<cell>(ENTINDEX(pPlayer)), 
-				static_cast<cell>((int)*((int *)g_pEntity->pvPrivateData + m_iClip)), 
+				static_cast<cell>((int)*((int *)g_pEntity->pvPrivateData + g_pvDataOffsets[pvData_iClip])), 
 				static_cast<cell>(Player_AmmoInventory(pPlayer, g_pEntity, TRUE)),
 				static_cast<cell>(Player_AmmoInventory(pPlayer, g_pEntity, FALSE))
 			);
@@ -1165,11 +1166,11 @@ edict_t* Weapon_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles)
 		pItem->v.classname = MAKE_STRING(GetWeapon_pszName(iId));
 		pItem->v.angles = vecAngles;
 
-		*((int *)pItem->pvPrivateData + m_iId) = iId;
+		*((int *)pItem->pvPrivateData + g_pvDataOffsets[pvData_iId]) = iId;
 
 		if (GetWeapon_MaxClip(iId) != -1)
 		{
-			*((int *)pItem->pvPrivateData + m_iClip) = 0;
+			*((int *)pItem->pvPrivateData + g_pvDataOffsets[pvData_iClip]) = 0;
 		}
 
 		if (WeaponInfoArray[iId].iForward[Fwd_Wpn_Spawn])

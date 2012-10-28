@@ -52,6 +52,7 @@ extern void ParseBSP();
 extern void ParseSignatures_Handler(char* data);
 extern void ParseVtableBase_Handler(char* data);
 extern void ParseVtableOffsets_Handler(char* data);
+extern void ParsePvDataOffsets_Handler(char* data);
 extern void ParseAmmo_Handler(char* data);
 extern void ParseEquipment_Handler(char* data);
 extern void ParseSpawnPoints_Handler(char* data);

@@ -60,27 +60,27 @@ edict_t *GetPrivateCbase(edict_t *pEntity, int iOffset)
 
 int Player_AmmoInventory(edict_t* pPlayer, edict_t* pWeapon, BOOL bPrimary)
 {
-	int iAmmoIndex = (int)*((int *)pWeapon->pvPrivateData + (bPrimary ? m_iPrimaryAmmoType : m_iSecondaryAmmoType));
+	int iAmmoIndex = (int)*((int *)pWeapon->pvPrivateData + g_pvDataOffsets[bPrimary ? pvData_iPrimaryAmmoType : pvData_iSecondaryAmmoType]);
 
 	if (iAmmoIndex == -1)
 	{
 		return -1;
 	}
 
-	return (int)*((int *)pPlayer->pvPrivateData + m_rgAmmo + iAmmoIndex - 1);
+	return (int)*((int *)pPlayer->pvPrivateData + g_pvDataOffsets[pvData_rgAmmo] + iAmmoIndex - 1);
 }
 
 
 int Player_Set_AmmoInventory(edict_t* pPlayer, edict_t* pWeapon, BOOL bPrimary, int Amount)
 {
-	int iAmmoIndex = (int)*((int *)pWeapon->pvPrivateData + (bPrimary ? m_iPrimaryAmmoType : m_iSecondaryAmmoType));
+	int iAmmoIndex = (int)*((int *)pWeapon->pvPrivateData + g_pvDataOffsets[bPrimary ? pvData_iPrimaryAmmoType : pvData_iSecondaryAmmoType]);
 
 	if (iAmmoIndex == -1)
 	{
 		return 0;
 	}
 
-	*((int *)pPlayer->pvPrivateData + m_rgAmmo + iAmmoIndex - 1) = Amount;
+	*((int *)pPlayer->pvPrivateData + g_pvDataOffsets[pvData_rgAmmo] + iAmmoIndex - 1) = Amount;
 
 	return 1;
 }
@@ -145,36 +145,36 @@ void UTIL_EjectBrass(const Vector &vecOrigin, const Vector &vecVelocity, float r
 
 void UTIL_DecalGunshot(TraceResult *pTrace)
 {
-	int iEntity;
-	int index = DECAL_INDEX("{shot1") + RANDOM_LONG(0, 4);
-	
-	if (index < 0 || pTrace->flFraction == 1.0)
+	if (!pTrace->pHit || pTrace->pHit->free || (pTrace->pHit->v.flags & FL_KILLME))
 	{
 		return;
 	}
 
-	if (!IsValidPev(pTrace->pHit))
+	if (pTrace->pHit->v.solid == SOLID_BSP || pTrace->pHit->v.movetype == MOVETYPE_PUSHSTEP )
 	{
-		iEntity = 0;
-	}
-	else
-	{
-		if (pTrace->pHit && !(pTrace->pHit->v.solid == SOLID_BSP || pTrace->pHit->v.movetype == MOVETYPE_PUSHSTEP))
+		int decalNumber= GET_DAMAGE_DECAL(pTrace->pHit);
+
+		if (decalNumber < 0)
 		{
 			return;
 		}
 
-		iEntity = ENTINDEX(pTrace->pHit);
-	}
+		int index = g_Decals[decalNumber]->index;
+		
+		if (index < 0 || pTrace->flFraction == 1.0)
+		{
+			return;
+		}
 
-	MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pTrace->vecEndPos );
-		WRITE_BYTE( TE_GUNSHOTDECAL );
-		WRITE_COORD( pTrace->vecEndPos.x );
-		WRITE_COORD( pTrace->vecEndPos.y );
-		WRITE_COORD( pTrace->vecEndPos.z );
-		WRITE_SHORT( iEntity );
-		WRITE_BYTE( index );
-	MESSAGE_END();
+		MESSAGE_BEGIN(MSG_PAS, SVC_TEMPENTITY, pTrace->vecEndPos);
+			WRITE_BYTE(TE_GUNSHOTDECAL);
+			WRITE_COORD(pTrace->vecEndPos.x );
+			WRITE_COORD(pTrace->vecEndPos.y );
+			WRITE_COORD(pTrace->vecEndPos.z );
+			WRITE_SHORT((short)ENTINDEX(pTrace->pHit));
+			WRITE_BYTE(index);
+		MESSAGE_END();
+	}
 }
 
 void UTIL_DecalTrace(TraceResult *pTrace, int iDecalIndex)

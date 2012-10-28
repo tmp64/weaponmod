@@ -314,6 +314,31 @@ void ParseVtableOffsets_Handler(char* data)
 	iIndex++;
 }
 
+void ParsePvDataOffsets_Handler(char* data)
+{
+	char* arg;
+	char szData[2][4];
+
+	for (int state = 0, i = 0; i < 2; i++)
+	{
+		arg = parse_arg(&data, state, ':');
+		strcpy(szData[i], arg);
+	}
+
+	static int iIndex = 0;
+
+	if (iIndex < pvData_End)
+	{
+#ifdef _WIN32
+		g_pvDataOffsets[iIndex] = atoi(szData[0]);
+#else
+		g_pvDataOffsets[iIndex] = atoi(szData[0]) + atoi(szData[1]);
+#endif
+	}
+
+	iIndex++;
+}
+
 // Thanks to Eg@r4$il{ and HLSDK.
 void KeyValueFromBSP(char *pKey, char *pValue, int iNewent)
 {

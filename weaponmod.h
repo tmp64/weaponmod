@@ -152,6 +152,12 @@ typedef struct
 	int count;
 } StartAmmo;
 
+typedef struct 
+{
+	const char	*name;
+	int		index;
+} DecalList;
+
 class CPlugin
 {
 public:
@@ -187,6 +193,7 @@ extern int g_iCurrentSlots[MAX_WEAPON_SLOTS][MAX_WEAPON_POSITIONS];
 extern WeaponData WeaponInfoArray[MAX_WEAPONS];
 extern AmmoBoxData AmmoBoxInfoArray[MAX_WEAPONS];
 
+extern CVector <DecalList *> g_Decals;
 extern CVector <StartAmmo *> g_StartAmmo;
 extern CVector <VirtHookData *> g_BlockedItems;
 

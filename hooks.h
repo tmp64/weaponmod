@@ -43,54 +43,13 @@
 		"weapon_crowbar", NULL, NULL, NULL, (void*)Weapon_##call, \
 	} 
 
-#ifdef _WIN32
-	#define m_pfnThink							4  
-
-	#define XTRA_OFS_WEAPON						0
-	#define XTRA_OFS_PLAYER						0
-#else
-	#define m_pfnThink							3    
-
-	#define XTRA_OFS_WEAPON						4
-	#define XTRA_OFS_PLAYER						5
-#endif
-
-
-#define m_pfnTouch							5
-#define m_flStartThrow						(XTRA_OFS_WEAPON + 16)
-#define m_flReleaseThrow					(XTRA_OFS_WEAPON + 17)
-#define m_chargeReady						(XTRA_OFS_WEAPON + 18)
-#define m_fInAttack							(XTRA_OFS_WEAPON + 19)
-#define m_fireState							(XTRA_OFS_WEAPON + 20)
-#define m_pPlayer							(XTRA_OFS_WEAPON + 28)
-#define m_iId								(XTRA_OFS_WEAPON + 30)
-#define m_iPlayEmptySound					(XTRA_OFS_WEAPON + 31)
-#define m_fFireOnEmpty						(XTRA_OFS_WEAPON + 32)
-#define m_flPumpTime						(XTRA_OFS_WEAPON + 33)
-#define m_fInSpecialReload					(XTRA_OFS_WEAPON + 34)
-#define m_flNextPrimaryAttack				(XTRA_OFS_WEAPON + 35)
-#define m_flNextSecondaryAttack				(XTRA_OFS_WEAPON + 36)
-#define m_flTimeWeaponIdle					(XTRA_OFS_WEAPON + 37)
-#define m_iPrimaryAmmoType					(XTRA_OFS_WEAPON + 38)
-#define m_iSecondaryAmmoType				(XTRA_OFS_WEAPON + 39)
-#define m_iClip								(XTRA_OFS_WEAPON + 40)
-#define m_fInReload							(XTRA_OFS_WEAPON + 43)
-#define m_iDefaultAmmo						(XTRA_OFS_WEAPON + 44)
-#define m_LastHitGroup						(XTRA_OFS_PLAYER + 90)
-#define m_flNextAttack						(XTRA_OFS_PLAYER + 148)
-#define m_iWeaponVolume						(XTRA_OFS_PLAYER + 173)
-#define m_iWeaponFlash						(XTRA_OFS_PLAYER + 175)
-#define m_iFOV								(XTRA_OFS_PLAYER + 298)
-#define m_pActiveItem						(XTRA_OFS_PLAYER + 306)
-#define m_rgAmmo							(XTRA_OFS_PLAYER + 310)
-#define m_szAnimExtention					(XTRA_OFS_PLAYER + 387)
-
 enum e_VtblOffsets
 {
 	VO_Spawn,
 	VO_Precache,
 	VO_Classify,
 	VO_TraceAttack,
+	VO_DamageDecal,
 	VO_Respawn,
 	VO_AddAmmo,
 	VO_AddToPlayer,
@@ -104,6 +63,49 @@ enum e_VtblOffsets
 	VO_IsUseable,
 
 	VO_End
+};
+
+enum e_PvDataOffsets
+{
+	pvData_pfnThink,
+	pvData_pfnTouch,
+	pvData_ammo_9mm,
+	pvData_ammo_357,
+	pvData_ammo_bolts,
+	pvData_ammo_buckshot,
+	pvData_ammo_rockets,
+	pvData_ammo_uranium,
+	pvData_ammo_hornets,
+	pvData_ammo_argrens,
+	pvData_flStartThrow,
+	pvData_flReleaseThrow,
+	pvData_chargeReady,
+	pvData_fInAttack,
+	pvData_fireState,
+	pvData_pPlayer,
+	pvData_iId,
+	pvData_iPlayEmptySound,
+	pvData_fFireOnEmpty,
+	pvData_flPumpTime,
+	pvData_fInSpecialReload,
+	pvData_flNextPrimaryAttack,
+	pvData_flNextSecondaryAttack,
+	pvData_flTimeWeaponIdle,
+	pvData_iPrimaryAmmoType,
+	pvData_iSecondaryAmmoType,
+	pvData_iClip,
+	pvData_fInReload,
+	pvData_iDefaultAmmo,
+	pvData_LastHitGroup,
+	pvData_flNextAttack,
+	pvData_iWeaponVolume,
+	pvData_iWeaponFlash,
+	pvData_iFOV,
+	pvData_pActiveItem,
+	pvData_rgAmmo,
+	pvData_szAnimExtention,
+
+	pvData_End
 };
 
 enum e_DllFuncs
@@ -139,6 +141,8 @@ enum e_CrowbarHooks
 extern module hl_dll;
 
 extern int g_vtblOffsets[VO_End];
+extern int g_pvDataOffsets[pvData_End];
+
 extern function g_dllFuncs[Func_End];
 
 extern VirtHookData g_RpgAddAmmo_Hook;
@@ -171,6 +175,11 @@ extern BOOL __fastcall Weapon_IsUseable(void *pPrivate);
 extern BOOL __fastcall Weapon_Deploy(void *pPrivate);
 extern BOOL __fastcall Weapon_CanDeploy(void *pPrivate);
 extern BOOL __fastcall AmmoBox_AddAmmo(void *pPrivate, int i, void *pPrivateOther);
+
+inline int GET_DAMAGE_DECAL(edict_t* pEntity)
+{
+	return reinterpret_cast<int (__fastcall *)(void *, int, int)>((*((void***)((char*)pEntity->pvPrivateData)))[g_vtblOffsets[VO_DamageDecal]])(pEntity->pvPrivateData, 0, 0);
+}
 
 inline void GET_ITEM_INFO(edict_t* pItem, ItemInfo *p)
 {
@@ -222,6 +231,11 @@ extern BOOL Weapon_Deploy(void *pPrivate);
 extern BOOL Weapon_CanDeploy(void *pPrivate);
 extern BOOL AmmoBox_AddAmmo(void *pPrivate, void *pPrivateOther);
 
+inline int GET_DAMAGE_DECAL(edict_t* pEntity)
+{
+	return reinterpret_cast<int (*)(void *, int)>((*((void***)(((char*)pEntity->pvPrivateData) + g_Base)))[g_vtblOffsets[VO_DamageDecal]])(pEntity->pvPrivateData, 0);
+}
+
 inline void GET_ITEM_INFO(edict_t* pItem, ItemInfo *p)
 {
 	reinterpret_cast<int (*)(void *, ItemInfo *)>((*((void***)(((char*)pItem->pvPrivateData) + g_Base)))[g_vtblOffsets[VO_GetItemInfo]])(pItem->pvPrivateData, p);
@@ -267,20 +281,20 @@ inline bool IsBadWritePtr(void *l, size_t size)
 inline void SetTouch_(edict_t* e, void* funcAddress) 
 {     
 #ifdef __linux__         
-	*((long*)e->pvPrivateData + m_pfnTouch) = funcAddress == NULL ? NULL : 0xFFFF0000;         
-	*((long*)e->pvPrivateData + m_pfnTouch + 1) = (long)(funcAddress);     
+	*((long*)e->pvPrivateData + g_pvDataOffsets[pvData_pfnTouch]) = funcAddress == NULL ? NULL : 0xFFFF0000;         
+	*((long*)e->pvPrivateData +g_pvDataOffsets[pvData_pfnTouch] + 1) = (long)(funcAddress);     
 #else         
-	*((long*)e->pvPrivateData + m_pfnTouch) = (long)(funcAddress);     
+	*((long*)e->pvPrivateData + g_pvDataOffsets[pvData_pfnTouch]) = (long)(funcAddress);     
 #endif 
 }
 
 inline void SetThink_(edict_t* e, void* funcAddress) 
 {     
 #ifdef __linux__         
-	*((long*)e->pvPrivateData + m_pfnThink) = funcAddress == NULL ? NULL : 0xFFFF0000;         
-	*((long*)e->pvPrivateData + m_pfnThink + 1) = (long)(funcAddress);     
+	*((long*)e->pvPrivateData + g_pvDataOffsets[pvData_pfnThink] - 1) = funcAddress == NULL ? NULL : 0xFFFF0000;         
+	*((long*)e->pvPrivateData + g_pvDataOffsets[pvData_pfnThink]) = (long)(funcAddress);     
 #else         
-	*((long*)e->pvPrivateData + m_pfnThink) = (long)(funcAddress);     
+	*((long*)e->pvPrivateData + g_pvDataOffsets[pvData_pfnThink]) = (long)(funcAddress);     
 #endif 
 }
 

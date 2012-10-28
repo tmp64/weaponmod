@@ -94,39 +94,38 @@ enum e_Offsets
 	Offset_End
 };
 
-int PvDataOffsets[Offset_End] =
+int *NativesPvDataOffsets[Offset_End] =
 {
-	m_flStartThrow,
-	m_flReleaseThrow,
-	m_chargeReady,
-	m_fInAttack,
-	m_fireState,
-	m_fFireOnEmpty,
-	m_flPumpTime,
-	m_fInSpecialReload,
-	m_flNextPrimaryAttack,
-	m_flNextSecondaryAttack,
-	m_flTimeWeaponIdle,
-	m_iPrimaryAmmoType,
-	m_iSecondaryAmmoType,
-	m_iClip,
-	m_fInReload,
-	m_iDefaultAmmo,
-	m_flNextAttack,
-	m_iWeaponVolume,
-	m_iWeaponFlash,
-	m_LastHitGroup,
-	m_iFOV,
-	XTRA_OFS_WEAPON + 8,
-	XTRA_OFS_WEAPON + 9,
-	XTRA_OFS_WEAPON + 10,
-	XTRA_OFS_WEAPON + 11,
-	XTRA_OFS_WEAPON + 12,
-	XTRA_OFS_WEAPON + 13,
-	XTRA_OFS_WEAPON + 14,
-	XTRA_OFS_WEAPON + 15,
+	&g_pvDataOffsets[pvData_flStartThrow],
+	&g_pvDataOffsets[pvData_flReleaseThrow],
+	&g_pvDataOffsets[pvData_chargeReady],
+	&g_pvDataOffsets[pvData_fInAttack],
+	&g_pvDataOffsets[pvData_fireState],
+	&g_pvDataOffsets[pvData_fFireOnEmpty],
+	&g_pvDataOffsets[pvData_flPumpTime],
+	&g_pvDataOffsets[pvData_fInSpecialReload],
+	&g_pvDataOffsets[pvData_flNextPrimaryAttack],
+	&g_pvDataOffsets[pvData_flNextSecondaryAttack],
+	&g_pvDataOffsets[pvData_flTimeWeaponIdle],
+	&g_pvDataOffsets[pvData_iPrimaryAmmoType],
+	&g_pvDataOffsets[pvData_iSecondaryAmmoType],
+	&g_pvDataOffsets[pvData_iClip],
+	&g_pvDataOffsets[pvData_fInReload],
+	&g_pvDataOffsets[pvData_iDefaultAmmo],
+	&g_pvDataOffsets[pvData_flNextAttack],
+	&g_pvDataOffsets[pvData_iWeaponVolume],
+	&g_pvDataOffsets[pvData_iWeaponFlash],
+	&g_pvDataOffsets[pvData_LastHitGroup],
+	&g_pvDataOffsets[pvData_iFOV],
+	&g_pvDataOffsets[pvData_ammo_9mm],
+	&g_pvDataOffsets[pvData_ammo_357],
+	&g_pvDataOffsets[pvData_ammo_bolts],
+	&g_pvDataOffsets[pvData_ammo_buckshot],
+	&g_pvDataOffsets[pvData_ammo_rockets],
+	&g_pvDataOffsets[pvData_ammo_uranium],
+	&g_pvDataOffsets[pvData_ammo_hornets],
+	&g_pvDataOffsets[pvData_ammo_argrens]
 };
-
 
 
 int g_iWeaponsCount = 0;
@@ -585,7 +584,7 @@ static cell AMX_NATIVE_CALL wpnmod_send_weapon_anim(AMX *amx, cell *params)
 	CHECK_ENTITY(params[1])
 
 	edict_t *pWeapon = INDEXENT(params[1]);
-	edict_t *pPlayer = GetPrivateCbase(pWeapon, m_pPlayer);
+	edict_t *pPlayer = GetPrivateCbase(pWeapon, g_pvDataOffsets[pvData_pPlayer]);
 
 	if (!IsValidPev(pPlayer))
 	{
@@ -621,6 +620,48 @@ static cell AMX_NATIVE_CALL wpnmod_set_player_anim(AMX *amx, cell *params)
 }
 
 /**
+ * Set animation extension for player.
+ *
+ * @param iPlayer		Player id.
+ * @param szAnimExt[]	Animation extension prefix.
+ *
+ * native wpnmod_set_anim_ext(const iPlayer, const szAnimExt[]);
+*/
+static cell AMX_NATIVE_CALL wpnmod_set_anim_ext(AMX *amx, cell *params)
+{
+	int iPlayer = params[1];
+
+	CHECK_ENTITY(iPlayer)
+
+	char *szData = (char *)INDEXENT2(iPlayer)->pvPrivateData + g_pvDataOffsets[pvData_szAnimExtention] * 4;
+		
+	if (!IsBadWritePtr(szData, 1))
+	{
+		strcpy(szData, STRING(ALLOC_STRING(MF_GetAmxString(amx, params[2], 0, NULL))));
+	}
+
+	return 1;
+}
+
+/**
+ * Get animation extension for player.
+ *
+ * @param iPlayer		Player id.
+ * @param szDest[]		Buffer.
+ * @param iMaxLen		Max buffer size.
+ *
+ * native wpnmod_get_anim_ext(const iPlayer, szDest[], iMaxLen);
+ */
+static cell AMX_NATIVE_CALL wpnmod_get_anim_ext(AMX *amx, cell *params)
+{
+	int iPlayer = params[1];
+
+	CHECK_ENTITY(iPlayer)
+	MF_SetAmxString(amx, params[2], (char *)INDEXENT2(iPlayer)->pvPrivateData + g_pvDataOffsets[pvData_szAnimExtention] * 4, params[3]);
+	return 1;
+}
+
+/**
 * Get player's ammo inventory.
  *
  * @param iPlayer		Player id.
@@ -640,7 +681,7 @@ static cell AMX_NATIVE_CALL wpnmod_get_player_ammo(AMX *amx, cell *params)
 
 	if (iAmmoIndex != -1)
 	{
-		return (int)*((int *)INDEXENT2(iPlayer)->pvPrivateData + m_rgAmmo + iAmmoIndex - 1);
+		return (int)*((int *)INDEXENT2(iPlayer)->pvPrivateData + g_pvDataOffsets[pvData_rgAmmo] + iAmmoIndex - 1);
 	}
 
 	return 0;
@@ -665,7 +706,7 @@ static cell AMX_NATIVE_CALL wpnmod_set_player_ammo(AMX *amx, cell *params)
 
 	if (iAmmoIndex != -1)
 	{
-		*((int *)INDEXENT2(iPlayer)->pvPrivateData + m_rgAmmo + iAmmoIndex - 1) = params[3];
+		*((int *)INDEXENT2(iPlayer)->pvPrivateData + g_pvDataOffsets[pvData_rgAmmo] + iAmmoIndex - 1) = params[3];
 		return 1;
 	}
 
@@ -690,7 +731,7 @@ static cell AMX_NATIVE_CALL wpnmod_set_offset_int(AMX *amx, cell *params)
 	CHECK_ENTITY(iEntity)
 	CHECK_OFFSET(iOffset)
 	
-	*((int *)INDEXENT2(iEntity)->pvPrivateData + PvDataOffsets[iOffset]) = iValue;
+	*((int *)INDEXENT2(iEntity)->pvPrivateData + *NativesPvDataOffsets[iOffset]) = iValue;
 	return 1;
 }
 
@@ -712,7 +753,7 @@ static cell AMX_NATIVE_CALL wpnmod_get_offset_int(AMX *amx, cell *params)
 	CHECK_ENTITY(iEntity)
 	CHECK_OFFSET(iOffset)
 
-	return *((int *)INDEXENT2(iEntity)->pvPrivateData + PvDataOffsets[iOffset]);
+	return *((int *)INDEXENT2(iEntity)->pvPrivateData + *NativesPvDataOffsets[iOffset]);
 }
 
 /**
@@ -734,7 +775,7 @@ static cell AMX_NATIVE_CALL wpnmod_set_offset_float(AMX *amx, cell *params)
 	CHECK_ENTITY(iEntity)
 	CHECK_OFFSET(iOffset)
 	
-	*((float *)INDEXENT2(iEntity)->pvPrivateData + PvDataOffsets[iOffset]) = flValue;
+	*((float *)INDEXENT2(iEntity)->pvPrivateData + *NativesPvDataOffsets[iOffset]) = flValue;
 	return 1;
 }
 
@@ -756,7 +797,7 @@ static cell AMX_NATIVE_CALL wpnmod_get_offset_float(AMX *amx, cell *params)
 	CHECK_ENTITY(iEntity)
 	CHECK_OFFSET(iOffset)
 
-	return amx_ftoc(*((float *)INDEXENT2(iEntity)->pvPrivateData + PvDataOffsets[iOffset]));
+	return amx_ftoc(*((float *)INDEXENT2(iEntity)->pvPrivateData + *NativesPvDataOffsets[iOffset]));
 }
 
 /**
@@ -782,7 +823,7 @@ static cell AMX_NATIVE_CALL wpnmod_default_deploy(AMX *amx, cell *params)
 	CHECK_ENTITY(iEntity)
 
 	edict_t* pItem = INDEXENT2(iEntity);
-	edict_t* pPlayer = GetPrivateCbase(pItem, m_pPlayer);
+	edict_t* pPlayer = GetPrivateCbase(pItem, g_pvDataOffsets[pvData_pPlayer]);
 
 	if (!IsValidPev(pPlayer))
 	{
@@ -797,7 +838,7 @@ static cell AMX_NATIVE_CALL wpnmod_default_deploy(AMX *amx, cell *params)
 	pPlayer->v.viewmodel = MAKE_STRING(szViewModel);
 	pPlayer->v.weaponmodel = MAKE_STRING(szWeaponModel);
 
-	char *szData = (char *)pPlayer->pvPrivateData + m_szAnimExtention * 4;
+	char *szData = (char *)pPlayer->pvPrivateData + g_pvDataOffsets[pvData_szAnimExtention] * 4;
 		
 	if (!IsBadWritePtr(szData, 1))
 	{
@@ -806,8 +847,8 @@ static cell AMX_NATIVE_CALL wpnmod_default_deploy(AMX *amx, cell *params)
 
 	SendWeaponAnim(pPlayer, pItem, iAnim);
 
-	*((float *)pPlayer->pvPrivateData + m_flNextAttack) = 0.5;
-	*((float *)pItem->pvPrivateData + m_flTimeWeaponIdle) = 1.0;
+	*((float *)pPlayer->pvPrivateData + g_pvDataOffsets[pvData_flNextAttack]) = 0.5;
+	*((float *)pItem->pvPrivateData + g_pvDataOffsets[pvData_flTimeWeaponIdle]) = 1.0;
 
 	return 1;
 }
@@ -833,7 +874,7 @@ static cell AMX_NATIVE_CALL wpnmod_default_reload(AMX *amx, cell *params)
 	CHECK_ENTITY(iEntity)
 
 	edict_t* pItem = INDEXENT2(iEntity);
-	edict_t* pPlayer = GetPrivateCbase(pItem, m_pPlayer);
+	edict_t* pPlayer = GetPrivateCbase(pItem, g_pvDataOffsets[pvData_pPlayer]);
 
 	if (!IsValidPev(pPlayer))
 	{
@@ -847,16 +888,16 @@ static cell AMX_NATIVE_CALL wpnmod_default_reload(AMX *amx, cell *params)
 		return 0;
 	}
 
-	int j = min(iClipSize - *((int *)pItem->pvPrivateData + m_iClip), iAmmo);
+	int j = min(iClipSize - *((int *)pItem->pvPrivateData + g_pvDataOffsets[pvData_iClip]), iAmmo);
 
 	if (!j)
 	{
 		return 0;
 	}
 
-	*((int *)pItem->pvPrivateData + m_fInReload) = TRUE;	
-	*((float *)pPlayer->pvPrivateData + m_flNextAttack) = flDelay;
-	*((float *)pItem->pvPrivateData + m_flTimeWeaponIdle) = flDelay;
+	*((int *)pItem->pvPrivateData + g_pvDataOffsets[pvData_fInReload]) = TRUE;	
+	*((float *)pPlayer->pvPrivateData + g_pvDataOffsets[pvData_flNextAttack]) = flDelay;
+	*((float *)pItem->pvPrivateData + g_pvDataOffsets[pvData_flTimeWeaponIdle]) = flDelay;
 
 	SendWeaponAnim(pPlayer, pItem, iAnim);
 	return 1;
@@ -1104,7 +1145,7 @@ static cell AMX_NATIVE_CALL wpnmod_reset_empty_sound(AMX *amx, cell *params)
 
 	CHECK_ENTITY(iEntity)
 
-	*((int *)INDEXENT2(iEntity)->pvPrivateData + m_iPlayEmptySound) = 1;
+	*((int *)INDEXENT2(iEntity)->pvPrivateData + g_pvDataOffsets[pvData_iPlayEmptySound]) = 1;
 	return 1;
 }
 
@@ -1121,14 +1162,14 @@ static cell AMX_NATIVE_CALL wpnmod_play_empty_sound(AMX *amx, cell *params)
 
 	CHECK_ENTITY(iEntity)
 
-	if (*((int *)INDEXENT2(iEntity)->pvPrivateData + m_iPlayEmptySound))
+	if (*((int *)INDEXENT2(iEntity)->pvPrivateData + g_pvDataOffsets[pvData_iPlayEmptySound]))
 	{
-		edict_t* pPlayer = GetPrivateCbase(INDEXENT2(iEntity), m_pPlayer);
+		edict_t* pPlayer = GetPrivateCbase(INDEXENT2(iEntity), g_pvDataOffsets[pvData_pPlayer]);
 
 		if (IsValidPev(pPlayer))
 		{
 			EMIT_SOUND_DYN2(pPlayer, CHAN_WEAPON, "weapons/357_cock1.wav", 0.8, ATTN_NORM, 0, PITCH_NORM);
-			*((int *)INDEXENT2(iEntity)->pvPrivateData + m_iPlayEmptySound) = 0;
+			*((int *)INDEXENT2(iEntity)->pvPrivateData + g_pvDataOffsets[pvData_iPlayEmptySound]) = 0;
 			
 			return 1;
 		}
@@ -1316,6 +1357,8 @@ AMX_NATIVE_INFO Natives[] =
 	{ "wpnmod_get_ammobox_count", wpnmod_get_ammobox_count},
 	{ "wpnmod_send_weapon_anim", wpnmod_send_weapon_anim},
 	{ "wpnmod_set_player_anim", wpnmod_set_player_anim},
+	{ "wpnmod_set_anim_ext", wpnmod_set_anim_ext},
+	{ "wpnmod_get_anim_ext", wpnmod_get_anim_ext},
 	{ "wpnmod_set_think", wpnmod_set_think},
 	{ "wpnmod_set_touch", wpnmod_set_touch},
 	{ "wpnmod_set_offset_int", wpnmod_set_offset_int},
