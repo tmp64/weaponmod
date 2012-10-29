@@ -152,9 +152,9 @@ void UTIL_DecalGunshot(TraceResult *pTrace)
 
 	if (pTrace->pHit->v.solid == SOLID_BSP || pTrace->pHit->v.movetype == MOVETYPE_PUSHSTEP )
 	{
-		int decalNumber= GET_DAMAGE_DECAL(pTrace->pHit);
+		int decalNumber = GET_DAMAGE_DECAL(pTrace->pHit);
 
-		if (decalNumber < 0)
+		if (decalNumber < 0 || decalNumber > (int)g_Decals.size())
 		{
 			return;
 		}

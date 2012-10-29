@@ -57,7 +57,7 @@
 #define CHECK_ENTITY(x) \
 	if (x != 0 && (FNullEnt(INDEXENT2(x)) || x < 0 || x > gpGlobals->maxEntities)) \
 	{ \
-		MF_LogError(amx, AMX_ERR_NATIVE, "Invalid entity."); \
+		MF_LogError(amx, AMX_ERR_NATIVE, "Invalid entity (%d).", x); \
 		return 0; \
 	}\
 

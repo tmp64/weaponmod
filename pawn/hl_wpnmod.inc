@@ -358,3 +358,12 @@ native wpnmod_get_player_ammo(const iPlayer, const szAmmoName[]);
  * @param iAmount		Ammo amount.
 */
 native wpnmod_set_player_ammo(const iPlayer, const szAmmoName[], const iAmount);
+
+/**
+ * Returns index of random damage decal for given entity.
+ *
+ * @param iEntity		Entity.
+ *
+ * @return				Index of damage decal. (integer)
+ */
+native wpnmod_get_damage_decal(const iEntity);

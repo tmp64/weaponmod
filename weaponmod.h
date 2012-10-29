@@ -173,9 +173,6 @@ public:
 
 extern EntData *g_Ents;
 
-extern int g_SpawnedWpns;
-extern int g_SpawnedAmmo;
-
 extern int g_iWeaponsCount;
 extern int g_iWeaponInitID;
 extern int g_iAmmoBoxIndex;

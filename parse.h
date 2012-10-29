@@ -40,14 +40,11 @@
 extern char g_ConfigFilepath[1024];
 
 
-extern void trim_line(char *input);
-extern Vector ParseVec(char *pString);
-extern char* parse_arg(char** line, int& state, char delimiter);
-extern char *COM_ParseFile(char *data, char *token);
-
-extern bool FileExists(const char *dir);
-
 extern void ParseBSP();
+extern void SetConfigFile();
+extern void ParseSpawnPoints();
+
+extern BOOL ParseConfigSection(char *Filepath, char *pSection, void *pHandler);
 
 extern void ParseSignatures_Handler(char* data);
 extern void ParseVtableBase_Handler(char* data);
@@ -55,11 +52,15 @@ extern void ParseVtableOffsets_Handler(char* data);
 extern void ParsePvDataOffsets_Handler(char* data);
 extern void ParseAmmo_Handler(char* data);
 extern void ParseEquipment_Handler(char* data);
-extern void ParseSpawnPoints_Handler(char* data);
 extern void ParseBlockItems_Handler(char* szBlockItem);
 
-extern void SetConfigFile();
-extern BOOL ParseConfigSection(char *Filepath, char *pSection, void *pHandler);
+extern char *COM_ParseFile(char *data, char *token);
+extern char* parse_arg(char** line, int& state, char delimiter);
+
+extern Vector ParseVec(char *pString);
+
+extern void trim_line(char *input);
+extern bool FileExists(const char *dir);
 
 
 #endif // _PARSER_H

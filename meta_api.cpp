@@ -36,9 +36,6 @@
 #include "utils.h"
 
 
-int g_SpawnedWpns = 0;
-int g_SpawnedAmmo = 0;
-
 EntData *g_Ents = NULL;
 edict_t* g_EquipEnt = NULL;
 
@@ -166,6 +163,7 @@ void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 {
 	ParseBSP();
 	SetConfigFile();
+	ParseSpawnPoints();
 
 	// Parse default equipments and ammo.
 	ParseConfigSection(g_ConfigFilepath, "[ammo]", (void*)ParseAmmo_Handler);
@@ -181,12 +179,6 @@ void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 			pFind->v.flags |= FL_KILLME;
 			pFind = FIND_ENTITY_BY_CLASSNAME(pFind, g_BlockedItems[i]->classname);
 		}
-	}
-
-	// Spawn items from ini file.
-	if (ParseConfigSection(g_ConfigFilepath, "[spawns]", (void*)ParseSpawnPoints_Handler))
-	{
-		print_srvconsole("[WEAPONMOD] spawn %d weapons and %d ammoboxes from config.\n", g_SpawnedWpns, g_SpawnedAmmo);
 	}
 
 	SetHookVirt(&g_PlayerSpawn_Hook);
@@ -211,9 +203,6 @@ int FN_DecalIndex_Post(const char *name)
 void ServerDeactivate()
 {
 	g_EquipEnt = 0;
-
-	g_SpawnedWpns = 0;
-	g_SpawnedAmmo = 0;
 
 	g_iWeaponsCount = 0;
 	g_iWeaponInitID = 0;

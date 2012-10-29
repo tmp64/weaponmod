@@ -291,6 +291,7 @@ void SetHookVirt(VirtHookData *HookData)
 	ivtable[HookData->offset] = (int *)HookData->handler;
 
 	HookData->done = TRUE;
+	REMOVE_ENTITY(pEdict);
 }
 
 void UnsetHookVirt(VirtHookData *HookData)
@@ -338,4 +339,5 @@ void UnsetHookVirt(VirtHookData *HookData)
 #endif
 
 	HookData->done = FALSE;
+	REMOVE_ENTITY(pEdict);
 }

@@ -113,27 +113,50 @@ void ParseBlockItems_Handler(char* szBlockItem)
 	p->done ? g_BlockedItems.push_back(p) : delete p;
 }
 
-void ParseSpawnPoints_Handler(char* data)
+void ParseSpawnPoints()
 {		
-	char* arg;
-	char szData[3][32];
+	char filepath[1024];
 
-	int state;
+	MF_BuildPathnameR(filepath, sizeof(filepath) - 1, "%s/weaponmod/spawnpoints/%s.ini", get_localinfo("amxx_configsdir", "addons/amxmodx/configs"), STRING(gpGlobals->mapname));
+	FILE *stream = fopen(filepath, "r");
 
-	for (int i = 0; i < 3; i++)
+	if (stream)
 	{
-		arg = parse_arg(&data, state, '"');
-		strcpy(szData[i], arg);
-	}
+		char data[2048];
+		int wpns = 0, ammoboxes = 0;
 
-	if (Weapon_Spawn(szData[0], strlen(szData[1]) ? ParseVec(szData[1]) : Vector(0, 0, 0), strlen(szData[2])  ? ParseVec(szData[2]) : Vector(0, 0, 0)))
-	{
-		g_SpawnedWpns++;
-	}
+		while (!feof(stream))
+		{
+			fgets(data, sizeof(data) - 1, stream);
+			
+			char *b = &data[0];
 
-	if (Ammo_Spawn(szData[0], strlen(szData[1]) ? ParseVec(szData[1]) : Vector(0, 0, 0), strlen(szData[2]) ? ParseVec(szData[2]) : Vector(0, 0, 0)))
-	{
-		g_SpawnedAmmo++;
+			if (*b != ';')
+			{
+				char* arg;
+				char szData[3][32];
+
+				for (int state, i = 0; i < 3; i++)
+				{
+					arg = parse_arg(&b, state, '"');
+					strcpy(szData[i], arg);
+				}
+
+				if (Weapon_Spawn(szData[0], strlen(szData[1]) ? ParseVec(szData[1]) : Vector(0, 0, 0), strlen(szData[2])  ? ParseVec(szData[2]) : Vector(0, 0, 0)))
+				{
+					wpns++;
+				}
+
+				if (Ammo_Spawn(szData[0], strlen(szData[1]) ? ParseVec(szData[1]) : Vector(0, 0, 0), strlen(szData[2]) ? ParseVec(szData[2]) : Vector(0, 0, 0)))
+				{
+					ammoboxes++;
+				}
+
+			}
+		}
+
+		print_srvconsole("[WEAPONMOD] \"%s.ini\": spawn %d weapons and %d ammoboxes.\n", STRING(gpGlobals->mapname), wpns, ammoboxes);
+		fclose(stream);
 	}
 }
 
@@ -443,7 +466,7 @@ void ParseBSP()
 
 void SetConfigFile()
 {
-	MF_BuildPathnameR(g_ConfigFilepath, sizeof(g_ConfigFilepath) - 1, "%s/weaponmod/maps/%s.ini", get_localinfo("amxx_configsdir", "addons/amxmodx/configs"), STRING(gpGlobals->mapname));
+	MF_BuildPathnameR(g_ConfigFilepath, sizeof(g_ConfigFilepath) - 1, "%s/weaponmod/weaponmod-%s.ini", get_localinfo("amxx_configsdir", "addons/amxmodx/configs"), STRING(gpGlobals->mapname));
 	
 	if (!FileExists(g_ConfigFilepath))
 	{

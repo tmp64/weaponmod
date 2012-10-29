@@ -132,14 +132,13 @@ int g_iWeaponsCount = 0;
 int g_iWeaponInitID = 0;
 int g_iAmmoBoxIndex = 0;
 
-int g_iCurrentSlots[MAX_WEAPON_SLOTS][MAX_WEAPON_POSITIONS];
-
-BOOL g_CrowbarHooksEnabled;
-BOOL g_AmmoBoxHooksEnabled;
+BOOL g_CrowbarHooksEnabled = 0;
+BOOL g_AmmoBoxHooksEnabled = 0;
 
 WeaponData WeaponInfoArray[MAX_WEAPONS];
 AmmoBoxData AmmoBoxInfoArray[MAX_WEAPONS];
 
+int g_iCurrentSlots[MAX_WEAPON_SLOTS][MAX_WEAPON_POSITIONS];
 
 
 void AutoSlotDetection(int iWeaponID, int iSlot, int iPosition)
@@ -1333,16 +1332,35 @@ static cell AMX_NATIVE_CALL wpnmod_clear_multi_damage(AMX *amx, cell *params)
  */
 static cell AMX_NATIVE_CALL wpnmod_apply_multi_damage(AMX *amx, cell *params)
 {
-	int iInflictor = params[1];
-	int iAttacker = params[2];
+	CHECK_ENTITY(params[1])
+	CHECK_ENTITY(params[2])
 
-	CHECK_ENTITY(iInflictor)
-	CHECK_ENTITY(iAttacker)
-
-	APPLY_MULTI_DAMAGE(INDEXENT2(iInflictor), INDEXENT2(iAttacker));
+	APPLY_MULTI_DAMAGE(INDEXENT2(params[1]), INDEXENT2(params[2]));
 	return 1;
 }
 
+/**
+ * Returns index of random damage decal for given entity.
+ *
+ * @param iEntity		Entity.
+ *
+ * @return				Index of damage decal. (integer)
+ *
+ * native wpnmod_get_damage_decal(const iEntity);
+ */
+static cell AMX_NATIVE_CALL wpnmod_get_damage_decal(AMX *amx, cell *params)
+{
+	CHECK_ENTITY(params[1])
+
+	int decalNumber = GET_DAMAGE_DECAL(INDEXENT2(params[1]));
+
+	if (decalNumber < 0 || decalNumber > (int)g_Decals.size())
+	{
+		return 0;
+	}
+	
+	return g_Decals[decalNumber]->index;
+}
 
 AMX_NATIVE_INFO Natives[] = 
 {
@@ -1378,6 +1396,7 @@ AMX_NATIVE_INFO Natives[] =
 	{ "wpnmod_reset_empty_sound", wpnmod_reset_empty_sound},
 	{ "wpnmod_play_empty_sound", wpnmod_play_empty_sound},
 	{ "wpnmod_create_item", wpnmod_create_item},
+	{ "wpnmod_get_damage_decal", wpnmod_get_damage_decal},
 
 	{ NULL, NULL }
 };

@@ -38,9 +38,9 @@
 
 int g_iId;
 
-edict_t* g_pEntity;
-edict_t* g_pWeapon;
-edict_t* g_pPlayer;
+edict_t* g_pEntity = NULL;
+edict_t* g_pWeapon = NULL;
+edict_t* g_pPlayer = NULL;
 
 module hl_dll = {NULL, 0, NULL};
 
