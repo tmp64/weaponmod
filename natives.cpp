@@ -32,7 +32,6 @@
  */
 
 #include "weaponmod.h"
-#include "effects.h"
 #include "hooks.h"
 #include "utils.h"
 #include "studio.h"
@@ -126,7 +125,6 @@ int *NativesPvDataOffsets[Offset_End] =
 	&g_pvDataOffsets[pvData_ammo_hornets],
 	&g_pvDataOffsets[pvData_ammo_argrens]
 };
-
 
 int g_iWeaponsCount = 0;
 int g_iWeaponInitID = 0;

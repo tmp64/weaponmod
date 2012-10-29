@@ -77,7 +77,6 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\effects.cpp" />
     <ClCompile Include="..\hooks.cpp" />
     <ClCompile Include="..\libFunc.cpp" />
     <ClCompile Include="..\meta_api.cpp" />
@@ -88,7 +87,6 @@
     <ClCompile Include="..\utils.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\effects.h" />
     <ClInclude Include="..\hooks.h" />
     <ClInclude Include="..\libFunc.h" />
     <ClInclude Include="..\parse.h" />

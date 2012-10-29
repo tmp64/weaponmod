@@ -36,7 +36,7 @@
 #include "utils.h"
 
 
-int g_iId;
+int g_iId = NULL;
 
 edict_t* g_pEntity = NULL;
 edict_t* g_pWeapon = NULL;
@@ -67,81 +67,14 @@ VirtHookData g_CrowbarHooks[CrowbarHook_End] =
 
 function g_dllFuncs[Func_End] =
 {
-	{
-		"", 
-		&hl_dll,
-		/*{
-			"\xD9\x44\x24\x1C\xD8\x00\x00\x00\x00\x00\x83\xEC\x64", 
-			"xxxxx?????xxx", 13
-		},
-		*/
-		{"", "", 0}, NULL, NULL, {}, {}, 0
-	},
-	{
-		"", 
-		&hl_dll,
-		/*{
-			"\x56\x57\x8B\x7C\x24\x0C\x85\xFF", 
-			"xxxxxxxx", 8
-		},*/
-		{"", "", 0}, NULL, NULL, {}, {}, 0
-	},
-	{
-		""/*"ClearMultiDamage__Fv"*/, 
-		&hl_dll,
-		/*{
-			"\x33\xC0\xA3\x00\x00\x00\x00\xA3\x00\x00\x00\x00",
-			"xxx????x????", 12
-		},*/
-		{"", "", 0}, NULL, NULL, {}, {}, 0
-	},
-	{
-		""/*"ApplyMultiDamage__FP9entvars_sT0"*/, 
-		&hl_dll,
-		/*{
-			"\x8B\x0D\x00\x00\x00\x00\x85\xC9\x74\x1D",
-			"xx????xxxx", 10
-		}*/
-		{"", "", 0}, NULL, NULL, {}, {}, 0
-	},
-	{
-		""/*"SetAnimation__11CBasePlayer11PLAYER_ANIM"*/,
-		&hl_dll,
-		/*{
-			"\x83\xEC\x44\x53\x55\x8B\xE9\x33\xDB\x56\x57", 
-			"xxxxxxxxxxx", 11
-		}*/
-		{"", "", 0}, NULL, NULL, {}, {}, 0
-	},
-	{
-		""/*"UTIL_PrecacheOtherWeapon__FPCc"*/, 
-		&hl_dll,
-		/*{
-			"\x8B\x00\x00\x00\x00\x00\x8B\x00\x00\x00\x83\x00\x00\x53\x56\x2B\x00\x00\x00\x00\x00\x50",
-			"x?????x???x??xxx?????x", 22
-		}*/
-		{"", "", 0}, NULL, (void*)PrecacheOtherWeapon_HookHandler, {}, {}, 0
-	},
-	{
-		""/*"GiveNamedItem__11CBasePlayerPCc"*/, 
-		&hl_dll,
-		/*{
-			"\x8B\x44\x00\x00\x56\x57\x8B\xF9\x8B\x0D\x00\x00\x00\x00",
-			"xx??xxxxxx????", 14
-		},
-		*/
-		{"", "", 0}, NULL, (void*)GiveNamedItem_HookHandler, {}, {}, 0
-	},
-	{
-		""/*"CheatImpulseCommands__11CBasePlayeri"*/, 
-		&hl_dll,
-		/*{
-			"\xD9\x00\x00\x00\x00\x00\xDC\x00\x00\x00\x00\x00\x81\x00\x00\x00\x00\x00\x56\x57",
-			"x?????x?????x?????xx", 20
-		},
-		*/
-		{"", "", 0}, NULL, (void*)CheatImpulseCommands_HookHandler, {}, {}, 0
-	}
+	{ "", &hl_dll, {"", "", 0}, NULL, NULL, {}, {}, 0 },
+	{ "", &hl_dll, {"", "", 0}, NULL, NULL, {}, {}, 0 },
+	{ "", &hl_dll, {"", "", 0}, NULL, NULL, {}, {}, 0 },
+	{ "", &hl_dll, {"", "", 0}, NULL, NULL, {}, {}, 0 },
+	{ "", &hl_dll, {"", "", 0}, NULL, NULL, {}, {}, 0 },
+	{ "", &hl_dll, {"", "", 0}, NULL, (void*)PrecacheOtherWeapon_HookHandler, {}, {}, 0 },
+	{ "", &hl_dll, {"", "", 0}, NULL, (void*)GiveNamedItem_HookHandler, {}, {}, 0 },
+	{ "", &hl_dll, {"", "", 0}, NULL, (void*)CheatImpulseCommands_HookHandler, {}, {}, 0 }
 };
 
 

@@ -280,7 +280,6 @@ void ClientCommand(edict_t *pEntity)
 	{
 		int i = 0;
 		int ammo = 0;
-		int items = 0;
 		int weapons = 0;
 		
 		static char buf[1024];
@@ -299,7 +298,6 @@ void ClientCommand(edict_t *pEntity)
 		{
 			if (WeaponInfoArray[i].iType == Wpn_Custom)
 			{
-				items++;
 				sprintf(buf, " [%2d] %-23.22s\n", ++weapons, GetWeapon_pszName(i));
 				CLIENT_PRINT(pEntity, print_console, buf);
 			}
@@ -309,13 +307,12 @@ void ClientCommand(edict_t *pEntity)
 
 		for (i = 1; i <= g_iAmmoBoxIndex; i++)
 		{
-			items++;
 			sprintf(buf, " [%2d] %-23.22s\n", ++ammo, AmmoBoxInfoArray[i].classname.c_str());
 			CLIENT_PRINT(pEntity, print_console, buf);
 		}
 
 		CLIENT_PRINT(pEntity, print_console, "\nTotal:\n");
-		sprintf(buf, "%4d items (%d weapons, %d ammo).\n\n", items, weapons, ammo);
+		sprintf(buf, "%4d items (%d weapons, %d ammo).\n\n", weapons + ammo, weapons, ammo);
 		CLIENT_PRINT(pEntity, print_console, buf);
 
 		RETURN_META(MRES_SUPERCEDE);
