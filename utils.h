@@ -80,4 +80,11 @@ extern void UTIL_EjectBrass(const Vector &vecOrigin, const Vector &vecVelocity, 
 extern void FireBulletsPlayer(edict_t* pPlayer, edict_t* pAttacker, int iShotsCount, Vector vecSpread, float flDistance, float flDamage, int bitsDamageType, BOOL bTracers);
 extern void RadiusDamage2(Vector vecSrc, edict_t* pInflictor, edict_t* pAttacker, float flDamage, float flRadius, int iClassIgnore, int bitsDamageType);
 
+extern void SelectLastItem(edict_t *pPlayer);
+extern void SelectItem(edict_t *pPlayer, const char *pstr);
+
+extern BOOL SwitchWeapon(edict_t* pPlayer, edict_t* pWeapon);
+extern BOOL GetNextBestWeapon(edict_t* pPlayer, edict_t* pCurrentWeapon);
+
+
 #endif // _UTILS_H

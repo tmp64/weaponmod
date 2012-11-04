@@ -80,7 +80,7 @@ void OnAmxxAttach()
 
 	if (!FileExists(filepath))
 	{
-		print_srvconsole("[WEAPONMOD] Failed to find main INI file. \"%s\"\n", filepath);
+		print_srvconsole("[WEAPONMOD] Failed to find mod config file. \"%s\"\n", filepath);
 		bAddNatives = FALSE;
 	}
 	else
@@ -101,8 +101,16 @@ void OnAmxxAttach()
 
 			if (!g_dllFuncs[i].address)
 			{
-				print_srvconsole("[WEAPONMOD] Failed to find \"%s\" function.\n", g_dllFuncs[i].name);
-				bAddNatives = FALSE;
+				// CheatImpulseCommands is not critical function
+				if (i == Func_CheatImpulseCommands)
+				{
+					print_srvconsole("[WEAPONMOD] Mod \"%s\" don't have cheat commands, impulse 101 not active.\n", modname);
+				}
+				else
+				{
+					print_srvconsole("[WEAPONMOD] Failed to find \"%s\" function.\n", g_dllFuncs[i].name);
+					bAddNatives = FALSE;
+				}
 			}
 		}
 	}
@@ -263,11 +271,29 @@ void Player_SendAmmoUpdate(edict_t* pPlayer)
 	}
 }
 */
+
 void ClientCommand(edict_t *pEntity)
 {
-	const char* cmd = CMD_ARGV(0);
+	static const char* cmd = NULL;
 
-	if (cmd && !_stricmp(cmd, "give") && cvar_sv_cheats->value)
+	cmd = CMD_ARGV(0);
+
+	if (!cmd)
+	{
+		RETURN_META(MRES_IGNORED);
+	}
+
+	if (!strcmp(cmd, "lastinv"))
+	{
+		SelectLastItem(pEntity);
+		RETURN_META(MRES_SUPERCEDE);
+	}
+	else if (strstr(cmd, "weapon_"))
+	{
+		SelectItem(pEntity, cmd);
+		RETURN_META(MRES_SUPERCEDE);
+	}
+	else if (!_stricmp(cmd, "give") && cvar_sv_cheats->value && g_dllFuncs[Func_CheatImpulseCommands].address)
 	{
 		const char* item = CMD_ARGV(1);
 
@@ -276,7 +302,7 @@ void ClientCommand(edict_t *pEntity)
 			GiveNamedItem(pEntity, item);
 		}
 	}
-	else if (cmd && !_stricmp(cmd, "wpnmod"))
+	else if (!_stricmp(cmd, "wpnmod"))
 	{
 		int i = 0;
 		int ammo = 0;

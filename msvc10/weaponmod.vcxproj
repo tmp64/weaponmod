@@ -99,9 +99,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Makefile" />
-    <None Include="..\pawn\beams.inc" />
-    <None Include="..\pawn\hl_wpnmod.inc" />
-    <None Include="..\pawn\hl_wpnmod_const.inc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

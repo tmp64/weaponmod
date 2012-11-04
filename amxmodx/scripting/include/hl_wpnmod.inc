@@ -32,7 +32,7 @@
  */
 
  
-#if defined hl_wpnmod_included
+#if defined _hl_wpnmod_included
 	#endinput
 #endif
 #define _hl_wpnmod_included

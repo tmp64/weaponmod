@@ -83,6 +83,7 @@ enum e_PvDataOffsets
 	pvData_fInAttack,
 	pvData_fireState,
 	pvData_pPlayer,
+	pvData_pNext,
 	pvData_iId,
 	pvData_iPlayEmptySound,
 	pvData_fFireOnEmpty,
@@ -101,7 +102,9 @@ enum e_PvDataOffsets
 	pvData_iWeaponVolume,
 	pvData_iWeaponFlash,
 	pvData_iFOV,
+	pvData_rgpPlayerItems,
 	pvData_pActiveItem,
+	pvData_pLastItem,
 	pvData_rgAmmo,
 	pvData_szAnimExtention,
 
@@ -176,6 +179,26 @@ extern BOOL __fastcall Weapon_Deploy(void *pPrivate);
 extern BOOL __fastcall Weapon_CanDeploy(void *pPrivate);
 extern BOOL __fastcall AmmoBox_AddAmmo(void *pPrivate, int i, void *pPrivateOther);
 
+inline void HOLSTER(edict_t* pItem)
+{
+	reinterpret_cast<void (__fastcall *)(void *, int, int)>((*((void***)((char*)pItem->pvPrivateData)))[g_vtblOffsets[VO_Holster]])(pItem->pvPrivateData, 0, 0);
+}
+
+inline void DEPLOY(edict_t* pItem)
+{
+	reinterpret_cast<void (__fastcall *)(void *, int)>((*((void***)((char*)pItem->pvPrivateData)))[g_vtblOffsets[VO_Deploy]])(pItem->pvPrivateData, 0);
+}
+
+inline BOOL CAN_DEPLOY(edict_t* pEntity)
+{
+	return reinterpret_cast<BOOL (__fastcall *)(void *, int)>((*((void***)((char*)pEntity->pvPrivateData)))[g_vtblOffsets[VO_CanDeploy]])(pEntity->pvPrivateData, 0);
+}
+
+inline BOOL CAN_HOLSTER(edict_t* pEntity)
+{
+	return reinterpret_cast<BOOL (__fastcall *)(void *, int)>((*((void***)((char*)pEntity->pvPrivateData)))[g_vtblOffsets[VO_CanHolster]])(pEntity->pvPrivateData, 0);
+}
+
 inline int GET_DAMAGE_DECAL(edict_t* pEntity)
 {
 	return reinterpret_cast<int (__fastcall *)(void *, int, int)>((*((void***)((char*)pEntity->pvPrivateData)))[g_vtblOffsets[VO_DamageDecal]])(pEntity->pvPrivateData, 0, 0);
@@ -231,6 +254,26 @@ extern BOOL Weapon_Deploy(void *pPrivate);
 extern BOOL Weapon_CanDeploy(void *pPrivate);
 extern BOOL AmmoBox_AddAmmo(void *pPrivate, void *pPrivateOther);
 
+inline void HOLSTER(edict_t* pItem)
+{
+	reinterpret_cast<int (*)(void *)>((*((void***)(((char*)pItem->pvPrivateData) + g_Base)))[g_vtblOffsets[VO_Holster]])(pItem->pvPrivateData);
+}
+
+inline void DEPLOY(edict_t* pItem)
+{
+	reinterpret_cast<int (*)(void *)>((*((void***)(((char*)pItem->pvPrivateData) + g_Base)))[g_vtblOffsets[VO_Deploy]])(pItem->pvPrivateData);
+}
+
+inline BOOL CAN_DEPLOY(edict_t* pEntity)
+{
+	return reinterpret_cast<BOOL (*)(void *)>((*((void***)(((char*)pEntity->pvPrivateData) + g_Base)))[g_vtblOffsets[VO_CanDeploy]])(pEntity->pvPrivateData);
+}
+
+inline BOOL CAN_HOLSTER(edict_t* pEntity)
+{
+	return reinterpret_cast<BOOL (*)(void *)>((*((void***)(((char*)pEntity->pvPrivateData) + g_Base)))[g_vtblOffsets[VO_CanHolster]])(pEntity->pvPrivateData);
+}
+
 inline int GET_DAMAGE_DECAL(edict_t* pEntity)
 {
 	return reinterpret_cast<int (*)(void *, int)>((*((void***)(((char*)pEntity->pvPrivateData) + g_Base)))[g_vtblOffsets[VO_DamageDecal]])(pEntity->pvPrivateData, 0);
@@ -241,7 +284,7 @@ inline void GET_ITEM_INFO(edict_t* pItem, ItemInfo *p)
 	reinterpret_cast<int (*)(void *, ItemInfo *)>((*((void***)(((char*)pItem->pvPrivateData) + g_Base)))[g_vtblOffsets[VO_GetItemInfo]])(pItem->pvPrivateData, p);
 }
 
-inline vod CLEAR_MULTI_DAMAGE()
+inline void CLEAR_MULTI_DAMAGE()
 {
 	reinterpret_cast<int (*)()>(g_dllFuncs[Func_ClearMultiDamage].address)();
 }

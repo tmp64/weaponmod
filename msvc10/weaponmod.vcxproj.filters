@@ -57,22 +57,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Makefile" />
-    <None Include="..\pawn\hl_wpnmod.inc">
-      <Filter>Pawn Includes</Filter>
-    </None>
-    <None Include="..\pawn\hl_wpnmod_const.inc">
-      <Filter>Pawn Includes</Filter>
-    </None>
-    <None Include="..\pawn\beams.inc">
-      <Filter>Pawn Includes</Filter>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Module SDK">
       <UniqueIdentifier>{eb9e9e31-0d82-4385-a002-7deb06bb0056}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Pawn Includes">
-      <UniqueIdentifier>{7eda2f88-9f07-42d3-a720-5751d918e141}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files">
       <UniqueIdentifier>{d09f2f59-b42a-4c7b-ac8f-ff7528052a51}</UniqueIdentifier>
