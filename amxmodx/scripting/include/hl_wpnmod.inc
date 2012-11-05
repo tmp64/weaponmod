@@ -277,6 +277,18 @@ native wpnmod_play_empty_sound(const iItem);
 native wpnmod_fire_bullets(const iPlayer, const iAttacker, const iShotsCount, const Float: vecSpread[3], const Float: flDistance, const Float: flDamage, const bitsDamageType, const iTracerFreq);
 
 /**
+ * Fire default contact grenade from player's weapon.
+ *
+ * @param iPlayer			Player index.
+ * @param vecStart			Start position.
+ * @param vecVelocity		Velocity.
+ * @param szCallBack		The forward to call on explode.
+ *
+ * @return					Contact grenade index or -1 on failure. (integer)
+ */
+native wpnmod_fire_contact_grenade(const iPlayer, const Float: vecStart[3], const Float: vecVelocity[3], szCallBack[] = "");
+
+/**
  * Make damage upon entities within a certain range.
  * 	Only damage ents that can clearly be seen by the explosion.
  *

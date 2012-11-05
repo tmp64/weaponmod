@@ -125,6 +125,92 @@ void print_srvconsole(char *fmt, ...)
 	SERVER_PRINT(string);
 }
 
+BOOL Entity_IsInWorld(edict_t *pEntity)
+{
+	// position 
+	if (pEntity->v.origin.x >= 4096) return FALSE;
+	if (pEntity->v.origin.y >= 4096) return FALSE;
+	if (pEntity->v.origin.z >= 4096) return FALSE;
+	if (pEntity->v.origin.x <= -4096) return FALSE;
+	if (pEntity->v.origin.y <= -4096) return FALSE;
+	if (pEntity->v.origin.z <= -4096) return FALSE;
+	// speed
+	if (pEntity->v.velocity.x >= 2000) return FALSE;
+	if (pEntity->v.velocity.y >= 2000) return FALSE;
+	if (pEntity->v.velocity.z >= 2000) return FALSE;
+	if (pEntity->v.velocity.x <= -2000) return FALSE;
+	if (pEntity->v.velocity.y <= -2000) return FALSE;
+	if (pEntity->v.velocity.z <= -2000) return FALSE;
+
+	return TRUE;
+}
+
+Vector UTIL_VecToAngles(const Vector &vec)
+{
+	float rgflVecOut[3];
+	VEC_TO_ANGLES(vec, rgflVecOut);
+	return Vector(rgflVecOut);
+}
+
+void UTIL_Bubbles( Vector mins, Vector maxs, int count )
+{
+	Vector mid =  (mins + maxs) * 0.5;
+
+	float flHeight = UTIL_WaterLevel( mid,  mid.z, mid.z + 1024 );
+	flHeight = flHeight - mins.z;
+
+	MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, mid );
+		WRITE_BYTE( TE_BUBBLES );
+		WRITE_COORD( mins.x );	// mins
+		WRITE_COORD( mins.y );
+		WRITE_COORD( mins.z );
+		WRITE_COORD( maxs.x );	// maxz
+		WRITE_COORD( maxs.y );
+		WRITE_COORD( maxs.z );
+		WRITE_COORD( flHeight );			// height
+		WRITE_SHORT( MODEL_INDEX("sprites/bubble.spr") );
+		WRITE_BYTE( count ); // count
+		WRITE_COORD( 8 ); // speed
+	MESSAGE_END();
+}
+
+float UTIL_WaterLevel( const Vector &position, float minz, float maxz )
+{
+	Vector midUp = position;
+	midUp.z = minz;
+
+	if (POINT_CONTENTS(midUp) != CONTENTS_WATER)
+	{
+		return minz;
+	}
+
+	midUp.z = maxz;
+
+	if (POINT_CONTENTS(midUp) == CONTENTS_WATER)
+	{
+		return maxz;
+	}
+
+	float diff = maxz - minz;
+
+	while (diff > 1.0)
+	{
+		midUp.z = minz + diff/2.0;
+
+		if (POINT_CONTENTS(midUp) == CONTENTS_WATER)
+		{
+			minz = midUp.z;
+		}
+		else
+		{
+			maxz = midUp.z;
+		}
+		diff = maxz - minz;
+	}
+
+	return midUp.z;
+}
+
 void UTIL_EjectBrass(const Vector &vecOrigin, const Vector &vecVelocity, float rotation, int model, int soundtype)
 {
 	MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, vecOrigin );
@@ -469,12 +555,11 @@ void FireBulletsPlayer(edict_t* pPlayer, edict_t* pAttacker, int iShotsCount, Ve
 // RadiusDamage - this entity is exploding, or otherwise needs to inflict damage upon entities within a certain range.
 // only damage ents that can clearly be seen by the explosion!
 //
-// Blocks 'ghost mines' and 'ghost nades' by fixing two bugs found in HLDM gamedll and HL engine.
-// Credits to Jussi Kivilinna and Lev.
+// Blocks 'ghost mines' and 'ghost nades'.
 void RadiusDamage2(Vector vecSrc, edict_t* pInflictor, edict_t* pAttacker, float flDamage, float flRadius, int iClassIgnore, int bitsDamageType)
 {
 	TraceResult	tr;
-	TraceResult tr2;
+	Vector vecSpot;
 
 	edict_t* pEntity = NULL;
 
@@ -483,89 +568,78 @@ void RadiusDamage2(Vector vecSrc, edict_t* pInflictor, edict_t* pAttacker, float
 
 	int bInWater = (POINT_CONTENTS(vecSrc) == CONTENTS_WATER);
 
-	vecSrc.z += 1;// in case grenade is lying on the ground
-
 	if (!pAttacker)
 	{
 		pAttacker = pInflictor;
 	}
+	
+	vecSrc.z += 1;
 
-	// iterate on all entities in the vicinity.
 	while (!FNullEnt((pEntity = FIND_ENTITY_IN_SPHERE(pEntity, vecSrc, flRadius))))
 	{
-		if (pEntity->v.takedamage != DAMAGE_NO)
+		if (pEntity->v.takedamage == DAMAGE_NO)
 		{
-			// UNDONE: this should check a damage mask, not an ignore
-			if (iClassIgnore != CLASS_NONE && CLASSIFY(pEntity) == iClassIgnore)
-			{// houndeyes don't hurt other houndeyes with their attack
-				continue;
-			}
+			continue;
+		}
 
-			// blast's don't tavel into or out of water
-			if (bInWater && pEntity->v.waterlevel == 0)
-				continue;
+		if (iClassIgnore != CLASS_NONE && CLASSIFY(pEntity) == iClassIgnore)
+		{
+			continue;
+		}
 
-			if (!bInWater && pEntity->v.waterlevel == 3)
-				continue;
+		if (bInWater && pEntity->v.waterlevel == 0)
+		{
+			continue;
+		}
+
+		if (!bInWater && pEntity->v.waterlevel == 3)
+		{
+			continue;
+		}
+
+		vecSpot = (pEntity->v.absmax + pEntity->v.absmin) * 0.5;
+		TRACE_LINE(vecSrc, vecSpot, dont_ignore_monsters, pInflictor, &tr);
+
+		if (tr.flFraction != 1.0 && (FNullEnt(tr.pHit) || !ENTINDEX(tr.pHit) || tr.pHit->v.movetype == MOVETYPE_PUSH))
+		{
+			continue;
+		}
+
+		if (pEntity != tr.pHit && pAttacker != pEntity)
+		{
+			continue;
+		}
+
+		flAdjustedDamage = (vecSrc - tr.vecEndPos).Length() * falloff;
+		flAdjustedDamage = flDamage - flAdjustedDamage;
 			
-			TRACE_LINE(vecSrc, (pEntity->v.absmax + pEntity->v.absmin) * 0.5, dont_ignore_monsters, pInflictor, &tr);
+		if (flAdjustedDamage <= 0)
+		{
+			continue;
+		}
 
-			if (tr.pHit != pEntity && (tr.flFraction == 1.0 && tr.fStartSolid == 1))
-			{
-				// Bug number 2: TraceLine starts from solid (BSP object) and doesn't hits anything on it's way.
-				// fStartSolid is set to '1', fAllSolid is set to '1' and flFraction is set to '1.0'.
-				// More over, pHit is set to 'worldspawn' and vecEndPos is correctly set to spot to where we asked it to trace to.
-				// Bug here may be in that that engine sets fAllSolid to '1' (part of the path is not in the wall) or
-				// in that that we doesn't hit an entity or
-				// in that that engine doesn't set flFraction and vecEndPos correctly when it hits same BSP object.
-				tr.flFraction = 0.0f;
-			}
-
-			if ((tr.flFraction == 1.0 || tr.pHit == pEntity) && tr.fStartSolid)
-			{
-				// Bug number 1: Explosion has been happen inside BSP object.
-				// But condition is the same as for explosion inside a player, so we just trace back and see what we will hit.
-				TRACE_LINE(tr.vecEndPos, vecSrc, dont_ignore_monsters, pInflictor, &tr2);
-
-				if (tr2.flFraction != 1.0 && !tr2.fStartSolid && tr2.pHit != pEntity)
-				{
-					tr.flFraction = 0.0f;
-					tr.pHit = tr2.pHit;
-				}
-			}
-
-			if (tr.flFraction == 1.0 || tr.pHit == pEntity)
-			{// the explosion can 'see' this entity, so hurt them!
-				if (tr.fStartSolid)
-				{
-					// if we're stuck inside them, fixup the position and distance
-					tr.vecEndPos = vecSrc;
-					tr.flFraction = 0.0;
-				}
-				
-				// decrease damage for an ent that's farther from the bomb.
-				flAdjustedDamage = (vecSrc - tr.vecEndPos).Length() * falloff;
-				flAdjustedDamage = flDamage - flAdjustedDamage;
-			
-				if (flAdjustedDamage < 0)
-				{
-					flAdjustedDamage = 0;
-				}
-
-				if (tr.flFraction != 1.0)
-				{
-					CLEAR_MULTI_DAMAGE();
-					TRACE_ATTACK(pEntity, pInflictor, flAdjustedDamage, (tr.vecEndPos - vecSrc).Normalize( ), tr, bitsDamageType);
-					APPLY_MULTI_DAMAGE(pInflictor, pAttacker);
-				}
-				//else
-				//{
-				//	pEntity->TakeDamage ( pevInflictor, pevAttacker, flAdjustedDamage, bitsDamageType );
-				//}
-			}
+		if (tr.fStartSolid)
+		{
+			tr.vecEndPos = vecSrc;
+			tr.flFraction = 0.0;
+		}
+		
+		if (tr.flFraction != 1.0)
+		{
+			CLEAR_MULTI_DAMAGE();
+			TRACE_ATTACK(pEntity, pInflictor, flAdjustedDamage, (tr.vecEndPos - vecSrc).Normalize( ), tr, bitsDamageType);
+			APPLY_MULTI_DAMAGE(pInflictor, pAttacker);
+			//print_srvconsole("!!!TRACE_ATTACK!!! pEntity: %d (%d), flDamage: %f, iHitGroup: %d\n", ENTINDEX(pEntity), ENTINDEX(tr.pHit), flAdjustedDamage, tr.iHitgroup);
+		}
+		else
+		{
+			TAKE_DAMAGE(pEntity, pInflictor, pAttacker, flAdjustedDamage, bitsDamageType);
+			//print_srvconsole("!!!TAKE_DAMAGE!!! pEntity: %d, flDamage: %f, iHitGroup: %d\n", ENTINDEX(pEntity), flAdjustedDamage, tr.iHitgroup);
 		}
 	}
 }
+
+
 
 BOOL SwitchWeapon(edict_t* pPlayer, edict_t* pWeapon) 
 {
@@ -575,6 +649,11 @@ BOOL SwitchWeapon(edict_t* pPlayer, edict_t* pWeapon)
 	}
 
 	edict_t* pActiveItem = GetPrivateCbase(pPlayer, g_pvDataOffsets[pvData_pActiveItem]);
+
+	if (pActiveItem == pWeapon)
+	{
+		return FALSE;
+	}
 
 	if (IsValidPev(pActiveItem))
 	{

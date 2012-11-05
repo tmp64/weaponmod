@@ -83,6 +83,7 @@ extern void RadiusDamage2(Vector vecSrc, edict_t* pInflictor, edict_t* pAttacker
 extern void SelectLastItem(edict_t *pPlayer);
 extern void SelectItem(edict_t *pPlayer, const char *pstr);
 
+extern BOOL Entity_IsInWorld(edict_t *pEntity);
 extern BOOL SwitchWeapon(edict_t* pPlayer, edict_t* pWeapon);
 extern BOOL GetNextBestWeapon(edict_t* pPlayer, edict_t* pCurrentWeapon);
 

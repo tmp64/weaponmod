@@ -88,8 +88,16 @@
 #define CLASS_ALIEN_PREDATOR			9
 #define CLASS_INSECT					10
 #define CLASS_PLAYER_ALLY				11
-#define CLASS_PLAYER_BIOWEAPON			12 // hornets and snarks.launched by players
-#define CLASS_ALIEN_BIOWEAPON			13 // hornets and snarks.launched by the alien menace
+#define CLASS_PLAYER_BIOWEAPON			12 // Hornets and snarks, launched by players
+#define CLASS_ALIEN_BIOWEAPON			13 // Hornets and snarks, launched by the alien menace
+
+// Grenade explosion flags
+#define SF_EXPLOSION_NODAMAGE			( 1 << 0 ) // When set, explosion will not actually inflict damage
+#define SF_EXPLOSION_NOFIREBALL			( 1 << 1 ) // Don't draw the fireball
+#define SF_EXPLOSION_NOSMOKE			( 1 << 2 ) // Don't draw the smoke
+#define SF_EXPLOSION_NODECAL			( 1 << 3 ) // Don't make a scorch mark
+#define SF_EXPLOSION_NOSPARKS			( 1 << 4 ) // Don't make a sparks
+#define SF_EXPLOSION_NODEBRIS			( 1 << 5 ) // Don't make a debris sound
 
 enum PLAYER_ANIM
 {

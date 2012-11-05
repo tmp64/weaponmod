@@ -34,7 +34,7 @@
 #include "weaponmod.h"
 #include "hooks.h"
 #include "utils.h"
-#include "studio.h"
+#include "grenade.h"
 
 
 #define CHECK_OFFSET(x) \
@@ -1063,8 +1063,7 @@ static cell AMX_NATIVE_CALL wpnmod_radius_damage(AMX *amx, cell *params)
 }
 
 /**
- * Same as wpnmod_radius_damage, but blocks 'ghost mines' and 'ghost nades' 
- *  by fixing two bugs found in HLDM gamedll and HL engine.
+ * Same as wpnmod_radius_damage, but blocks 'ghost mines' and 'ghost nades'.
  *
  * @param vecSrc			Origin of explosion.
  * @param iInflictor		Entity which causes the damage impact.
@@ -1360,6 +1359,65 @@ static cell AMX_NATIVE_CALL wpnmod_get_damage_decal(AMX *amx, cell *params)
 	return g_Decals[decalNumber]->index;
 }
 
+/**
+ * Fire default contact grenade from player's weapon.
+ *
+ * @param iPlayer			Player index.
+ * @param vecStart			Start position.
+ * @param vecVelocity		Velocity.
+ * @param szCallBack		The forward to call on explode.
+ *
+ * @return					Contact grenade index or -1 on failure. (integer)
+ *
+ * native wpnmod_fire_contact_grenade(const iPlayer, const Float: vecStart[3], const Float: vecVelocity[3], szCallBack[] = "");
+*/
+static cell AMX_NATIVE_CALL wpnmod_fire_contact_grenade(AMX *amx, cell *params)
+{
+	CHECK_ENTITY(params[1])
+
+	Vector vecStart;
+	Vector vecVelocity;
+
+	cell *vStart = MF_GetAmxAddr(amx, params[2]);
+	cell *vVelocity = MF_GetAmxAddr(amx, params[3]);
+
+	vecStart.x = amx_ctof(vStart[0]);
+	vecStart.y = amx_ctof(vStart[1]);
+	vecStart.z = amx_ctof(vStart[2]);
+
+	vecVelocity.x = amx_ctof(vVelocity[0]);
+	vecVelocity.y = amx_ctof(vVelocity[1]);
+	vecVelocity.z = amx_ctof(vVelocity[2]);
+
+	edict_t* pGrenade = Grenade_ShootContact(INDEXENT2(params[1]), vecStart, vecVelocity);
+
+	if (IsValidPev(pGrenade))
+	{
+		char *funcname = MF_GetAmxString(amx, params[4], 0, NULL);
+
+		if (funcname)
+		{
+			int iForward = MF_RegisterSPForwardByName
+			(
+				amx, 
+				funcname, 
+				FP_CELL, 
+				FP_DONE
+			);
+
+			if (iForward != -1)
+			{
+				g_Ents[ENTINDEX(pGrenade)].iTouch = iForward;
+			}
+		}
+
+		return ENTINDEX(pGrenade);
+	}
+
+	return -1;
+}
+
+
 AMX_NATIVE_INFO Natives[] = 
 {
 	// Main
@@ -1386,6 +1444,8 @@ AMX_NATIVE_INFO Natives[] =
 	{ "wpnmod_default_deploy", wpnmod_default_deploy},
 	{ "wpnmod_default_reload", wpnmod_default_reload},
 	{ "wpnmod_fire_bullets", wpnmod_fire_bullets},
+	{ "wpnmod_fire_contact_grenade", wpnmod_fire_contact_grenade},
+//	{ "wpnmod_fire_timed_grenade", wpnmod_fire_timed_grenade},
 	{ "wpnmod_radius_damage", wpnmod_radius_damage},
 	{ "wpnmod_radius_damage2", wpnmod_radius_damage2},
 	{ "wpnmod_clear_multi_damage", wpnmod_clear_multi_damage},

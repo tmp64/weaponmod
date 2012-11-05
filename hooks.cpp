@@ -866,7 +866,7 @@ void Player_Spawn(void *pPrivate)
 
 		if (IsValidPev(pTaskEnt))
 		{
-			SetThink_(pTaskEnt, Equipment_Think);
+			SetThink_(pTaskEnt, (void*)Equipment_Think);
 			*((int *)pTaskEnt->pvPrivateData + g_pvDataOffsets[pvData_fireState]) = ENTINDEX(pPlayer);
 
 			pTaskEnt->v.classname = MAKE_STRING("equipment_task");
