@@ -45,8 +45,6 @@ edict_t* Grenade_ShootContact(edict_t *pOwner, Vector vecStart, Vector vecVeloci
 		MDLL_Spawn(pGrenade);
 
 		pGrenade->v.gravity = 0.5;
-		SET_ORIGIN(pGrenade, vecStart);
-
 		pGrenade->v.velocity = vecVelocity;
 		pGrenade->v.angles = UTIL_VecToAngles(pGrenade->v.velocity);
 		pGrenade->v.owner = pOwner;
@@ -56,21 +54,64 @@ edict_t* Grenade_ShootContact(edict_t *pOwner, Vector vecStart, Vector vecVeloci
 		
 		pGrenade->v.nextthink = gpGlobals->time;
 		pGrenade->v.avelocity.x = RANDOM_FLOAT(-100, -500);
+
+		SET_ORIGIN(pGrenade, vecStart);
 	}
 
 	return pGrenade;
 }
 
-void Grenade_Explode(edict_t* pGrenade, TraceResult *pTrace, int bitsDamageType)
+edict_t* Grenade_ShootTimed(edict_t *pOwner, Vector vecStart, Vector vecVelocity, float flTime)
 {
+	edict_t *pGrenade = CREATE_NAMED_ENTITY(MAKE_STRING("grenade"));
+
+	if (IsValidPev(pGrenade))
+	{
+		MDLL_Spawn(pGrenade);
+
+		pGrenade->v.gravity = 0.5;
+		pGrenade->v.friction = 0.8;
+		pGrenade->v.velocity = vecVelocity;
+		pGrenade->v.angles = UTIL_VecToAngles(pGrenade->v.velocity);
+		pGrenade->v.owner = pOwner;
+
+		SetTouch_(pGrenade, (void*)Grenade_BounceTouch);
+		SetThink_(pGrenade, (void*)Grenade_TumbleThink);
+
+		pGrenade->v.dmgtime = gpGlobals->time + flTime;
+		pGrenade->v.nextthink = gpGlobals->time + flTime;
+
+		pGrenade->v.sequence = RANDOM_LONG( 3, 6 );
+		pGrenade->v.framerate = 1.0;
+
+		SET_ORIGIN(pGrenade, vecStart);
+		SET_MODEL(pGrenade, "models/w_grenade.mdl");
+	}
+
+	return pGrenade;
+}
+
+void Grenade_Explode(edict_t* pGrenade, int bitsDamageType)
+{
+	Vector vecSpot;
+	TraceResult pTrace;
+
 	pGrenade->v.solid = SOLID_NOT;
 	pGrenade->v.takedamage = DAMAGE_NO;
 
-	// Pull out of the wall a bit
-	if (pTrace->flFraction != 1.0)
+	vecSpot = pGrenade->v.origin - pGrenade->v.velocity.Normalize() * 32;
+	TRACE_LINE(vecSpot, vecSpot + pGrenade->v.velocity.Normalize() * 64, ignore_monsters, pGrenade, &pTrace);
+
+	if (pTrace.flFraction == 1.0)
+	{
+		vecSpot = pGrenade->v.origin + Vector (0, 0, 8);
+		TRACE_LINE(vecSpot, vecSpot + Vector (0, 0, -40), ignore_monsters, pGrenade, &pTrace);
+	}
+
+	if (pTrace.flFraction != 1.0)
 	{
 		TraceResult tr;
-		TRACE_LINE(pGrenade->v.origin, pTrace->vecEndPos + (pTrace->vecPlaneNormal * pGrenade->v.dmg * 0.6), ignore_monsters, pGrenade, &tr);
+		TRACE_LINE(pGrenade->v.origin, pTrace.vecEndPos + (pTrace.vecPlaneNormal * pGrenade->v.dmg * 0.6), ignore_monsters, pGrenade, &tr);
 
 		if (tr.flFraction == 1.0)
 		{
@@ -104,7 +145,7 @@ void Grenade_Explode(edict_t* pGrenade, TraceResult *pTrace, int bitsDamageType)
 
 	if (!(pGrenade->v.spawnflags & SF_EXPLOSION_NODECAL))
 	{
-		UTIL_DecalTrace(pTrace, DECAL_INDEX(RANDOM_FLOAT(0, 1) ? "{scorch1" : "{scorch2"));
+		UTIL_DecalTrace(&pTrace, DECAL_INDEX(RANDOM_FLOAT(0, 1) ? "{scorch1" : "{scorch2"));
 	}
 
 	if (!(pGrenade->v.spawnflags & SF_EXPLOSION_NODEBRIS) && iContents != CONTENTS_WATER)
@@ -129,7 +170,7 @@ void Grenade_Explode(edict_t* pGrenade, TraceResult *pTrace, int bitsDamageType)
 			if (IsValidPev(pSpark))
 			{
 				pSpark->v.origin = pGrenade->v.origin;
-				pSpark->v.angles = pTrace->vecPlaneNormal;
+				pSpark->v.angles = pTrace.vecPlaneNormal;
 
 				MDLL_Spawn(pSpark);
 			}
@@ -152,18 +193,87 @@ void Grenade_Explode(edict_t* pGrenade, TraceResult *pTrace, int bitsDamageType)
 		}
 	}
 
-	int iExplodeForward = GetEntForward(pGrenade, Touch);
+	int iGrenade = ENTINDEX(pGrenade);
 
-	if (iExplodeForward)
+	if (g_Ents[iGrenade].iExplode)
 	{
-		MF_ExecuteForward(iExplodeForward, static_cast<cell>(ENTINDEX(pGrenade)));
+		MF_ExecuteForward(g_Ents[iGrenade].iExplode, static_cast<cell>(ENTINDEX(pGrenade)));
 	}
 
+	g_Ents[iGrenade].iExplode = NULL;
+
+	SetEntForward(pGrenade, Think, NULL, NULL);
 	SetEntForward(pGrenade, Touch, NULL, NULL);
 
 	pGrenade->v.velocity = Vector(0, 0, 0);
 	pGrenade->v.effects |= EF_NODRAW;
 	pGrenade->v.flags |= FL_KILLME;
+}
+
+#ifdef _WIN32
+void __fastcall Grenade_BounceTouch(void *pPrivate, int i, void *pPrivate2)
+#else
+void Grenade_BounceTouch(void *pPrivate, void *pPrivate2)
+#endif
+{
+	edict_t* pGrenade = PrivateToEdict(pPrivate);
+
+	if (!IsValidPev(pGrenade))
+	{
+		return;
+	}
+
+	edict_t* pOther = PrivateToEdict(pPrivate2);
+
+	// don't hit the guy that launched this grenade
+	if (pOther == pGrenade->v.owner)
+		return;
+
+	// only do damage if we're moving fairly fast
+	/*if (m_flNextAttack < gpGlobals->time && pev->velocity.Length() > 100)
+	{
+		entvars_t *pevOwner = VARS( pev->owner );
+		if (pevOwner)
+		{
+			TraceResult tr = UTIL_GetGlobalTrace( );
+			ClearMultiDamage( );
+			pOther->TraceAttack(pevOwner, 1, gpGlobals->v_forward, &tr, DMG_CLUB ); 
+			ApplyMultiDamage( pev, pevOwner);
+		}
+		m_flNextAttack = gpGlobals->time + 1.0; // debounce
+	}*/
+
+	if (pGrenade->v.flags & FL_ONGROUND)
+	{
+		pGrenade->v.velocity = pGrenade->v.velocity * 0.8;
+		pGrenade->v.sequence = RANDOM_LONG(1, 1);
+
+		if (pGrenade->v.velocity.Length() <= 20)
+		{
+			pGrenade->v.avelocity = Vector(0, 0, 0);
+		}
+	}
+	else if (pGrenade->v.fuser4 <= gpGlobals->time)
+	{
+		switch (RANDOM_LONG(0, 2))
+		{
+			case 0:	EMIT_SOUND_DYN2(pGrenade, CHAN_VOICE, "weapons/grenade_hit1.wav", 0.25, ATTN_NORM, 0, PITCH_NORM);	break;
+			case 1:	EMIT_SOUND_DYN2(pGrenade, CHAN_VOICE, "weapons/grenade_hit2.wav", 0.25, ATTN_NORM, 0, PITCH_NORM);	break;
+			case 2:	EMIT_SOUND_DYN2(pGrenade, CHAN_VOICE, "weapons/grenade_hit3.wav", 0.25, ATTN_NORM, 0, PITCH_NORM);	break;
+		}
+	}
+
+	pGrenade->v.fuser4 = gpGlobals->time + 0.1;
+	pGrenade->v.framerate = pGrenade->v.velocity.Length() / 200.0;
+
+	if (pGrenade->v.framerate > 1.0)
+	{
+		pGrenade->v.framerate = 1;
+	}
+	else if (pGrenade->v.framerate < 0.5)
+	{
+		pGrenade->v.framerate = 0;
+	}
 }
 
 #ifdef _WIN32
@@ -193,6 +303,40 @@ void Grenade_ThinkBeforeContact(void *pPrivate)
 	}
 }
 
+
+#ifdef _WIN32
+void __fastcall Grenade_TumbleThink(void *pPrivate)
+#else
+void Grenade_TumbleThink(void *pPrivate)
+#endif
+{
+	edict_t* pGrenade = PrivateToEdict(pPrivate);
+
+	if (!IsValidPev(pGrenade))
+	{
+		return;
+	}
+
+	if (!Entity_IsInWorld(pGrenade))
+	{
+		pGrenade->v.flags |= FL_KILLME;
+		return;
+	}
+
+	pGrenade->v.nextthink = gpGlobals->time + 0.1;
+
+	if (pGrenade->v.waterlevel != 0)
+	{
+		pGrenade->v.velocity = pGrenade->v.velocity * 0.5;
+		pGrenade->v.framerate = 0.2;
+	}
+
+	if (pGrenade->v.dmgtime <= gpGlobals->time)
+	{
+		Grenade_Explode(pGrenade, DMG_BLAST);
+	}	
+}
+
 #ifdef _WIN32
 void __fastcall Grenade_ExplodeTouch(void *pPrivate, int i, void *pPrivate2)
 #else
@@ -206,13 +350,7 @@ void Grenade_ExplodeTouch(void *pPrivate, void *pPrivate2)
 		return;
 	}
 	
-	TraceResult tr;
-	Vector vecSpot;
-
-	vecSpot = pGrenade->v.origin - pGrenade->v.velocity.Normalize() * 32;
-	TRACE_LINE(vecSpot, vecSpot + pGrenade->v.velocity.Normalize() * 64, ignore_monsters, pGrenade, &tr);
-
-	Grenade_Explode(pGrenade, &tr, DMG_BLAST);
+	Grenade_Explode(pGrenade, DMG_BLAST);
 }
 
 #ifdef _WIN32

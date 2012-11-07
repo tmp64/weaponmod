@@ -286,7 +286,20 @@ native wpnmod_fire_bullets(const iPlayer, const iAttacker, const iShotsCount, co
  *
  * @return					Contact grenade index or -1 on failure. (integer)
  */
-native wpnmod_fire_contact_grenade(const iPlayer, const Float: vecStart[3], const Float: vecVelocity[3], szCallBack[] = "");
+native wpnmod_fire_contact_grenade(const iPlayer, const Float: vecStart[3], const Float: vecVelocity[3], const szCallBack[] = "");
+
+/**
+ * Fire default timed grenade from player's weapon.
+ *
+ * @param iPlayer			Player index.
+ * @param vecStart			Start position.
+ * @param vecVelocity		Velocity.
+ * @param flTime			Time before detonate.
+ * @param szCallBack		The forward to call on explode.
+ *
+ * @return					Contact grenade index or -1 on failure. (integer)
+ */
+native wpnmod_fire_timed_grenade(const iPlayer, const Float: vecStart[3], const Float: vecVelocity[3], const Float: flTime = 3.0, const szCallBack[] = "");
 
 /**
  * Make damage upon entities within a certain range.
@@ -379,3 +392,14 @@ native wpnmod_set_player_ammo(const iPlayer, const szAmmoName[], const iAmount);
  * @return				Index of damage decal. (integer)
  */
 native wpnmod_get_damage_decal(const iEntity);
+
+/**
+ * Get player's gun position. Result will set in vecResult.
+ *
+ * @param iPlayer			Player index.
+ * @param vecResult			Calculated gun position.
+ * @param flForwardScale	Forward scale value.
+ * @param flUpScale			Up scale value.
+ * @param flRightScale		Right scale value.
+ */
+native wpnmod_get_gun_position(const iPlayer, Float: vecResult[3], const Float: flForwardScale = 1.0, const Float: flRightScale = 1.0, const Float: flUpScale = 1.0);

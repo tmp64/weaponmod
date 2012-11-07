@@ -152,6 +152,14 @@ Vector UTIL_VecToAngles(const Vector &vec)
 	return Vector(rgflVecOut);
 }
 
+void UTIL_MakeAimVectors( const Vector &vecAngles )
+{
+	float rgflVec[3];
+	vecAngles.CopyToArray(rgflVec);
+	rgflVec[0] = -rgflVec[0];
+	MAKE_VECTORS(rgflVec);
+}
+
 void UTIL_Bubbles( Vector mins, Vector maxs, int count )
 {
 	Vector mid =  (mins + maxs) * 0.5;

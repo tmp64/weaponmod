@@ -126,6 +126,7 @@ typedef struct
 {
 	int iThink;
 	int iTouch;
+	int iExplode;
 } EntData;
 
 typedef struct

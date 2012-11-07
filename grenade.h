@@ -47,16 +47,21 @@
 
 #ifdef _WIN32
 	extern void __fastcall Grenade_ThinkSmoke(void *pPrivate);
+	extern void __fastcall Grenade_TumbleThink(void *pPrivate);
 	extern void __fastcall Grenade_ThinkBeforeContact(void *pPrivate);
+	extern void __fastcall Grenade_BounceTouch(void *pPrivate, int i, void *pPrivate2);
 	extern void __fastcall Grenade_ExplodeTouch(void *pPrivate, int i, void *pPrivate2);
 #else
 	extern void Grenade_ThinkSmoke(void *pPrivate);
+	extern void Grenade_TumbleThink(void *pPrivate);
 	extern void Grenade_ThinkBeforeContact(void *pPrivate);
+	extern void Grenade_BounceTouch(void *pPrivate, void *pPrivate2);
 	extern void Grenade_ExplodeTouch(void *pPrivate, void *pPrivate2);
 #endif
 
-extern void Grenade_Explode(edict_t* pGrenade, TraceResult *pTrace, int bitsDamageType);
-extern edict_t* Grenade_ShootContact(edict_t *pOwner, Vector vecStart, Vector vecVelocity);
+extern void Grenade_Explode(edict_t* pGrenade, int bitsDamageType);
 
+extern edict_t* Grenade_ShootContact(edict_t *pOwner, Vector vecStart, Vector vecVelocity);
+extern edict_t* Grenade_ShootTimed(edict_t *pOwner, Vector vecStart, Vector vecVelocity, float flTime);
 
 #endif // _GREN_H

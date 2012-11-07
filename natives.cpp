@@ -1369,7 +1369,7 @@ static cell AMX_NATIVE_CALL wpnmod_get_damage_decal(AMX *amx, cell *params)
  *
  * @return					Contact grenade index or -1 on failure. (integer)
  *
- * native wpnmod_fire_contact_grenade(const iPlayer, const Float: vecStart[3], const Float: vecVelocity[3], szCallBack[] = "");
+ * native wpnmod_fire_contact_grenade(const iPlayer, const Float: vecStart[3], const Float: vecVelocity[3], const szCallBack[] = "");
 */
 static cell AMX_NATIVE_CALL wpnmod_fire_contact_grenade(AMX *amx, cell *params)
 {
@@ -1407,7 +1407,7 @@ static cell AMX_NATIVE_CALL wpnmod_fire_contact_grenade(AMX *amx, cell *params)
 
 			if (iForward != -1)
 			{
-				g_Ents[ENTINDEX(pGrenade)].iTouch = iForward;
+				g_Ents[ENTINDEX(pGrenade)].iExplode = iForward;
 			}
 		}
 
@@ -1417,6 +1417,97 @@ static cell AMX_NATIVE_CALL wpnmod_fire_contact_grenade(AMX *amx, cell *params)
 	return -1;
 }
 
+/**
+ * Fire default timed grenade from player's weapon.
+ *
+ * @param iPlayer			Player index.
+ * @param vecStart			Start position.
+ * @param vecVelocity		Velocity.
+ * @param flTime			Time before detonate.
+ * @param szCallBack		The forward to call on explode.
+ *
+ * @return					Contact grenade index or -1 on failure. (integer)
+ *
+ * native wpnmod_fire_timed_grenade(const iPlayer, const Float: vecStart[3], const Float: vecVelocity[3], const Float: flTime = 3.0, const szCallBack[] = "");
+*/
+static cell AMX_NATIVE_CALL wpnmod_fire_timed_grenade(AMX *amx, cell *params)
+{
+	CHECK_ENTITY(params[1])
+
+	Vector vecStart;
+	Vector vecVelocity;
+
+	cell *vStart = MF_GetAmxAddr(amx, params[2]);
+	cell *vVelocity = MF_GetAmxAddr(amx, params[3]);
+
+	vecStart.x = amx_ctof(vStart[0]);
+	vecStart.y = amx_ctof(vStart[1]);
+	vecStart.z = amx_ctof(vStart[2]);
+
+	vecVelocity.x = amx_ctof(vVelocity[0]);
+	vecVelocity.y = amx_ctof(vVelocity[1]);
+	vecVelocity.z = amx_ctof(vVelocity[2]);
+
+	edict_t* pGrenade = Grenade_ShootTimed(INDEXENT2(params[1]), vecStart, vecVelocity, amx_ctof(params[4]));
+
+	if (IsValidPev(pGrenade))
+	{
+		char *funcname = MF_GetAmxString(amx, params[5], 0, NULL);
+
+		if (funcname)
+		{
+			int iForward = MF_RegisterSPForwardByName
+			(
+				amx, 
+				funcname, 
+				FP_CELL, 
+				FP_DONE
+			);
+
+			if (iForward != -1)
+			{
+				g_Ents[ENTINDEX(pGrenade)].iExplode = iForward;
+			}
+		}
+
+		return ENTINDEX(pGrenade);
+	}
+
+	return -1;
+}
+
+/**
+ * Get player's gun position. Result will set in vecResult.
+ *
+ * @param iPlayer			Player index.
+ * @param vecResult			Calculated gun position.
+ * @param flForwardScale	Forward scale value.
+ * @param flUpScale			Up scale value.
+ * @param flRightScale		Right scale value.
+ *
+ * native wpnmod_get_gun_position(const iPlayer, Float: vecResult[3], const Float: flForwardScale = 1.0, const Float: flRightScale = 1.0, const Float: flUpScale = 1.0);
+*/
+static cell AMX_NATIVE_CALL wpnmod_get_gun_position(AMX *amx, cell *params)
+{
+	CHECK_ENTITY(params[1])
+	edict_t* pPlayer = INDEXENT2(params[1]);
+
+	Vector vecSrc = pPlayer->v.origin + pPlayer->v.view_ofs; 
+	MAKE_VECTORS(pPlayer->v.v_angle + pPlayer->v.punchangle);
+
+	Vector vecForward = gpGlobals->v_forward;
+	Vector vecRight = gpGlobals->v_right;
+	Vector vecUp = gpGlobals->v_up;
+
+	vecSrc = vecSrc + vecForward * amx_ctof(params[3]) + vecRight * amx_ctof(params[4]) + vecUp * amx_ctof(params[5]);
+	cell* cRet = MF_GetAmxAddr(amx, params[2]);
+
+	cRet[0] = amx_ftoc(vecSrc.x);
+	cRet[1] = amx_ftoc(vecSrc.y);
+	cRet[2] = amx_ftoc(vecSrc.z);
+
+	return 1;
+}
 
 AMX_NATIVE_INFO Natives[] = 
 {
@@ -1445,7 +1536,7 @@ AMX_NATIVE_INFO Natives[] =
 	{ "wpnmod_default_reload", wpnmod_default_reload},
 	{ "wpnmod_fire_bullets", wpnmod_fire_bullets},
 	{ "wpnmod_fire_contact_grenade", wpnmod_fire_contact_grenade},
-//	{ "wpnmod_fire_timed_grenade", wpnmod_fire_timed_grenade},
+	{ "wpnmod_fire_timed_grenade", wpnmod_fire_timed_grenade},
 	{ "wpnmod_radius_damage", wpnmod_radius_damage},
 	{ "wpnmod_radius_damage2", wpnmod_radius_damage2},
 	{ "wpnmod_clear_multi_damage", wpnmod_clear_multi_damage},
@@ -1455,6 +1546,7 @@ AMX_NATIVE_INFO Natives[] =
 	{ "wpnmod_play_empty_sound", wpnmod_play_empty_sound},
 	{ "wpnmod_create_item", wpnmod_create_item},
 	{ "wpnmod_get_damage_decal", wpnmod_get_damage_decal},
+	{ "wpnmod_get_gun_position", wpnmod_get_gun_position},
 
 	{ NULL, NULL }
 };
