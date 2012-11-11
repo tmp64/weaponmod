@@ -44,6 +44,8 @@
 #define SF_EXPLOSION_NOSPARKS	( 1 << 4 ) // don't make a sparks
 #define SF_EXPLOSION_NODEBRIS	( 1 << 5 ) // don't make a debris sound
 
+#define SF_EXPLOSION_NOEFFECTS	( ~(1 << SF_EXPLOSION_NODEBRIS) ) // don't make any effects
+
 
 #ifdef _WIN32
 	extern void __fastcall Grenade_ThinkSmoke(void *pPrivate);

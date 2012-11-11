@@ -1162,6 +1162,7 @@ edict_t* Ammo_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles)
 	if (IsValidPev(pAmmoBox))
 	{
 		MDLL_Spawn(pAmmoBox);
+		SET_ORIGIN(pAmmoBox, vecOrigin);
 		
 		pAmmoBox->v.classname = MAKE_STRING(AmmoBoxInfoArray[iId].classname.c_str());
 		pAmmoBox->v.angles = vecAngles;
@@ -1176,9 +1177,7 @@ edict_t* Ammo_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles)
 			);
 		}
 
-		SET_ORIGIN(pAmmoBox, vecOrigin);
-		SET_SIZE(pAmmoBox, Vector(-16, -16, 0), Vector(16, 16, 16));
-	
+		//SET_SIZE(pAmmoBox, Vector(-16, -16, 0), Vector(16, 16, 16));
 		return pAmmoBox;
 	}
 

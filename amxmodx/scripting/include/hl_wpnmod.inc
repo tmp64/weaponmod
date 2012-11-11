@@ -403,3 +403,12 @@ native wpnmod_get_damage_decal(const iEntity);
  * @param flRightScale		Right scale value.
  */
 native wpnmod_get_gun_position(const iPlayer, Float: vecResult[3], const Float: flForwardScale = 1.0, const Float: flRightScale = 1.0, const Float: flUpScale = 1.0);
+
+/**
+ * Explode and then remove entity.
+ *
+ * @param iEntity			Entity index.
+ * @param bitsDamageType	Damage type (see CLASSIFY defines).
+ * @param szCallBack		The forward to call on explode.
+ */
+native wpnmod_explode_entity(const iEntity, const bitsDamageType = 0, const szCallBack[] = "");

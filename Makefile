@@ -16,9 +16,9 @@ NAME = weaponmod
 
 BIN_SUFFIX = amxx_i386.so
 
-OBJECTS = sdk/amxxmodule.cpp  bsp_parse.cpp \
+OBJECTS = sdk/amxxmodule.cpp  grenade.cpp \
 hooks.cpp  libFunc.cpp  meta_api.cpp  natives.cpp \
-srvcmd.cpp  utils.cpp
+parse.cpp  srvcmd.cpp  utils.cpp
 
 
 LINK = 

@@ -278,7 +278,7 @@ void ClientCommand(edict_t *pEntity)
 
 	cmd = CMD_ARGV(0);
 
-	if (!cmd)
+	if (!cmd || !MF_IsPlayerIngame(ENTINDEX(pEntity)))
 	{
 		RETURN_META(MRES_IGNORED);
 	}

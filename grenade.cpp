@@ -115,7 +115,7 @@ void Grenade_Explode(edict_t* pGrenade, int bitsDamageType)
 
 		if (tr.flFraction == 1.0)
 		{
-			SET_ORIGIN(pGrenade, tr.vecEndPos);
+			pGrenade->v.origin = tr.vecEndPos;
 		}
 	}
 
@@ -197,7 +197,7 @@ void Grenade_Explode(edict_t* pGrenade, int bitsDamageType)
 
 	if (g_Ents[iGrenade].iExplode)
 	{
-		MF_ExecuteForward(g_Ents[iGrenade].iExplode, static_cast<cell>(ENTINDEX(pGrenade)));
+		MF_ExecuteForward(g_Ents[iGrenade].iExplode, static_cast<cell>(ENTINDEX(pGrenade)), reinterpret_cast<cell>(&pTrace));
 	}
 
 	g_Ents[iGrenade].iExplode = NULL;

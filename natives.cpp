@@ -1401,7 +1401,8 @@ static cell AMX_NATIVE_CALL wpnmod_fire_contact_grenade(AMX *amx, cell *params)
 			(
 				amx, 
 				funcname, 
-				FP_CELL, 
+				FP_CELL,
+				FP_CELL,
 				FP_DONE
 			);
 
@@ -1460,7 +1461,8 @@ static cell AMX_NATIVE_CALL wpnmod_fire_timed_grenade(AMX *amx, cell *params)
 			(
 				amx, 
 				funcname, 
-				FP_CELL, 
+				FP_CELL,
+				FP_CELL,
 				FP_DONE
 			);
 
@@ -1509,6 +1511,43 @@ static cell AMX_NATIVE_CALL wpnmod_get_gun_position(AMX *amx, cell *params)
 	return 1;
 }
 
+/**
+ * Explode and then remove entity.
+ *
+ * @param iEntity			Entity index.
+ * @param bitsDamageType	Damage type (see CLASSIFY defines).
+ * @param szCallBack		The forward to call on explode.
+ *
+ * native wpnmod_explode_entity(const iEntity, const bitsDamageType = 0, const szCallBack[] = "");
+*/
+static cell AMX_NATIVE_CALL wpnmod_explode_entity(AMX *amx, cell *params)
+{
+	CHECK_ENTITY(params[1])
+
+	char *funcname = MF_GetAmxString(amx, params[3], 0, NULL);
+
+	if (funcname)
+	{
+		int iForward = MF_RegisterSPForwardByName
+		(
+			amx, 
+			funcname, 
+			FP_CELL,
+			FP_CELL,
+			FP_DONE
+		);
+
+		if (iForward != -1)
+		{
+			g_Ents[params[1]].iExplode = iForward;
+		}
+	}
+
+	Grenade_Explode(INDEXENT2(params[1]), params[2]);
+	return 1;
+}
+
+
 AMX_NATIVE_INFO Natives[] = 
 {
 	// Main
@@ -1547,6 +1586,7 @@ AMX_NATIVE_INFO Natives[] =
 	{ "wpnmod_create_item", wpnmod_create_item},
 	{ "wpnmod_get_damage_decal", wpnmod_get_damage_decal},
 	{ "wpnmod_get_gun_position", wpnmod_get_gun_position},
+	{ "wpnmod_explode_entity", wpnmod_explode_entity},
 
 	{ NULL, NULL }
 };

@@ -365,17 +365,29 @@ void ParsePvDataOffsets_Handler(char* data)
 // Thanks to Eg@r4$il{ and HLSDK.
 void KeyValueFromBSP(char *pKey, char *pValue, int iNewent)
 {
+	static vec_t AngleX;
 	static vec_t AngleY;
 	static Vector vecOrigin;
 
 	if (iNewent)
 	{
-		AngleY = vecOrigin.x = vecOrigin.y = vecOrigin.z = 0;
+		AngleX = AngleY = vecOrigin.x = vecOrigin.y = vecOrigin.z = 0;
 	}
 
 	if (!strcmp(pKey, "angle"))
 	{
 		AngleY = atoi(pValue);
+
+		if (AngleY == -1)
+		{
+			AngleX = -90;
+			AngleY = 0;
+		}
+		else if (AngleY == -2)
+		{
+			AngleX = 90;
+			AngleY = 0;
+		}
 	}
 
 	if (!strcmp(pKey, "origin"))
@@ -383,9 +395,9 @@ void KeyValueFromBSP(char *pKey, char *pValue, int iNewent)
 		vecOrigin = ParseVec(pValue);
 	}
 
-	if (!strcmp(pKey, "classname") && !Ammo_Spawn(pValue, vecOrigin, Vector (0, AngleY, 0)))
+	if (!strcmp(pKey, "classname") && !Ammo_Spawn(pValue, vecOrigin, Vector(AngleX, AngleY, 0)))
 	{
-		Weapon_Spawn(pValue, vecOrigin, Vector (0, AngleY, 0));
+		Weapon_Spawn(pValue, vecOrigin, Vector(AngleX, AngleY, 0));
 	}
 }
 
