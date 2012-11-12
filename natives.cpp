@@ -1353,7 +1353,7 @@ static cell AMX_NATIVE_CALL wpnmod_get_damage_decal(AMX *amx, cell *params)
 
 	if (decalNumber < 0 || decalNumber > (int)g_Decals.size())
 	{
-		return 0;
+		return -1;
 	}
 	
 	return g_Decals[decalNumber]->index;

@@ -316,8 +316,7 @@ native wpnmod_fire_timed_grenade(const iPlayer, const Float: vecStart[3], const 
 native wpnmod_radius_damage(const Float: vecSrc[3], const iInflictor, const iAttacker, const Float: flDamage, const Float: flRadius, const iClassIgnore, const bitsDamageType);
 
 /**
- * Same as wpnmod_radius_damage, but blocks 'ghost mines' and 'ghost nades' 
- *  by fixing two bugs found in HLDM gamedll and HL engine.
+ * Same as wpnmod_radius_damage, but blocks 'ghost mines' and 'ghost nades'.
  *
  * @param vecSrc			Origin of explosion.
  * @param iInflictor		Entity which causes the damage impact.

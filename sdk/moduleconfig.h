@@ -36,7 +36,7 @@
 
 // Module info
 #define MODULE_NAME "HL Weapon Mod"
-#define MODULE_VERSION "0.7 dev2"
+#define MODULE_VERSION "0.7"
 #define MODULE_AUTHOR "AGHL.RU Dev Team"
 #define MODULE_URL "http://www.aghl.ru/"
 #define MODULE_LOGTAG "WEAPONMOD"

@@ -225,9 +225,10 @@ void Grenade_BounceTouch(void *pPrivate, void *pPrivate2)
 
 	edict_t* pOther = PrivateToEdict(pPrivate2);
 
-	// don't hit the guy that launched this grenade
 	if (pOther == pGrenade->v.owner)
+	{
 		return;
+	}
 
 	// only do damage if we're moving fairly fast
 	/*if (m_flNextAttack < gpGlobals->time && pev->velocity.Length() > 100)
