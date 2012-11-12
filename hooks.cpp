@@ -576,7 +576,7 @@ int Weapon_AddToPlayer(void *pPrivate, void *pPrivate2)
 
 	if (WeaponInfoArray[iId].iType == Wpn_Custom && IsValidPev(pPlayer))
 	{
-		if (!_strcmpi(STRING(pWeapon->v.classname), "weapon_crowbar"))
+		if (!stricmp(STRING(pWeapon->v.classname), "weapon_crowbar"))
 		{
 			pWeapon->v.flags |= FL_KILLME;
 			return 0;
@@ -730,11 +730,11 @@ BOOL AmmoBox_AddAmmo(void *pPrivate, void *pPrivateOther)
 		return FALSE;
 	}
 
-	if (!_strcmpi(STRING(pAmmobox->v.classname), "ammo_rpgclip"))
+	if (!stricmp(STRING(pAmmobox->v.classname), "ammo_rpgclip"))
 	{
 		for (int k = 0; k < (int)g_BlockedItems.size(); k++)
 		{
-			if (!_strcmpi(g_BlockedItems[k]->classname, "ammo_rpgclip"))
+			if (!stricmp(g_BlockedItems[k]->classname, "ammo_rpgclip"))
 			{
 				pAmmobox->v.flags |= FL_KILLME;
 				return FALSE;
@@ -901,7 +901,7 @@ void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 	{
 		for (int i = 0; i < (int)g_BlockedItems.size(); i++)
 		{
-			if (!_strcmpi(g_BlockedItems[i]->classname,szClassname))
+			if (!stricmp(g_BlockedItems[i]->classname,szClassname))
 			{
 				MDLL_Spawn(pEntity);
 				REMOVE_ENTITY(pEntity);
@@ -1002,7 +1002,7 @@ void Global_Think(void *pPrivate)
 		return;
 	}
 
-	int iThinkForward = GetEntForward(pEntity, Think);
+	int iThinkForward = g_Ents[ENTINDEX(pEntity)].iThink;
 
 	if (iThinkForward)
 	{
@@ -1056,7 +1056,7 @@ void Global_Touch(void *pPrivate, void *pPrivate2)
 		return;
 	}
 
-	int iTouchForward = GetEntForward(pEntity, Touch);
+	int iTouchForward = g_Ents[ENTINDEX(pEntity)].iTouch;
 
 	if (iTouchForward)
 	{

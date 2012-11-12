@@ -412,3 +412,12 @@ native wpnmod_get_gun_position(const iPlayer, Float: vecResult[3], const Float: 
  * @param szCallBack		The forward to call on explode.
  */
 native wpnmod_explode_entity(const iEntity, const bitsDamageType = 0, const szCallBack[] = "");
+
+/**
+ * Draw decal by index or name on trace end.
+ *
+ * @param iTrace			Trace handler.
+ * @param iDecalIndex		Decal index.
+ * @param szDecalName		Decal name.
+ */
+native wpnmod_decal_trace(const iTrace, const iDecalIndex = -1, const szDecalName[] = "");

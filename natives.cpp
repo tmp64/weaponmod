@@ -217,7 +217,7 @@ static cell AMX_NATIVE_CALL wpnmod_register_weapon(AMX *amx, cell *params)
 	{
 		if (WeaponInfoArray[i].iType != Wpn_None)
 		{
-			if (!_strcmpi(GetWeapon_pszName(i), szWeaponName))
+			if (!stricmp(GetWeapon_pszName(i), szWeaponName))
 			{
 				MF_LogError(amx, AMX_ERR_NATIVE, "Weapon name is duplicated.");
 				return -1;
@@ -1547,10 +1547,33 @@ static cell AMX_NATIVE_CALL wpnmod_explode_entity(AMX *amx, cell *params)
 	return 1;
 }
 
+/**
+ * Draw decal by index or name on trace end.
+ *
+ * @param iTrace			Trace handler.
+ * @param iDecalIndex		Decal index.
+ * @param szDecalName		Decal name.
+ *
+ * native wpnmod_decal_trace(const iTrace, const iDecalIndex = -1, const szDecalName[] = "");
+*/
+static cell AMX_NATIVE_CALL wpnmod_decal_trace(AMX *amx, cell *params)
+{
+	TraceResult *pTrace = reinterpret_cast<TraceResult *>(params[1]);
+
+	int iDecalIndex = params[2];
+
+	if (iDecalIndex == -1)
+	{
+		iDecalIndex = DECAL_INDEX(MF_GetAmxString(amx, params[3], 0, NULL));
+	}
+
+	UTIL_DecalTrace(pTrace, iDecalIndex);
+	return 1;
+}
+
 
 AMX_NATIVE_INFO Natives[] = 
 {
-	// Main
 	{ "wpnmod_register_weapon", wpnmod_register_weapon},
 	{ "wpnmod_register_weapon_forward", wpnmod_register_weapon_forward},
 	{ "wpnmod_register_ammobox", wpnmod_register_ammobox},
@@ -1587,6 +1610,7 @@ AMX_NATIVE_INFO Natives[] =
 	{ "wpnmod_get_damage_decal", wpnmod_get_damage_decal},
 	{ "wpnmod_get_gun_position", wpnmod_get_gun_position},
 	{ "wpnmod_explode_entity", wpnmod_explode_entity},
+	{ "wpnmod_decal_trace", wpnmod_decal_trace},
 
 	{ NULL, NULL }
 };

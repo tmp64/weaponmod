@@ -41,6 +41,9 @@
 #include "parse.h"
 #include "cbase.h"
 
+#ifdef __linux__
+	#define stricmp	strcasecmp
+#endif
 
 #define WEAPON_RESPAWN_TIME					20
 
@@ -58,8 +61,6 @@
 #define SetEntForward(ent, call, handler, forward) \
 	g_Ents[ENTINDEX(ent)].i##call = forward; \
 	Set##call##_(ent, handler);
-
-#define GetEntForward(ent, call) g_Ents[ENTINDEX(ent)].i##call
 
 
 enum e_AmmoFwds

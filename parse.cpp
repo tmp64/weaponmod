@@ -32,7 +32,7 @@
  */
 
 #include "weaponmod.h"
-#include "parser.h"
+#include "parse.h"
 #include "utils.h"
 #include "hooks.h"
 
@@ -58,7 +58,7 @@ BOOL ParseConfigSection(char *Filepath, char *pSection, void *pHandler)
 
 			if (*b && *b != ';')
 			{
-				if (!_strcmpi(pSection, b))
+				if (!strcmp(pSection, b))
 				{
 					bFound = TRUE;
 					continue;
@@ -92,7 +92,7 @@ void ParseBlockItems_Handler(char* szBlockItem)
 	p->address = NULL;
 	p->classname = STRING(ALLOC_STRING(szBlockItem));
 
-	if (!_strcmpi(szBlockItem, "weapon_crowbar") || !_strcmpi(szBlockItem, "ammo_rpgclip"))
+	if (!stricmp(szBlockItem, "weapon_crowbar") || !stricmp(szBlockItem, "ammo_rpgclip"))
 	{
 		g_BlockedItems.push_back(p);
 		return;
@@ -110,7 +110,14 @@ void ParseBlockItems_Handler(char* szBlockItem)
 	p->handler = (void*)Item_Block;
 	SetHookVirt(p);
 
-	p->done ? g_BlockedItems.push_back(p) : delete p;
+	if (!p->done)
+	{
+		delete p;
+	}
+	else
+	{
+		g_BlockedItems.push_back(p);
+	}
 }
 
 void ParseSpawnPoints()
