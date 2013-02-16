@@ -70,7 +70,7 @@ void OnAmxxAttach()
 		prefix = "_miniag";
 	}
 	
-	MF_BuildPathnameR(filepath, sizeof(filepath) - 1, "%s/weaponmod/mods/%s%s.ini", get_localinfo("amxx_configsdir", "addons/amxmodx/configs"), modname, prefix);
+	MF_BuildPathnameR(filepath, sizeof(filepath) - 1, "%s/weaponmod/mods/%s%s.ini", MF_GetLocalInfo("amxx_configsdir", "addons/amxmodx/configs"), modname, prefix);
 
 	if (!FindModuleByAddr((void*)MDLL_FUNC->pfnGetGameDescription(), &hl_dll))
 	{

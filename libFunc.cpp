@@ -251,6 +251,8 @@ void SetBase(int value)
 	g_Base = value;
 }
 
+#define ALIGN(ar) ((intptr_t)ar & ~(sysconf(_SC_PAGESIZE)-1))
+
 void SetHookVirt(VirtHookData *HookData)
 {
 	if (!HookData)
@@ -270,7 +272,7 @@ void SetHookVirt(VirtHookData *HookData)
 
 #ifdef _WIN32
 	DWORD OldFlags;
-    void **vtable = *((void***)((char*)pEdict->pvPrivateData));
+   void **vtable = *((void***)((char*)pEdict->pvPrivateData));
 #else
     void **vtable = *((void***)(((char*)pEdict->pvPrivateData) + g_Base));
 #endif
@@ -286,7 +288,8 @@ void SetHookVirt(VirtHookData *HookData)
 #ifdef _WIN32
 	VirtualProtect(&ivtable[HookData->offset], sizeof(int *), PAGE_READWRITE, &OldFlags);
 #else
-	mprotect(&ivtable[HookData->offset], sizeof(int*), PROT_READ | PROT_WRITE);
+	void *addr = (void *)ALIGN(&ivtable[HookData->offset]);
+	mprotect(addr, sysconf(_SC_PAGESIZE) ,PROT_READ | PROT_WRITE);
 #endif
 	ivtable[HookData->offset] = (int *)HookData->handler;
 
@@ -328,7 +331,8 @@ void UnsetHookVirt(VirtHookData *HookData)
 #ifdef _WIN32
 	VirtualProtect(&ivtable[HookData->offset], sizeof(int *), PAGE_READWRITE, &OldFlags);
 #else
-	mprotect(&ivtable[HookData->offset], sizeof(int*), PROT_READ | PROT_WRITE);
+	void *addr = (void *)ALIGN(&ivtable[HookData->offset]);
+	mprotect(addr, sysconf(_SC_PAGESIZE), PROT_READ | PROT_WRITE);
 #endif
 	ivtable[HookData->offset] = (int *)HookData->address;
 

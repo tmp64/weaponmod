@@ -59,6 +59,11 @@ edict_t *GetPrivateCbase(edict_t *pEntity, int iOffset)
 
 int Player_AmmoInventory(edict_t* pPlayer, edict_t* pWeapon, BOOL bPrimary)
 {
+	if (!IsValidPev(pPlayer))
+	{
+		return -1;
+	}
+
 	int iAmmoIndex = (int)*((int *)pWeapon->pvPrivateData + g_pvDataOffsets[bPrimary ? pvData_iPrimaryAmmoType : pvData_iSecondaryAmmoType]);
 
 	if (iAmmoIndex == -1)
@@ -72,6 +77,11 @@ int Player_AmmoInventory(edict_t* pPlayer, edict_t* pWeapon, BOOL bPrimary)
 
 int Player_Set_AmmoInventory(edict_t* pPlayer, edict_t* pWeapon, BOOL bPrimary, int Amount)
 {
+	if (!IsValidPev(pPlayer))
+	{
+		return 0;
+	}
+
 	int iAmmoIndex = (int)*((int *)pWeapon->pvPrivateData + g_pvDataOffsets[bPrimary ? pvData_iPrimaryAmmoType : pvData_iSecondaryAmmoType]);
 
 	if (iAmmoIndex == -1)
@@ -103,14 +113,6 @@ void GiveNamedItem(edict_t *pPlayer, const char *szName)
 			REMOVE_ENTITY(pItem);
 		}
 	}
-}
-
-const char* get_localinfo(const char* name , const char* def = 0)
-{
-	const char* b = LOCALINFO((char*)name);
-	if (((b==0)||(*b==0)) && def)
-		SET_LOCALINFO((char*)name,(char*)(b = def));
-	return b;
 }
 
 void print_srvconsole(char *fmt, ...)

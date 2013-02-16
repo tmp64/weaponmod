@@ -332,6 +332,7 @@ inline bool IsBadWritePtr(void *l, size_t size)
 }
 #endif
 
+// Credits to Arkshine
 inline void SetTouch_(edict_t* e, void* funcAddress) 
 {     
 #ifdef __linux__         

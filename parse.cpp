@@ -124,7 +124,7 @@ void ParseSpawnPoints()
 {		
 	char filepath[1024];
 
-	MF_BuildPathnameR(filepath, sizeof(filepath) - 1, "%s/weaponmod/spawnpoints/%s.ini", get_localinfo("amxx_configsdir", "addons/amxmodx/configs"), STRING(gpGlobals->mapname));
+	MF_BuildPathnameR(filepath, sizeof(filepath) - 1, "%s/weaponmod/spawnpoints/%s.ini", MF_GetLocalInfo("amxx_configsdir", "addons/amxmodx/configs"), STRING(gpGlobals->mapname));
 	FILE *stream = fopen(filepath, "r");
 
 	if (stream)
@@ -485,11 +485,11 @@ void ParseBSP()
 
 void SetConfigFile()
 {
-	MF_BuildPathnameR(g_ConfigFilepath, sizeof(g_ConfigFilepath) - 1, "%s/weaponmod/weaponmod-%s.ini", get_localinfo("amxx_configsdir", "addons/amxmodx/configs"), STRING(gpGlobals->mapname));
+	MF_BuildPathnameR(g_ConfigFilepath, sizeof(g_ConfigFilepath) - 1, "%s/weaponmod/weaponmod-%s.ini", MF_GetLocalInfo("amxx_configsdir", "addons/amxmodx/configs"), STRING(gpGlobals->mapname));
 	
 	if (!FileExists(g_ConfigFilepath))
 	{
-		MF_BuildPathnameR(g_ConfigFilepath, sizeof(g_ConfigFilepath) - 1, "%s/weaponmod/weaponmod.ini", get_localinfo("amxx_configsdir", "addons/amxmodx/configs"));
+		MF_BuildPathnameR(g_ConfigFilepath, sizeof(g_ConfigFilepath) - 1, "%s/weaponmod/weaponmod.ini", MF_GetLocalInfo("amxx_configsdir", "addons/amxmodx/configs"));
 	}
 }
 

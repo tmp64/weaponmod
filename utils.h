@@ -69,8 +69,6 @@ extern edict_t *GetPrivateCbase(edict_t *pEntity, int iOffset);
 extern int Player_AmmoInventory(edict_t* pPlayer, edict_t* pWeapon, BOOL bPrimary);
 extern int Player_Set_AmmoInventory(edict_t* pPlayer, edict_t* pWeapon, BOOL bPrimary, int Amount);
 
-extern const char* get_localinfo(const char* name, const char* def);
-
 extern void print_srvconsole(char *fmt, ...);
 extern void GiveNamedItem(edict_t *pPlayer, const char *szName);
 extern void SendWeaponAnim(edict_t* pPlayer, edict_t* pWeapon, int iAnim);
