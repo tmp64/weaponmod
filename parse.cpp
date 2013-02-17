@@ -309,14 +309,18 @@ int read_number(char *input)
 
 void ParseVtableBase_Handler(char* data)
 {
-	if (!g_Base)
+	static int iIndex = 0;
+
+	if (!iIndex)
 	{
 		SetBase(read_number(data));
 	}
-	else if (!g_Pev)
+	else if (iIndex == 1)
 	{
 		SetPev(read_number(data));
 	}
+
+	iIndex++;
 }
 
 void ParseVtableOffsets_Handler(char* data)
