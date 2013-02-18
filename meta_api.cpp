@@ -78,7 +78,7 @@ void OnAmxxAttach()
 		bAddNatives = FALSE;
 	}
 
-	if (!FileExists(filepath))
+	if (!Util::FileExists(filepath))
 	{
 		printf("[WEAPONMOD] Failed to find mod config file. \"%s\"\n", filepath);
 		bAddNatives = FALSE;

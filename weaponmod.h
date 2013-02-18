@@ -41,6 +41,9 @@
 #include "parse.h"
 #include "cbase.h"
 
+#include "utils.h"
+
+
 #ifdef __linux__
 	#define stricmp	strcasecmp
 #endif

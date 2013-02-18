@@ -54,13 +54,7 @@ extern void ParseAmmo_Handler(char* data);
 extern void ParseEquipment_Handler(char* data);
 extern void ParseBlockItems_Handler(char* szBlockItem);
 
-extern char *COM_ParseFile(char *data, char *token);
-extern char* parse_arg(char** line, int& state, char delimiter);
 
-extern Vector ParseVec(char *pString);
-
-extern void trim_line(char *input);
-extern bool FileExists(const char *dir);
 
 
 #endif // _PARSER_H

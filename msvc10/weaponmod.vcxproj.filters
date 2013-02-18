@@ -10,9 +10,6 @@
     <ClCompile Include="..\natives.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\srvcmd.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\hooks.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -27,6 +24,9 @@
     </ClCompile>
     <ClCompile Include="..\sdk\amxxmodule.cpp">
       <Filter>Module SDK\SDK Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\utils.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -59,6 +59,9 @@
     </ClInclude>
     <ClInclude Include="..\sdk\amxxmodule.h">
       <Filter>Module SDK\SDK Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\utils.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

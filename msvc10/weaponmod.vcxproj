@@ -84,12 +84,13 @@
     <ClCompile Include="..\natives.cpp" />
     <ClCompile Include="..\parse.cpp" />
     <ClCompile Include="..\sdk\amxxmodule.cpp" />
-    <ClCompile Include="..\srvcmd.cpp" />
+    <ClCompile Include="..\utils.cpp" />
     <ClCompile Include="..\wpnmod_utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\grenade.h" />
     <ClInclude Include="..\hooks.h" />
+    <ClInclude Include="..\include\utils.h" />
     <ClInclude Include="..\libFunc.h" />
     <ClInclude Include="..\parse.h" />
     <ClInclude Include="..\sdk\amxxmodule.h" />

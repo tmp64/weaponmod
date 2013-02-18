@@ -1,6 +1,6 @@
 /*
  * Half-Life Weapon Mod
- * Copyright (c) 2012 AGHL.RU Dev Team
+ * Copyright (c) 2013 AGHL.RU Dev Team
  * 
  * http://aghl.ru/forum/ - Russian Half-Life and Adrenaline Gamer Community
  *
@@ -31,7 +31,18 @@
  *
  */
 
-#include "weaponmod.h"
+#ifndef UTILS_H
+#define UTILS_H
 
+#include "amxxmodule.h"
 
+namespace Util
+{
+	extern	bool	FileExists		(const char *dir);
+	extern	char*	COM_ParseFile	(char *data, char *token);
+	extern	char*	ParseArg		(char** line, int& state, char delimiter);
+	extern	void	TrimLine		(char *input);
+	extern	Vector	ParseVec		(char *pString);
+}
 
+#endif // UTILS_H
