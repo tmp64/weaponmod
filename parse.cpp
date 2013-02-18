@@ -300,27 +300,37 @@ void ParseSignatures_Handler(char* data)
 	iIndex++;
 }
 
-int read_number(char *input)
-{
-	if (*input == '0' && (*(input + 1) == 'x' || *(input + 1) == 'X'))
-	{
-		return strtoul(input, NULL, 16);
-	}
-
-	return strtoul(input, NULL, 10);
-}
-
 void ParseVtableBase_Handler(char* data)
 {
+	char* arg;
+	char szData[2][16];
+
 	static int iIndex = 0;
+
+	for (int state = 0, i = 0; i < 2; i++)
+	{
+		arg = Util::ParseArg(&data, state, ':');
+		strcpy(szData[i], arg);
+	}
+
+	Util::TrimLine(szData[0]);
+	Util::TrimLine(szData[1]);
 
 	if (!iIndex)
 	{
-		SetVTableOffsetBase(read_number(data));
+		#ifdef _WIN32
+			SetVTableOffsetBase(Util::ReadNumber(szData[0]));
+		#else
+			SetVTableOffsetBase(Util::ReadNumber(szData[1]));
+		#endif
 	}
 	else if (iIndex == 1)
 	{
-		SetVTableOffsetPev(read_number(data));
+		#ifdef _WIN32
+			SetVTableOffsetPev(Util::ReadNumber(szData[0]));
+		#else
+			SetVTableOffsetPev(Util::ReadNumber(szData[1]));
+		#endif
 	}
 
 	iIndex++;

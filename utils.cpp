@@ -76,6 +76,16 @@ namespace Util
 		return vecResult;
 	}
 
+	int ReadNumber(char *input)
+	{
+		if (*input == '0' && (*(input + 1) == 'x' || *(input + 1) == 'X'))
+		{
+			return strtoul(input, NULL, 16);
+		}
+
+		return strtoul(input, NULL, 10);
+	}
+
 	char* ParseArg(char** line, int& state, char delimiter)
 	{
 		static char arg[3072];

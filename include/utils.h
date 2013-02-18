@@ -38,6 +38,7 @@
 
 namespace Util
 {
+	extern	int		ReadNumber		(char *input);
 	extern	bool	FileExists		(const char *dir);
 	extern	char*	COM_ParseFile	(char *data, char *token);
 	extern	char*	ParseArg		(char** line, int& state, char delimiter);
