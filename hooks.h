@@ -36,6 +36,7 @@
 
 #include "weaponmod.h"
 #include "libFunc.h"
+#include "utils.h"
 
 
 #define _CBHOOK(call) \
@@ -66,51 +67,7 @@ enum e_VtblOffsets
 	VO_End
 };
 
-enum e_PvDataOffsets
-{
-	pvData_pfnThink,
-	pvData_pfnTouch,
-	pvData_ammo_9mm,
-	pvData_ammo_357,
-	pvData_ammo_bolts,
-	pvData_ammo_buckshot,
-	pvData_ammo_rockets,
-	pvData_ammo_uranium,
-	pvData_ammo_hornets,
-	pvData_ammo_argrens,
-	pvData_flStartThrow,
-	pvData_flReleaseThrow,
-	pvData_chargeReady,
-	pvData_fInAttack,
-	pvData_fireState,
-	pvData_pPlayer,
-	pvData_pNext,
-	pvData_iId,
-	pvData_iPlayEmptySound,
-	pvData_fFireOnEmpty,
-	pvData_flPumpTime,
-	pvData_fInSpecialReload,
-	pvData_flNextPrimaryAttack,
-	pvData_flNextSecondaryAttack,
-	pvData_flTimeWeaponIdle,
-	pvData_iPrimaryAmmoType,
-	pvData_iSecondaryAmmoType,
-	pvData_iClip,
-	pvData_fInReload,
-	pvData_iDefaultAmmo,
-	pvData_LastHitGroup,
-	pvData_flNextAttack,
-	pvData_iWeaponVolume,
-	pvData_iWeaponFlash,
-	pvData_iFOV,
-	pvData_rgpPlayerItems,
-	pvData_pActiveItem,
-	pvData_pLastItem,
-	pvData_rgAmmo,
-	pvData_szAnimExtention,
 
-	pvData_End
-};
 
 enum e_DllFuncs
 {
@@ -145,7 +102,7 @@ enum e_CrowbarHooks
 extern module hl_dll;
 
 extern int g_vtblOffsets[VO_End];
-extern int g_pvDataOffsets[pvData_End];
+//extern int g_pvDataOffsets[pvData_End];
 
 extern function g_dllFuncs[Func_End];
 
@@ -331,26 +288,5 @@ inline bool IsBadWritePtr(void *l, size_t size)
 	return false;
 }
 #endif
-
-// Credits to Arkshine
-inline void SetTouch_(edict_t* e, void* funcAddress) 
-{     
-#ifdef __linux__         
-	*((long*)e->pvPrivateData + g_pvDataOffsets[pvData_pfnTouch]) = funcAddress == NULL ? NULL : 0xFFFF0000;         
-	*((long*)e->pvPrivateData +g_pvDataOffsets[pvData_pfnTouch] + 1) = (long)(funcAddress);     
-#else         
-	*((long*)e->pvPrivateData + g_pvDataOffsets[pvData_pfnTouch]) = (long)(funcAddress);     
-#endif 
-}
-
-inline void SetThink_(edict_t* e, void* funcAddress) 
-{     
-#ifdef __linux__         
-	*((long*)e->pvPrivateData + g_pvDataOffsets[pvData_pfnThink] - 1) = funcAddress == NULL ? NULL : 0xFFFF0000;         
-	*((long*)e->pvPrivateData + g_pvDataOffsets[pvData_pfnThink]) = (long)(funcAddress);     
-#else         
-	*((long*)e->pvPrivateData + g_pvDataOffsets[pvData_pfnThink]) = (long)(funcAddress);     
-#endif 
-}
 
 #endif // _HOOKS_H

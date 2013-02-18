@@ -36,6 +36,57 @@
 #include "utils.h"
 
 
+int g_pvDataOffsets[pvData_End];
+
+edict_t *GetPrivateCbase(edict_t *pEntity, int iOffset)
+{
+    void *pPrivate = *((void **)((int *)(edict_t *)(INDEXENT(0) + ENTINDEX(pEntity))->pvPrivateData + g_pvDataOffsets[iOffset]));
+
+    if (!pPrivate)
+    {
+        return NULL;
+    }
+
+    return PrivateToEdict(pPrivate);	
+}
+
+edict_t *GetPrivateCbase(edict_t *pEntity, int iOffset, int iExtraRealOffset)
+{
+    void *pPrivate = *((void **)((int *)(edict_t *)(INDEXENT(0) + ENTINDEX(pEntity))->pvPrivateData + g_pvDataOffsets[iOffset] + iExtraRealOffset));
+
+    if (!pPrivate)
+    {
+        return NULL;
+    }
+
+    return PrivateToEdict(pPrivate);	
+}
+
+void SetPrivateCbase(edict_t *pEntity, int iOffset, edict_t* pValue)
+{
+	*((void**)((int*)(edict_t*)(INDEXENT(0) + ENTINDEX(pEntity))->pvPrivateData + g_pvDataOffsets[iOffset])) = (INDEXENT(0) + ENTINDEX(pValue))->pvPrivateData;
+}
+
+int GetAmmoInventory(edict_t* pPlayer, int iAmmoIndex)
+{
+	return GetPrivateInt(pPlayer, pvData_rgAmmo, iAmmoIndex);
+}
+
+int SetAmmoInventory(edict_t* pPlayer, int iAmmoIndex, int iAmount)
+{
+	SetPrivateInt(pPlayer, pvData_rgAmmo, iAmount, iAmmoIndex);
+	return 1;
+}
+
+
+
+
+
+
+
+
+
+
 edict_t* INDEXENT2(int iEdictNum)
 { 
 	if (iEdictNum >= 1 && iEdictNum <= gpGlobals->maxClients)
@@ -45,17 +96,7 @@ edict_t* INDEXENT2(int iEdictNum)
 }
 
 
-edict_t *GetPrivateCbase(edict_t *pEntity, int iOffset)
-{
-    void *pPrivate = *((void **)((int *)(edict_t *)(INDEXENT(0) + ENTINDEX(pEntity))->pvPrivateData + iOffset));
 
-    if (!pPrivate)
-    {
-        return NULL;
-    }
-
-    return PrivateToEdict(pPrivate);	
-}
 
 int Player_AmmoInventory(edict_t* pPlayer, edict_t* pWeapon, BOOL bPrimary)
 {
@@ -658,7 +699,7 @@ BOOL SwitchWeapon(edict_t* pPlayer, edict_t* pWeapon)
 		return FALSE;
 	}
 
-	edict_t* pActiveItem = GetPrivateCbase(pPlayer, g_pvDataOffsets[pvData_pActiveItem]);
+	edict_t* pActiveItem = GetPrivateCbase(pPlayer, pvData_pActiveItem);
 
 	if (pActiveItem == pWeapon)
 	{
@@ -670,16 +711,16 @@ BOOL SwitchWeapon(edict_t* pPlayer, edict_t* pWeapon)
 		HOLSTER(pActiveItem);
 	}
 
-	*((void **)((int *)(edict_t *)(INDEXENT(0) + ENTINDEX(pPlayer))->pvPrivateData + g_pvDataOffsets[pvData_pLastItem])) = (edict_t *)(INDEXENT(0) + ENTINDEX(pActiveItem))->pvPrivateData;
-	*((void **)((int *)(edict_t *)(INDEXENT(0) + ENTINDEX(pPlayer))->pvPrivateData + g_pvDataOffsets[pvData_pActiveItem])) = (edict_t *)(INDEXENT(0) + ENTINDEX(pWeapon))->pvPrivateData;
-	
+	SetPrivateCbase(pPlayer, pvData_pLastItem, pActiveItem);
+	SetPrivateCbase(pPlayer, pvData_pActiveItem, pWeapon);
+
 	DEPLOY(pWeapon);
 	return TRUE;
 }
 
 void SelectLastItem(edict_t *pPlayer)
 {
-	edict_t* pLastItem = GetPrivateCbase(pPlayer, g_pvDataOffsets[pvData_pLastItem]);
+	edict_t* pLastItem = GetPrivateCbase(pPlayer, pvData_pLastItem);
 
 	if (!IsValidPev(pLastItem))
 	{
@@ -700,7 +741,7 @@ void SelectItem(edict_t *pPlayer, const char *pstr)
 
 	for (int i = 0 ; i < MAX_ITEM_TYPES ; i++ )
 	{
-		pCheck = GetPrivateCbase(pPlayer, g_pvDataOffsets[pvData_rgpPlayerItems] + i);
+		pCheck = GetPrivateCbase(pPlayer, pvData_rgpPlayerItems, i);
 
 		while (IsValidPev(pCheck))
 		{
@@ -710,7 +751,7 @@ void SelectItem(edict_t *pPlayer, const char *pstr)
 				return;
 			}
 
-			pCheck = GetPrivateCbase(pCheck, g_pvDataOffsets[pvData_pNext]);
+			pCheck = GetPrivateCbase(pCheck, pvData_pNext);
 		}
 	}
 }
@@ -734,7 +775,7 @@ BOOL GetNextBestWeapon(edict_t* pPlayer, edict_t* pCurrentWeapon)
 
 	for (int i = 0 ; i < MAX_ITEM_TYPES ; i++ )
 	{
-		pCheck = GetPrivateCbase(pPlayer, g_pvDataOffsets[pvData_rgpPlayerItems] + i);
+		pCheck = GetPrivateCbase(pPlayer, pvData_rgpPlayerItems, i);
 
 		while (IsValidPev(pCheck))
 		{
@@ -759,7 +800,7 @@ BOOL GetNextBestWeapon(edict_t* pPlayer, edict_t* pCurrentWeapon)
 				}
 			}
 
-			pCheck = GetPrivateCbase(pCheck, g_pvDataOffsets[pvData_pNext]);
+			pCheck = GetPrivateCbase(pCheck, pvData_pNext);
 		}
 	}
 

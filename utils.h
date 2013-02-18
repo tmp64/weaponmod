@@ -36,6 +36,130 @@
 
 #include "amxxmodule.h"
 
+enum e_PvDataOffsets
+{
+	pvData_pfnThink,
+	pvData_pfnTouch,
+	pvData_ammo_9mm,
+	pvData_ammo_357,
+	pvData_ammo_bolts,
+	pvData_ammo_buckshot,
+	pvData_ammo_rockets,
+	pvData_ammo_uranium,
+	pvData_ammo_hornets,
+	pvData_ammo_argrens,
+	pvData_flStartThrow,
+	pvData_flReleaseThrow,
+	pvData_chargeReady,
+	pvData_fInAttack,
+	pvData_fireState,
+	pvData_pPlayer,
+	pvData_pNext,
+	pvData_iId,
+	pvData_iPlayEmptySound,
+	pvData_fFireOnEmpty,
+	pvData_flPumpTime,
+	pvData_fInSpecialReload,
+	pvData_flNextPrimaryAttack,
+	pvData_flNextSecondaryAttack,
+	pvData_flTimeWeaponIdle,
+	pvData_iPrimaryAmmoType,
+	pvData_iSecondaryAmmoType,
+	pvData_iClip,
+	pvData_fInReload,
+	pvData_iDefaultAmmo,
+	pvData_LastHitGroup,
+	pvData_flNextAttack,
+	pvData_iWeaponVolume,
+	pvData_iWeaponFlash,
+	pvData_iFOV,
+	pvData_rgpPlayerItems,
+	pvData_pActiveItem,
+	pvData_pLastItem,
+	pvData_rgAmmo,
+	pvData_szAnimExtention,
+
+	pvData_End
+};
+
+extern int g_pvDataOffsets[pvData_End];
+
+extern edict_t*	GetPrivateCbase(edict_t *pEntity, int iOffset);
+extern edict_t* GetPrivateCbase(edict_t *pEntity, int iOffset, int iExtraRealOffset);
+extern void		SetPrivateCbase(edict_t *pEntity, int iOffset, edict_t* pValue);
+
+extern int GetAmmoInventory(edict_t* pPlayer, int iAmmoIndex);
+extern int SetAmmoInventory(edict_t* pPlayer, int iAmmoIndex, int iAmount);
+
+inline int GetPrivateInt(edict_t* pEntity, int iOffset)
+{
+	return *((int*)pEntity->pvPrivateData + g_pvDataOffsets[iOffset]);
+}
+
+inline int GetPrivateInt(edict_t* pEntity, int iOffset, int iExtraRealOffse)
+{
+	return *((int*)pEntity->pvPrivateData + g_pvDataOffsets[iOffset] + iExtraRealOffse);
+}
+
+inline float GetPrivateFloat(edict_t* pEntity, int iOffset)
+{
+	return *((float*)pEntity->pvPrivateData + g_pvDataOffsets[iOffset]);
+}
+
+inline char* GetPrivateString(edict_t* pEntity, int iOffset)
+{
+	return (char*)pEntity->pvPrivateData + (g_pvDataOffsets[iOffset] * 4);
+}
+
+inline void SetPrivateInt(edict_t* pEntity, int iOffset, int iValue)
+{
+	*((int*)pEntity->pvPrivateData + g_pvDataOffsets[iOffset]) = iValue;
+}
+
+inline void SetPrivateInt(edict_t* pEntity, int iOffset,int iValue, int iExtraRealOffse)
+{
+	*((int*)pEntity->pvPrivateData + g_pvDataOffsets[iOffset] + iExtraRealOffse) = iValue;
+}
+
+inline void SetPrivateFloat(edict_t* pEntity, int iOffset, float flValue)
+{
+	*((float*)pEntity->pvPrivateData + g_pvDataOffsets[iOffset]) = flValue;
+}
+
+inline void SetPrivateString(edict_t* pEntity, int iOffset, const char* pValue)
+{
+	char* data = (char*)pEntity->pvPrivateData + (g_pvDataOffsets[iOffset] * 4);
+
+	#if defined WIN32
+		if (!IsBadWritePtr(data, 1))
+		{
+			strcpy(data, pValue);
+		}
+	#else
+		strcpy(data, newValue);
+	#endif
+}
+
+// Credits to Arkshine
+inline void SetTouch_(edict_t* e, void* funcAddress) 
+{     
+#ifdef __linux__         
+	*((long*)e->pvPrivateData + g_pvDataOffsets[pvData_pfnTouch]) = funcAddress == NULL ? NULL : 0xFFFF0000;         
+	*((long*)e->pvPrivateData + g_pvDataOffsets[pvData_pfnTouch] + 1) = (long)(funcAddress);     
+#else         
+	*((long*)e->pvPrivateData + g_pvDataOffsets[pvData_pfnTouch]) = (long)(funcAddress);     
+#endif 
+}
+
+inline void SetThink_(edict_t* e, void* funcAddress) 
+{     
+#ifdef __linux__         
+	*((long*)e->pvPrivateData + g_pvDataOffsets[pvData_pfnThink] - 1) = funcAddress == NULL ? NULL : 0xFFFF0000;         
+	*((long*)e->pvPrivateData + g_pvDataOffsets[pvData_pfnThink]) = (long)(funcAddress);     
+#else         
+	*((long*)e->pvPrivateData + g_pvDataOffsets[pvData_pfnThink]) = (long)(funcAddress);     
+#endif 
+}
 
 #define CBTEXTURENAMEMAX		13			// only load first n chars of name
 
@@ -52,6 +176,19 @@
 #define CHAR_TEX_FLESH			'F'
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 #define CLIENT_PRINT (*g_engfuncs.pfnClientPrintf)
 
 #define CHECK_ENTITY(x) \
@@ -64,7 +201,7 @@
 #define IsValidPev(pEntity) (!FNullEnt(pEntity) && pEntity->pvPrivateData)
 
 extern edict_t* INDEXENT2(int iEdictNum);
-extern edict_t *GetPrivateCbase(edict_t *pEntity, int iOffset);
+
 
 extern int Player_AmmoInventory(edict_t* pPlayer, edict_t* pWeapon, BOOL bPrimary);
 extern int Player_Set_AmmoInventory(edict_t* pPlayer, edict_t* pWeapon, BOOL bPrimary, int Amount);
