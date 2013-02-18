@@ -33,8 +33,10 @@
 
 #include "weaponmod.h"
 #include "parse.h"
-#include "utils.h"
 #include "hooks.h"
+
+
+#include "wpnmod_utils.h"
 
 
 char g_ConfigFilepath[1024];
@@ -162,7 +164,7 @@ void ParseSpawnPoints()
 			}
 		}
 
-		print_srvconsole("[WEAPONMOD] \"%s.ini\": spawn %d weapons and %d ammoboxes.\n", STRING(gpGlobals->mapname), wpns, ammoboxes);
+		printf("[WEAPONMOD] \"%s.ini\": spawn %d weapons and %d ammoboxes.\n", STRING(gpGlobals->mapname), wpns, ammoboxes);
 		fclose(stream);
 	}
 }

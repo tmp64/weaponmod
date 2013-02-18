@@ -36,7 +36,7 @@
 
 #include "weaponmod.h"
 #include "libFunc.h"
-#include "utils.h"
+#include "wpnmod_utils.h"
 
 
 #define _CBHOOK(call) \
@@ -102,7 +102,6 @@ enum e_CrowbarHooks
 extern module hl_dll;
 
 extern int g_vtblOffsets[VO_End];
-//extern int g_pvDataOffsets[pvData_End];
 
 extern function g_dllFuncs[Func_End];
 

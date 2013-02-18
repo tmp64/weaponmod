@@ -33,7 +33,7 @@
 
 #include "weaponmod.h"
 #include "hooks.h"
-#include "utils.h"
+#include "wpnmod_utils.h"
 
 
 int g_pvDataOffsets[pvData_End];
@@ -67,72 +67,201 @@ void SetPrivateCbase(edict_t *pEntity, int iOffset, edict_t* pValue)
 	*((void**)((int*)(edict_t*)(INDEXENT(0) + ENTINDEX(pEntity))->pvPrivateData + g_pvDataOffsets[iOffset])) = (INDEXENT(0) + ENTINDEX(pValue))->pvPrivateData;
 }
 
+int PrimaryAmmoIndex(edict_t *pEntity)
+{
+	return GetPrivateInt(pEntity, pvData_iPrimaryAmmoType);
+}
+
+int SecondaryAmmoIndex(edict_t *pEntity)
+{
+	return GetPrivateInt(pEntity, pvData_iSecondaryAmmoType);
+}
+
 int GetAmmoInventory(edict_t* pPlayer, int iAmmoIndex)
 {
-	return GetPrivateInt(pPlayer, pvData_rgAmmo, iAmmoIndex);
+	if (!IsValidPev(pPlayer) || iAmmoIndex == -1)
+	{
+		return -1;
+	}
+
+	return GetPrivateInt(pPlayer, pvData_rgAmmo, iAmmoIndex - 1);
 }
 
 int SetAmmoInventory(edict_t* pPlayer, int iAmmoIndex, int iAmount)
 {
-	SetPrivateInt(pPlayer, pvData_rgAmmo, iAmount, iAmmoIndex);
+	if (!IsValidPev(pPlayer) || iAmmoIndex == -1)
+	{
+		return 0;
+	}
+
+	SetPrivateInt(pPlayer, pvData_rgAmmo, iAmount, iAmmoIndex - 1);
 	return 1;
 }
-
-
-
-
-
-
-
-
-
 
 edict_t* INDEXENT2(int iEdictNum)
 { 
 	if (iEdictNum >= 1 && iEdictNum <= gpGlobals->maxClients)
+	{
 		return MF_GetPlayerEdict(iEdictNum);
-	else
-		return (*g_engfuncs.pfnPEntityOfEntIndex)(iEdictNum); 
+	}
+	
+	return (*g_engfuncs.pfnPEntityOfEntIndex)(iEdictNum); 
 }
 
-
-
-
-int Player_AmmoInventory(edict_t* pPlayer, edict_t* pWeapon, BOOL bPrimary)
+BOOL SwitchWeapon(edict_t* pPlayer, edict_t* pWeapon) 
 {
-	if (!IsValidPev(pPlayer))
+	if (!IsValidPev(pWeapon) || !CAN_DEPLOY(pWeapon))
 	{
-		return -1;
+		return FALSE;
 	}
 
-	int iAmmoIndex = (int)*((int *)pWeapon->pvPrivateData + g_pvDataOffsets[bPrimary ? pvData_iPrimaryAmmoType : pvData_iSecondaryAmmoType]);
+	edict_t* pActiveItem = GetPrivateCbase(pPlayer, pvData_pActiveItem);
 
-	if (iAmmoIndex == -1)
+	if (pActiveItem == pWeapon)
 	{
-		return -1;
+		return FALSE;
 	}
 
-	return (int)*((int *)pPlayer->pvPrivateData + g_pvDataOffsets[pvData_rgAmmo] + iAmmoIndex - 1);
+	if (IsValidPev(pActiveItem))
+	{
+		HOLSTER(pActiveItem);
+	}
+
+	SetPrivateCbase(pPlayer, pvData_pLastItem, pActiveItem);
+	SetPrivateCbase(pPlayer, pvData_pActiveItem, pWeapon);
+
+	DEPLOY(pWeapon);
+	return TRUE;
 }
 
-
-int Player_Set_AmmoInventory(edict_t* pPlayer, edict_t* pWeapon, BOOL bPrimary, int Amount)
+void SelectLastItem(edict_t *pPlayer)
 {
-	if (!IsValidPev(pPlayer))
+	edict_t* pLastItem = GetPrivateCbase(pPlayer, pvData_pLastItem);
+
+	if (!IsValidPev(pLastItem))
 	{
-		return 0;
+		return;
 	}
 
-	int iAmmoIndex = (int)*((int *)pWeapon->pvPrivateData + g_pvDataOffsets[bPrimary ? pvData_iPrimaryAmmoType : pvData_iSecondaryAmmoType]);
+	SwitchWeapon(pPlayer, pLastItem);
+}
 
-	if (iAmmoIndex == -1)
+void SelectItem(edict_t *pPlayer, const char *pstr)
+{
+	if (!IsValidPev(pPlayer) || !pstr)
 	{
-		return 0;
+		return;
 	}
 
-	*((int *)pPlayer->pvPrivateData + g_pvDataOffsets[pvData_rgAmmo] + iAmmoIndex - 1) = Amount;
+	edict_t *pCheck = NULL;
 
-	return 1;
+	for (int i = 0 ; i < MAX_ITEM_TYPES ; i++ )
+	{
+		pCheck = GetPrivateCbase(pPlayer, pvData_rgpPlayerItems, i);
+
+		while (IsValidPev(pCheck))
+		{
+			if (!strcmp(STRING(pCheck->v.classname), pstr))
+			{
+				SwitchWeapon(pPlayer, pCheck);
+				return;
+			}
+
+			pCheck = GetPrivateCbase(pCheck, pvData_pNext);
+		}
+	}
+}
+
+BOOL GetNextBestWeapon(edict_t* pPlayer, edict_t* pCurrentWeapon)
+{
+	edict_t* pBest= NULL;
+	edict_t* pCheck = NULL;
+
+	ItemInfo pII_Check;
+	ItemInfo pII_Current;
+	
+	int iBestWeight = -1;
+
+	GET_ITEM_INFO(pCurrentWeapon, &pII_Current);
+
+	if (!CAN_HOLSTER(pCurrentWeapon))
+	{
+		return FALSE;
+	}
+
+	for (int i = 0 ; i < MAX_ITEM_TYPES ; i++ )
+	{
+		pCheck = GetPrivateCbase(pPlayer, pvData_rgpPlayerItems, i);
+
+		while (IsValidPev(pCheck))
+		{
+			GET_ITEM_INFO(pCheck, &pII_Check);
+
+			if (pII_Check.iWeight > -1 && pII_Check.iWeight == pII_Current.iWeight && pCheck != pCurrentWeapon)
+			{
+				if (CAN_DEPLOY(pCheck))
+				{
+					if (SwitchWeapon(pPlayer, pCheck))
+					{
+						return TRUE;
+					}
+				}
+			}
+			else if (pII_Check.iWeight > iBestWeight && pCheck != pCurrentWeapon)
+			{
+				if (CAN_DEPLOY(pCheck))
+				{
+					iBestWeight = pII_Check.iWeight;
+					pBest = pCheck;
+				}
+			}
+
+			pCheck = GetPrivateCbase(pCheck, pvData_pNext);
+		}
+	}
+
+	if (!pBest)
+	{
+		return FALSE;
+	}
+
+	SwitchWeapon(pPlayer, pBest);
+	return TRUE;
+}
+
+void SendWeaponAnim(edict_t* pPlayer, edict_t* pWeapon, int iAnim)
+{
+	#define OBS_IN_EYE 4
+
+	pPlayer->v.weaponanim = iAnim;
+
+	MESSAGE_BEGIN(MSG_ONE, SVC_WEAPONANIM, NULL, pPlayer);
+		WRITE_BYTE(iAnim);
+		WRITE_BYTE(pWeapon->v.body);
+	MESSAGE_END();
+
+	edict_t* pSpectator = NULL;
+	
+	// Also send anim to all spectators.
+	for (int i = 0; i <= gpGlobals->maxClients; i++)
+	{
+		if (!MF_IsPlayerIngame(i))
+		{
+			continue;
+		}
+
+		pSpectator = INDEXENT2(i);
+
+		if (pSpectator->v.iuser1 == OBS_IN_EYE && INDEXENT2(pSpectator->v.iuser2) == pPlayer)
+		{
+			pSpectator->v.weaponanim = iAnim;
+
+			MESSAGE_BEGIN(MSG_ONE, SVC_WEAPONANIM, NULL, pSpectator);
+				WRITE_BYTE(iAnim);
+				WRITE_BYTE(pWeapon->v.body);
+			MESSAGE_END();
+		}
+	}
 }
 
 void GiveNamedItem(edict_t *pPlayer, const char *szName)
@@ -154,18 +283,6 @@ void GiveNamedItem(edict_t *pPlayer, const char *szName)
 			REMOVE_ENTITY(pItem);
 		}
 	}
-}
-
-void print_srvconsole(char *fmt, ...)
-{
-	va_list argptr;
-	static char string[384];
-	va_start(argptr, fmt);
-	vsnprintf(string, sizeof(string) - 1, fmt, argptr);
-	string[sizeof(string) - 1] = '\0';
-	va_end(argptr);
-       
-	SERVER_PRINT(string);
 }
 
 BOOL Entity_IsInWorld(edict_t *pEntity)
@@ -378,39 +495,6 @@ void UTIL_EmitAmbientSound( edict_t *entity, const Vector &vecOrigin, const char
 	vecOrigin.CopyToArray(rgfl);
 
 	EMIT_AMBIENT_SOUND(entity, rgfl, samp, vol, attenuation, fFlags, pitch);
-}
-
-void SendWeaponAnim(edict_t* pPlayer, edict_t* pWeapon, int iAnim)
-{
-	pPlayer->v.weaponanim = iAnim;
-
-	MESSAGE_BEGIN(MSG_ONE, SVC_WEAPONANIM, NULL, pPlayer);
-		WRITE_BYTE(iAnim);
-		WRITE_BYTE(pWeapon->v.body);
-	MESSAGE_END();
-
-	edict_t* pSpectator = NULL;
-
-	// Also send anim to all spectators.
-	for (int i = 0; i <= gpGlobals->maxClients; i++)
-	{
-		if (!MF_IsPlayerIngame(i))
-		{
-			continue;
-		}
-
-		pSpectator = INDEXENT2(i);
-
-		if (pSpectator->v.iuser1 == OBS_IN_EYE && INDEXENT2(pSpectator->v.iuser2) == pPlayer)
-		{
-			pSpectator->v.weaponanim = iAnim;
-
-			MESSAGE_BEGIN(MSG_ONE, SVC_WEAPONANIM, NULL, pSpectator);
-				WRITE_BYTE(iAnim);
-				WRITE_BYTE(pWeapon->v.body);
-			MESSAGE_END();
-		}
-	}
 }
 
 // hit the world, try to play sound based on texture material type
@@ -680,135 +764,10 @@ void RadiusDamage2(Vector vecSrc, edict_t* pInflictor, edict_t* pAttacker, float
 			CLEAR_MULTI_DAMAGE();
 			TRACE_ATTACK(pEntity, pInflictor, flAdjustedDamage, (tr.vecEndPos - vecSrc).Normalize( ), tr, bitsDamageType);
 			APPLY_MULTI_DAMAGE(pInflictor, pAttacker);
-			//print_srvconsole("!!!TRACE_ATTACK!!! pEntity: %d (%d), flDamage: %f, iHitGroup: %d\n", ENTINDEX(pEntity), ENTINDEX(tr.pHit), flAdjustedDamage, tr.iHitgroup);
 		}
 		else
 		{
 			TAKE_DAMAGE(pEntity, pInflictor, pAttacker, flAdjustedDamage, bitsDamageType);
-			//print_srvconsole("!!!TAKE_DAMAGE!!! pEntity: %d, flDamage: %f, iHitGroup: %d\n", ENTINDEX(pEntity), flAdjustedDamage, tr.iHitgroup);
 		}
 	}
-}
-
-
-
-BOOL SwitchWeapon(edict_t* pPlayer, edict_t* pWeapon) 
-{
-	if (!IsValidPev(pWeapon) || !CAN_DEPLOY(pWeapon))
-	{
-		return FALSE;
-	}
-
-	edict_t* pActiveItem = GetPrivateCbase(pPlayer, pvData_pActiveItem);
-
-	if (pActiveItem == pWeapon)
-	{
-		return FALSE;
-	}
-
-	if (IsValidPev(pActiveItem))
-	{
-		HOLSTER(pActiveItem);
-	}
-
-	SetPrivateCbase(pPlayer, pvData_pLastItem, pActiveItem);
-	SetPrivateCbase(pPlayer, pvData_pActiveItem, pWeapon);
-
-	DEPLOY(pWeapon);
-	return TRUE;
-}
-
-void SelectLastItem(edict_t *pPlayer)
-{
-	edict_t* pLastItem = GetPrivateCbase(pPlayer, pvData_pLastItem);
-
-	if (!IsValidPev(pLastItem))
-	{
-		return;
-	}
-
-	SwitchWeapon(pPlayer, pLastItem);
-}
-
-void SelectItem(edict_t *pPlayer, const char *pstr)
-{
-	if (!IsValidPev(pPlayer) || !pstr)
-	{
-		return;
-	}
-
-	edict_t *pCheck = NULL;
-
-	for (int i = 0 ; i < MAX_ITEM_TYPES ; i++ )
-	{
-		pCheck = GetPrivateCbase(pPlayer, pvData_rgpPlayerItems, i);
-
-		while (IsValidPev(pCheck))
-		{
-			if (!strcmp(STRING(pCheck->v.classname), pstr))
-			{
-				SwitchWeapon(pPlayer, pCheck);
-				return;
-			}
-
-			pCheck = GetPrivateCbase(pCheck, pvData_pNext);
-		}
-	}
-}
-
-BOOL GetNextBestWeapon(edict_t* pPlayer, edict_t* pCurrentWeapon)
-{
-	edict_t* pBest= NULL;
-	edict_t* pCheck = NULL;
-
-	ItemInfo pII_Check;
-	ItemInfo pII_Current;
-	
-	int iBestWeight = -1;
-
-	GET_ITEM_INFO(pCurrentWeapon, &pII_Current);
-
-	if (!CAN_HOLSTER(pCurrentWeapon))
-	{
-		return FALSE;
-	}
-
-	for (int i = 0 ; i < MAX_ITEM_TYPES ; i++ )
-	{
-		pCheck = GetPrivateCbase(pPlayer, pvData_rgpPlayerItems, i);
-
-		while (IsValidPev(pCheck))
-		{
-			GET_ITEM_INFO(pCheck, &pII_Check);
-
-			if (pII_Check.iWeight > -1 && pII_Check.iWeight == pII_Current.iWeight && pCheck != pCurrentWeapon)
-			{
-				if (CAN_DEPLOY(pCheck))
-				{
-					if (SwitchWeapon(pPlayer, pCheck))
-					{
-						return TRUE;
-					}
-				}
-			}
-			else if (pII_Check.iWeight > iBestWeight && pCheck != pCurrentWeapon)
-			{
-				if (CAN_DEPLOY(pCheck))
-				{
-					iBestWeight = pII_Check.iWeight;
-					pBest = pCheck;
-				}
-			}
-
-			pCheck = GetPrivateCbase(pCheck, pvData_pNext);
-		}
-	}
-
-	if (!pBest)
-	{
-		return FALSE;
-	}
-
-	SwitchWeapon(pPlayer, pBest);
-	return TRUE;
 }

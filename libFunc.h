@@ -56,11 +56,6 @@
 extern unsigned long g_Pev;
 extern unsigned long g_Base;
 
-#ifdef _WIN32
-	#define PrivateToEdict(pPrivate) (*(entvars_t **)((char*)pPrivate + g_Pev))->pContainingEntity
-#else
-	#define PrivateToEdict(pPrivate) (*(entvars_t **)pPrivate)->pContainingEntity
-#endif
 
 struct module
 {

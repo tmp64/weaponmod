@@ -48,7 +48,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(ProjectDir)..;$(ProjectDir)..\sdk;$(METAMOD);$(HLSDK)\common;$(HLSDK)\engine;$(HLSDK)\dlls;$(HLSDK)\pm_shared;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..;$(ProjectDir)..\include;$(ProjectDir)..\sdk;$(METAMOD);$(HLSDK)\common;$(HLSDK)\engine;$(HLSDK)\dlls;$(HLSDK)\pm_shared;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
@@ -64,7 +64,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..;$(ProjectDir)..\sdk;$(METAMOD);$(HLSDK)\common;$(HLSDK)\engine;$(HLSDK)\dlls;$(HLSDK)\pm_shared;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..;$(ProjectDir)..\include;$(ProjectDir)..\sdk;$(METAMOD);$(HLSDK)\common;$(HLSDK)\engine;$(HLSDK)\dlls;$(HLSDK)\pm_shared;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -85,7 +85,7 @@
     <ClCompile Include="..\parse.cpp" />
     <ClCompile Include="..\sdk\amxxmodule.cpp" />
     <ClCompile Include="..\srvcmd.cpp" />
-    <ClCompile Include="..\utils.cpp" />
+    <ClCompile Include="..\wpnmod_utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\grenade.h" />
@@ -96,7 +96,7 @@
     <ClInclude Include="..\sdk\CString.h" />
     <ClInclude Include="..\sdk\CVector.h" />
     <ClInclude Include="..\sdk\moduleconfig.h" />
-    <ClInclude Include="..\utils.h" />
+    <ClInclude Include="..\wpnmod_utils.h" />
     <ClInclude Include="..\weaponmod.h" />
   </ItemGroup>
   <ItemGroup>

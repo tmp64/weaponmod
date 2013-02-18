@@ -33,7 +33,7 @@
 
 #include "weaponmod.h"
 #include "hooks.h"
-#include "utils.h"
+#include "wpnmod_utils.h"
 
 
 module hl_dll = {NULL, 0, NULL};
@@ -171,8 +171,8 @@ BOOL Weapon_CanDeploy(void *pPrivate)
 		static_cast<cell>(ENTINDEX(pWeapon)), 
 		static_cast<cell>(ENTINDEX(pPlayer)), 
 		static_cast<cell>(GetPrivateInt(pWeapon, pvData_iClip)), 
-		static_cast<cell>(Player_AmmoInventory(pPlayer, pWeapon, TRUE)),
-		static_cast<cell>(Player_AmmoInventory(pPlayer, pWeapon, FALSE))
+		static_cast<cell>(GetAmmoInventory(pPlayer, PrimaryAmmoIndex(pWeapon))),
+		static_cast<cell>(GetAmmoInventory(pPlayer, SecondaryAmmoIndex(pWeapon)))
 	);
 }
 
@@ -222,8 +222,8 @@ BOOL Weapon_Deploy(void *pPrivate)
 			static_cast<cell>(ENTINDEX(pWeapon)), 
 			static_cast<cell>(ENTINDEX(pPlayer)), 
 			static_cast<cell>(GetPrivateInt(pWeapon, pvData_iClip)), 
-			static_cast<cell>(Player_AmmoInventory(pPlayer, pWeapon, TRUE)),
-			static_cast<cell>(Player_AmmoInventory(pPlayer, pWeapon, FALSE))
+			static_cast<cell>(GetAmmoInventory(pPlayer, PrimaryAmmoIndex(pWeapon))),
+			static_cast<cell>(GetAmmoInventory(pPlayer, SecondaryAmmoIndex(pWeapon)))
 		);
 	}
 
@@ -282,8 +282,8 @@ void Weapon_ItemPostFrame(void *pPrivate)
 	flNextPrimaryAttack		= GetPrivateFloat(pWeapon, pvData_flNextPrimaryAttack);
 	flNextSecondaryAttack	= GetPrivateFloat(pWeapon, pvData_flNextSecondaryAttack);
 
-	iAmmoPrimary		= Player_AmmoInventory(pPlayer, pWeapon, TRUE);
-	iAmmoSecondary		= Player_AmmoInventory(pPlayer, pWeapon, FALSE);
+	iAmmoPrimary	= GetAmmoInventory(pPlayer, PrimaryAmmoIndex(pWeapon));
+	iAmmoSecondary	= GetAmmoInventory(pPlayer, SecondaryAmmoIndex(pWeapon));
 
 	iClip		= GetPrivateInt(pWeapon, pvData_iClip);
 	iInReload	= GetPrivateInt(pWeapon, pvData_fInReload);
@@ -300,7 +300,7 @@ void Weapon_ItemPostFrame(void *pPrivate)
 		SetPrivateInt(pWeapon, pvData_iClip, iClip);
 		SetPrivateInt(pWeapon, pvData_fInReload, FALSE);
 
-		Player_Set_AmmoInventory(pPlayer, pWeapon, TRUE, iAmmoPrimary);
+		SetAmmoInventory(pPlayer, PrimaryAmmoIndex(pWeapon), iAmmoPrimary);
 	}
 
 	if ((pPlayer->v.button & IN_ATTACK2) && flNextSecondaryAttack < 0.0)
@@ -458,8 +458,8 @@ BOOL Weapon_IsUseable(void *pPrivate)
 		static_cast<cell>(ENTINDEX(pWeapon)), 
 		static_cast<cell>(ENTINDEX(pPlayer)), 
 		static_cast<cell>(GetPrivateInt(pWeapon, pvData_iClip)), 
-		static_cast<cell>(Player_AmmoInventory(pPlayer, pWeapon, TRUE)),
-		static_cast<cell>(Player_AmmoInventory(pPlayer, pWeapon, FALSE))
+		static_cast<cell>(GetAmmoInventory(pPlayer, PrimaryAmmoIndex(pWeapon))),
+		static_cast<cell>(GetAmmoInventory(pPlayer, SecondaryAmmoIndex(pWeapon)))
 	);
 }
 
@@ -503,8 +503,8 @@ BOOL Weapon_CanHolster(void *pPrivate)
 		static_cast<cell>(ENTINDEX(pWeapon)), 
 		static_cast<cell>(ENTINDEX(pPlayer)), 
 		static_cast<cell>(GetPrivateInt(pWeapon, pvData_iClip)), 
-		static_cast<cell>(Player_AmmoInventory(pPlayer, pWeapon, TRUE)),
-		static_cast<cell>(Player_AmmoInventory(pPlayer, pWeapon, FALSE))
+		static_cast<cell>(GetAmmoInventory(pPlayer, PrimaryAmmoIndex(pWeapon))),
+		static_cast<cell>(GetAmmoInventory(pPlayer, SecondaryAmmoIndex(pWeapon)))
 	);
 }
 
@@ -549,8 +549,8 @@ void Weapon_Holster(void *pPrivate, int skiplocal)
 			static_cast<cell>(ENTINDEX(pWeapon)), 
 			static_cast<cell>(ENTINDEX(pPlayer)), 
 			static_cast<cell>(GetPrivateInt(pWeapon, pvData_iClip)), 
-			static_cast<cell>(Player_AmmoInventory(pPlayer, pWeapon, TRUE)),
-			static_cast<cell>(Player_AmmoInventory(pPlayer, pWeapon, FALSE))
+			static_cast<cell>(GetAmmoInventory(pPlayer, PrimaryAmmoIndex(pWeapon))),
+			static_cast<cell>(GetAmmoInventory(pPlayer, SecondaryAmmoIndex(pWeapon)))
 		);
 	}
 
@@ -594,8 +594,8 @@ int Weapon_AddToPlayer(void *pPrivate, void *pPrivate2)
 					static_cast<cell>(ENTINDEX(pWeapon)), 
 					static_cast<cell>(ENTINDEX(pPlayer)), 
 					static_cast<cell>(GetPrivateInt(pWeapon, pvData_iClip)), 
-					static_cast<cell>(Player_AmmoInventory(pPlayer, pWeapon, TRUE)),
-					static_cast<cell>(Player_AmmoInventory(pPlayer, pWeapon, FALSE))
+					static_cast<cell>(GetAmmoInventory(pPlayer, PrimaryAmmoIndex(pWeapon))),
+					static_cast<cell>(GetAmmoInventory(pPlayer, SecondaryAmmoIndex(pWeapon)))
 				)
 			)
 			{
@@ -623,8 +623,8 @@ int Weapon_AddToPlayer(void *pPrivate, void *pPrivate2)
 				static_cast<cell>(ENTINDEX(pWeapon)), 
 				static_cast<cell>(ENTINDEX(pPlayer)), 
 				static_cast<cell>(GetPrivateInt(pWeapon, pvData_iClip)), 
-				static_cast<cell>(Player_AmmoInventory(pPlayer, pWeapon, TRUE)),
-				static_cast<cell>(Player_AmmoInventory(pPlayer, pWeapon, FALSE))
+				static_cast<cell>(GetAmmoInventory(pPlayer, PrimaryAmmoIndex(pWeapon))),
+				static_cast<cell>(GetAmmoInventory(pPlayer, SecondaryAmmoIndex(pWeapon)))
 			);
 		}
 	}
@@ -799,14 +799,14 @@ void World_Precache(void *pPrivate)
 
 	if (ParseConfigSection(g_ConfigFilepath, "[block]", (void*)ParseBlockItems_Handler))
 	{
-		print_srvconsole("\n[WEAPONMOD] default items blocked:\n");
+		printf("\n[WEAPONMOD] default items blocked:\n");
 
 		for (int i = 0; i < (int)g_BlockedItems.size(); i++)
 		{
-			print_srvconsole("   %s\n", g_BlockedItems[i]->classname);
+			printf("   %s\n", g_BlockedItems[i]->classname);
 		}
 
-		print_srvconsole("\n");
+		printf("\n");
 	}
 	
 #ifdef _WIN32
@@ -883,7 +883,7 @@ void Player_Spawn(void *pPrivate)
 
 		if (iAmmoIndex != -1)
 		{
-			SetAmmoInventory(pPlayer, iAmmoIndex - 1, g_StartAmmo[i]->count);
+			SetAmmoInventory(pPlayer, iAmmoIndex, g_StartAmmo[i]->count);
 		}
 	}
 }
@@ -1014,10 +1014,10 @@ void Global_Think(void *pPrivate)
 				iThinkForward,
 
 				static_cast<cell>(ENTINDEX(pEntity)), 
-				static_cast<cell>(0), 
-				static_cast<cell>(0), 
-				static_cast<cell>(0),
-				static_cast<cell>(0)
+				static_cast<cell>(-1), 
+				static_cast<cell>(-1), 
+				static_cast<cell>(-1),
+				static_cast<cell>(-1)
 			);
 		}
 		else
@@ -1031,8 +1031,8 @@ void Global_Think(void *pPrivate)
 				static_cast<cell>(ENTINDEX(pEntity)), 
 				static_cast<cell>(ENTINDEX(pPlayer)), 
 				static_cast<cell>(GetPrivateInt(pEntity, pvData_iClip)), 
-				static_cast<cell>(Player_AmmoInventory(pPlayer, pEntity, TRUE)),
-				static_cast<cell>(Player_AmmoInventory(pPlayer, pEntity, FALSE))
+				static_cast<cell>(GetAmmoInventory(pPlayer, PrimaryAmmoIndex(pEntity))),
+				static_cast<cell>(GetAmmoInventory(pPlayer, SecondaryAmmoIndex(pEntity)))
 			);
 		}
 	}

@@ -33,25 +33,26 @@
 
 #include "weaponmod.h"
 #include "hooks.h"
-#include "utils.h"
 #include "grenade.h"
 
 
-#define CHECK_OFFSET(x) \
-	if ( x < 0 || x >= Offset_End) \
-	{ \
-		MF_LogError(amx, AMX_ERR_NATIVE, "Function out of bounds. Got: %d  Max: %d.", x, Offset_End - 1); \
-		return 0; \
-	}\
-/*
-#define CHECK_PARAMS(x) \
-	cell count = params[0] / sizeof(cell); \
-	if (count != x) \
-	{ \
-		MF_LogError(amx, AMX_ERR_NATIVE, "Expected %d parameters, got %d.", x, count); \
-		return 0; \
-	}\
-*/
+#include "wpnmod_utils.h"
+
+
+#define CHECK_ENTITY(x)																\
+	if (x != 0 && (FNullEnt(INDEXENT2(x)) || x < 0 || x > gpGlobals->maxEntities))	\
+	{																				\
+		MF_LogError(amx, AMX_ERR_NATIVE, "Invalid entity (%d).", x);				\
+		return 0;																	\
+	}																				\
+
+#define CHECK_OFFSET(x)																						\
+	if ( x < 0 || x >= Offset_End)																			\
+	{																										\
+		MF_LogError(amx, AMX_ERR_NATIVE, "Function out of bounds. Got: %d  Max: %d.", x, Offset_End - 1);	\
+		return 0;																							\
+	}																										\
+
 
 enum e_Offsets
 {
@@ -173,7 +174,7 @@ void AutoSlotDetection(int iWeaponID, int iSlot, int iPosition)
 					WeaponInfoArray[iWeaponID].ItemData.iSlot = i;
 					WeaponInfoArray[iWeaponID].ItemData.iPosition = k;
 
-					print_srvconsole("[WEAPONMOD] \"%s\" is moved to slot %d-%d.\n", GetWeapon_pszName(iWeaponID), i + 1, k + 1);
+					printf("[WEAPONMOD] \"%s\" is moved to slot %d-%d.\n", GetWeapon_pszName(iWeaponID), i + 1, k + 1);
 
 					bFound = TRUE;
 					break;
@@ -184,7 +185,7 @@ void AutoSlotDetection(int iWeaponID, int iSlot, int iPosition)
 		if (!bFound)
 		{
 			WeaponInfoArray[iWeaponID].ItemData.iPosition = MAX_WEAPONS;
-			print_srvconsole("[WEAPONMOD] No free slot for \"%s\" in HUD!\n", GetWeapon_pszName(iWeaponID));
+			printf("[WEAPONMOD] No free slot for \"%s\" in HUD!\n", GetWeapon_pszName(iWeaponID));
 		}
 	}
 }
@@ -671,7 +672,7 @@ static cell AMX_NATIVE_CALL wpnmod_get_player_ammo(AMX *amx, cell *params)
 
 	if (iAmmoIndex != -1)
 	{
-		return GetAmmoInventory(INDEXENT2(iPlayer), iAmmoIndex - 1);
+		return GetAmmoInventory(INDEXENT2(iPlayer), iAmmoIndex);
 	}
 
 	return 0;
@@ -696,7 +697,7 @@ static cell AMX_NATIVE_CALL wpnmod_set_player_ammo(AMX *amx, cell *params)
 
 	if (iAmmoIndex != -1)
 	{
-		SetAmmoInventory(INDEXENT2(iPlayer), iAmmoIndex - 1, params[3]);
+		SetAmmoInventory(INDEXENT2(iPlayer), iAmmoIndex, params[3]);
 		return 1;
 	}
 
@@ -865,7 +866,7 @@ static cell AMX_NATIVE_CALL wpnmod_default_reload(AMX *amx, cell *params)
 		return 0;
 	}
 
-	int iAmmo = Player_AmmoInventory(pPlayer, pItem, TRUE);
+	int iAmmo = GetAmmoInventory(pPlayer, PrimaryAmmoIndex(pItem));
 
 	if (!iAmmo)
 	{
