@@ -122,7 +122,7 @@ void OnAmxxAttach()
 	else
 	{
 		MF_AddNatives(Natives);
-		SetHookVirt(&g_WorldPrecache_Hook);
+		SetHookVirtual(&g_WorldPrecache_Hook);
 
 		printf("[WEAPONMOD] Found %s at %p\n", GET_GAME_INFO(PLID, GINFO_DLL_FILENAME), hl_dll.base);
 
@@ -159,8 +159,8 @@ void OnAmxxDetach()
 		UnsetHookVirt(&g_CrowbarHooks[i]);
 	}
 
-	UnsetHookVirt(&g_WorldPrecache_Hook);
-	UnsetHookVirt(&g_RpgAddAmmo_Hook);
+	UnsetHookVirtual(&g_WorldPrecache_Hook);
+	UnsetHookVirtual(&g_RpgAddAmmo_Hook);
 	
 	delete [] g_Ents;
 }
@@ -189,7 +189,7 @@ void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 		}
 	}
 
-	SetHookVirt(&g_PlayerSpawn_Hook);
+	SetHookVirtual(&g_PlayerSpawn_Hook);
 	RETURN_META(MRES_IGNORED);
 }
 
@@ -240,7 +240,7 @@ void ServerDeactivate()
 	g_StartAmmo.clear();
 	g_BlockedItems.clear();
 
-	UnsetHookVirt(&g_PlayerSpawn_Hook);
+	UnsetHookVirtual(&g_PlayerSpawn_Hook);
 	RETURN_META(MRES_IGNORED);
 }
 

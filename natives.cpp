@@ -1228,7 +1228,7 @@ static cell AMX_NATIVE_CALL wpnmod_register_ammobox(AMX *amx, cell *params)
 	if (!g_AmmoBoxHooksEnabled)
 	{
 		g_AmmoBoxHooksEnabled = TRUE;
-		SetHookVirt(&g_RpgAddAmmo_Hook);
+		SetHookVirtual(&g_RpgAddAmmo_Hook);
 	}
 
 	const char *szAmmoboxName = MF_GetAmxString(amx, params[1], 0, NULL);

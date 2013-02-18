@@ -35,8 +35,9 @@
 #include "parse.h"
 #include "hooks.h"
 
-
+#include "virtual_hooker.h"
 #include "wpnmod_utils.h"
+
 
 
 char g_ConfigFilepath[1024];
@@ -316,10 +317,13 @@ void ParseVtableBase_Handler(char* data)
 	if (!iIndex)
 	{
 		SetBase(read_number(data));
+		SetVTableOffsetBase(read_number(data));
+
 	}
 	else if (iIndex == 1)
 	{
 		SetPev(read_number(data));
+		SetVTableOffsetPev(read_number(data));
 	}
 
 	iIndex++;

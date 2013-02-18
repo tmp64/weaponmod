@@ -44,30 +44,9 @@
 		"weapon_crowbar", NULL, NULL, NULL, (void*)Weapon_##call, \
 	} 
 
-enum e_VtblOffsets
-{
-	VO_Spawn,
-	VO_Precache,
-	VO_Classify,
-	VO_TraceAttack,
-	VO_TakeDamage,
-	VO_DamageDecal,
-	VO_Respawn,
-	VO_AddAmmo,
-	VO_AddToPlayer,
-	VO_GetItemInfo,
-	VO_CanDeploy,
-	VO_Deploy,
-	VO_CanHolster,
-	VO_Holster,
-	VO_ItemPostFrame,
-	VO_ItemSlot,
-	VO_IsUseable,
-
-	VO_End
-};
-
-
+extern VirtualHookData g_RpgAddAmmo_Hook;
+extern VirtualHookData g_PlayerSpawn_Hook;
+extern VirtualHookData g_WorldPrecache_Hook;
 
 enum e_DllFuncs
 {
@@ -105,9 +84,9 @@ extern int g_vtblOffsets[VO_End];
 
 extern function g_dllFuncs[Func_End];
 
-extern VirtHookData g_RpgAddAmmo_Hook;
-extern VirtHookData g_PlayerSpawn_Hook;
-extern VirtHookData g_WorldPrecache_Hook;
+
+
+
 extern VirtHookData g_CrowbarHooks[CrowbarHook_End];
 
 extern edict_t* Ammo_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles);

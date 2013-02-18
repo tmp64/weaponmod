@@ -28,6 +28,9 @@
     <ClCompile Include="..\utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\virtual_hooker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\sdk\moduleconfig.h">
@@ -48,9 +51,6 @@
     <ClInclude Include="..\grenade.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\wpnmod_utils.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\sdk\CString.h">
       <Filter>Module SDK\AMXX STL</Filter>
     </ClInclude>
@@ -61,6 +61,12 @@
       <Filter>Module SDK\SDK Base</Filter>
     </ClInclude>
     <ClInclude Include="..\include\utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\virtual_hooker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\wpnmod_utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

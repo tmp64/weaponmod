@@ -35,8 +35,31 @@
 #define _UTILS_H
 
 #include "amxxmodule.h"
+#include "virtual_hooker.h"
 
-#define IsValidPev(entity)	((int)entity != -1 && !FNullEnt(entity) && entity->pvPrivateData)
+
+enum VTableOffsets 
+{
+	VO_Spawn,
+	VO_Precache,
+	VO_Classify,
+	VO_TraceAttack,
+	VO_TakeDamage,
+	VO_DamageDecal,
+	VO_Respawn,
+	VO_AddAmmo,
+	VO_AddToPlayer,
+	VO_GetItemInfo,
+	VO_CanDeploy,
+	VO_Deploy,
+	VO_CanHolster,
+	VO_Holster,
+	VO_ItemPostFrame,
+	VO_ItemSlot,
+	VO_IsUseable,
+
+	VO_End
+};
 
 enum PrivateDataOffsets
 {
@@ -87,12 +110,13 @@ enum PrivateDataOffsets
 	pvData_End
 };
 
+extern int g_vtblOffsets[VO_End];
 extern int g_pvDataOffsets[pvData_End];
 
-extern edict_t*		INDEXENT2		(int iEdictNum);
-extern edict_t*		GetPrivateCbase	(edict_t *pEntity, int iOffset);
-extern edict_t*		GetPrivateCbase	(edict_t *pEntity, int iOffset, int iExtraRealOffset);
-extern void			SetPrivateCbase	(edict_t *pEntity, int iOffset, edict_t* pValue);
+extern edict_t*	INDEXENT2		(int iEdictNum);
+extern edict_t*	GetPrivateCbase	(edict_t *pEntity, int iOffset);
+extern edict_t*	GetPrivateCbase	(edict_t *pEntity, int iOffset, int iExtraRealOffset);
+extern void		SetPrivateCbase	(edict_t *pEntity, int iOffset, edict_t* pValue);
 
 extern int PrimaryAmmoIndex		(edict_t *pEntity);
 extern int SecondaryAmmoIndex	(edict_t *pEntity);
@@ -107,7 +131,7 @@ inline edict_t* PrivateToEdict(const void* pdata)
 		return NULL;
 	}
 
-	char* ptr = (char*)pdata + g_Pev;
+	char* ptr = (char*)pdata + g_EntityVTableOffsetPev;
 
 	if (!ptr)
 	{
@@ -192,6 +216,8 @@ inline void SetThink_(edict_t* e, void* funcAddress)
 	*((long*)e->pvPrivateData + g_pvDataOffsets[pvData_pfnThink]) = (long)(funcAddress);     
 #endif 
 }
+
+#define IsValidPev(entity)	((int)entity != -1 && !FNullEnt(entity) && entity->pvPrivateData)
 
 #define CBTEXTURENAMEMAX		13
 

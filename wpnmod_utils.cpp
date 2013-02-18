@@ -35,7 +35,7 @@
 #include "hooks.h"
 #include "wpnmod_utils.h"
 
-
+int g_vtblOffsets[VO_End];
 int g_pvDataOffsets[pvData_End];
 
 edict_t *GetPrivateCbase(edict_t *pEntity, int iOffset)

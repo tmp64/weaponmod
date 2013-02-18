@@ -36,14 +36,11 @@
 #include "wpnmod_utils.h"
 
 
-module hl_dll = {NULL, 0, NULL};
+VirtualHookData	g_RpgAddAmmo_Hook		= { "ammo_rpgclip",	VO_AddAmmo,		(void*)AmmoBox_AddAmmo,	NULL, NULL };
+VirtualHookData g_PlayerSpawn_Hook		= { "player",		VO_Spawn,		(void*)Player_Spawn,	NULL, NULL };
+VirtualHookData g_WorldPrecache_Hook	= { "worldspawn",	VO_Precache,	(void*)World_Precache,	NULL, NULL };
 
-int g_vtblOffsets[VO_End];
 
-
-VirtHookData g_PlayerSpawn_Hook = { "player", NULL, NULL, NULL, (void*)Player_Spawn };
-VirtHookData g_RpgAddAmmo_Hook = { "ammo_rpgclip", NULL, NULL, NULL, (void*)AmmoBox_AddAmmo };
-VirtHookData g_WorldPrecache_Hook = { "worldspawn", NULL, NULL, NULL, (void*)World_Precache };
 
 VirtHookData g_CrowbarHooks[CrowbarHook_End] = 
 {
@@ -71,7 +68,7 @@ function g_dllFuncs[Func_End] =
 	{ "", &hl_dll, {"", "", 0}, NULL, (void*)CheatImpulseCommands_HookHandler, {}, {}, 0 }
 };
 
-
+module hl_dll = {NULL, 0, NULL};
 
 #ifdef _WIN32
 int __fastcall Weapon_GetItemInfo(void *pPrivate, int i, ItemInfo *p)
@@ -1188,10 +1185,6 @@ edict_t* Ammo_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles)
 
 void SetVDataOffsets()
 {
-	g_RpgAddAmmo_Hook.offset = g_vtblOffsets[VO_AddAmmo];
-	g_PlayerSpawn_Hook.offset = g_vtblOffsets[VO_Spawn];
-	g_WorldPrecache_Hook.offset = g_vtblOffsets[VO_Precache];
-
 	g_CrowbarHooks[CrowbarHook_Respawn].offset = g_vtblOffsets[VO_Respawn];
 	g_CrowbarHooks[CrowbarHook_AddToPlayer].offset = g_vtblOffsets[VO_AddToPlayer];
 	g_CrowbarHooks[CrowbarHook_GetItemInfo].offset = g_vtblOffsets[VO_GetItemInfo];
