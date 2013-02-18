@@ -31,9 +31,11 @@
  *
  */
 
-#include "grenade.h"
+
 #include "hooks.h"
+
 #include "wpnmod_utils.h"
+#include "wpnmod_grenade.h"
 
 
 edict_t* Grenade_ShootContact(edict_t *pOwner, Vector vecStart, Vector vecVelocity)

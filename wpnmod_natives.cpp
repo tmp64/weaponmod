@@ -33,9 +33,9 @@
 
 #include "weaponmod.h"
 #include "hooks.h"
-#include "grenade.h"
 
 
+#include "wpnmod_grenade.h"
 #include "wpnmod_utils.h"
 
 
