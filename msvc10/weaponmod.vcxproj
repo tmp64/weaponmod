@@ -79,13 +79,13 @@
   <ItemGroup>
     <ClCompile Include="..\hooks.cpp" />
     <ClCompile Include="..\meta_api.cpp" />
-    <ClCompile Include="..\parse.cpp" />
     <ClCompile Include="..\sdk\amxxmodule.cpp" />
     <ClCompile Include="..\utils.cpp" />
     <ClCompile Include="..\virtual_hooker.cpp" />
     <ClCompile Include="..\wpnmod_grenade.cpp" />
     <ClCompile Include="..\wpnmod_hooker.cpp" />
     <ClCompile Include="..\wpnmod_natives.cpp" />
+    <ClCompile Include="..\wpnmod_parse.cpp" />
     <ClCompile Include="..\wpnmod_utils.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -94,8 +94,8 @@
     <ClInclude Include="..\include\virtual_hooker.h" />
     <ClInclude Include="..\include\wpnmod_grenade.h" />
     <ClInclude Include="..\include\wpnmod_hooker.h" />
+    <ClInclude Include="..\include\wpnmod_parse.h" />
     <ClInclude Include="..\include\wpnmod_utils.h" />
-    <ClInclude Include="..\parse.h" />
     <ClInclude Include="..\sdk\amxxmodule.h" />
     <ClInclude Include="..\sdk\CString.h" />
     <ClInclude Include="..\sdk\CVector.h" />

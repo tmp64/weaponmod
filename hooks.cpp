@@ -33,12 +33,29 @@
 
 #include "weaponmod.h"
 #include "hooks.h"
+
+#include "wpnmod_parse.h"
 #include "wpnmod_utils.h"
 
+EntData* g_Ents = NULL;
 
 VirtualHookData	g_RpgAddAmmo_Hook		= { "ammo_rpgclip",	VO_AddAmmo,		(void*)AmmoBox_AddAmmo,	NULL, NULL };
 VirtualHookData g_PlayerSpawn_Hook		= { "player",		VO_Spawn,		(void*)Player_Spawn,	NULL, NULL };
 VirtualHookData g_WorldPrecache_Hook	= { "worldspawn",	VO_Precache,	(void*)World_Precache,	NULL, NULL };
+
+function g_dllFuncs[Func_End] =
+{
+	HOOK(NULL),
+	HOOK(NULL),
+	HOOK(NULL),
+	HOOK(NULL),
+	HOOK(NULL),
+	HOOK(PrecacheOtherWeapon_HookHandler),
+	HOOK(GiveNamedItem_HookHandler),
+	HOOK(CheatImpulseCommands_HookHandler)
+};
+
+module g_GameDllModule = { NULL, NULL, NULL };
 
 VirtualHookData g_CrowbarHooks[CrowbarHook_End] = 
 {
@@ -54,31 +71,11 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 	VHOOK(IsUseable)
 };
 
-function g_dllFuncs[Func_End] =
-{
-	HOOK(NULL),
-	HOOK(NULL),
-	HOOK(NULL),
-	HOOK(NULL),
-	HOOK(NULL),
-	HOOK(PrecacheOtherWeapon_HookHandler),
-	HOOK(GiveNamedItem_HookHandler),
-	HOOK(CheatImpulseCommands_HookHandler)
-};
-
-
-
-
-
-
-
-
-module hl_dll = {NULL, 0, NULL};
 
 #ifdef _WIN32
-int __fastcall Weapon_GetItemInfo(void *pPrivate, int i, ItemInfo *p)
+	int __fastcall Weapon_GetItemInfo(void *pPrivate, int i, ItemInfo *p)
 #else
-int Weapon_GetItemInfo(void *pPrivate, ItemInfo *p)
+	int Weapon_GetItemInfo(void *pPrivate, ItemInfo *p)
 #endif
 {
 #ifdef _WIN32
@@ -136,9 +133,9 @@ int Weapon_GetItemInfo(void *pPrivate, ItemInfo *p)
 
 
 #ifdef _WIN32
-BOOL __fastcall Weapon_CanDeploy(void *pPrivate)
+	BOOL __fastcall Weapon_CanDeploy(void *pPrivate)
 #else
-BOOL Weapon_CanDeploy(void *pPrivate)
+	BOOL Weapon_CanDeploy(void *pPrivate)
 #endif
 {
 	edict_t* pWeapon = PrivateToEdict(pPrivate);
@@ -181,9 +178,9 @@ BOOL Weapon_CanDeploy(void *pPrivate)
 
 
 #ifdef _WIN32
-BOOL __fastcall Weapon_Deploy(void *pPrivate)
+	BOOL __fastcall Weapon_Deploy(void *pPrivate)
 #else
-BOOL Weapon_Deploy(void *pPrivate)
+	BOOL Weapon_Deploy(void *pPrivate)
 #endif
 {
 	edict_t* pWeapon = PrivateToEdict(pPrivate);
@@ -235,9 +232,9 @@ BOOL Weapon_Deploy(void *pPrivate)
 
 
 #ifdef _WIN32
-void __fastcall Weapon_ItemPostFrame(void *pPrivate)
+	void __fastcall Weapon_ItemPostFrame(void *pPrivate)
 #else
-void Weapon_ItemPostFrame(void *pPrivate)
+	void Weapon_ItemPostFrame(void *pPrivate)
 #endif
 {
 	static int iId;
@@ -423,9 +420,9 @@ void Weapon_ItemPostFrame(void *pPrivate)
 
 
 #ifdef _WIN32
-BOOL __fastcall Weapon_IsUseable(void *pPrivate)
+	BOOL __fastcall Weapon_IsUseable(void *pPrivate)
 #else
-BOOL Weapon_IsUseable(void *pPrivate)
+	BOOL Weapon_IsUseable(void *pPrivate)
 #endif
 {
 	edict_t* pWeapon = PrivateToEdict(pPrivate);
@@ -468,9 +465,9 @@ BOOL Weapon_IsUseable(void *pPrivate)
 
 
 #ifdef _WIN32
-BOOL __fastcall Weapon_CanHolster(void *pPrivate)
+	BOOL __fastcall Weapon_CanHolster(void *pPrivate)
 #else
-BOOL Weapon_CanHolster(void *pPrivate)
+	BOOL Weapon_CanHolster(void *pPrivate)
 #endif
 {
 	edict_t* pWeapon = PrivateToEdict(pPrivate);
@@ -513,9 +510,9 @@ BOOL Weapon_CanHolster(void *pPrivate)
 
 
 #ifdef _WIN32
-void __fastcall Weapon_Holster(void *pPrivate, int i, int skiplocal)
+	void __fastcall Weapon_Holster(void *pPrivate, int i, int skiplocal)
 #else
-void Weapon_Holster(void *pPrivate, int skiplocal)
+	void Weapon_Holster(void *pPrivate, int skiplocal)
 #endif
 {
 	edict_t* pWeapon = PrivateToEdict(pPrivate);
@@ -562,9 +559,9 @@ void Weapon_Holster(void *pPrivate, int skiplocal)
 
 
 #ifdef _WIN32
-int __fastcall Weapon_AddToPlayer(void *pPrivate, int i, void *pPrivate2)
+	int __fastcall Weapon_AddToPlayer(void *pPrivate, int i, void *pPrivate2)
 #else
-int Weapon_AddToPlayer(void *pPrivate, void *pPrivate2)
+	int Weapon_AddToPlayer(void *pPrivate, void *pPrivate2)
 #endif
 {
 	edict_t* pWeapon = PrivateToEdict(pPrivate);
@@ -641,9 +638,9 @@ int Weapon_AddToPlayer(void *pPrivate, void *pPrivate2)
 
 
 #ifdef _WIN32
-int __fastcall Weapon_ItemSlot(void *pPrivate)
+	int __fastcall Weapon_ItemSlot(void *pPrivate)
 #else
-int Weapon_ItemSlot(void *pPrivate)
+	int Weapon_ItemSlot(void *pPrivate)
 #endif
 {
 	edict_t* pWeapon = PrivateToEdict(pPrivate);
@@ -670,9 +667,9 @@ int Weapon_ItemSlot(void *pPrivate)
 
 
 #ifdef _WIN32
-void* __fastcall Weapon_Respawn(void *pPrivate)
+	void* __fastcall Weapon_Respawn(void *pPrivate)
 #else
-void* Weapon_Respawn(void *pPrivate)
+	void* Weapon_Respawn(void *pPrivate)
 #endif
 {
 	edict_t* pWeapon = PrivateToEdict(pPrivate);
@@ -720,9 +717,9 @@ void* Weapon_Respawn(void *pPrivate)
 
 
 #ifdef _WIN32
-BOOL __fastcall AmmoBox_AddAmmo(void *pPrivate, int i, void *pPrivateOther)
+	BOOL __fastcall AmmoBox_AddAmmo(void *pPrivate, int i, void *pPrivateOther)
 #else
-BOOL AmmoBox_AddAmmo(void *pPrivate, void *pPrivateOther)
+	BOOL AmmoBox_AddAmmo(void *pPrivate, void *pPrivateOther)
 #endif
 {
 	edict_t* pAmmobox = PrivateToEdict(pPrivate);
@@ -774,9 +771,9 @@ BOOL AmmoBox_AddAmmo(void *pPrivate, void *pPrivateOther)
 
 
 #ifdef _WIN32
-int __fastcall Item_Block(void *pPrivate, int i, void *pPrivate2)
+	int __fastcall Item_Block(void *pPrivate, int i, void *pPrivate2)
 #else
-int Item_Block(void *pPrivate, void *pPrivate2)
+	int Item_Block(void *pPrivate, void *pPrivate2)
 #endif
 {
 	edict_t* pWeapon = PrivateToEdict(pPrivate);
@@ -792,9 +789,9 @@ int Item_Block(void *pPrivate, void *pPrivate2)
 
 
 #ifdef _WIN32
-void __fastcall World_Precache(void *pPrivate)
+	void __fastcall World_Precache(void *pPrivate)
 #else
-void World_Precache(void *pPrivate)
+	void World_Precache(void *pPrivate)
 #endif
 {
 	SetConfigFile();
@@ -821,9 +818,9 @@ void World_Precache(void *pPrivate)
 
 
 #ifdef _WIN32
-void __fastcall Equipment_Think(void *pPrivate)
+	void __fastcall Equipment_Think(void *pPrivate)
 #else
-void Equipment_Think(void *pPrivate)
+	void Equipment_Think(void *pPrivate)
 #endif
 {
 	edict_t* pEntity = PrivateToEdict(pPrivate);
@@ -845,9 +842,9 @@ void Equipment_Think(void *pPrivate)
 
 
 #ifdef _WIN32
-void __fastcall Player_Spawn(void *pPrivate)
+	void __fastcall Player_Spawn(void *pPrivate)
 #else
-void Player_Spawn(void *pPrivate)
+	void Player_Spawn(void *pPrivate)
 #endif
 {
 #ifdef _WIN32
@@ -891,11 +888,10 @@ void Player_Spawn(void *pPrivate)
 }
 
 
-
 #ifdef _WIN32
-void __cdecl PrecacheOtherWeapon_HookHandler(const char *szClassname)
+	void __cdecl PrecacheOtherWeapon_HookHandler(const char *szClassname)
 #else
-void PrecacheOtherWeapon_HookHandler(const char *szClassname)
+	void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 #endif
 {
 	edict_t	*pEntity = CREATE_NAMED_ENTITY(MAKE_STRING(szClassname));
@@ -934,11 +930,10 @@ void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 }
 
 
-
 #ifdef _WIN32
-void __fastcall GiveNamedItem_HookHandler(void *pPrivate, int i, const char *szName)
+	void __fastcall GiveNamedItem_HookHandler(void *pPrivate, int i, const char *szName)
 #else
-void GiveNamedItem_HookHandler(void *pPrivate, const char *szName)
+	void GiveNamedItem_HookHandler(void *pPrivate, const char *szName)
 #endif
 {
 	if (szName)
@@ -956,11 +951,10 @@ void GiveNamedItem_HookHandler(void *pPrivate, const char *szName)
 }
 
 
-
 #ifdef _WIN32
-void __fastcall CheatImpulseCommands_HookHandler(void *pPrivate, int i, int iImpulse)
+	void __fastcall CheatImpulseCommands_HookHandler(void *pPrivate, int i, int iImpulse)
 #else
-void CheatImpulseCommands_HookHandler(void *pPrivate, int iImpulse)
+	void CheatImpulseCommands_HookHandler(void *pPrivate, int iImpulse)
 #endif
 {
 	// check cheat impulse command now
@@ -989,11 +983,10 @@ void CheatImpulseCommands_HookHandler(void *pPrivate, int iImpulse)
 }
 
 
-
 #ifdef _WIN32
-void __fastcall Global_Think(void *pPrivate)
+	void __fastcall Global_Think(void *pPrivate)
 #else
-void Global_Think(void *pPrivate)
+	void Global_Think(void *pPrivate)
 #endif
 {
 	static edict_t* pEntity;
@@ -1043,9 +1036,9 @@ void Global_Think(void *pPrivate)
 
 
 #ifdef _WIN32
-void __fastcall Global_Touch(void *pPrivate, int i, void *pPrivate2)
+	void __fastcall Global_Touch(void *pPrivate, int i, void *pPrivate2)
 #else
-void Global_Touch(void *pPrivate, void *pPrivate2)
+	void Global_Touch(void *pPrivate, void *pPrivate2)
 #endif
 {
 	static edict_t* pEntity;

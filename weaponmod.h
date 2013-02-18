@@ -37,11 +37,11 @@
 #include "amxxmodule.h"
 #include "CString.h"
 #include "CVector.h"
-#include "parse.h"
 #include "cbase.h"
 
 
 #include "wpnmod_hooker.h"
+//#include "wpnmod_parse.h"
 #include "wpnmod_utils.h"
 #include "utils.h"
 
@@ -135,13 +135,6 @@ typedef struct
 
 typedef struct
 {
-	int iThink;
-	int iTouch;
-	int iExplode;
-} EntData;
-
-typedef struct
-{
 	String title;
     String author;
     String version;
@@ -182,8 +175,6 @@ public:
     String        author;
     String        errorMsg;
 };
-
-extern EntData *g_Ents;
 
 extern int g_iWeaponsCount;
 extern int g_iWeaponInitID;

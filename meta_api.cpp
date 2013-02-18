@@ -33,9 +33,12 @@
 
 #include "weaponmod.h"
 #include "hooks.h"
+
+
+#include "wpnmod_parse.h"
 #include "wpnmod_utils.h"
 
-EntData *g_Ents = NULL;
+
 edict_t* g_EquipEnt = NULL;
 
 cvar_t *cvar_aghlru = NULL;
@@ -46,7 +49,10 @@ CVector <DecalList *> g_Decals;
 CVector <StartAmmo *> g_StartAmmo;
 CVector <VirtualHookData *> g_BlockedItems;
 
-#define CLIENT_PRINT (*g_engfuncs.pfnClientPrintf)
+int AmxxCheckGame(const char* game)
+{
+	return !stricmp(game, "cstrike") || !stricmp(game, "czero") ? AMXX_GAME_BAD : AMXX_GAME_OK;
+}
 
 void OnAmxxAttach()
 {
@@ -72,7 +78,7 @@ void OnAmxxAttach()
 	
 	MF_BuildPathnameR(filepath, sizeof(filepath) - 1, "%s/weaponmod/mods/%s%s.ini", MF_GetLocalInfo("amxx_configsdir", "addons/amxmodx/configs"), modname, prefix);
 
-	if (!FindModuleByAddr((void*)MDLL_FUNC->pfnGetGameDescription(), &hl_dll))
+	if (!FindModuleByAddr((void*)MDLL_FUNC->pfnGetGameDescription(), &g_GameDllModule))
 	{
 		printf("[WEAPONMOD] Failed to locate %s\n", GET_GAME_INFO(PLID, GINFO_DLL_FILENAME));
 		bAddNatives = FALSE;
@@ -122,7 +128,7 @@ void OnAmxxAttach()
 		MF_AddNatives(Natives);
 		SetHookVirtual(&g_WorldPrecache_Hook);
 
-		printf("[WEAPONMOD] Found %s at %p\n", GET_GAME_INFO(PLID, GINFO_DLL_FILENAME), hl_dll.base);
+		printf("[WEAPONMOD] Found %s at %p\n", GET_GAME_INFO(PLID, GINFO_DLL_FILENAME), g_GameDllModule.base);
 
 		printf("\n   Half-Life Weapon Mod version %s Copyright (c) 2012 AGHL.RU Dev Team. \n"
 			"   Weapon Mod comes with ABSOLUTELY NO WARRANTY; for details type `wpnmod gpl'.\n", Plugin_info.version);
@@ -137,8 +143,6 @@ void OnAmxxAttach()
 	REG_SVR_COMMAND("wpnmod", WpnModCommand);
 	CVAR_REGISTER (&version);
 }
-
-
 
 void OnAmxxDetach()
 {
@@ -162,8 +166,6 @@ void OnAmxxDetach()
 	
 	delete [] g_Ents;
 }
-
-
 
 void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 {
@@ -190,8 +192,6 @@ void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 	SetHookVirtual(&g_PlayerSpawn_Hook);
 	RETURN_META(MRES_IGNORED);
 }
-
-
 
 int FN_DecalIndex_Post(const char *name)
 {
@@ -243,32 +243,7 @@ void ServerDeactivate()
 }
 
 
-
-int AmxxCheckGame(const char *game)
-{
-	if (!strcasecmp(game, "cstrike") || !strcasecmp(game, "czero"))
-	{
-		return AMXX_GAME_BAD;
-	}
-	
-	return AMXX_GAME_OK;
-}
-
-
-
-/*
-void Player_SendAmmoUpdate(edict_t* pPlayer)
-{
-	for (int i = 0; i < MAX_AMMO_SLOTS; i++)
-	{
-		// send "Ammo" update message
-		MESSAGE_BEGIN( MSG_ONE, REG_USER_MSG("AmmoX", 2), NULL, pPlayer);
-			WRITE_BYTE( i );
-			WRITE_BYTE( max( min( (int)*((int *)pPlayer->pvPrivateData + m_rgAmmo + i - 1), 254 ), 0 ) );  // clamp the value to one byte
-		MESSAGE_END();
-	}
-}
-*/
+#define CLIENT_PRINT (*g_engfuncs.pfnClientPrintf)
 
 void ClientCommand(edict_t *pEntity)
 {
@@ -341,49 +316,6 @@ void ClientCommand(edict_t *pEntity)
 
 		RETURN_META(MRES_SUPERCEDE);
 	}
-	/*else if(cmd && _stricmp(cmd, "test1") == 0)
-	{
-		MESSAGE_BEGIN( MSG_ONE, REG_USER_MSG("ResetHUD", 1), NULL, pEntity );
-			WRITE_BYTE( 0 );
-		MESSAGE_END();
-
-
-		//WeaponInfoArray[5].ItemData.iSlot = -1;
-		//WeaponInfoArray[5].ItemData.iPosition = -1;
-
-		//if (msgWeaponList || (msgWeaponList = REG_USER_MSG( "WeaponList", -1)))		
-		{
-			MESSAGE_BEGIN(MSG_ONE, REG_USER_MSG( "WeaponList", -1), NULL, pEntity);
-			WRITE_STRING("weapon_rpg7");
-			WRITE_BYTE(-1);
-			WRITE_BYTE(-1);
-			WRITE_BYTE(-1);
-			WRITE_BYTE(-1);
-			WRITE_BYTE(0);
-			WRITE_BYTE(2);
-			WRITE_BYTE(5);
-			WRITE_BYTE(0);
-			MESSAGE_END();
-		}
-
-		{
-			MESSAGE_BEGIN(MSG_ONE, REG_USER_MSG( "WeaponList", -1), NULL, pEntity);
-			WRITE_STRING("weapon_sniperrifle");
-			WRITE_BYTE(-1);
-			WRITE_BYTE(-1);
-			WRITE_BYTE(-1);
-			WRITE_BYTE(-1);
-			WRITE_BYTE(0);
-			WRITE_BYTE(1);
-			WRITE_BYTE(16);
-			WRITE_BYTE(0);
-			MESSAGE_END();
-		}
-
-		Player_SendAmmoUpdate(pEntity);
-
-		
-	}*/
 
 	RETURN_META(MRES_IGNORED);
 }

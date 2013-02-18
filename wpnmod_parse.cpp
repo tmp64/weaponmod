@@ -32,12 +32,11 @@
  */
 
 #include "weaponmod.h"
-#include "parse.h"
 #include "hooks.h"
 
 #include "virtual_hooker.h"
+#include "wpnmod_parse.h"
 #include "wpnmod_utils.h"
-
 
 
 char g_ConfigFilepath[1024];
@@ -509,13 +508,3 @@ void SetConfigFile()
 		MF_BuildPathnameR(g_ConfigFilepath, sizeof(g_ConfigFilepath) - 1, "%s/weaponmod/weaponmod.ini", MF_GetLocalInfo("amxx_configsdir", "addons/amxmodx/configs"));
 	}
 }
-
-
-
-
-
-
-
-
-
-

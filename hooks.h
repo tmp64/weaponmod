@@ -41,15 +41,20 @@
 #include "wpnmod_hooker.h"
 #include "wpnmod_utils.h"
 
-	#define VHOOK(call)													\
-	{																	\
-		"weapon_crowbar", VO_##call, (void*)Weapon_##call, NULL, NULL,	\
-	}
 
-	#define HOOK(call)													\
-	{																	\
-		"", &hl_dll, {"", "", 0}, NULL, (void*)call, {}, {}, 0,				\
-	}
+enum LibFunctions
+{
+	Func_RadiusDamage,
+	Func_GetAmmoIndex,
+	Func_ClearMultiDamage,
+	Func_ApplyMultiDamage,
+	Func_PlayerSetAnimation,
+	Func_PrecacheOtherWeapon,
+	Func_GiveNamedItem,
+	Func_CheatImpulseCommands,
+
+	Func_End
+};
 
 enum VirtualCrowbarHooks
 {
@@ -67,10 +72,35 @@ enum VirtualCrowbarHooks
 	CrowbarHook_End
 };
 
+typedef struct
+{
+	int iThink;
+	int iTouch;
+	int iExplode;
+} EntData;
+
+extern EntData*	g_Ents;
+extern module	g_GameDllModule;
+
 extern VirtualHookData g_RpgAddAmmo_Hook;
 extern VirtualHookData g_PlayerSpawn_Hook;
 extern VirtualHookData g_WorldPrecache_Hook;
-extern VirtualHookData g_CrowbarHooks[CrowbarHook_End];
+
+	#define HOOK(call)													\
+	{																	\
+		"", &g_GameDllModule, {"", "", 0}, NULL, (void*)call, {}, {}, 0,			\
+	}
+
+	extern function g_dllFuncs[Func_End];
+
+	#define VHOOK(call)													\
+	{																	\
+		"weapon_crowbar", VO_##call, (void*)Weapon_##call, NULL, NULL,	\
+	}
+	
+	extern VirtualHookData g_CrowbarHooks[CrowbarHook_End];
+
+	
 
 
 
@@ -80,27 +110,18 @@ extern VirtualHookData g_CrowbarHooks[CrowbarHook_End];
 
 
 
-enum e_DllFuncs
-{
-	Func_RadiusDamage,
-	Func_GetAmmoIndex,
-	Func_ClearMultiDamage,
-	Func_ApplyMultiDamage,
-	Func_PlayerSetAnimation,
-	Func_PrecacheOtherWeapon,
-	Func_GiveNamedItem,
-	Func_CheatImpulseCommands,
-
-	Func_End
-};
 
 
 
-extern module hl_dll;
 
-extern int g_vtblOffsets[VO_End];
 
-extern function g_dllFuncs[Func_End];
+
+
+
+
+
+
+
 
 
 

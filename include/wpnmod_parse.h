@@ -36,25 +36,19 @@
 
 #include "amxxmodule.h"
 
-
 extern char g_ConfigFilepath[1024];
-
 
 extern void ParseBSP();
 extern void SetConfigFile();
 extern void ParseSpawnPoints();
 
-extern BOOL ParseConfigSection(char *Filepath, char *pSection, void *pHandler);
-
-extern void ParseSignatures_Handler(char* data);
-extern void ParseVtableBase_Handler(char* data);
-extern void ParseVtableOffsets_Handler(char* data);
-extern void ParsePvDataOffsets_Handler(char* data);
-extern void ParseAmmo_Handler(char* data);
-extern void ParseEquipment_Handler(char* data);
-extern void ParseBlockItems_Handler(char* szBlockItem);
-
-
-
+extern void ParseSignatures_Handler		(char* data);
+extern void ParseVtableBase_Handler		(char* data);
+extern void ParseVtableOffsets_Handler	(char* data);
+extern void ParsePvDataOffsets_Handler	(char* data);
+extern void ParseAmmo_Handler			(char* data);
+extern void ParseEquipment_Handler		(char* data);
+extern void ParseBlockItems_Handler		(char* szBlockItem);
+extern BOOL ParseConfigSection			(char *Filepath, char *pSection, void *pHandler);
 
 #endif // _PARSER_H
