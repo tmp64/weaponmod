@@ -53,9 +53,6 @@
 	typedef unsigned int UNINT32;
 #endif
 
-extern unsigned long g_Pev;
-extern unsigned long g_Base;
-
 
 struct module
 {
@@ -69,17 +66,6 @@ struct signature
 	const char       *text;
 	const char       *mask;
 	size_t           size;
-};
-
-struct VirtHookData
-{
-	const char       *classname;
-
-	int              offset;
-	int              done;
-
-	void             *address;
-	void             *handler;
 };
 
 struct function
@@ -99,20 +85,14 @@ struct function
 	int              done;
 };
 
-int FindModuleByAddr(void *addr, module *lib);
-void *FindFunction(module *lib, signature sig);
-void *FindFunction(function *func);
+void	SetHook			(function *func);
+void	UnsetHook		(function *func);
 
-int CreateFunctionHook(function *func);
-int AllowWriteToMemory(void *address);
+void*	FindFunction	(module *lib, signature sig);
+void*	FindFunction	(function *func);
 
-void SetHook(function *func);
-void UnsetHook(function *func);
-
-extern void SetPev(int value);
-extern void SetBase(int value);
-
-void SetHookVirt(VirtHookData *HookData);
-void UnsetHookVirt(VirtHookData *HookData);
+int		FindModuleByAddr	(void *addr, module *lib);
+int		CreateFunctionHook	(function *func);
+int		AllowWriteToMemory	(void *address);
 
 #endif // _LIBFUNC_H

@@ -88,7 +88,7 @@ BOOL ParseConfigSection(char *Filepath, char *pSection, void *pHandler)
 
 void ParseBlockItems_Handler(char* szBlockItem)
 {
-	VirtHookData *p = new VirtHookData;
+	VirtualHookData *p = new VirtualHookData;
 	
 	p->done = NULL;
 	p->handler = NULL;
@@ -103,15 +103,15 @@ void ParseBlockItems_Handler(char* szBlockItem)
 
 	if (strstr(szBlockItem, "weapon_"))
 	{
-		p->offset = g_vtblOffsets[VO_AddToPlayer];
+		p->offset = VO_AddToPlayer;
 	}
 	else if (strstr(szBlockItem, "ammo_"))
 	{
-		p->offset = g_vtblOffsets[VO_AddAmmo];
+		p->offset = VO_AddAmmo;
 	}
 	
 	p->handler = (void*)Item_Block;
-	SetHookVirt(p);
+	SetHookVirtual(p);
 
 	if (!p->done)
 	{
@@ -316,13 +316,10 @@ void ParseVtableBase_Handler(char* data)
 
 	if (!iIndex)
 	{
-		SetBase(read_number(data));
 		SetVTableOffsetBase(read_number(data));
-
 	}
 	else if (iIndex == 1)
 	{
-		SetPev(read_number(data));
 		SetVTableOffsetPev(read_number(data));
 	}
 

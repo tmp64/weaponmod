@@ -44,7 +44,7 @@ cvar_t *cvar_mp_weaponstay = NULL;
 
 CVector <DecalList *> g_Decals;
 CVector <StartAmmo *> g_StartAmmo;
-CVector <VirtHookData *> g_BlockedItems;
+CVector <VirtualHookData *> g_BlockedItems;
 
 #define CLIENT_PRINT (*g_engfuncs.pfnClientPrintf)
 
@@ -89,8 +89,6 @@ void OnAmxxAttach()
 		ParseConfigSection(filepath, "[vtable_base]", (void*)ParseVtableBase_Handler);
 		ParseConfigSection(filepath, "[vtable_offsets]", (void*)ParseVtableOffsets_Handler);
 		ParseConfigSection(filepath, "[pvdata_offsets]", (void*)ParsePvDataOffsets_Handler);
-		
-		SetVDataOffsets();
 
 		for (int i = 0; i < Func_End; i++)
 		{
@@ -156,7 +154,7 @@ void OnAmxxDetach()
 	
 	for (i = 0; i < CrowbarHook_End; i++)
 	{
-		UnsetHookVirt(&g_CrowbarHooks[i]);
+		UnsetHookVirtual(&g_CrowbarHooks[i]);
 	}
 
 	UnsetHookVirtual(&g_WorldPrecache_Hook);
@@ -232,7 +230,7 @@ void ServerDeactivate()
 
 	for (int i = 0; i < (int)g_BlockedItems.size(); i++)
 	{
-		UnsetHookVirt(g_BlockedItems[i]);
+		UnsetHookVirtual(g_BlockedItems[i]);
 		delete g_BlockedItems[i];
 	}
 

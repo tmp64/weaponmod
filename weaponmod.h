@@ -35,13 +35,21 @@
 #define _WPNMOD_H
 
 #include "amxxmodule.h"
-#include "libFunc.h"
 #include "CString.h"
 #include "CVector.h"
 #include "parse.h"
 #include "cbase.h"
 
+
+#include "wpnmod_hooker.h"
+#include "wpnmod_utils.h"
 #include "utils.h"
+
+
+
+extern CVector <VirtualHookData *> g_BlockedItems;
+
+
 
 
 #ifdef __linux__
@@ -196,7 +204,7 @@ extern AmmoBoxData AmmoBoxInfoArray[MAX_WEAPONS];
 
 extern CVector <DecalList *> g_Decals;
 extern CVector <StartAmmo *> g_StartAmmo;
-extern CVector <VirtHookData *> g_BlockedItems;
+
 
 extern AMX_NATIVE_INFO Natives[];
 

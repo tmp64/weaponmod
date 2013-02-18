@@ -260,7 +260,7 @@ static cell AMX_NATIVE_CALL wpnmod_register_weapon(AMX *amx, cell *params)
 		
 				for (int k = 0; k < CrowbarHook_End; k++)
 				{
-					SetHookVirt(&g_CrowbarHooks[k]);
+					SetHookVirtual(&g_CrowbarHooks[k]);
 				}
 			}
 

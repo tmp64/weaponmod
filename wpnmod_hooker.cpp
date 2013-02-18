@@ -31,14 +31,10 @@
  *
  */
 
-#include "libFunc.h"
+#include "wpnmod_hooker.h"
 
 #include <extdll.h>
 #include <meta_api.h>
-
-
-extern unsigned long g_Pev = 0;
-extern unsigned long g_Base = 0;
 
 
 #if defined _WIN32
@@ -239,103 +235,4 @@ int AllowWriteToMemory(void *address)
 #endif
 		return TRUE;
 	return FALSE;
-}
-
-void SetPev(int value)
-{
-	g_Pev = value;
-}
-
-void SetBase(int value)
-{
-	g_Base = value;
-}
-
-#define ALIGN(ar) ((intptr_t)ar & ~(sysconf(_SC_PAGESIZE)-1))
-
-void SetHookVirt(VirtHookData *HookData)
-{
-	if (!HookData)
-	{
-		return;
-	}
-
-	edict_t *pEdict = CREATE_ENTITY();
-
-	CALL_GAME_ENTITY(PLID, HookData->classname, &pEdict->v);
-
-	if (pEdict->pvPrivateData == NULL)
-	{
-		REMOVE_ENTITY(pEdict);
-		return;
-	}
-
-#ifdef _WIN32
-	DWORD OldFlags;
-   void **vtable = *((void***)((char*)pEdict->pvPrivateData));
-#else
-    void **vtable = *((void***)(((char*)pEdict->pvPrivateData) + g_Base));
-#endif
-
-    if (vtable == NULL)
-	{
-        return;
-	}
-
-	int **ivtable = (int **)vtable;
-
-	HookData->address = (void *)ivtable[HookData->offset];
-#ifdef _WIN32
-	VirtualProtect(&ivtable[HookData->offset], sizeof(int *), PAGE_READWRITE, &OldFlags);
-#else
-	void *addr = (void *)ALIGN(&ivtable[HookData->offset]);
-	mprotect(addr, sysconf(_SC_PAGESIZE) ,PROT_READ | PROT_WRITE);
-#endif
-	ivtable[HookData->offset] = (int *)HookData->handler;
-
-	HookData->done = TRUE;
-	REMOVE_ENTITY(pEdict);
-}
-
-void UnsetHookVirt(VirtHookData *HookData)
-{
-	if (!HookData || !HookData->done)
-	{
-		return;
-	}
-
-	edict_t *pEdict = CREATE_ENTITY();
-
-	CALL_GAME_ENTITY(PLID, HookData->classname, &pEdict->v);
-
-	if (pEdict->pvPrivateData == NULL)
-	{
-		REMOVE_ENTITY(pEdict);
-		return;
-	}
-
-#ifdef _WIN32
-	DWORD OldFlags;
-    void **vtable = *((void***)((char*)pEdict->pvPrivateData));
-#else
-    void **vtable = *((void***)(((char*)pEdict->pvPrivateData) + g_Base));
-#endif
-
-    if (vtable == NULL)
-	{
-        return;
-	}
-
-	int **ivtable = (int **)vtable;
-	
-#ifdef _WIN32
-	VirtualProtect(&ivtable[HookData->offset], sizeof(int *), PAGE_READWRITE, &OldFlags);
-#else
-	void *addr = (void *)ALIGN(&ivtable[HookData->offset]);
-	mprotect(addr, sysconf(_SC_PAGESIZE), PROT_READ | PROT_WRITE);
-#endif
-	ivtable[HookData->offset] = (int *)HookData->address;
-
-	HookData->done = FALSE;
-	REMOVE_ENTITY(pEdict);
 }

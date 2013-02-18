@@ -35,34 +35,23 @@
 #define _HOOKS_H
 
 #include "weaponmod.h"
-#include "libFunc.h"
+
+
+
+#include "wpnmod_hooker.h"
 #include "wpnmod_utils.h"
 
+	#define VHOOK(call)													\
+	{																	\
+		"weapon_crowbar", VO_##call, (void*)Weapon_##call, NULL, NULL,	\
+	}
 
-#define _CBHOOK(call) \
-	{ \
-		"weapon_crowbar", NULL, NULL, NULL, (void*)Weapon_##call, \
-	} 
+	#define HOOK(call)													\
+	{																	\
+		"", &hl_dll, {"", "", 0}, NULL, (void*)call, {}, {}, 0,				\
+	}
 
-extern VirtualHookData g_RpgAddAmmo_Hook;
-extern VirtualHookData g_PlayerSpawn_Hook;
-extern VirtualHookData g_WorldPrecache_Hook;
-
-enum e_DllFuncs
-{
-	Func_RadiusDamage,
-	Func_GetAmmoIndex,
-	Func_ClearMultiDamage,
-	Func_ApplyMultiDamage,
-	Func_PlayerSetAnimation,
-	Func_PrecacheOtherWeapon,
-	Func_GiveNamedItem,
-	Func_CheatImpulseCommands,
-
-	Func_End
-};
-
-enum e_CrowbarHooks
+enum VirtualCrowbarHooks
 {
 	CrowbarHook_Respawn,
 	CrowbarHook_AddToPlayer,
@@ -78,6 +67,35 @@ enum e_CrowbarHooks
 	CrowbarHook_End
 };
 
+extern VirtualHookData g_RpgAddAmmo_Hook;
+extern VirtualHookData g_PlayerSpawn_Hook;
+extern VirtualHookData g_WorldPrecache_Hook;
+extern VirtualHookData g_CrowbarHooks[CrowbarHook_End];
+
+
+
+
+
+
+
+
+
+enum e_DllFuncs
+{
+	Func_RadiusDamage,
+	Func_GetAmmoIndex,
+	Func_ClearMultiDamage,
+	Func_ApplyMultiDamage,
+	Func_PlayerSetAnimation,
+	Func_PrecacheOtherWeapon,
+	Func_GiveNamedItem,
+	Func_CheatImpulseCommands,
+
+	Func_End
+};
+
+
+
 extern module hl_dll;
 
 extern int g_vtblOffsets[VO_End];
@@ -87,12 +105,11 @@ extern function g_dllFuncs[Func_End];
 
 
 
-extern VirtHookData g_CrowbarHooks[CrowbarHook_End];
+
 
 extern edict_t* Ammo_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles);
 extern edict_t* Weapon_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles);
 
-extern void SetVDataOffsets();
 
 #ifdef _WIN32
 extern void __cdecl PrecacheOtherWeapon_HookHandler(const char *szClassname);

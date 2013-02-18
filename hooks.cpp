@@ -40,33 +40,38 @@ VirtualHookData	g_RpgAddAmmo_Hook		= { "ammo_rpgclip",	VO_AddAmmo,		(void*)AmmoB
 VirtualHookData g_PlayerSpawn_Hook		= { "player",		VO_Spawn,		(void*)Player_Spawn,	NULL, NULL };
 VirtualHookData g_WorldPrecache_Hook	= { "worldspawn",	VO_Precache,	(void*)World_Precache,	NULL, NULL };
 
-
-
-VirtHookData g_CrowbarHooks[CrowbarHook_End] = 
+VirtualHookData g_CrowbarHooks[CrowbarHook_End] = 
 {
-	_CBHOOK(Respawn),
-	_CBHOOK(AddToPlayer),
-	_CBHOOK(GetItemInfo),
-	_CBHOOK(CanDeploy),
-	_CBHOOK(Deploy),
-	_CBHOOK(CanHolster),
-	_CBHOOK(Holster),
-	_CBHOOK(ItemPostFrame),
-	_CBHOOK(ItemSlot),
-	_CBHOOK(IsUseable)
+	VHOOK(Respawn),
+	VHOOK(AddToPlayer),
+	VHOOK(GetItemInfo),
+	VHOOK(CanDeploy),
+	VHOOK(Deploy),
+	VHOOK(CanHolster),
+	VHOOK(Holster),
+	VHOOK(ItemPostFrame),
+	VHOOK(ItemSlot),
+	VHOOK(IsUseable)
 };
 
 function g_dllFuncs[Func_End] =
 {
-	{ "", &hl_dll, {"", "", 0}, NULL, NULL, {}, {}, 0 },
-	{ "", &hl_dll, {"", "", 0}, NULL, NULL, {}, {}, 0 },
-	{ "", &hl_dll, {"", "", 0}, NULL, NULL, {}, {}, 0 },
-	{ "", &hl_dll, {"", "", 0}, NULL, NULL, {}, {}, 0 },
-	{ "", &hl_dll, {"", "", 0}, NULL, NULL, {}, {}, 0 },
-	{ "", &hl_dll, {"", "", 0}, NULL, (void*)PrecacheOtherWeapon_HookHandler, {}, {}, 0 },
-	{ "", &hl_dll, {"", "", 0}, NULL, (void*)GiveNamedItem_HookHandler, {}, {}, 0 },
-	{ "", &hl_dll, {"", "", 0}, NULL, (void*)CheatImpulseCommands_HookHandler, {}, {}, 0 }
+	HOOK(NULL),
+	HOOK(NULL),
+	HOOK(NULL),
+	HOOK(NULL),
+	HOOK(NULL),
+	HOOK(PrecacheOtherWeapon_HookHandler),
+	HOOK(GiveNamedItem_HookHandler),
+	HOOK(CheatImpulseCommands_HookHandler)
 };
+
+
+
+
+
+
+
 
 module hl_dll = {NULL, 0, NULL};
 
@@ -1182,17 +1187,3 @@ edict_t* Ammo_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles)
 	return NULL;
 }
 
-
-void SetVDataOffsets()
-{
-	g_CrowbarHooks[CrowbarHook_Respawn].offset = g_vtblOffsets[VO_Respawn];
-	g_CrowbarHooks[CrowbarHook_AddToPlayer].offset = g_vtblOffsets[VO_AddToPlayer];
-	g_CrowbarHooks[CrowbarHook_GetItemInfo].offset = g_vtblOffsets[VO_GetItemInfo];
-	g_CrowbarHooks[CrowbarHook_CanDeploy].offset = g_vtblOffsets[VO_CanDeploy];
-	g_CrowbarHooks[CrowbarHook_Deploy].offset = g_vtblOffsets[VO_Deploy];
-	g_CrowbarHooks[CrowbarHook_CanHolster].offset = g_vtblOffsets[VO_CanHolster];
-	g_CrowbarHooks[CrowbarHook_Holster].offset = g_vtblOffsets[VO_Holster];
-	g_CrowbarHooks[CrowbarHook_ItemPostFrame].offset = g_vtblOffsets[VO_ItemPostFrame];
-	g_CrowbarHooks[CrowbarHook_ItemSlot].offset = g_vtblOffsets[VO_ItemSlot];
-	g_CrowbarHooks[CrowbarHook_IsUseable].offset = g_vtblOffsets[VO_IsUseable];
-}
