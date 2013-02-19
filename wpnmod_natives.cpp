@@ -267,11 +267,7 @@ static cell AMX_NATIVE_CALL wpnmod_register_weapon(AMX *amx, cell *params)
 			g_iWeaponInitID = i;
 			
 			UnsetHook(&g_dllFuncs[Func_PrecacheOtherWeapon]);
-		#ifdef _WIN32
-			reinterpret_cast<int (__cdecl *)(const char *)>(g_dllFuncs[Func_PrecacheOtherWeapon].address)("weapon_crowbar");
-		#else
-			reinterpret_cast<int (*)(const char *)>(g_dllFuncs[Func_PrecacheOtherWeapon].address)("weapon_crowbar");
-		#endif
+			PRECACHE_OTHER_WEAPON("weapon_crowbar");
 			SetHook(&g_dllFuncs[Func_PrecacheOtherWeapon]);
 
 			return i;

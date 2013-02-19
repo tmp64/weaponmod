@@ -37,6 +37,12 @@
 #include "amxxmodule.h"
 #include "virtual_hooker.h"
 
+#if defined WIN32
+
+	#define DUMMY_VAL 0
+	typedef int DUMMY;
+
+#endif
 
 enum VTableOffsets 
 {

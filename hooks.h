@@ -42,36 +42,6 @@
 #include "wpnmod_utils.h"
 
 
-enum LibFunctions
-{
-	Func_RadiusDamage,
-	Func_GetAmmoIndex,
-	Func_ClearMultiDamage,
-	Func_ApplyMultiDamage,
-	Func_PlayerSetAnimation,
-	Func_PrecacheOtherWeapon,
-	Func_GiveNamedItem,
-	Func_CheatImpulseCommands,
-
-	Func_End
-};
-
-enum VirtualCrowbarHooks
-{
-	CrowbarHook_Respawn,
-	CrowbarHook_AddToPlayer,
-	CrowbarHook_GetItemInfo,
-	CrowbarHook_CanDeploy,
-	CrowbarHook_Deploy,
-	CrowbarHook_CanHolster,
-	CrowbarHook_Holster,
-	CrowbarHook_ItemPostFrame,
-	CrowbarHook_ItemSlot,
-	CrowbarHook_IsUseable,
-
-	CrowbarHook_End
-};
-
 typedef struct
 {
 	int iThink;
@@ -80,26 +50,473 @@ typedef struct
 } EntData;
 
 extern EntData*	g_Ents;
-extern module	g_GameDllModule;
 
-extern VirtualHookData g_RpgAddAmmo_Hook;
-extern VirtualHookData g_PlayerSpawn_Hook;
-extern VirtualHookData g_WorldPrecache_Hook;
+#ifdef WIN32
 
-	#define HOOK(call)													\
-	{																	\
-		"", &g_GameDllModule, {"", "", 0}, NULL, (void*)call, {}, {}, 0,			\
-	}
+	void __fastcall Global_Think	(void* pvEntity);
+	void __fastcall Global_Touch	(void* pvEntity, int DUMMY, void* pvOther);
 
+#else
+
+	void Global_Think	(void* pvEntity);
+	void Global_Touch	(void* pvEntity, void* pvOther);
+
+#endif
+
+
+//
+// FUNCTIONS
+//
+
+
+	#define HOOK(call)														\
+	{																		\
+		"", &g_GameDllModule, {"", "", 0}, NULL, (void*)call, {}, {}, 0,	\
+	}																		\
+
+	enum LibFunctions
+	{
+		Func_RadiusDamage,
+		Func_GetAmmoIndex,
+		Func_ClearMultiDamage,
+		Func_ApplyMultiDamage,
+		Func_PlayerSetAnimation,
+		Func_PrecacheOtherWeapon,
+		Func_GiveNamedItem,
+		Func_CheatImpulseCommands,
+
+		Func_End
+	};
+
+	extern module	g_GameDllModule;
 	extern function g_dllFuncs[Func_End];
+
+#ifdef WIN32
+
+	typedef void	(__cdecl *FuncPrecacheOtherWeapon)	(const char*);
+	typedef void	(__fastcall	*FuncGiveNamedItem)		(void *, DUMMY, const char *);
+
+	void	__cdecl		PrecacheOtherWeapon_HookHandler		(const char *szClassname);
+	void	__fastcall	GiveNamedItem_HookHandler			(void *pvPlayer, int DUMMY, const char *szName);
+
+	// void CBasePlayer::GiveNamedItem(const char *pszName)
+	//
+		inline void GIVE_NAMED_ITEM(void* pvPlayer, const char *szClassname)
+		{
+			reinterpret_cast<FuncGiveNamedItem>(g_dllFuncs[Func_GiveNamedItem].address)(pvPlayer, DUMMY_VAL, szClassname);
+		}
+
+#else
+
+	typedef void	(*FuncPrecacheOtherWeapon)	(const char*);
+	typedef void	(*FuncGiveNamedItem)		(void *, const char *);
+
+	void	PrecacheOtherWeapon_HookHandler		(const char *szClassname);
+	void	GiveNamedItem_HookHandler			(void *pvPlayer, const char *szName);
+
+	// void CBasePlayer::GiveNamedItem(const char *pszName)
+	//
+		inline void GIVE_NAMED_ITEM(void* pvPlayer, const char *szClassname)
+		{
+			reinterpret_cast<FuncGiveNamedItem>(g_dllFuncs[Func_GiveNamedItem].address)(pvPlayer, szClassname);
+		}
+
+#endif
+
+	// void UTIL_PrecacheOtherWeapon(const char *szClassname)
+	//
+		inline void PRECACHE_OTHER_WEAPON(const char *szClassname)
+		{
+			reinterpret_cast<FuncPrecacheOtherWeapon>(g_dllFuncs[Func_PrecacheOtherWeapon].address)(szClassname);
+		}
+
+
+//
+// VIRTUAL FUNCTIONS
+//
+
 
 	#define VHOOK(call)													\
 	{																	\
 		"weapon_crowbar", VO_##call, (void*)Weapon_##call, NULL, NULL,	\
-	}
-	
+	}																	\
+
+	enum VirtualCrowbarHooks
+	{
+		CrowbarHook_Respawn,
+		CrowbarHook_AddToPlayer,
+		CrowbarHook_GetItemInfo,
+		CrowbarHook_CanDeploy,
+		CrowbarHook_Deploy,
+		CrowbarHook_CanHolster,
+		CrowbarHook_Holster,
+		CrowbarHook_ItemPostFrame,
+		CrowbarHook_ItemSlot,
+		CrowbarHook_IsUseable,
+
+		CrowbarHook_End
+	};
+
+	extern VirtualHookData g_RpgAddAmmo_Hook;
+	extern VirtualHookData g_PlayerSpawn_Hook;
+	extern VirtualHookData g_WorldPrecache_Hook;
 	extern VirtualHookData g_CrowbarHooks[CrowbarHook_End];
 
+#ifdef WIN32
+	
+	typedef int		(__fastcall *FuncGetItemInfo)	(void*, DUMMY, ItemInfo*);
+	typedef BOOL	(__fastcall *FuncCanDeploy)		(void*, DUMMY);
+	typedef BOOL	(__fastcall *FuncDeploy)		(void*, DUMMY);
+	typedef BOOL	(__fastcall *FuncCanHolster)	(void*, DUMMY);
+	typedef void	(__fastcall *FuncHolster)		(void*, DUMMY, int);
+	typedef void	(__fastcall *FuncItemPostFrame)	(void*, DUMMY);
+	typedef BOOL	(__fastcall *FuncIsUseable)		(void*, DUMMY);
+	typedef int		(__fastcall *FuncAddToPlayer)	(void*, DUMMY, void*);
+	typedef int		(__fastcall *FuncItemSlot)		(void*, DUMMY);
+	typedef void*	(__fastcall *FuncRespawn)		(void*, DUMMY);
+	typedef BOOL	(__fastcall *FuncAddAmmo)		(void*, DUMMY, void*);
+	typedef void	(__fastcall *FuncSpawn)			(void*, DUMMY);
+	typedef void	(__fastcall *FuncPrecache)		(void*, DUMMY);
+
+	int		__fastcall Weapon_GetItemInfo	(void* pvItem, DUMMY, ItemInfo* p);
+	BOOL	__fastcall Weapon_CanDeploy		(void* pvItem);
+	BOOL	__fastcall Weapon_Deploy		(void* pvItem);
+	BOOL	__fastcall Weapon_CanHolster	(void* pvItem);
+	void	__fastcall Weapon_Holster		(void* pvItem, DUMMY, int skiplocal);
+	void	__fastcall Weapon_ItemPostFrame	(void* pvItem);
+	BOOL	__fastcall Weapon_IsUseable		(void* pvItem);
+	int		__fastcall Weapon_AddToPlayer	(void* pvItem, DUMMY, void* pvPlayer);
+	int		__fastcall Weapon_ItemSlot		(void* pvItem);
+	void*	__fastcall Weapon_Respawn		(void* pvItem);
+	BOOL	__fastcall AmmoBox_AddAmmo		(void* pvAmmo, DUMMY, void* pvOther);
+	int		__fastcall Item_Block			(void* pvItem, int DUMMY, void* pvOther);
+	void	__fastcall Player_Spawn			(void* pvPlayer);
+	void	__fastcall World_Precache		(void* pvEntity);
+
+	// virtual int CBasePlayerItem::GetItemInfo(ItemInfo* p);
+	//
+		inline int GET_ITEM_INFO(void* pvItem, ItemInfo* p)
+		{
+			return reinterpret_cast<FuncGetItemInfo>(g_CrowbarHooks[CrowbarHook_GetItemInfo].address)(pvItem, DUMMY_VAL, p);
+		}
+
+		inline int GET_ITEM_INFO(edict_t* pentItem, ItemInfo* p)
+		{
+			return reinterpret_cast<FuncGetItemInfo >(GET_VTABLE(pentItem)[g_vtblOffsets[VO_GetItemInfo]])(pentItem->pvPrivateData, DUMMY_VAL, p);
+		}
+
+	// virtual BOOL CanDeploy(void)
+	//
+		inline BOOL CAN_DEPLOY(void* pvItem)
+		{
+			return reinterpret_cast<FuncCanDeploy>(g_CrowbarHooks[CrowbarHook_CanDeploy].address)(pvItem, DUMMY_VAL);
+		}
+
+		inline BOOL CAN_DEPLOY(edict_t* pentItem)
+		{
+			return reinterpret_cast<FuncCanDeploy>(GET_VTABLE(pentItem)[g_vtblOffsets[VO_CanDeploy]])(pentItem->pvPrivateData, DUMMY_VAL);
+		}
+
+	// virtual BOOL Deploy(void);
+	//
+		inline BOOL DEPLOY(void* pvItem)
+		{
+			return reinterpret_cast<FuncDeploy>(g_CrowbarHooks[CrowbarHook_Deploy].address)(pvItem, DUMMY_VAL);
+		}
+
+		inline BOOL DEPLOY(edict_t* pentItem)
+		{
+				return reinterpret_cast<FuncDeploy>(GET_VTABLE(pentItem)[g_vtblOffsets[VO_Deploy]])(pentItem->pvPrivateData, DUMMY_VAL);
+		}
+
+	// virtual BOOL CanHolster(void);
+	//
+		inline BOOL CAN_HOLSTER( void* pvItem )
+		{
+			return reinterpret_cast<FuncCanHolster>(g_CrowbarHooks[CrowbarHook_CanHolster].address)(pvItem, DUMMY_VAL);
+		}
+
+		inline BOOL CAN_HOLSTER( edict_t* pentItem )
+		{
+			return reinterpret_cast<FuncCanHolster>(GET_VTABLE(pentItem)[g_vtblOffsets[VO_CanHolster]])(pentItem->pvPrivateData, DUMMY_VAL);
+		}
+
+	// virtual void Holster(int skiplocal = 0);
+	//
+		inline void HOLSTER(void* pvItem)
+		{
+			reinterpret_cast<FuncHolster>(g_CrowbarHooks[CrowbarHook_Holster].address)(pvItem, DUMMY_VAL, 0);
+		}
+
+		inline void HOLSTER(edict_t* pentItem)
+		{
+			reinterpret_cast<FuncHolster>(GET_VTABLE(pentItem)[g_vtblOffsets[VO_Holster]])(pentItem->pvPrivateData, DUMMY_VAL, 0);
+		}
+
+	// virtual void ItemPostFrame(void);
+	//
+		inline void ITEM_POST_FRAME(void* pvItem)
+		{
+			reinterpret_cast<FuncItemPostFrame>(g_CrowbarHooks[CrowbarHook_ItemPostFrame].address)(pvItem, DUMMY_VAL);
+		}
+
+		inline void ITEM_POST_FRAME(edict_t* pentItem)
+		{
+			reinterpret_cast<FuncItemPostFrame>(GET_VTABLE(pentItem)[g_vtblOffsets[VO_ItemPostFrame]])(pentItem->pvPrivateData, DUMMY_VAL);
+		}
+
+	// virtual BOOL IsUseable(void);
+	//
+		inline BOOL IS_USEABLE(void* pvItem)
+		{
+			return reinterpret_cast<FuncIsUseable>(g_CrowbarHooks[CrowbarHook_IsUseable].address)(pvItem, DUMMY_VAL);
+		}
+
+		inline BOOL IS_USEABLE(edict_t* pentItem)
+		{
+			return reinterpret_cast<FuncIsUseable>(GET_VTABLE(pentItem)[g_vtblOffsets[VO_IsUseable]])(pentItem->pvPrivateData, DUMMY_VAL);
+		}
+
+	// virtual int AddToPlayer(CBasePlayer* pPlayer);
+	//
+		inline int ADD_TO_PLAYER(void* pvItem, void* pvPlayer)
+		{
+			return reinterpret_cast<FuncAddToPlayer>(g_CrowbarHooks[CrowbarHook_AddToPlayer].address)(pvItem, DUMMY_VAL, pvPlayer);
+		}
+
+		inline int ADD_TO_PLAYER(edict_t* pentItem, edict_t* pentPlayer)
+		{
+			return reinterpret_cast<FuncAddToPlayer>(GET_VTABLE(pentItem)[g_vtblOffsets[VO_AddToPlayer]])(pentItem->pvPrivateData, DUMMY_VAL, pentPlayer->pvPrivateData);
+		}
+
+	// virtual int ItemSlot(void);
+	//
+		inline int ITEM_SLOT(void* pvItem)
+		{
+			return reinterpret_cast<FuncItemSlot>(g_CrowbarHooks[CrowbarHook_ItemSlot].address)(pvItem, DUMMY_VAL);
+		}
+
+		inline int ITEM_SLOT(edict_t* pentItem)
+		{
+			return reinterpret_cast<FuncItemSlot>(GET_VTABLE(pentItem)[g_vtblOffsets[VO_ItemSlot]])(pentItem->pvPrivateData, DUMMY_VAL);
+		}
+
+	// virtual CBaseEntity* Respawn(void);
+	// 
+		inline void* RESPAWN(void* pvItem)
+		{
+			return reinterpret_cast<FuncRespawn>(g_CrowbarHooks[CrowbarHook_Respawn].address)(pvItem, DUMMY_VAL);
+		}
+
+		inline void* RESPAWN(edict_t* pentItem)
+		{
+			return reinterpret_cast<FuncRespawn>(GET_VTABLE(pentItem)[g_vtblOffsets[VO_Respawn]])(pentItem->pvPrivateData, DUMMY_VAL);
+		}
+
+	// virtual BOOL AddAmmo(CBaseEntity* pOther);
+	//
+		inline BOOL ADD_AMMO(void* pvAmmo, void* pvOther)
+		{
+			return reinterpret_cast<FuncAddAmmo>(g_RpgAddAmmo_Hook.address)(pvAmmo, DUMMY_VAL, pvOther);
+		}
+
+		inline BOOL ADD_AMMO(edict_t* pentAmmo, edict_t* pentOther)
+		{
+			return reinterpret_cast<FuncAddAmmo>(GET_VTABLE(pentAmmo)[g_vtblOffsets[VO_AddAmmo]])(pentAmmo->pvPrivateData, DUMMY_VAL, pentOther->pvPrivateData);
+		}
+
+	// void Precache(void);
+	// 
+		inline void WORLD_PRECACHE(void* pvEntity)
+		{
+			reinterpret_cast<FuncPrecache>(g_WorldPrecache_Hook.address)(pvEntity, DUMMY_VAL);
+		}
+
+	// void Spawn(void);
+	// 
+		inline void PLAYER_SPAWN(void* pvPlayer)
+		{
+			reinterpret_cast<FuncSpawn>(g_PlayerSpawn_Hook.address)(pvPlayer, DUMMY_VAL);
+		}
+
+#else
+
+	typedef int		(*FuncGetItemInfo)		(void*, ItemInfo*);
+	typedef BOOL	(*FuncCanDeploy)		(void*);
+	typedef BOOL	(*FuncDeploy)			(void*);
+	typedef BOOL	(*FuncCanHolster)		(void*);
+	typedef void	(*FuncHolster)			(void*, int);
+	typedef void	(*FuncItemPostFrame)	(void*);
+	typedef BOOL	(*FuncIsUseable)		(void*);
+	typedef int		(*FuncAddToPlayer)		(void*, void*);
+	typedef int		(*FuncItemSlot)			(void*);
+	typedef void*	(*FuncRespawn)			(void*);
+	typedef BOOL	(*FuncAddAmmo)			(void*, void*);
+	typedef void	(*FuncSpawn)			(void*);
+	typedef void	(*FuncPrecache)		(void*);
+
+	int		Weapon_GetItemInfo		(void* pvItem, ItemInfo* p);
+	BOOL	Weapon_CanDeploy		(void* pvItem);
+	BOOL	Weapon_Deploy			(void* pvItem);
+	BOOL	Weapon_CanHolster		(void* pvItem);
+	void	Weapon_Holster			(void* pvItem, int skiplocal);
+	void	Weapon_ItemPostFrame	(void* pvItem);
+	BOOL	Weapon_IsUseable		(void* pvItem);
+	int		Weapon_AddToPlayer		(void* pvItem, void* pvPlayer);
+	int		Weapon_ItemSlot			(void* pvItem);
+	void*	Weapon_Respawn			(void* pvItem);
+	BOOL	AmmoBox_AddAmmo			(void* pvAmmo, void* pvOther);
+	int		Item_Block				(void* pvItem, void* pvOther);
+	void	Player_Spawn			(void* pvPlayer);
+	void	World_Precache			(void* pvEntity);
+
+	// virtual int CBasePlayerItem::GetItemInfo(ItemInfo* p);
+	//
+		inline int GET_ITEM_INFO( void* pvItem, ItemInfo* p )
+		{
+			return reinterpret_cast<FuncGetItemInfo>(g_CrowbarHooks[CrowbarHook_GetItemInfo].address)(pvItem, p);
+		}
+
+		inline int GET_ITEM_INFO(edict_t* pentItem, ItemInfo* p)
+		{
+			return reinterpret_cast<FuncGetItemInfo>(GET_VTABLE(pentItem)[g_vtblOffsets[VO_GetItemInfo]])(pentItem->pvPrivateData, p);
+		}
+
+	// virtual BOOL CanDeploy(void)
+	//
+		inline BOOL CAN_DEPLOY(void* pvItem)
+		{
+			return reinterpret_cast<FuncCanDeploy>(g_CrowbarHooks[CrowbarHook_CanDeploy].address)(pvItem);
+		}
+
+		inline BOOL CAN_DEPLOY(edict_t* pentItem)
+		{
+			return reinterpret_cast<FuncCanDeploy>(GET_VTABLE(pentItem)[g_vtblOffsets[VO_CanDeploy]])(pentItem->pvPrivateData);
+		}
+
+	// virtual BOOL Deploy(void);
+	//
+		inline BOOL DEPLOY(void* pvItem)
+		{
+			return reinterpret_cast<FuncDeploy>(g_CrowbarHooks[CrowbarHook_Deploy].address)(pvItem);
+		}
+
+		inline BOOL DEPLOY(edict_t* pentItem)
+		{
+			return reinterpret_cast<FuncDeploy>(GET_VTABLE(pentItem)[g_vtblOffsets[VO_Deploy]])(pentItem->pvPrivateData);
+		}
+
+	// virtual BOOL CanHolster(void);
+	//
+		inline BOOL CAN_HOLSTER(void* pvItem)
+		{
+			return reinterpret_cast<FuncCanHolster>(g_CrowbarHooks[CrowbarHook_CanHolster].address)(pvItem);
+		}
+
+		inline BOOL CAN_HOLSTER(edict_t* pentItem)
+		{
+			return reinterpret_cast<FuncCanHolster>(GET_VTABLE(pentItem)[g_vtblOffsets[VO_CanHolster]])(pentItem->pvPrivateData);
+		}
+
+	// virtual void Holster(int skiplocal = 0);
+	//
+		inline void HOLSTER(void* pvItem)
+		{
+			reinterpret_cast<FuncHolster>(g_CrowbarHooks[CrowbarHook_Holster].address)(pvItem, 0);
+		}
+
+		inline void HOLSTER(edict_t* pentItem)
+		{
+			reinterpret_cast<FuncHolster>(GET_VTABLE(pentItem)[g_vtblOffsets[VO_Holster]])(pentItem->pvPrivateData, 0);
+		}
+
+	// virtual void ItemPostFrame(void);
+	//
+		inline void ITEM_POST_FRAME(void* pvItem)
+		{
+			reinterpret_cast<FuncItemPostFrame>(g_CrowbarHooks[CrowbarHook_ItemPostFrame].address)(pvItem);
+		}
+
+		inline void ITEM_POST_FRAME(edict_t* pentItem)
+		{
+			reinterpret_cast<FuncItemPostFrame>(GET_VTABLE(pentItem)[g_vtblOffsets[VO_ItemPostFrame]])(pentItem->pvPrivateData);
+		}
+
+	// virtual BOOL IsUseable(void);
+	//
+		inline BOOL IS_USEABLE(void* pvItem)
+		{
+			return reinterpret_cast<FuncIsUseable>(g_CrowbarHooks[CrowbarHook_IsUseable].address)(pvItem);
+		}
+
+		inline BOOL IS_USEABLE(edict_t* pentItem)
+		{
+			return reinterpret_cast<FuncIsUseable>(GET_VTABLE(pentItem)[g_vtblOffsets[VO_IsUseable]])(pentItem->pvPrivateData);
+		}
+
+	// virtual int AddToPlayer(CBasePlayer* pPlayer);
+	//
+		inline int ADD_TO_PLAYER(void* pvItem, void* pvPlayer)
+		{
+			return reinterpret_cast<FuncAddToPlayer>(g_CrowbarHooks[CrowbarHook_AddToPlayer].address)(pvItem, pvPlayer);
+		}
+
+		inline int ADD_TO_PLAYER(edict_t* pentItem, edict_t* pentPlayer)
+		{
+			return reinterpret_cast<FuncAddToPlayer>(GET_VTABLE(pentItem)[g_vtblOffsets[VO_AddToPlayer]])(pentItem->pvPrivateData, pentPlayer->pvPrivateData);
+		}
+
+	// virtual int ItemSlot(void);
+	//
+		inline int ITEM_SLOT(void* pvItem)
+		{
+			return reinterpret_cast<FuncItemSlot>(g_CrowbarHooks[CrowbarHook_ItemSlot].address)(pvItem);
+		}
+
+		inline int ITEM_SLOT(edict_t* pentItem)
+		{
+			return reinterpret_cast<FuncItemSlot>(GET_VTABLE(pentItem)[g_vtblOffsets[VO_ItemSlot]])(pentItem->pvPrivateData);
+		}
+
+	// virtual CBaseEntity* Respawn(void);
+	// 
+		inline void* RESPAWN(void* pvItem)
+		{
+			return reinterpret_cast<FuncRespawn>(g_CrowbarHooks[CrowbarHook_Respawn].address)(pvItem);
+		}
+
+		inline void* RESPAWN(edict_t* pentItem)
+		{
+			return reinterpret_cast<FuncRespawn>(GET_VTABLE(pentItem)[g_vtblOffsets[VO_Respawn]])(pentItem->pvPrivateData);
+		}
+
+	// virtual BOOL AddAmmo(CBaseEntity* pOther);
+	//
+		inline BOOL ADD_AMMO(void* pvAmmo, void* pvOther)
+		{
+			return reinterpret_cast<FuncAddAmmo>(g_RpgAddAmmo_Hook.address)(pvAmmo, pvOther);
+		}
+
+		inline BOOL ADD_AMMO(edict_t* pentAmmo, edict_t* pentOther)
+		{
+			return reinterpret_cast<FuncAddAmmo>(GET_VTABLE(pentAmmo)[g_vtblOffsets[VO_AddAmmo]])(pentAmmo->pvPrivateData, pentOther->pvPrivateData);
+		}
+
+	// void Precache(void);
+	// 
+		inline void WORLD_PRECACHE(void* pvEntity)
+		{
+			reinterpret_cast<FuncPrecache>(g_WorldPrecache_Hook.address)(pvEntity);
+		}
+
+	// void Spawn(void);
+	// 
+		inline void PLAYER_SPAWN(void* pvPlayer)
+		{
+			reinterpret_cast<FuncSpawn>(g_PlayerSpawn_Hook.address)(pvPlayer);
+		}
+	
+#endif
 	
 
 
@@ -133,54 +550,12 @@ extern edict_t* Weapon_Spawn(const char* szName, Vector vecOrigin, Vector vecAng
 
 
 #ifdef _WIN32
-extern void __cdecl PrecacheOtherWeapon_HookHandler(const char *szClassname);
-extern int __fastcall Item_Block(void *pPrivate, int i, void *pPrivate2);
-extern int __fastcall Weapon_GetItemInfo(void *pPrivate, int i, ItemInfo *p);
-extern int __fastcall Weapon_AddToPlayer(void *pPrivate, int i, void *pPrivate2);
-extern int __fastcall Weapon_ItemSlot(void *pPrivate);
-extern void __fastcall Player_Spawn(void *pPrivate);
-extern void __fastcall Global_Touch(void *pPrivate, int i, void *pPrivate2);
-extern void __fastcall Global_Think(void *pPrivate);
 extern void __fastcall CheatImpulseCommands_HookHandler(void *pPrivate, int i, int iImpulse);
-extern void __fastcall GiveNamedItem_HookHandler(void *pPrivate, int i, const char *szName);
-extern void __fastcall Weapon_Holster(void *pPrivate, int i, int skiplocal);
-extern void __fastcall Weapon_ItemPostFrame(void *pPrivate);
-extern void __fastcall World_Precache(void *pPrivate);
-extern void* __fastcall Weapon_Respawn(void *pPrivate);
-extern BOOL __fastcall Weapon_CanHolster(void *pPrivate);
-extern BOOL __fastcall Weapon_IsUseable(void *pPrivate);
-extern BOOL __fastcall Weapon_Deploy(void *pPrivate);
-extern BOOL __fastcall Weapon_CanDeploy(void *pPrivate);
-extern BOOL __fastcall AmmoBox_AddAmmo(void *pPrivate, int i, void *pPrivateOther);
 
-inline void HOLSTER(edict_t* pItem)
-{
-	reinterpret_cast<void (__fastcall *)(void *, int, int)>((*((void***)((char*)pItem->pvPrivateData)))[g_vtblOffsets[VO_Holster]])(pItem->pvPrivateData, 0, 0);
-}
-
-inline void DEPLOY(edict_t* pItem)
-{
-	reinterpret_cast<void (__fastcall *)(void *, int)>((*((void***)((char*)pItem->pvPrivateData)))[g_vtblOffsets[VO_Deploy]])(pItem->pvPrivateData, 0);
-}
-
-inline BOOL CAN_DEPLOY(edict_t* pEntity)
-{
-	return reinterpret_cast<BOOL (__fastcall *)(void *, int)>((*((void***)((char*)pEntity->pvPrivateData)))[g_vtblOffsets[VO_CanDeploy]])(pEntity->pvPrivateData, 0);
-}
-
-inline BOOL CAN_HOLSTER(edict_t* pEntity)
-{
-	return reinterpret_cast<BOOL (__fastcall *)(void *, int)>((*((void***)((char*)pEntity->pvPrivateData)))[g_vtblOffsets[VO_CanHolster]])(pEntity->pvPrivateData, 0);
-}
 
 inline int GET_DAMAGE_DECAL(edict_t* pEntity)
 {
 	return reinterpret_cast<int (__fastcall *)(void *, int, int)>((*((void***)((char*)pEntity->pvPrivateData)))[g_vtblOffsets[VO_DamageDecal]])(pEntity->pvPrivateData, 0, 0);
-}
-
-inline void GET_ITEM_INFO(edict_t* pItem, ItemInfo *p)
-{
-	reinterpret_cast<int (__fastcall *)(void *, int, ItemInfo *)>((*((void***)((char*)pItem->pvPrivateData)))[g_vtblOffsets[VO_GetItemInfo]])(pItem->pvPrivateData, 0, p);
 }
 
 inline void CLEAR_MULTI_DAMAGE()
@@ -213,54 +588,11 @@ inline int GET_AMMO_INDEX(const char *ammoname)
 	return reinterpret_cast<int (__cdecl *)(const char *)>(g_dllFuncs[Func_GetAmmoIndex].address)(ammoname);
 }
 #else
-extern int Item_Block(void *pPrivate, void *pPrivate2);
-extern int Weapon_GetItemInfo(void *pPrivate, ItemInfo *p);
-extern int Weapon_AddToPlayer(void *pPrivate, void *pPrivate2);
-extern int Weapon_ItemSlot(void *pPrivate);
-extern void Player_Spawn(void *pPrivate);
-extern void Global_Touch(void *pPrivate, void *pPrivate2);
-extern void Global_Think(void *pPrivate);
-extern void GiveNamedItem_HookHandler(void *pPrivate, const char *szName);
-extern void PrecacheOtherWeapon_HookHandler(const char *szClassname);
 extern void CheatImpulseCommands_HookHandler(void *pPrivate, int iImpulse);
-extern void Weapon_Holster(void *pPrivate, int skiplocal);
-extern void Weapon_ItemPostFrame(void *pPrivate);
-extern void World_Precache(void *pPrivate);
-extern void* Weapon_Respawn(void *pPrivate);
-extern BOOL Weapon_CanHolster(void *pPrivate);
-extern BOOL Weapon_IsUseable(void *pPrivate);
-extern BOOL Weapon_Deploy(void *pPrivate);
-extern BOOL Weapon_CanDeploy(void *pPrivate);
-extern BOOL AmmoBox_AddAmmo(void *pPrivate, void *pPrivateOther);
-
-inline void HOLSTER(edict_t* pItem)
-{
-	reinterpret_cast<int (*)(void *)>((*((void***)(((char*)pItem->pvPrivateData) + g_Base)))[g_vtblOffsets[VO_Holster]])(pItem->pvPrivateData);
-}
-
-inline void DEPLOY(edict_t* pItem)
-{
-	reinterpret_cast<int (*)(void *)>((*((void***)(((char*)pItem->pvPrivateData) + g_Base)))[g_vtblOffsets[VO_Deploy]])(pItem->pvPrivateData);
-}
-
-inline BOOL CAN_DEPLOY(edict_t* pEntity)
-{
-	return reinterpret_cast<BOOL (*)(void *)>((*((void***)(((char*)pEntity->pvPrivateData) + g_Base)))[g_vtblOffsets[VO_CanDeploy]])(pEntity->pvPrivateData);
-}
-
-inline BOOL CAN_HOLSTER(edict_t* pEntity)
-{
-	return reinterpret_cast<BOOL (*)(void *)>((*((void***)(((char*)pEntity->pvPrivateData) + g_Base)))[g_vtblOffsets[VO_CanHolster]])(pEntity->pvPrivateData);
-}
 
 inline int GET_DAMAGE_DECAL(edict_t* pEntity)
 {
 	return reinterpret_cast<int (*)(void *, int)>((*((void***)(((char*)pEntity->pvPrivateData) + g_Base)))[g_vtblOffsets[VO_DamageDecal]])(pEntity->pvPrivateData, 0);
-}
-
-inline void GET_ITEM_INFO(edict_t* pItem, ItemInfo *p)
-{
-	reinterpret_cast<int (*)(void *, ItemInfo *)>((*((void***)(((char*)pItem->pvPrivateData) + g_Base)))[g_vtblOffsets[VO_GetItemInfo]])(pItem->pvPrivateData, p);
 }
 
 inline void CLEAR_MULTI_DAMAGE()
@@ -291,17 +623,6 @@ inline void TAKE_DAMAGE(edict_t* pEntity, edict_t* pInflictor, edict_t* pAttacke
 inline int GET_AMMO_INDEX(const char *ammoname)
 {
 	return reinterpret_cast<int (*)(const char *)>(g_dllFuncs[Func_GetAmmoIndex].address)(ammoname);
-}
-
-//implement these with setjmp later.
-inline bool IsBadReadPtr(void *l, size_t size)
-{
-	return false;
-}
-
-inline bool IsBadWritePtr(void *l, size_t size)
-{
-	return false;
 }
 #endif
 

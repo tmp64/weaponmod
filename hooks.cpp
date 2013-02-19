@@ -73,21 +73,17 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 
 
 #ifdef _WIN32
-	int __fastcall Weapon_GetItemInfo(void *pPrivate, int i, ItemInfo *p)
+	int __fastcall Weapon_GetItemInfo(void* pvItem, DUMMY, ItemInfo* p)
 #else
-	int Weapon_GetItemInfo(void *pPrivate, ItemInfo *p)
+	int Weapon_GetItemInfo(void* pvItem, ItemInfo* p)
 #endif
 {
-#ifdef _WIN32
-	reinterpret_cast<int (__fastcall *)(void *, int, ItemInfo *)>(g_CrowbarHooks[CrowbarHook_GetItemInfo].address)(pPrivate, 0, p);
-#else
-	reinterpret_cast<int (*)(void *, ItemInfo *)>(g_CrowbarHooks[CrowbarHook_GetItemInfo].address)(pPrivate, p);
-#endif
+	GET_ITEM_INFO(pvItem, p);
 
 	static int iId = 0;
 	static edict_t* pWeapon;
 
-	pWeapon = PrivateToEdict(pPrivate);
+	pWeapon = PrivateToEdict(pvItem);
 
 	if (!IsValidPev(pWeapon))
 	{
@@ -131,14 +127,13 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 }
 
 
-
 #ifdef _WIN32
-	BOOL __fastcall Weapon_CanDeploy(void *pPrivate)
+	BOOL __fastcall Weapon_CanDeploy(void* pvItem)
 #else
-	BOOL Weapon_CanDeploy(void *pPrivate)
+	BOOL Weapon_CanDeploy(void* pvItem)
 #endif
 {
-	edict_t* pWeapon = PrivateToEdict(pPrivate);
+	edict_t* pWeapon = PrivateToEdict(pvItem);
 
 	if (!IsValidPev(pWeapon))
 	{
@@ -149,11 +144,7 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 
 	if (WeaponInfoArray[iId].iType == Wpn_Default || !WeaponInfoArray[iId].iForward[Fwd_Wpn_CanDeploy])
 	{
-#ifdef _WIN32
-		return reinterpret_cast<int (__fastcall *)(void *, int)>(g_CrowbarHooks[CrowbarHook_CanDeploy].address)(pPrivate, 0);
-#else
-		return reinterpret_cast<int (*)(void *)>(g_CrowbarHooks[CrowbarHook_CanDeploy].address)(pPrivate);
-#endif
+		return CAN_DEPLOY(pvItem);
 	}
 
 	edict_t* pPlayer = GetPrivateCbase(pWeapon, pvData_pPlayer);
@@ -176,14 +167,13 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 }
 
 
-
 #ifdef _WIN32
-	BOOL __fastcall Weapon_Deploy(void *pPrivate)
+	BOOL __fastcall Weapon_Deploy(void* pvItem)
 #else
-	BOOL Weapon_Deploy(void *pPrivate)
+	BOOL Weapon_Deploy(void* pvItem)
 #endif
 {
-	edict_t* pWeapon = PrivateToEdict(pPrivate);
+	edict_t* pWeapon = PrivateToEdict(pvItem);
 
 	if (!IsValidPev(pWeapon))
 	{
@@ -194,11 +184,7 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 
 	if (WeaponInfoArray[iId].iType == Wpn_Default)
 	{
-#ifdef _WIN32
-		return reinterpret_cast<int (__fastcall *)(void *, int)>(g_CrowbarHooks[CrowbarHook_Deploy].address)(pPrivate, NULL);
-#else
-		return reinterpret_cast<int (*)(void *)>(g_CrowbarHooks[CrowbarHook_Deploy].address)(pPrivate);
-#endif
+		return DEPLOY(pvItem);
 	}
 
 	edict_t* pPlayer = GetPrivateCbase(pWeapon, pvData_pPlayer);
@@ -230,11 +216,10 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 }
 
 
-
 #ifdef _WIN32
-	void __fastcall Weapon_ItemPostFrame(void *pPrivate)
+	void __fastcall Weapon_ItemPostFrame(void* pvItem)
 #else
-	void Weapon_ItemPostFrame(void *pPrivate)
+	void Weapon_ItemPostFrame(void* pvItem)
 #endif
 {
 	static int iId;
@@ -251,7 +236,7 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 	static edict_t* pWeapon;
 	static edict_t* pPlayer;
 
-	pWeapon = PrivateToEdict(pPrivate);
+	pWeapon = PrivateToEdict(pvItem);
 
 	if (!IsValidPev(pWeapon))
 	{
@@ -262,11 +247,7 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 
 	if (WeaponInfoArray[iId].iType == Wpn_Default)
 	{
-#ifdef _WIN32
-		reinterpret_cast<int (__fastcall *)(void *, int)>(g_CrowbarHooks[CrowbarHook_ItemPostFrame].address)(pPrivate, 0);
-#else
-		reinterpret_cast<int (*)(void *)>(g_CrowbarHooks[CrowbarHook_ItemPostFrame].address)(pPrivate);
-#endif
+		ITEM_POST_FRAME(pvItem);
 		return;
 	}
 
@@ -370,7 +351,7 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 		// no fire buttons down
 		SetPrivateInt(pWeapon, pvData_fFireOnEmpty, FALSE);
 
-		if (!Weapon_IsUseable(pPrivate) && flNextPrimaryAttack < 0.0) 
+		if (!IS_USEABLE(pWeapon) && flNextPrimaryAttack < 0.0) 
 		{
 			// weapon isn't useable, switch.
 			if (!(GetWeapon_Flags(iId) & ITEM_FLAG_NOAUTOSWITCHEMPTY) && GetNextBestWeapon(pPlayer, pWeapon))
@@ -418,14 +399,13 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 }
 
 
-
 #ifdef _WIN32
-	BOOL __fastcall Weapon_IsUseable(void *pPrivate)
+	BOOL __fastcall Weapon_IsUseable(void *pvItem)
 #else
-	BOOL Weapon_IsUseable(void *pPrivate)
+	BOOL Weapon_IsUseable(void *pvItem)
 #endif
 {
-	edict_t* pWeapon = PrivateToEdict(pPrivate);
+	edict_t* pWeapon = PrivateToEdict(pvItem);
 
 	if (!IsValidPev(pWeapon))
 	{
@@ -436,11 +416,7 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 
 	if (WeaponInfoArray[iId].iType == Wpn_Default || !WeaponInfoArray[iId].iForward[Fwd_Wpn_IsUseable])
 	{
-#ifdef _WIN32
-		return reinterpret_cast<int (__fastcall *)(void *, int)>(g_CrowbarHooks[CrowbarHook_IsUseable].address)(pPrivate, 0);
-#else
-		return reinterpret_cast<int (*)(void *)>(g_CrowbarHooks[CrowbarHook_IsUseable].address)(pPrivate);
-#endif
+		return IS_USEABLE(pvItem);
 	}
 
 	edict_t* pPlayer = GetPrivateCbase(pWeapon, pvData_pPlayer);
@@ -463,14 +439,13 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 }
 
 
-
 #ifdef _WIN32
-	BOOL __fastcall Weapon_CanHolster(void *pPrivate)
+	BOOL __fastcall Weapon_CanHolster(void* pvItem)
 #else
-	BOOL Weapon_CanHolster(void *pPrivate)
+	BOOL Weapon_CanHolstervoid* pvItem)
 #endif
 {
-	edict_t* pWeapon = PrivateToEdict(pPrivate);
+	edict_t* pWeapon = PrivateToEdict(pvItem);
 
 	if (!IsValidPev(pWeapon))
 	{
@@ -481,11 +456,7 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 
 	if (WeaponInfoArray[iId].iType == Wpn_Default || !WeaponInfoArray[iId].iForward[Fwd_Wpn_CanHolster])
 	{
-#ifdef _WIN32
-		return reinterpret_cast<int (__fastcall *)(void *, int)>(g_CrowbarHooks[CrowbarHook_CanHolster].address)(pPrivate, 0);
-#else
-		return reinterpret_cast<int (*)(void *)>(g_CrowbarHooks[CrowbarHook_CanHolster].address)(pPrivate);
-#endif
+		return CAN_HOLSTER(pvItem);
 	}
 
 	edict_t* pPlayer = GetPrivateCbase(pWeapon, pvData_pPlayer);
@@ -508,14 +479,13 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 }
 
 
-
 #ifdef _WIN32
-	void __fastcall Weapon_Holster(void *pPrivate, int i, int skiplocal)
+	void __fastcall Weapon_Holster(void* pvItem, DUMMY, int skiplocal)
 #else
-	void Weapon_Holster(void *pPrivate, int skiplocal)
+	void Weapon_Holster(void* pvItem, int skiplocal)
 #endif
 {
-	edict_t* pWeapon = PrivateToEdict(pPrivate);
+	edict_t* pWeapon = PrivateToEdict(pvItem);
 
 	if (!IsValidPev(pWeapon))
 	{
@@ -526,11 +496,7 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 
 	if (WeaponInfoArray[iId].iType == Wpn_Default)
 	{
-#ifdef _WIN32
-		reinterpret_cast<int (__fastcall *)(void *, int, int)>(g_CrowbarHooks[CrowbarHook_Holster].address)(pPrivate, 0, skiplocal);
-#else
-		reinterpret_cast<int (*)(void *, int)>(g_CrowbarHooks[CrowbarHook_Holster].address)(pPrivate, skiplocal);
-#endif
+		HOLSTER(pvItem);
 		return;
 	}
 
@@ -557,14 +523,13 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 }
 
 
-
 #ifdef _WIN32
-	int __fastcall Weapon_AddToPlayer(void *pPrivate, int i, void *pPrivate2)
+	int __fastcall Weapon_AddToPlayer(void* pvItem, DUMMY, void* pvPlayer)
 #else
-	int Weapon_AddToPlayer(void *pPrivate, void *pPrivate2)
+	int Weapon_AddToPlayer(void* pvItem, void* pvPlayer)
 #endif
 {
-	edict_t* pWeapon = PrivateToEdict(pPrivate);
+	edict_t* pWeapon = PrivateToEdict(pvItem);
 
 	if (!IsValidPev(pWeapon))
 	{
@@ -572,7 +537,7 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 	}
 
 	int iId = GetPrivateInt(pWeapon, pvData_iId);
-	edict_t* pPlayer = PrivateToEdict(pPrivate2);
+	edict_t* pPlayer = PrivateToEdict(pvPlayer);
 
 	if (WeaponInfoArray[iId].iType == Wpn_Custom && IsValidPev(pPlayer))
 	{
@@ -628,22 +593,17 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 		}
 	}
 
-#ifdef _WIN32
-	return reinterpret_cast<int (__fastcall *)(void *, int, void *)>(g_CrowbarHooks[CrowbarHook_AddToPlayer].address)(pPrivate, 0, pPrivate2);
-#else
-	return reinterpret_cast<int (*)(void *, void *)>(g_CrowbarHooks[CrowbarHook_AddToPlayer].address)(pPrivate, pPrivate2);
-#endif
+	return ADD_TO_PLAYER(pvItem, pvPlayer);
 }
 
 
-
 #ifdef _WIN32
-	int __fastcall Weapon_ItemSlot(void *pPrivate)
+	int __fastcall Weapon_ItemSlot(void* pvItem)
 #else
-	int Weapon_ItemSlot(void *pPrivate)
+	int Weapon_ItemSlot(void* pvItem)
 #endif
 {
-	edict_t* pWeapon = PrivateToEdict(pPrivate);
+	edict_t* pWeapon = PrivateToEdict(pvItem);
 
 	if (!IsValidPev(pWeapon))
 	{
@@ -657,22 +617,17 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 		return GetWeapon_Slot(iId) + 1;
 	}
 
-#ifdef _WIN32
-	return reinterpret_cast<int (__fastcall *)(void *, int)>(g_CrowbarHooks[CrowbarHook_ItemSlot].address)(pPrivate, 0);
-#else
-	return reinterpret_cast<int (*)(void *)>(g_CrowbarHooks[CrowbarHook_ItemSlot].address)(pPrivate);
-#endif
+	return ITEM_SLOT(pvItem);
 }
 
 
-
 #ifdef _WIN32
-	void* __fastcall Weapon_Respawn(void *pPrivate)
+	void* __fastcall Weapon_Respawn(void* pvItem)
 #else
-	void* Weapon_Respawn(void *pPrivate)
+	void* Weapon_Respawn(void* pvItem)
 #endif
 {
-	edict_t* pWeapon = PrivateToEdict(pPrivate);
+	edict_t* pWeapon = PrivateToEdict(pvItem);
 
 	if (!IsValidPev(pWeapon))
 	{
@@ -683,11 +638,7 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 
 	if (WeaponInfoArray[iId].iType == Wpn_Default)
 	{
-#ifdef _WIN32
-		return reinterpret_cast<void* (__fastcall *)(void *, int)>(g_CrowbarHooks[CrowbarHook_Respawn].address)(pPrivate, NULL);
-#else
-		return reinterpret_cast<void* (*)(void *)>(g_CrowbarHooks[CrowbarHook_Respawn].address)(pPrivate);
-#endif
+		return RESPAWN(pvItem);
 	}
 
 	edict_t* pItem = Weapon_Spawn(GetWeapon_pszName(iId), pWeapon->v.origin, pWeapon->v.angles);
@@ -715,15 +666,14 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 }
 
 
-
 #ifdef _WIN32
-	BOOL __fastcall AmmoBox_AddAmmo(void *pPrivate, int i, void *pPrivateOther)
+	BOOL __fastcall AmmoBox_AddAmmo(void* pvAmmo, DUMMY, void* pvOther)
 #else
-	BOOL AmmoBox_AddAmmo(void *pPrivate, void *pPrivateOther)
+	BOOL AmmoBox_AddAmmo(void* pvAmmo, void* pvOther)
 #endif
 {
-	edict_t* pAmmobox = PrivateToEdict(pPrivate);
-	edict_t* pOther = PrivateToEdict(pPrivateOther);
+	edict_t* pAmmobox = PrivateToEdict(pvAmmo);
+	edict_t* pOther = PrivateToEdict(pvOther);
 
 	if (!IsValidPev(pAmmobox) || !IsValidPev(pOther))
 	{
@@ -741,11 +691,7 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 			}
 		}
 
-#ifdef _WIN32
-		return reinterpret_cast<BOOL (__fastcall *)(void *, int, void *)>(g_RpgAddAmmo_Hook.address)(pPrivate, i, pPrivateOther);
-#else
-		return reinterpret_cast<BOOL (*)(void *, void *)>(g_RpgAddAmmo_Hook.address)(pPrivate, pPrivateOther);
-#endif
+		return ADD_AMMO(pvAmmo, pvOther);
 	}
 
 	BOOL bReturn = FALSE;
@@ -769,14 +715,13 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 }
 
 
-
 #ifdef _WIN32
-	int __fastcall Item_Block(void *pPrivate, int i, void *pPrivate2)
+	int __fastcall Item_Block(void* pvItem, int DUMMY, void* pvOther)
 #else
-	int Item_Block(void *pPrivate, void *pPrivate2)
+	int Item_Block(void* pvItem, void* pvOther)
 #endif
 {
-	edict_t* pWeapon = PrivateToEdict(pPrivate);
+	edict_t* pWeapon = PrivateToEdict(pvItem);
 
 	if (IsValidPev(pWeapon))
 	{
@@ -787,16 +732,15 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 }
 
 
-
 #ifdef _WIN32
-	void __fastcall World_Precache(void *pPrivate)
+	void __fastcall World_Precache(void* pvEntity)
 #else
-	void World_Precache(void *pPrivate)
+	void World_Precache(void* pvEntity)
 #endif
 {
 	SetConfigFile();
 
-	if (ParseConfigSection(g_ConfigFilepath, "[block]", (void*)ParseBlockItems_Handler))
+	if (ParseConfigSection(g_ConfigFilepath, "[block]", (void*)ParseBlockItems_Handler) && (int)g_BlockedItems.size())
 	{
 		printf("\n[WEAPONMOD] default items blocked:\n");
 
@@ -808,22 +752,17 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 		printf("\n");
 	}
 	
-#ifdef _WIN32
-	reinterpret_cast<int (__fastcall *)(void *, int)>(g_WorldPrecache_Hook.address)(pPrivate, 0);
-#else
-	reinterpret_cast<int (*)(void *)>(g_WorldPrecache_Hook.address)(pPrivate);
-#endif
+	WORLD_PRECACHE(pvEntity);
 }
 
 
-
 #ifdef _WIN32
-	void __fastcall Equipment_Think(void *pPrivate)
+	void __fastcall Equipment_Think(void* pvEntity)
 #else
-	void Equipment_Think(void *pPrivate)
+	void Equipment_Think(void* pvEntity)
 #endif
 {
-	edict_t* pEntity = PrivateToEdict(pPrivate);
+	edict_t* pEntity = PrivateToEdict(pvEntity);
 
 	if (!IsValidPev(pEntity) || !IsValidPev(g_EquipEnt))
 	{
@@ -840,20 +779,15 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 }
 
 
-
 #ifdef _WIN32
-	void __fastcall Player_Spawn(void *pPrivate)
+	void __fastcall Player_Spawn(void* pvPlayer)
 #else
-	void Player_Spawn(void *pPrivate)
+	void Player_Spawn(void* pvPlayer)
 #endif
 {
-#ifdef _WIN32
-	reinterpret_cast<void (__fastcall *)(void *, int)>(g_PlayerSpawn_Hook.address)(pPrivate, 0);
-#else
-	reinterpret_cast<void (*)(void *)>(g_PlayerSpawn_Hook.address)(pPrivate);
-#endif
+	PLAYER_SPAWN(pvPlayer);
 
-	edict_t* pPlayer = PrivateToEdict(pPrivate);
+	edict_t* pPlayer = PrivateToEdict(pvPlayer);
 
 	if (!IsValidPev(pPlayer))
 	{
@@ -889,109 +823,14 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 
 
 #ifdef _WIN32
-	void __cdecl PrecacheOtherWeapon_HookHandler(const char *szClassname)
+	void __fastcall Global_Think(void* pvEntity)
 #else
-	void PrecacheOtherWeapon_HookHandler(const char *szClassname)
-#endif
-{
-	edict_t	*pEntity = CREATE_NAMED_ENTITY(MAKE_STRING(szClassname));
-	
-	if (IsValidPev(pEntity))
-	{
-		for (int i = 0; i < (int)g_BlockedItems.size(); i++)
-		{
-			if (!stricmp(g_BlockedItems[i]->classname,szClassname))
-			{
-				MDLL_Spawn(pEntity);
-				REMOVE_ENTITY(pEntity);
-				return;
-			}
-		}
-
-		ItemInfo pII;
-		GET_ITEM_INFO(pEntity, &pII);
-
-		WeaponInfoArray[pII.iId].ItemData = pII;
-		WeaponInfoArray[pII.iId].iType = Wpn_Default;
-
-		g_iCurrentSlots[pII.iSlot][pII.iPosition] = TRUE;
-		REMOVE_ENTITY(pEntity);
-
-		g_iWeaponsCount++;
-	}
-
-	UnsetHook(&g_dllFuncs[Func_PrecacheOtherWeapon]);
-#ifdef _WIN32
-	reinterpret_cast<int (__cdecl *)(const char *)>(g_dllFuncs[Func_PrecacheOtherWeapon].address)(szClassname);
-#else
-	reinterpret_cast<int (*)(const char *)>(g_dllFuncs[Func_PrecacheOtherWeapon].address)(szClassname);
-#endif
-	SetHook(&g_dllFuncs[Func_PrecacheOtherWeapon]);
-}
-
-
-#ifdef _WIN32
-	void __fastcall GiveNamedItem_HookHandler(void *pPrivate, int i, const char *szName)
-#else
-	void GiveNamedItem_HookHandler(void *pPrivate, const char *szName)
-#endif
-{
-	if (szName)
-	{
-		GiveNamedItem(PrivateToEdict(pPrivate), szName);
-	}
-
-	UnsetHook(&g_dllFuncs[Func_GiveNamedItem]);
-#ifdef _WIN32
-	reinterpret_cast<int (__fastcall *)(void *, int, const char *)>(g_dllFuncs[Func_GiveNamedItem].address)(pPrivate, i, szName);
-#else
-	reinterpret_cast<int (*)(void *, const char *)>(g_dllFuncs[Func_GiveNamedItem].address)(pPrivate, szName);
-#endif
-	SetHook(&g_dllFuncs[Func_GiveNamedItem]);
-}
-
-
-#ifdef _WIN32
-	void __fastcall CheatImpulseCommands_HookHandler(void *pPrivate, int i, int iImpulse)
-#else
-	void CheatImpulseCommands_HookHandler(void *pPrivate, int iImpulse)
-#endif
-{
-	// check cheat impulse command now
-	if (iImpulse == 101 && cvar_sv_cheats->value)
-	{
-		edict_t *pPlayer = PrivateToEdict(pPrivate);
-
-		for (int k = 1; k <= g_iWeaponsCount; k++)
-		{
-			GiveNamedItem(pPlayer, GetWeapon_pszName(k));
-		}
-
-		for (int k = 1; k <= g_iAmmoBoxIndex; k++)
-		{
-			GiveNamedItem(pPlayer, AmmoBoxInfoArray[k].classname.c_str());
-		}
-	}
-
-	UnsetHook(&g_dllFuncs[Func_CheatImpulseCommands]);
-#ifdef _WIN32
-	reinterpret_cast<int (__fastcall *)(void *, int, int)>(g_dllFuncs[Func_CheatImpulseCommands].address)(pPrivate, i, iImpulse);
-#else
-	reinterpret_cast<int (*)(void *, int)>(g_dllFuncs[Func_CheatImpulseCommands].address)(pPrivate, iImpulse);
-#endif
-	SetHook(&g_dllFuncs[Func_CheatImpulseCommands]);
-}
-
-
-#ifdef _WIN32
-	void __fastcall Global_Think(void *pPrivate)
-#else
-	void Global_Think(void *pPrivate)
+	void Global_Think(void* pvEntity)
 #endif
 {
 	static edict_t* pEntity;
 	
-	pEntity = PrivateToEdict(pPrivate);
+	pEntity = PrivateToEdict(pvEntity);
 
 	if (!IsValidPev(pEntity))
 	{
@@ -1034,18 +873,17 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 }
 
 
-
 #ifdef _WIN32
-	void __fastcall Global_Touch(void *pPrivate, int i, void *pPrivate2)
+	void __fastcall Global_Touch(void* pvEntity, int DUMMY, void* pvOther)
 #else
-	void Global_Touch(void *pPrivate, void *pPrivate2)
+	void Global_Touch(void* pvEntity, void* pvOther)
 #endif
 {
 	static edict_t* pEntity;
 	static edict_t* pOther;
 
-	pEntity = PrivateToEdict(pPrivate);
-	pOther = PrivateToEdict(pPrivate2);
+	pEntity = PrivateToEdict(pvEntity);
+	pOther = PrivateToEdict(pvOther);
 
 	if (!IsValidPev(pEntity))
 	{
@@ -1065,6 +903,103 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 		);
 	}
 }
+
+
+#ifdef _WIN32
+	void __cdecl PrecacheOtherWeapon_HookHandler(const char *szClassname)
+#else
+	void PrecacheOtherWeapon_HookHandler(const char *szClassname)
+#endif
+{
+	edict_t	*pEntity = CREATE_NAMED_ENTITY(MAKE_STRING(szClassname));
+	
+	if (IsValidPev(pEntity))
+	{
+		for (int i = 0; i < (int)g_BlockedItems.size(); i++)
+		{
+			if (!stricmp(g_BlockedItems[i]->classname,szClassname))
+			{
+				MDLL_Spawn(pEntity);
+				REMOVE_ENTITY(pEntity);
+				return;
+			}
+		}
+
+		ItemInfo pII;
+		GET_ITEM_INFO(pEntity, &pII);
+
+		WeaponInfoArray[pII.iId].ItemData = pII;
+		WeaponInfoArray[pII.iId].iType = Wpn_Default;
+
+		g_iCurrentSlots[pII.iSlot][pII.iPosition] = TRUE;
+		REMOVE_ENTITY(pEntity);
+
+		g_iWeaponsCount++;
+	}
+
+	UnsetHook(&g_dllFuncs[Func_PrecacheOtherWeapon]);
+	PRECACHE_OTHER_WEAPON(szClassname);
+	SetHook(&g_dllFuncs[Func_PrecacheOtherWeapon]);
+}
+
+
+#ifdef _WIN32
+	void __fastcall GiveNamedItem_HookHandler(void *pvPlayer, int DUMMY, const char *szName)
+#else
+	void GiveNamedItem_HookHandler(void *pvPlayer, const char *szName)
+#endif
+{
+	if (szName)
+	{
+		GiveNamedItem(PrivateToEdict(pvPlayer), szName);
+	}
+
+	UnsetHook(&g_dllFuncs[Func_GiveNamedItem]);
+	GIVE_NAMED_ITEM(pvPlayer, szName);
+	SetHook(&g_dllFuncs[Func_GiveNamedItem]);
+}
+
+
+#ifdef _WIN32
+	void __fastcall CheatImpulseCommands_HookHandler(void *pPrivate, int i, int iImpulse)
+#else
+	void CheatImpulseCommands_HookHandler(void *pPrivate, int iImpulse)
+#endif
+{
+	// check cheat impulse command now
+	if (iImpulse == 101 && cvar_sv_cheats->value)
+	{
+		edict_t *pPlayer = PrivateToEdict(pPrivate);
+
+		for (int k = 1; k <= g_iWeaponsCount; k++)
+		{
+			GiveNamedItem(pPlayer, GetWeapon_pszName(k));
+		}
+
+		for (int k = 1; k <= g_iAmmoBoxIndex; k++)
+		{
+			GiveNamedItem(pPlayer, AmmoBoxInfoArray[k].classname.c_str());
+		}
+	}
+
+	UnsetHook(&g_dllFuncs[Func_CheatImpulseCommands]);
+#ifdef _WIN32
+	reinterpret_cast<int (__fastcall *)(void *, int, int)>(g_dllFuncs[Func_CheatImpulseCommands].address)(pPrivate, i, iImpulse);
+#else
+	reinterpret_cast<int (*)(void *, int)>(g_dllFuncs[Func_CheatImpulseCommands].address)(pPrivate, iImpulse);
+#endif
+	SetHook(&g_dllFuncs[Func_CheatImpulseCommands]);
+}
+
+
+
+
+
+
+
+
+
+
 
 
 
