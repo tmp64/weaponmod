@@ -91,37 +91,41 @@ extern EntData*	g_Ents;
 	extern module	g_GameDllModule;
 	extern function g_dllFuncs[Func_End];
 
-#ifdef WIN32
-
-	typedef void	(__cdecl *FuncPrecacheOtherWeapon)	(const char*);
-	typedef void	(__fastcall	*FuncGiveNamedItem)		(void *, DUMMY, const char *);
-
-	void	__cdecl		PrecacheOtherWeapon_HookHandler		(const char *szClassname);
-	void	__fastcall	GiveNamedItem_HookHandler			(void *pvPlayer, int DUMMY, const char *szName);
-
-	// void CBasePlayer::GiveNamedItem(const char *pszName)
-	//
-		inline void GIVE_NAMED_ITEM(void* pvPlayer, const char *szClassname)
-		{
-			reinterpret_cast<FuncGiveNamedItem>(g_dllFuncs[Func_GiveNamedItem].address)(pvPlayer, DUMMY_VAL, szClassname);
-		}
-
-#else
-
+	typedef int		(*FuncGetAmmoIndex)			(const char*);
+	typedef void	(*FuncRadiusDamage)			(Vector, entvars_s*, entvars_s*, float, float, int, int);
+	typedef void	(*FuncClearMultiDamage)		(void);
+	typedef void	(*FuncApplyMultiDamage)		(entvars_t*, entvars_t*);
 	typedef void	(*FuncPrecacheOtherWeapon)	(const char*);
-	typedef void	(*FuncGiveNamedItem)		(void *, const char *);
 
-	void	PrecacheOtherWeapon_HookHandler		(const char *szClassname);
-	void	GiveNamedItem_HookHandler			(void *pvPlayer, const char *szName);
+	void PrecacheOtherWeapon_HookHandler(const char *szClassname);
 
-	// void CBasePlayer::GiveNamedItem(const char *pszName)
+	// int CBasePlayer::GetAmmoIndex(const char *psz)
 	//
-		inline void GIVE_NAMED_ITEM(void* pvPlayer, const char *szClassname)
+		inline int GET_AMMO_INDEX(const char* ammoName)
 		{
-			reinterpret_cast<FuncGiveNamedItem>(g_dllFuncs[Func_GiveNamedItem].address)(pvPlayer, szClassname);
+			return reinterpret_cast<FuncGetAmmoIndex>(g_dllFuncs[Func_GetAmmoIndex].address)(ammoName);
 		}
 
-#endif
+	// void RadiusDamage( Vector vecSrc, entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, float flRadius, int iClassIgnore, int bitsDamageType )
+	//
+		void inline RADIUS_DAMAGE(Vector vecSrc, entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, float flRadius, int iClassIgnore, int bitsDamageType)
+		{
+			return reinterpret_cast<FuncRadiusDamage>(g_dllFuncs[Func_RadiusDamage].address)(vecSrc, pevInflictor, pevAttacker, flDamage, flRadius, iClassIgnore, bitsDamageType);
+		}
+		
+	// void ClearMultiDamage(void)
+	//
+		inline void CLEAR_MULTI_DAMAGE( void )
+		{
+			reinterpret_cast<FuncClearMultiDamage>(g_dllFuncs[Func_ClearMultiDamage].address)();
+		}
+
+	// void ApplyMultiDamage(entvars_t *pevInflictor, entvars_t *pevAttacker)
+	//
+		inline void APPLY_MULTI_DAMAGE(edict_t* pentInflictor, edict_t* pentAttacker)
+		{
+			reinterpret_cast<FuncApplyMultiDamage>(g_dllFuncs[Func_ApplyMultiDamage].address)(VARS(pentInflictor), VARS(pentAttacker));
+		}
 
 	// void UTIL_PrecacheOtherWeapon(const char *szClassname)
 	//
@@ -129,6 +133,68 @@ extern EntData*	g_Ents;
 		{
 			reinterpret_cast<FuncPrecacheOtherWeapon>(g_dllFuncs[Func_PrecacheOtherWeapon].address)(szClassname);
 		}
+
+#ifdef WIN32
+
+	typedef void	(__fastcall	*FuncCheatImpulseCommands)	(void*, DUMMY, int);
+	typedef void	(__fastcall	*FuncGiveNamedItem)			(void*, DUMMY, const char *);
+	typedef void	(__fastcall *FuncSetAnimation)			(void*, DUMMY, int);
+
+	void	__fastcall	CheatImpulseCommands_HookHandler	(void* pvPlayer, int DUMMY, int iImpulse);
+	void	__fastcall	GiveNamedItem_HookHandler			(void* pvPlayer, int DUMMY, const char *szName);
+	
+	// void CBasePlayer::GiveNamedItem(const char *pszName)
+	//
+		inline void GIVE_NAMED_ITEM(void* pvPlayer, const char *szClassname)
+		{
+			reinterpret_cast<FuncGiveNamedItem>(g_dllFuncs[Func_GiveNamedItem].address)(pvPlayer, DUMMY_VAL, szClassname);
+		}
+
+	// void CBasePlayer::CheatImpulseCommands(int iImpulse)
+	//
+		inline void CHEAT_IMPULSE_COMMANDS(void* pvPlayer, int iImpulse)
+		{
+			reinterpret_cast<FuncCheatImpulseCommands>(g_dllFuncs[Func_CheatImpulseCommands].address)(pvPlayer, DUMMY_VAL, iImpulse);
+		}
+
+	// void SetAnimation(PLAYER_ANIM playerAnim);
+	// 
+		inline void SET_ANIMATION(edict_t* pentPlayer, int animation)
+		{
+			reinterpret_cast<FuncSetAnimation>(g_dllFuncs[Func_PlayerSetAnimation].address)(pentPlayer->pvPrivateData, DUMMY_VAL, animation);
+		}
+
+#else
+
+	typedef void	(*FuncCheatImpulseCommands)	(void*, int);
+	typedef void	(*FuncGiveNamedItem)		(void*, const char *);
+	typedef void	(*FuncSetAnimation)			(void*, int);
+
+	void	CheatImpulseCommands_HookHandler	(void* pvPlayer, int iImpulse);
+	void	GiveNamedItem_HookHandler			(void* pvPlayer, const char *szName);
+	
+	// void CBasePlayer::GiveNamedItem(const char *pszName)
+	//
+		inline void GIVE_NAMED_ITEM(void* pvPlayer, const char *szClassname)
+		{
+			reinterpret_cast<FuncGiveNamedItem>(g_dllFuncs[Func_GiveNamedItem].address)(pvPlayer, szClassname);
+		}
+
+	// void CBasePlayer::CheatImpulseCommands(int iImpulse)
+	//
+		inline void CHEAT_IMPULSE_COMMANDS(void* pvPlayer, int iImpulse)
+		{
+			reinterpret_cast<FuncCheatImpulseCommands>(g_dllFuncs[Func_CheatImpulseCommands].address)(pvPlayer, iImpulse);
+		}
+
+	// void SetAnimation(PLAYER_ANIM playerAnim);
+	// 
+		inline void SET_ANIMATION(edict_t* pentPlayer, int animation)
+		{
+			reinterpret_cast<FuncSetAnimation>(g_dllFuncs[Func_PlayerSetAnimation].address)(pentPlayer->pvPrivateData, animation);
+		}
+
+#endif
 
 
 //
@@ -177,6 +243,10 @@ extern EntData*	g_Ents;
 	typedef BOOL	(__fastcall *FuncAddAmmo)		(void*, DUMMY, void*);
 	typedef void	(__fastcall *FuncSpawn)			(void*, DUMMY);
 	typedef void	(__fastcall *FuncPrecache)		(void*, DUMMY);
+	typedef int		(__fastcall *FuncDamageDecal)	(void*, DUMMY, int);
+	typedef int		(__fastcall *FuncClassify)		(void*, DUMMY);
+	typedef int		(__fastcall *FuncTraceAttack)	(void*, DUMMY, entvars_t *, float, Vector, TraceResult*, int);
+	typedef int		(__fastcall *FuncTakeDamage)	(void*, DUMMY, entvars_t *, entvars_t *, float, int);
 
 	int		__fastcall Weapon_GetItemInfo	(void* pvItem, DUMMY, ItemInfo* p);
 	BOOL	__fastcall Weapon_CanDeploy		(void* pvItem);
@@ -339,6 +409,34 @@ extern EntData*	g_Ents;
 			reinterpret_cast<FuncSpawn>(g_PlayerSpawn_Hook.address)(pvPlayer, DUMMY_VAL);
 		}
 
+	// virtual int DamageDecal(CBaseEntity* pEntity, int bitsDamageType);
+	//
+		inline int GET_DAMAGE_DECAL(edict_t* pentEntity)
+		{
+			return reinterpret_cast<FuncDamageDecal>(GET_VTABLE(pentEntity)[g_vtblOffsets[VO_DamageDecal]])(pentEntity->pvPrivateData, DUMMY_VAL, 0);
+		}
+
+	// int Classify( void );
+	// 
+		inline int CLASSIFY(edict_t* pentEntity)
+		{
+			return reinterpret_cast<FuncClassify>(GET_VTABLE(pentEntity)[g_vtblOffsets[VO_Classify]])(pentEntity->pvPrivateData, DUMMY_VAL);
+		}
+
+	// virtual void TraceAttack(entvars_t* pevAttacker, float flDamage, Vector vecDir, TraceResult* ptr, int bitsDamageType);
+	// 
+		inline void TRACE_ATTACK(edict_t* pentVictim, edict_t* pentAttacker, float damage, Vector vecDir, TraceResult tr, int bitsDamageType)
+		{
+			reinterpret_cast<FuncTraceAttack>(GET_VTABLE(pentVictim)[g_vtblOffsets[VO_TraceAttack]])(pentVictim->pvPrivateData, DUMMY_VAL, VARS(pentAttacker), damage, vecDir, &tr, bitsDamageType);
+		}
+
+	// virtual int TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType);
+	//
+		inline int TAKE_DAMAGE(edict_t* pentVictim, edict_t* pentInflictor, edict_t* pentAttacker, float damage, int bitsDamageType)
+		{
+			return reinterpret_cast<FuncTakeDamage>(GET_VTABLE(pentVictim)[g_vtblOffsets[VO_TakeDamage]])(pentVictim->pvPrivateData, DUMMY_VAL, VARS(pentInflictor), VARS(pentAttacker), damage, bitsDamageType);
+		}
+
 #else
 
 	typedef int		(*FuncGetItemInfo)		(void*, ItemInfo*);
@@ -353,7 +451,11 @@ extern EntData*	g_Ents;
 	typedef void*	(*FuncRespawn)			(void*);
 	typedef BOOL	(*FuncAddAmmo)			(void*, void*);
 	typedef void	(*FuncSpawn)			(void*);
-	typedef void	(*FuncPrecache)		(void*);
+	typedef void	(*FuncPrecache)			(void*);
+	typedef int		(*FuncDamageDecal)		(void*, int);
+	typedef int		(*FuncClassify)			(void*);
+	typedef int		(*FuncTraceAttack)		(void*, entvars_t *, float, Vector, TraceResult*, int);
+	typedef int		(*FuncTakeDamage)		(void*, entvars_t *, entvars_t *, float, int);
 
 	int		Weapon_GetItemInfo		(void* pvItem, ItemInfo* p);
 	BOOL	Weapon_CanDeploy		(void* pvItem);
@@ -515,115 +617,35 @@ extern EntData*	g_Ents;
 		{
 			reinterpret_cast<FuncSpawn>(g_PlayerSpawn_Hook.address)(pvPlayer);
 		}
+
+	// virtual int DamageDecal(CBaseEntity* pEntity, int bitsDamageType);
+	//
+		inline int GET_DAMAGE_DECAL(edict_t* pentEntity)
+		{
+			return reinterpret_cast<FuncDamageDecal>(GET_VTABLE(pentEntity)[g_vtblOffsets[VO_DamageDecal]])(pentEntity->pvPrivateData, 0);
+		}
 	
+	// int Classify( void );
+	// 
+		inline int CLASSIFY(edict_t* pentEntity)
+		{
+			return reinterpret_cast<FuncClassify>(GET_VTABLE(pentEntity)[g_vtblOffsets[VO_Classify]])(pentEntity->pvPrivateData);
+		}
+
+	// virtual void TraceAttack(entvars_t* pevAttacker, float flDamage, Vector vecDir, TraceResult* ptr, int bitsDamageType);
+	// 
+		inline void TRACE_ATTACK(edict_t* pentVictim, edict_t* pentAttacker, float damage, Vector vecDir, TraceResult tr, int bitsDamageType)
+		{
+			reinterpret_cast<FuncTraceAttack>(GET_VTABLE(pentVictim)[g_vtblOffsets[VO_TraceAttack]])(pentVictim->pvPrivateData, VARS(pentAttacker), damage, vecDir, &tr, bitsDamageType);
+		}
+
+	// virtual int TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType);
+	//
+		inline int TAKE_DAMAGE(edict_t* pentVictim, edict_t* pentInflictor, edict_t* pentAttacker, float damage, int bitsDamageType)
+		{
+			return reinterpret_cast<FuncTakeDamage>(GET_VTABLE(pentVictim)[g_vtblOffsets[VO_TakeDamage]])(pentVictim->pvPrivateData, VARS(pentInflictor), VARS(pentAttacker), damage, bitsDamageType);
+		}
+
 #endif
 	
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-extern edict_t* Ammo_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles);
-extern edict_t* Weapon_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles);
-
-
-#ifdef _WIN32
-extern void __fastcall CheatImpulseCommands_HookHandler(void *pPrivate, int i, int iImpulse);
-
-
-inline int GET_DAMAGE_DECAL(edict_t* pEntity)
-{
-	return reinterpret_cast<int (__fastcall *)(void *, int, int)>((*((void***)((char*)pEntity->pvPrivateData)))[g_vtblOffsets[VO_DamageDecal]])(pEntity->pvPrivateData, 0, 0);
-}
-
-inline void CLEAR_MULTI_DAMAGE()
-{
-	reinterpret_cast<int (__cdecl *)()>(g_dllFuncs[Func_ClearMultiDamage].address)();
-}
-
-inline void APPLY_MULTI_DAMAGE(edict_t* pInlictor, edict_t* pAttacker)
-{
-	reinterpret_cast<int (__cdecl *)(entvars_t*, entvars_t*)>(g_dllFuncs[Func_ApplyMultiDamage].address)(&(pInlictor->v), &(pAttacker->v));
-}
-
-inline int CLASSIFY(edict_t* pEntity)
-{
-	return reinterpret_cast<int (__fastcall *)(void *, int)>((*((void***)((char*)pEntity->pvPrivateData)))[g_vtblOffsets[VO_Classify]])(pEntity->pvPrivateData, 0);
-}
-
-inline void TRACE_ATTACK(edict_t* pEntity, edict_t* pAttacker, float flDamage, Vector vecDir, TraceResult tr, int bitsDamageType)
-{
-	reinterpret_cast<int (__fastcall *)(void *, int, entvars_t *, float, Vector, TraceResult *, int)>((*((void***)((char*)pEntity->pvPrivateData)))[g_vtblOffsets[VO_TraceAttack]])(pEntity->pvPrivateData, 0, &(pAttacker->v), flDamage, vecDir,  &tr, bitsDamageType);
-}
-
-inline void TAKE_DAMAGE(edict_t* pEntity, edict_t* pInflictor, edict_t* pAttacker, float flDamage, int bitsDamageType)
-{
-	reinterpret_cast<int (__fastcall *)(void *, int, entvars_t *, entvars_t *, float, int)>((*((void***)((char*)pEntity->pvPrivateData)))[g_vtblOffsets[VO_TakeDamage]])(pEntity->pvPrivateData, 0, &(pInflictor->v), &(pAttacker->v), flDamage, bitsDamageType);
-}
-
-inline int GET_AMMO_INDEX(const char *ammoname)
-{
-	return reinterpret_cast<int (__cdecl *)(const char *)>(g_dllFuncs[Func_GetAmmoIndex].address)(ammoname);
-}
-#else
-extern void CheatImpulseCommands_HookHandler(void *pPrivate, int iImpulse);
-
-inline int GET_DAMAGE_DECAL(edict_t* pEntity)
-{
-	return reinterpret_cast<int (*)(void *, int)>((*((void***)(((char*)pEntity->pvPrivateData) + g_Base)))[g_vtblOffsets[VO_DamageDecal]])(pEntity->pvPrivateData, 0);
-}
-
-inline void CLEAR_MULTI_DAMAGE()
-{
-	reinterpret_cast<int (*)()>(g_dllFuncs[Func_ClearMultiDamage].address)();
-}
-
-inline void APPLY_MULTI_DAMAGE(edict_t* pInlictor, edict_t* pAttacker)
-{
-	reinterpret_cast<int (*)(entvars_t*, entvars_t*)>(g_dllFuncs[Func_ApplyMultiDamage].address)(&(pInlictor->v), &(pAttacker->v));
-}
-
-inline int CLASSIFY(edict_t* pEntity)
-{
-	return reinterpret_cast<int (*)(void *)>((*((void***)(((char*)pEntity->pvPrivateData) + g_Base)))[g_vtblOffsets[VO_Classify]])(pEntity->pvPrivateData);
-}
-
-inline void TRACE_ATTACK(edict_t* pEntity, edict_t* pAttacker, float flDamage, Vector vecDir, TraceResult tr, int bitsDamageType)
-{
-	reinterpret_cast<int (*)(void *, entvars_t *, float, Vector, TraceResult *, int)>((*((void***)(((char*)pEntity->pvPrivateData) + g_Base)))[g_vtblOffsets[VO_TraceAttack]])(pEntity->pvPrivateData, &(pAttacker->v), flDamage, vecDir,  &tr, bitsDamageType);
-}
-
-inline void TAKE_DAMAGE(edict_t* pEntity, edict_t* pInflictor, edict_t* pAttacker, float flDamage, int bitsDamageType)
-{
-	reinterpret_cast<int (*)(void *, entvars_t *, entvars_t *, float, int)>((*((void***)(((char*)pEntity->pvPrivateData) + 0x60)))[g_vtblOffsets[VO_TakeDamage]])(pEntity->pvPrivateData, &(pInflictor->v), &(pAttacker->v), flDamage, bitsDamageType);
-}
-
-inline int GET_AMMO_INDEX(const char *ammoname)
-{
-	return reinterpret_cast<int (*)(const char *)>(g_dllFuncs[Func_GetAmmoIndex].address)(ammoname);
-}
-#endif
-
 #endif // _HOOKS_H

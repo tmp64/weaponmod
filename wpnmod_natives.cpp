@@ -603,13 +603,7 @@ static cell AMX_NATIVE_CALL wpnmod_set_player_anim(AMX *amx, cell *params)
 	int iPlayerAnim = params[2];
 
 	CHECK_ENTITY(iPlayer)
-
-#ifdef _WIN32
-	reinterpret_cast<void (__fastcall *)(void *, int, int)>(g_dllFuncs[Func_PlayerSetAnimation].address)((void*)INDEXENT2(iPlayer)->pvPrivateData, 0, iPlayerAnim);
-#else
-	reinterpret_cast<void (*)(void *, int)>(g_dllFuncs[Func_PlayerSetAnimation].address)((void*)INDEXENT2(iPlayer)->pvPrivateData, iPlayerAnim);
-#endif
-
+	SET_ANIMATION(INDEXENT2(iPlayer), iPlayerAnim);
 	return 1;
 }
 
@@ -1035,14 +1029,7 @@ static cell AMX_NATIVE_CALL wpnmod_radius_damage(AMX *amx, cell *params)
 	CHECK_ENTITY(iInflictor)
 	CHECK_ENTITY(iAttacker)
 	
-#ifdef _WIN32
-	reinterpret_cast<int (__cdecl *)(Vector, entvars_t*, entvars_t*, float, float, int, int)>(g_dllFuncs[Func_RadiusDamage].address)
-	(vecSrc, &INDEXENT2(iInflictor)->v, &INDEXENT2(iAttacker)->v, amx_ctof(params[4]), amx_ctof(params[5]), params[6], params[7]);
-#else
-	reinterpret_cast<int (*)(Vector, entvars_t*, entvars_t*, float, float, int, int)>(g_dllFuncs[Func_RadiusDamage].address)
-	(vecSrc, &INDEXENT2(iInflictor)->v, &INDEXENT2(iAttacker)->v, amx_ctof(params[4]), amx_ctof(params[5]), params[6], params[7]);
-#endif
-
+	RADIUS_DAMAGE(vecSrc, &INDEXENT2(iInflictor)->v, &INDEXENT2(iAttacker)->v, amx_ctof(params[4]), amx_ctof(params[5]), params[6], params[7]);
 	return 1;
 }
 

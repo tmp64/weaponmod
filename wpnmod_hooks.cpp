@@ -32,10 +32,10 @@
  */
 
 #include "weaponmod.h"
-#include "hooks.h"
 
 #include "wpnmod_parse.h"
 #include "wpnmod_utils.h"
+#include "wpnmod_hooks.h"
 
 EntData* g_Ents = NULL;
 
@@ -905,11 +905,7 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 }
 
 
-#ifdef _WIN32
-	void __cdecl PrecacheOtherWeapon_HookHandler(const char *szClassname)
-#else
-	void PrecacheOtherWeapon_HookHandler(const char *szClassname)
-#endif
+void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 {
 	edict_t	*pEntity = CREATE_NAMED_ENTITY(MAKE_STRING(szClassname));
 	
@@ -961,15 +957,15 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 
 
 #ifdef _WIN32
-	void __fastcall CheatImpulseCommands_HookHandler(void *pPrivate, int i, int iImpulse)
+	void __fastcall CheatImpulseCommands_HookHandler(void* pvPlayer, int DUMMY, int iImpulse)
 #else
-	void CheatImpulseCommands_HookHandler(void *pPrivate, int iImpulse)
+	void CheatImpulseCommands_HookHandler(void* pvPlayer, int iImpulse)
 #endif
 {
 	// check cheat impulse command now
 	if (iImpulse == 101 && cvar_sv_cheats->value)
 	{
-		edict_t *pPlayer = PrivateToEdict(pPrivate);
+		edict_t *pPlayer = PrivateToEdict(pvPlayer);
 
 		for (int k = 1; k <= g_iWeaponsCount; k++)
 		{
@@ -983,135 +979,6 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 	}
 
 	UnsetHook(&g_dllFuncs[Func_CheatImpulseCommands]);
-#ifdef _WIN32
-	reinterpret_cast<int (__fastcall *)(void *, int, int)>(g_dllFuncs[Func_CheatImpulseCommands].address)(pPrivate, i, iImpulse);
-#else
-	reinterpret_cast<int (*)(void *, int)>(g_dllFuncs[Func_CheatImpulseCommands].address)(pPrivate, iImpulse);
-#endif
+	CHEAT_IMPULSE_COMMANDS(pvPlayer, iImpulse);
 	SetHook(&g_dllFuncs[Func_CheatImpulseCommands]);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-edict_t* Weapon_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles)
-{
-	if (!szName)
-	{
-		return NULL;
-	}
-
-	int iId = 0;
-	
-	for (int i = 1; i <= g_iWeaponsCount; i++)
-	{
-		if (WeaponInfoArray[i].iType == Wpn_Custom && !_stricmp(GetWeapon_pszName(i), szName))
-		{
-			iId = i;
-			break;
-		}
-	}
-
-	if (!iId)
-	{
-		return NULL;
-	}
-
-	edict_t* pItem = CREATE_NAMED_ENTITY(MAKE_STRING("weapon_crowbar"));
-
-	if (IsValidPev(pItem))
-	{
-		MDLL_Spawn(pItem);
-		SET_ORIGIN(pItem, vecOrigin);
-
-		pItem->v.classname = MAKE_STRING(GetWeapon_pszName(iId));
-		pItem->v.angles = vecAngles;
-
-		SetPrivateInt(pItem, pvData_iId, iId);
-
-		if (GetWeapon_MaxClip(iId) != -1)
-		{
-			SetPrivateInt(pItem, pvData_iClip, 0);
-		}
-
-		if (WeaponInfoArray[iId].iForward[Fwd_Wpn_Spawn])
-		{
-			MF_ExecuteForward
-			(
-				WeaponInfoArray[iId].iForward[Fwd_Wpn_Spawn],
-
-				static_cast<cell>(ENTINDEX(pItem)), 
-				static_cast<cell>(0), 
-				static_cast<cell>(0), 
-				static_cast<cell>(0),
-				static_cast<cell>(0)
-			);
-		}	
-
-		return pItem;
-	}
-
-	return NULL;
-}
-
-
-
-edict_t* Ammo_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles)
-{
-	if (!szName)
-	{
-		return NULL;
-	}
-
-	int iId = 0;
-	
-	for (int i = 1; i <= g_iAmmoBoxIndex; i++)
-	{
-		if (!_stricmp(AmmoBoxInfoArray[i].classname.c_str(), szName))
-		{
-			iId = i;
-			break;
-		}
-	}
-
-	if (!iId)
-	{
-		return NULL;
-	}
-
-	edict_t* pAmmoBox = CREATE_NAMED_ENTITY(MAKE_STRING("ammo_rpgclip"));
-
-	if (IsValidPev(pAmmoBox))
-	{
-		MDLL_Spawn(pAmmoBox);
-		SET_ORIGIN(pAmmoBox, vecOrigin);
-		
-		pAmmoBox->v.classname = MAKE_STRING(AmmoBoxInfoArray[iId].classname.c_str());
-		pAmmoBox->v.angles = vecAngles;
-
-		if (AmmoBoxInfoArray[iId].iForward[Fwd_Ammo_Spawn])
-		{
-			MF_ExecuteForward
-			(
-				AmmoBoxInfoArray[iId].iForward[Fwd_Ammo_Spawn],
-				static_cast<cell>(ENTINDEX(pAmmoBox)),
-				static_cast<cell>(0)
-			);
-		}
-
-		//SET_SIZE(pAmmoBox, Vector(-16, -16, 0), Vector(16, 16, 16));
-		return pAmmoBox;
-	}
-
-	return NULL;
-}
-

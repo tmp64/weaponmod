@@ -51,6 +51,9 @@ extern CVector <VirtualHookData *> g_BlockedItems;
 
 
 
+extern edict_t* Ammo_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles);
+extern edict_t* Weapon_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles);
+
 
 #ifdef __linux__
 	#define stricmp	strcasecmp
