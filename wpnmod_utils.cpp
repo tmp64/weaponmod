@@ -35,6 +35,13 @@
 #include "wpnmod_utils.h"
 
 
+#ifdef __linux__
+
+	bool g_ExtraThink = false;
+	bool g_ExtraTouch = false;
+
+#endif
+
 int g_vtblOffsets[VO_End];
 int g_pvDataOffsets[pvData_End];
 

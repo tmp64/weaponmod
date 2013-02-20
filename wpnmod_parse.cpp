@@ -374,6 +374,21 @@ void ParsePvDataOffsets_Handler(char* data)
 #ifdef _WIN32
 		g_pvDataOffsets[iIndex] = atoi(szData[0]);
 #else
+		if (iIndex == pvData_pfnThink)
+		{
+			if (strlen(szData[1]))
+			{
+				g_ExtraThink = true;
+			}
+		}
+		else if (iIndex == pvData_pfnTouch)
+		{
+			if (strlen(szData[1]))
+			{
+				g_ExtraTouch = true;
+			}
+		}
+
 		g_pvDataOffsets[iIndex] = atoi(szData[0]) + atoi(szData[1]);
 #endif
 	}

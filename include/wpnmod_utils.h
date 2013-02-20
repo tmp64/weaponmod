@@ -199,27 +199,50 @@ inline void SetPrivateString(edict_t* pEntity, int iOffset, const char* pValue)
 			strcpy(data, pValue);
 		}
 	#else
-		strcpy(data, newValue);
+		strcpy(data, pValue);
 	#endif
 }
 
+#ifdef __linux__
+
+	extern bool g_ExtraThink;
+	extern bool g_ExtraTouch;
+
+#endif
+
 inline void SetTouch_(edict_t* e, void* funcAddress) 
 {     
-#ifdef __linux__         
-	*((long*)e->pvPrivateData + g_pvDataOffsets[pvData_pfnTouch]) = funcAddress == NULL ? NULL : 0xFFFF0000;         
-	*((long*)e->pvPrivateData + g_pvDataOffsets[pvData_pfnTouch] + 1) = (long)(funcAddress);     
-#else         
-	*((long*)e->pvPrivateData + g_pvDataOffsets[pvData_pfnTouch]) = (long)(funcAddress);     
+#ifdef __linux__
+
+	if (!g_ExtraTouch)
+	{
+		*((long*)e->pvPrivateData + g_pvDataOffsets[pvData_pfnTouch]) = funcAddress == NULL ? NULL : 0xFFFF0000;
+	}
+
+	*((long*)e->pvPrivateData + g_pvDataOffsets[pvData_pfnTouch] + 1) = (long)(funcAddress);    
+
+#else    
+
+	*((long*)e->pvPrivateData + g_pvDataOffsets[pvData_pfnTouch]) = (long)(funcAddress); 
+
 #endif 
 }
 
 inline void SetThink_(edict_t* e, void* funcAddress) 
 {     
-#ifdef __linux__         
-	*((long*)e->pvPrivateData + g_pvDataOffsets[pvData_pfnThink] - 1) = funcAddress == NULL ? NULL : 0xFFFF0000;         
+#ifdef __linux__
+
+	if (!g_ExtraThink)
+	{
+		*((long*)e->pvPrivateData + g_pvDataOffsets[pvData_pfnThink] - 1) = funcAddress == NULL ? NULL : 0xFFFF0000;  
+	}
+
 	*((long*)e->pvPrivateData + g_pvDataOffsets[pvData_pfnThink]) = (long)(funcAddress);     
-#else         
+
+#else  
+
 	*((long*)e->pvPrivateData + g_pvDataOffsets[pvData_pfnThink]) = (long)(funcAddress);     
+
 #endif 
 }
 

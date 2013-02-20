@@ -36,6 +36,15 @@
 
 #include "amxxmodule.h"
 
+#ifdef __linux__
+	#include <sys/types.h>
+	#include <sys/stat.h>
+	#include <sys/mman.h>
+	#include <unistd.h>
+
+	#define ALIGN(ar)		((intptr_t)ar & ~(sysconf(_SC_PAGESIZE) - 1))
+#endif
+
 struct VirtualHookData
 {
 	const char*	classname;
@@ -59,9 +68,4 @@ extern void SetHookVirtual		(VirtualHookData* hook);
 extern void UnsetHookVirtual	(VirtualHookData* hook);
 extern bool HandleHookVirtual	(VirtualHookData* hook, bool revert);
 
-#ifdef __linux__
-	#define ALIGN(ar)		((intptr_t)ar & ~(sysconf(_SC_PAGESIZE) - 1))
-#endif
-
 #endif  // VIRTUAL_HOOKER_H
-

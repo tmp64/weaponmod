@@ -440,7 +440,7 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 #ifdef _WIN32
 	BOOL __fastcall Weapon_CanHolster(void* pvItem)
 #else
-	BOOL Weapon_CanHolstervoid* pvItem)
+	BOOL Weapon_CanHolster(void* pvItem)
 #endif
 {
 	edict_t* pWeapon = PrivateToEdict(pvItem);
