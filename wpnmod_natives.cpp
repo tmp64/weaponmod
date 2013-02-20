@@ -1,6 +1,6 @@
 /*
  * Half-Life Weapon Mod
- * Copyright (c) 2012 AGHL.RU Dev Team
+ * Copyright (c) 2012 - 2013 AGHL.RU Dev Team
  * 
  * http://aghl.ru/forum/ - Russian Half-Life and Adrenaline Gamer Community
  *
@@ -31,12 +31,10 @@
  *
  */
 
-#include "weaponmod.h"
-#include "hooks.h"
-
-
 #include "wpnmod_grenade.h"
+#include "wpnmod_config.h"
 #include "wpnmod_utils.h"
+#include "wpnmod_hooks.h"
 
 
 #define CHECK_ENTITY(x)																\
@@ -127,68 +125,7 @@ int NativesPvDataOffsets[Offset_End] =
 	pvData_ammo_argrens
 };
 
-int g_iWeaponsCount = 0;
-int g_iWeaponInitID = 0;
-int g_iAmmoBoxIndex = 0;
 
-BOOL g_CrowbarHooksEnabled = 0;
-BOOL g_AmmoBoxHooksEnabled = 0;
-
-WeaponData WeaponInfoArray[MAX_WEAPONS];
-AmmoBoxData AmmoBoxInfoArray[MAX_WEAPONS];
-
-int g_iCurrentSlots[MAX_WEAPON_SLOTS][MAX_WEAPON_POSITIONS];
-
-
-void AutoSlotDetection(int iWeaponID, int iSlot, int iPosition)
-{
-	if (iSlot >= MAX_WEAPON_SLOTS || iSlot < 0)
-	{
-		iSlot = MAX_WEAPON_SLOTS - 1;
-	}
-
-	if (iPosition >= MAX_WEAPON_POSITIONS || iPosition < 0)
-	{
-		iPosition = MAX_WEAPON_POSITIONS - 1;
-	}
-
-	if (!g_iCurrentSlots[iSlot][iPosition])
-	{
-		g_iCurrentSlots[iSlot][iPosition] = iWeaponID;
-
-		WeaponInfoArray[iWeaponID].ItemData.iSlot = iSlot;
-		WeaponInfoArray[iWeaponID].ItemData.iPosition = iPosition;
-	}
-	else
-	{
-		BOOL bFound = FALSE;
-
-		for (int k, i = 0; i < MAX_WEAPON_SLOTS && !bFound; i++)
-		{
-			for (k = 0; k < MAX_WEAPON_POSITIONS; k++)
-			{
-				if (!g_iCurrentSlots[i][k])
-				{
-					g_iCurrentSlots[i][k] = iWeaponID;
-
-					WeaponInfoArray[iWeaponID].ItemData.iSlot = i;
-					WeaponInfoArray[iWeaponID].ItemData.iPosition = k;
-
-					printf("[WEAPONMOD] \"%s\" is moved to slot %d-%d.\n", GetWeapon_pszName(iWeaponID), i + 1, k + 1);
-
-					bFound = TRUE;
-					break;
-				}
-			}
-		}
-		
-		if (!bFound)
-		{
-			WeaponInfoArray[iWeaponID].ItemData.iPosition = MAX_WEAPONS;
-			printf("[WEAPONMOD] No free slot for \"%s\" in HUD!\n", GetWeapon_pszName(iWeaponID));
-		}
-	}
-}
 
 /**
  * Register new weapon in module.

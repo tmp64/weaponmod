@@ -1,6 +1,6 @@
 /*
  * Half-Life Weapon Mod
- * Copyright (c) 2012 AGHL.RU Dev Team
+ * Copyright (c) 2012 - 2013 AGHL.RU Dev Team
  * 
  * http://aghl.ru/forum/ - Russian Half-Life and Adrenaline Gamer Community
  *
@@ -36,10 +36,7 @@
 
 #include "amxxmodule.h"
 
-extern char g_ConfigFilepath[1024];
-
 extern void ParseBSP();
-extern void SetConfigFile();
 extern void ParseSpawnPoints();
 
 extern void ParseSignatures_Handler		(char* data);
@@ -52,3 +49,4 @@ extern void ParseBlockItems_Handler		(char* szBlockItem);
 extern BOOL ParseConfigSection			(char *Filepath, char *pSection, void *pHandler);
 
 #endif // _PARSER_H
+

@@ -1,6 +1,6 @@
 /*
  * Half-Life Weapon Mod
- * Copyright (c) 2012 AGHL.RU Dev Team
+ * Copyright (c) 2012 - 2013 AGHL.RU Dev Team
  * 
  * http://aghl.ru/forum/ - Russian Half-Life and Adrenaline Gamer Community
  *
@@ -31,15 +31,11 @@
  *
  */
 
-#include "weaponmod.h"
-#include "hooks.h"
-
-#include "virtual_hooker.h"
+#include "wpnmod_vhooker.h"
 #include "wpnmod_parse.h"
 #include "wpnmod_utils.h"
-
-
-char g_ConfigFilepath[1024];
+#include "wpnmod_hooks.h"
+#include "utils.h"
 
 
 BOOL ParseConfigSection(char *Filepath, char *pSection, void *pHandler)
@@ -497,14 +493,4 @@ void ParseBSP()
 	}
 
 	free(data);
-}
-
-void SetConfigFile()
-{
-	MF_BuildPathnameR(g_ConfigFilepath, sizeof(g_ConfigFilepath) - 1, "%s/weaponmod/weaponmod-%s.ini", MF_GetLocalInfo("amxx_configsdir", "addons/amxmodx/configs"), STRING(gpGlobals->mapname));
-	
-	if (!Util::FileExists(g_ConfigFilepath))
-	{
-		MF_BuildPathnameR(g_ConfigFilepath, sizeof(g_ConfigFilepath) - 1, "%s/weaponmod/weaponmod.ini", MF_GetLocalInfo("amxx_configsdir", "addons/amxmodx/configs"));
-	}
 }

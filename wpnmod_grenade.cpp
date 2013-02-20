@@ -1,6 +1,6 @@
 /*
  * Half-Life Weapon Mod
- * Copyright (c) 2012 AGHL.RU Dev Team
+ * Copyright (c) 2012 - 2013 AGHL.RU Dev Team
  * 
  * http://aghl.ru/forum/ - Russian Half-Life and Adrenaline Gamer Community
  *
@@ -32,9 +32,6 @@
  */
 
 
-#include "hooks.h"
-
-#include "wpnmod_utils.h"
 #include "wpnmod_grenade.h"
 
 

@@ -1,6 +1,6 @@
 /*
  * Half-Life Weapon Mod
- * Copyright (c) 2012 AGHL.RU Dev Team
+ * Copyright (c) 2012 - 2013 AGHL.RU Dev Team
  * 
  * http://aghl.ru/forum/ - Russian Half-Life and Adrenaline Gamer Community
  *
@@ -35,7 +35,7 @@
 #define _UTILS_H
 
 #include "amxxmodule.h"
-#include "virtual_hooker.h"
+#include "wpnmod_vhooker.h"
 
 #if defined WIN32
 

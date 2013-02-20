@@ -1,6 +1,6 @@
 /*
  * Half-Life Weapon Mod
- * Copyright (c) 2012 AGHL.RU Dev Team
+ * Copyright (c) 2012 - 2013 AGHL.RU Dev Team
  * 
  * http://aghl.ru/forum/ - Russian Half-Life and Adrenaline Gamer Community
  *
@@ -35,6 +35,8 @@
 #define _GREN_H
 
 #include "amxxmodule.h"
+#include "wpnmod_hooks.h"
+#include "wpnmod_utils.h"
 
 // Grenade explosion flags.
 #define SF_EXPLOSION_NODAMAGE	( 1 << 0 ) // when set, explosion will not actually inflict damage

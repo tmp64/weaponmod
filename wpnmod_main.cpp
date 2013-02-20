@@ -1,6 +1,6 @@
 /*
  * Half-Life Weapon Mod
- * Copyright (c) 2012 AGHL.RU Dev Team
+ * Copyright (c) 2012 - 2013 AGHL.RU Dev Team
  * 
  * http://aghl.ru/forum/ - Russian Half-Life and Adrenaline Gamer Community
  *
@@ -31,24 +31,12 @@
  *
  */
 
-#include "weaponmod.h"
-
-
-
+#include "wpnmod_config.h"
 #include "wpnmod_parse.h"
 #include "wpnmod_utils.h"
 #include "wpnmod_hooks.h"
+#include "utils.h"
 
-
-edict_t* g_EquipEnt = NULL;
-
-cvar_t *cvar_aghlru = NULL;
-cvar_t *cvar_sv_cheats = NULL;
-cvar_t *cvar_mp_weaponstay = NULL;
-
-CVector <DecalList *> g_Decals;
-CVector <StartAmmo *> g_StartAmmo;
-CVector <VirtualHookData *> g_BlockedItems;
 
 int AmxxCheckGame(const char* game)
 {
@@ -206,7 +194,6 @@ int FN_DecalIndex_Post(const char *name)
 	RETURN_META_VALUE(MRES_IGNORED, 0);
 }
 
-
 void ServerDeactivate()
 {
 	g_EquipEnt = 0;
@@ -242,7 +229,6 @@ void ServerDeactivate()
 	UnsetHookVirtual(&g_PlayerSpawn_Hook);
 	RETURN_META(MRES_IGNORED);
 }
-
 
 #define CLIENT_PRINT (*g_engfuncs.pfnClientPrintf)
 
@@ -288,7 +274,7 @@ void ClientCommand(edict_t *pEntity)
 		sprintf(buf, "\n%s %s\n", Plugin_info.name, Plugin_info.version);
 		CLIENT_PRINT(pEntity, print_console, buf);
 		len = sprintf(buf, "Author: \n         KORD_12.7 (AGHL.RU Dev Team)\n");
-		len += sprintf(&buf[len], "Credits: \n         AMXX Dev team, 6a6kin, GordonFreeman, Koshak, Lev, noo00oob\n");
+		len += sprintf(&buf[len], "Credits: \n         AMXX Dev team, Arkshine, 6a6kin, GordonFreeman, Koshak, Lev, noo00oob\n");
 		len += sprintf(&buf[len], "Compiled: %s\nURL: http://www.aghl.ru/ - Russian Half-Life and Adrenaline Gamer Community.\n\n", __DATE__ ", " __TIME__);
 		CLIENT_PRINT(pEntity, print_console, buf);
 
@@ -407,122 +393,4 @@ void WpnModCommand(void)
 		printf("   %-22s - %s\n", "items", "displays information about registered weapons and ammo.");
 		printf("   %-22s - %s\n", "gpl", "print the license.");
 	}
-}
-
-
-
-
-
-
-
-edict_t* Weapon_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles)
-{
-	if (!szName)
-	{
-		return NULL;
-	}
-
-	int iId = 0;
-	
-	for (int i = 1; i <= g_iWeaponsCount; i++)
-	{
-		if (WeaponInfoArray[i].iType == Wpn_Custom && !_stricmp(GetWeapon_pszName(i), szName))
-		{
-			iId = i;
-			break;
-		}
-	}
-
-	if (!iId)
-	{
-		return NULL;
-	}
-
-	edict_t* pItem = CREATE_NAMED_ENTITY(MAKE_STRING("weapon_crowbar"));
-
-	if (IsValidPev(pItem))
-	{
-		MDLL_Spawn(pItem);
-		SET_ORIGIN(pItem, vecOrigin);
-
-		pItem->v.classname = MAKE_STRING(GetWeapon_pszName(iId));
-		pItem->v.angles = vecAngles;
-
-		SetPrivateInt(pItem, pvData_iId, iId);
-
-		if (GetWeapon_MaxClip(iId) != -1)
-		{
-			SetPrivateInt(pItem, pvData_iClip, 0);
-		}
-
-		if (WeaponInfoArray[iId].iForward[Fwd_Wpn_Spawn])
-		{
-			MF_ExecuteForward
-			(
-				WeaponInfoArray[iId].iForward[Fwd_Wpn_Spawn],
-
-				static_cast<cell>(ENTINDEX(pItem)), 
-				static_cast<cell>(0), 
-				static_cast<cell>(0), 
-				static_cast<cell>(0),
-				static_cast<cell>(0)
-			);
-		}	
-
-		return pItem;
-	}
-
-	return NULL;
-}
-
-
-
-edict_t* Ammo_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles)
-{
-	if (!szName)
-	{
-		return NULL;
-	}
-
-	int iId = 0;
-	
-	for (int i = 1; i <= g_iAmmoBoxIndex; i++)
-	{
-		if (!_stricmp(AmmoBoxInfoArray[i].classname.c_str(), szName))
-		{
-			iId = i;
-			break;
-		}
-	}
-
-	if (!iId)
-	{
-		return NULL;
-	}
-
-	edict_t* pAmmoBox = CREATE_NAMED_ENTITY(MAKE_STRING("ammo_rpgclip"));
-
-	if (IsValidPev(pAmmoBox))
-	{
-		MDLL_Spawn(pAmmoBox);
-		SET_ORIGIN(pAmmoBox, vecOrigin);
-		
-		pAmmoBox->v.classname = MAKE_STRING(AmmoBoxInfoArray[iId].classname.c_str());
-		pAmmoBox->v.angles = vecAngles;
-
-		if (AmmoBoxInfoArray[iId].iForward[Fwd_Ammo_Spawn])
-		{
-			MF_ExecuteForward
-			(
-				AmmoBoxInfoArray[iId].iForward[Fwd_Ammo_Spawn],
-				static_cast<cell>(ENTINDEX(pAmmoBox)),
-				static_cast<cell>(0)
-			);
-		}
-
-		//SET_SIZE(pAmmoBox, Vector(-16, -16, 0), Vector(16, 16, 16));
-		return pAmmoBox;
-	}
-
-	return NULL;
 }

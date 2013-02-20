@@ -1,6 +1,6 @@
 /*
  * Half-Life Weapon Mod
- * Copyright (c) 2012 AGHL.RU Dev Team
+ * Copyright (c) 2012 - 2013 AGHL.RU Dev Team
  * 
  * http://aghl.ru/forum/ - Russian Half-Life and Adrenaline Gamer Community
  *
@@ -31,28 +31,16 @@
  *
  */
 
-#ifndef _WPNMOD_H
-#define _WPNMOD_H
+#ifndef _CONFIG_H
+#define _CONFIG_H
 
 #include "amxxmodule.h"
+
 #include "CString.h"
 #include "CVector.h"
 #include "cbase.h"
 
-
-#include "wpnmod_hooker.h"
-//#include "wpnmod_parse.h"
-#include "wpnmod_utils.h"
-#include "utils.h"
-
-
-
-extern CVector <VirtualHookData *> g_BlockedItems;
-
-
-
-extern edict_t* Ammo_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles);
-extern edict_t* Weapon_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles);
+#include "wpnmod_vhooker.h"
 
 
 #ifdef __linux__
@@ -70,27 +58,12 @@ extern edict_t* Weapon_Spawn(const char* szName, Vector vecOrigin, Vector vecAng
 #define ITEM_FLAG_LIMITINWORLD				8
 #define ITEM_FLAG_EXHAUSTIBLE				16
 
-
-#define SetEntForward(ent, call, handler, forward) \
-	g_Ents[ENTINDEX(ent)].i##call = forward; \
-	Set##call##_(ent, handler);
-
-
 enum e_AmmoFwds
 {
 	Fwd_Ammo_Spawn,
 	Fwd_Ammo_AddAmmo,
 
 	Fwd_Ammo_End
-};
-
-enum e_WpnType
-{
-	Wpn_None,
-	Wpn_Default,
-	Wpn_Custom,
-
-	Wpn_End
 };
 
 enum e_WpnFwds
@@ -111,15 +84,14 @@ enum e_WpnFwds
 	Fwd_Wpn_End
 };
 
-typedef enum
+enum e_WpnType
 {
-	PLAYER_IDLE,
-	PLAYER_WALK,
-	PLAYER_JUMP,
-	PLAYER_SUPERJUMP,
-	PLAYER_DIE,
-	PLAYER_ATTACK1,
-} PLAYER_ANIM;
+	Wpn_None,
+	Wpn_Default,
+	Wpn_Custom,
+
+	Wpn_End
+};
 
 typedef struct
 {
@@ -138,33 +110,84 @@ typedef struct
 
 typedef struct
 {
-	String title;
-    String author;
-    String version;
+	String	classname;
+	int		iForward[Fwd_Ammo_End];
 
-	e_WpnType iType;
-	ItemInfo ItemData;
-
-	int iForward[Fwd_Wpn_End];
-} WeaponData;
-
-typedef struct
-{
-	String classname;
-	int iForward[Fwd_Ammo_End];
 } AmmoBoxData;
 
 typedef struct
 {
-	const char *ammoname;
-	int count;
-} StartAmmo;
+	String		title;
+    String		author;
+    String		version;
+
+	e_WpnType	iType;
+	ItemInfo	ItemData;
+
+	int			iForward[Fwd_Wpn_End];
+
+} WeaponData;
 
 typedef struct 
 {
-	const char	*name;
-	int		index;
+	const char*	name;
+	int			index;
+
 } DecalList;
+
+typedef struct
+{
+	const char*	ammoname;
+	int			count;
+
+} StartAmmo;
+
+extern AMX_NATIVE_INFO Natives[];
+
+extern edict_t* g_EquipEnt;
+
+extern int g_iWeaponsCount;
+extern int g_iWeaponInitID;
+extern int g_iAmmoBoxIndex;
+
+extern cvar_t *cvar_aghlru;
+extern cvar_t *cvar_sv_cheats;
+extern cvar_t *cvar_mp_weaponstay;
+
+extern CVector <DecalList*>			g_Decals;
+extern CVector <StartAmmo*>			g_StartAmmo;
+extern CVector <VirtualHookData*>	g_BlockedItems;
+
+extern BOOL g_AmmoBoxHooksEnabled;
+extern BOOL g_CrowbarHooksEnabled;
+
+extern WeaponData	WeaponInfoArray	[MAX_WEAPONS];
+extern AmmoBoxData	AmmoBoxInfoArray[MAX_WEAPONS];
+
+extern char	g_ConfigFilepath[1024];
+extern int	g_iCurrentSlots[MAX_WEAPON_SLOTS][MAX_WEAPON_POSITIONS];
+
+extern void		SetConfigFile	(void);
+extern void		WpnModCommand	(void);
+
+extern	edict_t*		Ammo_Spawn			(const char* szName, Vector vecOrigin, Vector vecAngles);
+extern	edict_t*		Weapon_Spawn		(const char* szName, Vector vecOrigin, Vector vecAngles);
+extern	void			AutoSlotDetection	(int iWeaponID, int iSlot, int iPosition);
+
+inline int			GetWeapon_Slot(const int iId)			{ return WeaponInfoArray[iId].ItemData.iSlot; }
+inline int			GetWeapon_ItemPosition(const int iId)	{ return WeaponInfoArray[iId].ItemData.iPosition; }
+inline const char*	GetWeapon_pszAmmo1(const int iId)		{ return WeaponInfoArray[iId].ItemData.pszAmmo1; }
+inline int			GetWeapon_MaxAmmo1(const int iId)		{ return WeaponInfoArray[iId].ItemData.iMaxAmmo1; }
+inline const char*	GetWeapon_pszAmmo2(const int iId)		{ return WeaponInfoArray[iId].ItemData.pszAmmo2; }
+inline int			GetWeapon_MaxAmmo2(const int iId)		{ return WeaponInfoArray[iId].ItemData.iMaxAmmo2; }
+inline const char*	GetWeapon_pszName(const int iId)		{ return WeaponInfoArray[iId].ItemData.pszName; }
+inline int			GetWeapon_MaxClip(const int iId)		{ return WeaponInfoArray[iId].ItemData.iMaxClip; }
+inline int			GetWeapon_Weight(const int iId)			{ return WeaponInfoArray[iId].ItemData.iWeight; }
+inline int			GetWeapon_Flags(const int iId)			{ return WeaponInfoArray[iId].ItemData.iFlags; }
+
+#define SetEntForward(ent, call, handler, forward)	\
+	g_Ents[ENTINDEX(ent)].i##call = forward;		\
+	Set##call##_(ent, handler);						\
 
 class CPlugin
 {
@@ -179,41 +202,14 @@ public:
     String        errorMsg;
 };
 
-extern int g_iWeaponsCount;
-extern int g_iWeaponInitID;
-extern int g_iAmmoBoxIndex;
+typedef enum
+{
+	PLAYER_IDLE,
+	PLAYER_WALK,
+	PLAYER_JUMP,
+	PLAYER_SUPERJUMP,
+	PLAYER_DIE,
+	PLAYER_ATTACK1,
+} PLAYER_ANIM;
 
-extern edict_t* g_EquipEnt;
-
-extern BOOL g_CrowbarHooksEnabled;
-
-extern cvar_t *cvar_aghlru;
-extern cvar_t *cvar_sv_cheats;
-extern cvar_t *cvar_mp_weaponstay;
-
-extern int g_iCurrentSlots[MAX_WEAPON_SLOTS][MAX_WEAPON_POSITIONS];
-
-extern WeaponData WeaponInfoArray[MAX_WEAPONS];
-extern AmmoBoxData AmmoBoxInfoArray[MAX_WEAPONS];
-
-extern CVector <DecalList *> g_Decals;
-extern CVector <StartAmmo *> g_StartAmmo;
-
-
-extern AMX_NATIVE_INFO Natives[];
-
-extern void WpnModCommand(void);
-
-inline int			GetWeapon_Slot(const int iId)			{ return WeaponInfoArray[iId].ItemData.iSlot; }
-inline int			GetWeapon_ItemPosition(const int iId)	{ return WeaponInfoArray[iId].ItemData.iPosition; }
-inline const char	*GetWeapon_pszAmmo1(const int iId)		{ return WeaponInfoArray[iId].ItemData.pszAmmo1; }
-inline int			GetWeapon_MaxAmmo1(const int iId)		{ return WeaponInfoArray[iId].ItemData.iMaxAmmo1; }
-inline const char	*GetWeapon_pszAmmo2(const int iId)		{ return WeaponInfoArray[iId].ItemData.pszAmmo2; }
-inline int			GetWeapon_MaxAmmo2(const int iId)		{ return WeaponInfoArray[iId].ItemData.iMaxAmmo2; }
-inline const char	*GetWeapon_pszName(const int iId)			{ return WeaponInfoArray[iId].ItemData.pszName; }
-inline int			GetWeapon_MaxClip(const int iId)			{ return WeaponInfoArray[iId].ItemData.iMaxClip; }
-inline int			GetWeapon_Weight(const int iId)			{ return WeaponInfoArray[iId].ItemData.iWeight; }
-inline int			GetWeapon_Flags(const int iId)			{ return WeaponInfoArray[iId].ItemData.iFlags; }
-
-
-#endif // _WPNMOD_H
+#endif // _CONFIG_H

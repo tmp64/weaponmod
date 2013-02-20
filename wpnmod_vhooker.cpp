@@ -31,19 +31,91 @@
  *
  */
 
-#ifndef UTILS_H
-#define UTILS_H
-
 #include "amxxmodule.h"
+#include "wpnmod_vhooker.h"
+#include "wpnmod_utils.h"
 
-namespace Util
+
+int g_EntityVTableOffsetPev;
+int g_EntityVTableOffsetBase;
+
+void SetVTableOffsetPev(int iOffset)
 {
-	extern	int		ReadNumber		(char *input);
-	extern	bool	FileExists		(const char *dir);
-	extern	char*	COM_ParseFile	(char *data, char *token);
-	extern	char*	ParseArg		(char** line, int& state, char delimiter);
-	extern	void	TrimLine		(char *input);
-	extern	Vector	ParseVec		(char *pString);
+	g_EntityVTableOffsetPev = iOffset;
 }
 
-#endif // UTILS_H
+void SetVTableOffsetBase(int iOffset)
+{
+	g_EntityVTableOffsetBase = iOffset;
+}
+
+void SetHookVirtual(VirtualHookData* hook)
+{
+	if (hook)
+	{
+		hook->done = HandleHookVirtual(hook, false);
+	}
+}
+
+void UnsetHookVirtual(VirtualHookData* hook)
+{
+	if (hook && hook->done)
+	{
+		hook->done = HandleHookVirtual(hook, true);
+	}
+}
+
+bool HandleHookVirtual(VirtualHookData* hook, bool bRevert)
+{
+	edict_t* pEdict = CREATE_ENTITY();
+
+	CALL_GAME_ENTITY(PLID, hook->classname, &pEdict->v);
+
+	if (pEdict->pvPrivateData == NULL)
+	{
+		REMOVE_ENTITY(pEdict);
+		return FALSE;
+	}
+
+	void** vtable = GET_VTABLE(pEdict);
+
+	if (vtable == NULL)
+	{
+		return FALSE;
+	}
+
+	int** ivtable = (int**)vtable;
+
+	int offset = g_vtblOffsets[hook->offset];
+
+	if (!bRevert)
+	{
+		hook->address = (void*)ivtable[offset];
+	}
+
+	#ifdef __linux__
+
+		void* alignedAddress = (void *)ALIGN(&ivtable[offset]);
+		mprotect(alignedAddress, sysconf(_SC_PAGESIZE), PROT_READ | PROT_WRITE);
+
+	#else
+
+		static DWORD oldProtection;
+
+		FlushInstructionCache(GetCurrentProcess(), &ivtable[offset], sizeof(int*));
+		VirtualProtect(&ivtable[offset], sizeof(int*), PAGE_READWRITE, &oldProtection);
+
+	#endif
+
+	if (bRevert)
+	{
+		ivtable[offset] = ( int* )hook->address;
+	}
+	else
+	{
+		ivtable[offset] = ( int* )hook->handler;
+	}
+
+	REMOVE_ENTITY( pEdict );
+	return true;
+}

@@ -16,15 +16,13 @@ NAME = weaponmod
 
 BIN_SUFFIX = amxx_i386.so
 
-OBJECTS = sdk/amxxmodule.cpp  grenade.cpp \
-hooks.cpp  libFunc.cpp  meta_api.cpp  natives.cpp \
-parse.cpp  srvcmd.cpp  utils.cpp
+OBJECTS = sdk/amxxmodule.cpp wpnmod_config.cpp wpnmod_grenade.cpp wpnmod_hooker.cpp wpnmod_hooks.cpp wpnmod_main.cpp wpnmod_natives.cpp wpnmod_parse.cpp wpnmod_utils.cpp wpnmod_vhooker.cpp utils.cpp
 
 
 LINK = 
 
 INCLUDE = -I. -I$(HLSDK) -I$(HLSDK)/dlls -I$(HLSDK)/engine -I$(HLSDK)/game_shared -I$(HLSDK)/game_shared \
-	-I$(MM_ROOT) -I$(HLSDK)/common -I$(HLSDK)/pm_shared -I./tableentries -Isdk
+	-I$(MM_ROOT) -I$(HLSDK)/common -I$(HLSDK)/pm_shared -I./tableentries -Isdk -Iinclude
 
 GCC_VERSION := $(shell $(CPP) -dumpversion >&1 | cut -b1)
 

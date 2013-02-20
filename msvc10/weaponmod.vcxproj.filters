@@ -1,9 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="..\meta_api.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\wpnmod_utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -11,9 +8,6 @@
       <Filter>Module SDK\SDK Base</Filter>
     </ClCompile>
     <ClCompile Include="..\utils.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\virtual_hooker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\wpnmod_hooker.cpp">
@@ -31,27 +25,24 @@
     <ClCompile Include="..\wpnmod_hooks.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\wpnmod_vhooker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wpnmod_config.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wpnmod_main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\sdk\moduleconfig.h">
       <Filter>Module SDK</Filter>
     </ClInclude>
-    <ClInclude Include="..\weaponmod.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\sdk\CString.h">
-      <Filter>Module SDK\AMXX STL</Filter>
-    </ClInclude>
-    <ClInclude Include="..\sdk\CVector.h">
-      <Filter>Module SDK\AMXX STL</Filter>
-    </ClInclude>
     <ClInclude Include="..\sdk\amxxmodule.h">
       <Filter>Module SDK\SDK Base</Filter>
     </ClInclude>
     <ClInclude Include="..\include\utils.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\virtual_hooker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\wpnmod_utils.h">
@@ -66,7 +57,19 @@
     <ClInclude Include="..\include\wpnmod_parse.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\wpnmod_hooks.h">
+    <ClInclude Include="..\include\wpnmod_vhooker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\wpnmod_config.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\CString.h">
+      <Filter>Module SDK\AMXX STL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\CVector.h">
+      <Filter>Module SDK\AMXX STL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\wpnmod_hooks.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
