@@ -301,14 +301,17 @@ BOOL Entity_IsInWorld(edict_t *pEntity)
 	if (pEntity->v.origin.x <= -4096) return FALSE;
 	if (pEntity->v.origin.y <= -4096) return FALSE;
 	if (pEntity->v.origin.z <= -4096) return FALSE;
-	// speed
-	if (pEntity->v.velocity.x >= 2000) return FALSE;
-	if (pEntity->v.velocity.y >= 2000) return FALSE;
-	if (pEntity->v.velocity.z >= 2000) return FALSE;
-	if (pEntity->v.velocity.x <= -2000) return FALSE;
-	if (pEntity->v.velocity.y <= -2000) return FALSE;
-	if (pEntity->v.velocity.z <= -2000) return FALSE;
+/*
+	float flMaxVelocity = CVAR_GET_FLOAT("sv_maxvelocity");
 
+	// speed
+	if (pEntity->v.velocity.x >= flMaxVelocity) return FALSE;
+	if (pEntity->v.velocity.y >= flMaxVelocity) return FALSE;
+	if (pEntity->v.velocity.z >= flMaxVelocity) return FALSE;
+	if (pEntity->v.velocity.x <= -flMaxVelocity) return FALSE;
+	if (pEntity->v.velocity.y <= -flMaxVelocity) return FALSE;
+	if (pEntity->v.velocity.z <= -flMaxVelocity) return FALSE;
+*/
 	return TRUE;
 }
 

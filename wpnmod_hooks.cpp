@@ -787,12 +787,12 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 
 	edict_t* pPlayer = PrivateToEdict(pvPlayer);
 
-	if (!IsValidPev(pPlayer))
+	if (!IsValidPev(pPlayer) || pPlayer->v.movetype == MOVETYPE_NOCLIP)
 	{
 		return;
 	}
 
-	if (IsValidPev(g_EquipEnt) && pPlayer->v.movetype != MOVETYPE_NOCLIP)
+	if (IsValidPev(g_EquipEnt))
 	{
 		edict_t* pTaskEnt = CREATE_NAMED_ENTITY(MAKE_STRING("info_target"));
 

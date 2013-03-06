@@ -228,9 +228,9 @@ static cell AMX_NATIVE_CALL wpnmod_register_weapon_forward(AMX *amx, cell *param
 {
 	int iId = params[1];
 
-	if (iId <= 0 || iId >= MAX_WEAPONS || WeaponInfoArray[iId].iType != Wpn_Custom)
+	if (iId <= 0 || iId > g_iWeaponsCount || WeaponInfoArray[iId].iType != Wpn_Custom)
 	{
-		MF_LogError(amx, AMX_ERR_NATIVE, "Invalid weapon id provided. Got: %d  Valid: 16 up to %d.", iId, MAX_WEAPONS - 1);
+		MF_LogError(amx, AMX_ERR_NATIVE, "Invalid weapon id provided (%d).", iId);
 		return 0;
 	}
 
@@ -238,7 +238,7 @@ static cell AMX_NATIVE_CALL wpnmod_register_weapon_forward(AMX *amx, cell *param
 
 	if (Fwd < 0 || Fwd >= Fwd_Wpn_End)
 	{
-		MF_LogError(amx, AMX_ERR_NATIVE, "Function out of bounds. Got: %d  Max: %d.", iId, Fwd_Wpn_End - 1);
+		MF_LogError(amx, AMX_ERR_NATIVE, "Function out of bounds. Got: %d, Max: %d.", iId, Fwd_Wpn_End - 1);
 		return 0;
 	}
 
@@ -302,44 +302,29 @@ static cell AMX_NATIVE_CALL wpnmod_get_weapon_info(AMX *amx, cell *params)
 
 	edict_t* pItem = NULL;
 
-	if (iId >= MAX_WEAPONS)
-	{
-		CHECK_ENTITY(iId)
-		pItem = INDEXENT2(iId);
-	}
-	else if (WeaponInfoArray[iId].iType == Wpn_None)
-	{
-		MF_LogError(amx, AMX_ERR_NATIVE, "Invalid weapon id provided (%d).", iId);
-		return 0;
-	}
-	
 	if (iSwitch < ItemInfo_isCustom || iSwitch > ItemInfo_szVersion)
 	{
 		MF_LogError(amx, AMX_ERR_NATIVE, "Undefined e_ItemInfo index: %d", iSwitch);
 		return 0;
 	}
 
-	ItemInfo pII;
-	memset(&pII, 0, sizeof pII);
-
-	if (pItem)
+	if (iId <= 0 || iId > gpGlobals->maxEntities)
 	{
-		GET_ITEM_INFO(pItem, &pII);
-		iId = pII.iId;
+		MF_LogError(amx, AMX_ERR_NATIVE, "Invalid entity or weapon id provided (%d).", iId);
+		return 0;
 	}
-	else
+
+	pItem = INDEXENT2(iId);
+
+	if (IsValidPev(pItem) && strstr(STRING(pItem->v.classname), "weapon_"))
 	{
-		pII.iId = iId;
-		pII.iSlot = GetWeapon_Slot(iId);
-		pII.iPosition = GetWeapon_ItemPosition(iId);
-		pII.iMaxAmmo1 = GetWeapon_MaxAmmo1(iId);
-		pII.iMaxAmmo2 = GetWeapon_MaxAmmo2(iId);
-		pII.iMaxClip = GetWeapon_MaxClip(iId);
-		pII.iFlags = GetWeapon_Flags(iId);
-		pII.iWeight = GetWeapon_Weight(iId);
-		pII.pszName = GetWeapon_pszName(iId);
-		pII.pszAmmo1 = GetWeapon_pszAmmo1(iId);
-		pII.pszAmmo2 = GetWeapon_pszAmmo2(iId);
+		iId = GetPrivateInt(pItem, pvData_iId);
+	}
+	
+	if (iId <= 0 || iId > g_iWeaponsCount)
+	{
+		MF_LogError(amx, AMX_ERR_NATIVE, "Invalid weapon id provided (%d).", iId);
+		return 0;
 	}
 
 	size_t paramnum = params[0] / sizeof(cell);
@@ -348,24 +333,32 @@ static cell AMX_NATIVE_CALL wpnmod_get_weapon_info(AMX *amx, cell *params)
 	{
 		switch (iSwitch)
 		{
-		case ItemInfo_isCustom:
-			return WeaponInfoArray[iId].iType != Wpn_Default;
-		case ItemInfo_iSlot:
-			return pII.iSlot;
-		case ItemInfo_iPosition:
-			return pII.iPosition;
-		case ItemInfo_iMaxAmmo1:
-			return pII.iMaxAmmo1;
-		case ItemInfo_iMaxAmmo2:
-			return pII.iMaxAmmo2;
-		case ItemInfo_iMaxClip:
-			return pII.iMaxClip;
-		case ItemInfo_iId:
-			return pII.iId;
-		case ItemInfo_iFlags:
-			return pII.iFlags;
-		case ItemInfo_iWeight:
-			return pII.iWeight;
+			case ItemInfo_isCustom:
+				return WeaponInfoArray[iId].iType != Wpn_Default;
+
+			case ItemInfo_iSlot:
+				return GetWeapon_Slot(iId);
+
+			case ItemInfo_iPosition:
+				return GetWeapon_ItemPosition(iId);
+
+			case ItemInfo_iMaxAmmo1:
+				return GetWeapon_MaxAmmo1(iId);
+
+			case ItemInfo_iMaxAmmo2:
+				return GetWeapon_MaxAmmo2(iId);
+
+			case ItemInfo_iMaxClip:
+				return GetWeapon_MaxClip(iId);
+
+			case ItemInfo_iId:
+				return iId;
+
+			case ItemInfo_iFlags:
+				return GetWeapon_Flags(iId);
+
+			case ItemInfo_iWeight:
+				return GetWeapon_Weight(iId);
 		}
 	}
 	else if (iSwitch >= ItemInfo_szName && iSwitch <= ItemInfo_szVersion && paramnum == 4)
@@ -374,28 +367,30 @@ static cell AMX_NATIVE_CALL wpnmod_get_weapon_info(AMX *amx, cell *params)
 
 		switch (iSwitch)
 		{
-		case ItemInfo_szName:
-			szReturnValue = pII.pszName;
-			break;
-		case ItemInfo_szAmmo1:
-			szReturnValue = pII.pszAmmo1;
-			break;
-		case ItemInfo_szAmmo2:
-			szReturnValue = pII.pszAmmo2;
-			break;
-		case ItemInfo_szTitle:
-			szReturnValue = WeaponInfoArray[iId].title.c_str();
-			break;
-		case ItemInfo_szAuthor:
-			szReturnValue = WeaponInfoArray[iId].author.c_str();
-			break;
-		case ItemInfo_szVersion:
-			szReturnValue = WeaponInfoArray[iId].version.c_str();
-			break;
+			case ItemInfo_szName:
+				szReturnValue = GetWeapon_pszName(iId);
+				break;
+			case ItemInfo_szAmmo1:
+				szReturnValue = GetWeapon_pszAmmo1(iId);
+				break;
+			case ItemInfo_szAmmo2:
+				szReturnValue = GetWeapon_pszAmmo2(iId);
+				break;
+			case ItemInfo_szTitle:
+				szReturnValue = WeaponInfoArray[iId].title.c_str();
+				break;
+			case ItemInfo_szAuthor:
+				szReturnValue = WeaponInfoArray[iId].author.c_str();
+				break;
+			case ItemInfo_szVersion:
+				szReturnValue = WeaponInfoArray[iId].version.c_str();
+				break;
 		}	
 
 		if (!szReturnValue)
+		{
 			szReturnValue = "";
+		}
 
 		return MF_SetAmxString(amx, params[3], szReturnValue, params[4]);
 	}
@@ -426,24 +421,21 @@ static cell AMX_NATIVE_CALL wpnmod_get_ammobox_info(AMX *amx, cell *params)
 
 	edict_t* pAmmoBox = NULL;
 
-	if (iId > g_iAmmoBoxIndex)
-	{
-		CHECK_ENTITY(iId)
-		pAmmoBox = INDEXENT2(iId);
-	}
-	else if (iId < 0)
-	{
-		MF_LogError(amx, AMX_ERR_NATIVE, "Invalid ammobox id provided. Got: %d  Valid: 0 up to %d.", iId, MAX_WEAPONS - 1);
-		return 0;
-	}
-
 	if (iSwitch < AmmoInfo_szName || iSwitch > AmmoInfo_szName)
 	{
 		MF_LogError(amx, AMX_ERR_NATIVE, "Undefined e_AmmoInfo index: %d", iSwitch);
 		return 0;
 	}
 
-	if (pAmmoBox)
+	if (iId <= 0 || iId > gpGlobals->maxEntities)
+	{
+		MF_LogError(amx, AMX_ERR_NATIVE, "Invalid entity or ammobox id provided (%d).", iId);
+		return 0;
+	}
+
+	pAmmoBox = INDEXENT2(iId);
+
+	if (IsValidPev(pAmmoBox) && strstr(STRING(pAmmoBox->v.classname), "ammo_"))
 	{
 		for (int i = 1; i <= g_iAmmoBoxIndex; i++)
 		{
@@ -453,6 +445,12 @@ static cell AMX_NATIVE_CALL wpnmod_get_ammobox_info(AMX *amx, cell *params)
 				break;
 			}
 		}
+	}
+	
+	if (iId <= 0 || iId > g_iAmmoBoxIndex)
+	{
+		MF_LogError(amx, AMX_ERR_NATIVE, "Invalid ammobox id provided (%d).", iId);
+		return 0;
 	}
 
 	size_t paramnum = params[0] / sizeof(cell);
@@ -469,7 +467,9 @@ static cell AMX_NATIVE_CALL wpnmod_get_ammobox_info(AMX *amx, cell *params)
 		}	
 
 		if (!szReturnValue)
+		{
 			szReturnValue = "";
+		}
 
 		return MF_SetAmxString(amx, params[3], szReturnValue, params[4]);
 	}
@@ -575,8 +575,8 @@ static cell AMX_NATIVE_CALL wpnmod_get_anim_ext(AMX *amx, cell *params)
 	int iPlayer = params[1];
 
 	CHECK_ENTITY(iPlayer)
-	MF_SetAmxString(amx, params[2], GetPrivateString(INDEXENT2(iPlayer), pvData_szAnimExtention), params[3]);
-	return 1;
+
+	return MF_SetAmxString(amx, params[2], GetPrivateString(INDEXENT2(iPlayer), pvData_szAnimExtention), params[3]);
 }
 
 /**
@@ -602,7 +602,7 @@ static cell AMX_NATIVE_CALL wpnmod_get_player_ammo(AMX *amx, cell *params)
 		return GetAmmoInventory(INDEXENT2(iPlayer), iAmmoIndex);
 	}
 
-	return 0;
+	return -1;
 }
 
 /**
@@ -835,25 +835,33 @@ static cell AMX_NATIVE_CALL wpnmod_set_think(AMX *amx, cell *params)
 
 	char *funcname = MF_GetAmxString(amx, params[2], 0, NULL);
 
-	int iForward = MF_RegisterSPForwardByName
-	(
-		amx, 
-		funcname, 
-		FP_CELL, 
-		FP_CELL, 
-		FP_CELL, 
-		FP_CELL, 
-		FP_CELL, 
-		FP_DONE
-	);
-
-	if (iForward == -1)
+	if (!strlen(funcname))
 	{
-		MF_LogError(amx, AMX_ERR_NATIVE, "Function not found (\"%s\").", funcname);
-		return 0;
+		SetEntForward(INDEXENT2(iEntity), Think, NULL, NULL);
+	}
+	else
+	{
+		int iForward = MF_RegisterSPForwardByName
+		(
+			amx, 
+			funcname, 
+			FP_CELL, 
+			FP_CELL, 
+			FP_CELL, 
+			FP_CELL, 
+			FP_CELL, 
+			FP_DONE
+		);
+
+		if (iForward == -1)
+		{
+			MF_LogError(amx, AMX_ERR_NATIVE, "Function not found (\"%s\").", funcname);
+			return 0;
+		}
+
+		SetEntForward(INDEXENT2(iEntity), Think, (void*)Global_Think, iForward);
 	}
 
-	SetEntForward(INDEXENT2(iEntity), Think, (void*)Global_Think, iForward);
 	return 1;
 }
 
@@ -873,22 +881,30 @@ static cell AMX_NATIVE_CALL wpnmod_set_touch(AMX *amx, cell *params)
 
 	char *funcname = MF_GetAmxString(amx, params[2], 0, NULL);
 
-	int iForward = MF_RegisterSPForwardByName
-	(
-		amx, 
-		funcname, 
-		FP_CELL, 
-		FP_CELL, 
-		FP_DONE
-	);
-
-	if (iForward == -1)
+	if (!strlen(funcname))
 	{
-		MF_LogError(amx, AMX_ERR_NATIVE, "Function not found (\"%s\").", funcname);
-		return 0;
+		SetEntForward(INDEXENT2(iEntity), Touch, NULL, NULL);
+	}
+	else
+	{
+		int iForward = MF_RegisterSPForwardByName
+		(
+			amx, 
+			funcname, 
+			FP_CELL, 
+			FP_CELL, 
+			FP_DONE
+		);
+
+		if (iForward == -1)
+		{
+			MF_LogError(amx, AMX_ERR_NATIVE, "Function not found (\"%s\").", funcname);
+			return 0;
+		}
+
+		SetEntForward(INDEXENT2(iEntity), Touch, (void*)Global_Touch, iForward);
 	}
 
-	SetEntForward(INDEXENT2(iEntity), Touch, (void*)Global_Touch, iForward);
 	return 1;
 }
 
@@ -1179,9 +1195,9 @@ static cell AMX_NATIVE_CALL wpnmod_register_ammobox_forward(AMX *amx, cell *para
 {
 	int iId = params[1];
 
-	if (iId <= 0 || iId >= MAX_WEAPONS)
+	if (iId <= 0 || iId > g_iAmmoBoxIndex)
 	{
-		MF_LogError(amx, AMX_ERR_NATIVE, "Invalid ammobox id provided. Got: %d  Valid: 1 up to %d.", iId, MAX_WEAPONS - 1);
+		MF_LogError(amx, AMX_ERR_NATIVE, "Invalid ammobox id provided (%d).", iId);
 		return 0;
 	}
 
@@ -1189,7 +1205,7 @@ static cell AMX_NATIVE_CALL wpnmod_register_ammobox_forward(AMX *amx, cell *para
 
 	if (Fwd < 0 || Fwd >= Fwd_Ammo_End)
 	{
-		MF_LogError(amx, AMX_ERR_NATIVE, "Function out of bounds. Got: %d  Max: %d.", iId, Fwd_Ammo_End - 1);
+		MF_LogError(amx, AMX_ERR_NATIVE, "Function out of bounds. Got: %d, Max: %d.", iId, Fwd_Ammo_End - 1);
 		return 0;
 	}
 

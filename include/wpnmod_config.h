@@ -186,6 +186,7 @@ inline int			GetWeapon_Weight(const int iId)			{ return WeaponInfoArray[iId].Ite
 inline int			GetWeapon_Flags(const int iId)			{ return WeaponInfoArray[iId].ItemData.iFlags; }
 
 #define SetEntForward(ent, call, handler, forward)	\
+													\
 	g_Ents[ENTINDEX(ent)].i##call = forward;		\
 	Set##call##_(ent, handler);						\
 

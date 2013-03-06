@@ -246,7 +246,7 @@ inline void SetThink_(edict_t* e, void* funcAddress)
 #endif 
 }
 
-#define IsValidPev(entity)	((int)entity != -1 && !FNullEnt(entity) && entity->pvPrivateData)
+#define IsValidPev(entity)	(!FNullEnt(entity) && entity->pvPrivateData)
 
 #define CBTEXTURENAMEMAX		13
 
