@@ -1493,6 +1493,55 @@ static cell AMX_NATIVE_CALL wpnmod_decal_trace(AMX *amx, cell *params)
 	return 1;
 }
 
+/**
+ * Detects the texture of an entity from a direction.
+ *
+ * @param iEntity			Entity index that we want to get the texture.
+ * @param vecSrc			The point from where the trace starts.
+ * @param vecEnd			The point where the trace ends.
+ * @param szTextureName		Buffer to save the texture name.
+ * @param iLen				Buffer's length.
+ *
+ * native wpnmod_trace_texture(const iEntity, const Float: vecSrc[3], const Float: vecEnd[3], szTextureName[], const iLen);
+*/
+static cell AMX_NATIVE_CALL wpnmod_trace_texture(AMX *amx, cell *params)
+{
+	Vector vecSrc;
+	Vector vecEnd;
+
+	edict_t *pEntity = NULL;
+
+	if (!params[1])
+	{
+		pEntity = ENT(0);
+	}
+	else
+	{
+		CHECK_ENTITY(params[1])
+		pEntity = INDEXENT2(params[1]);
+	}
+
+	cell *vSrc = MF_GetAmxAddr(amx, params[2]);
+	cell *vEnd = MF_GetAmxAddr(amx, params[3]);
+
+	vecSrc.x = amx_ctof(vSrc[0]);
+	vecSrc.y = amx_ctof(vSrc[1]);
+	vecSrc.z = amx_ctof(vSrc[2]);
+
+	vecEnd.x = amx_ctof(vEnd[0]);
+	vecEnd.y = amx_ctof(vEnd[1]);
+	vecEnd.z = amx_ctof(vEnd[2]);
+
+	const char *pTextureName = TRACE_TEXTURE(pEntity, vecSrc, vecEnd);
+
+	if (!pTextureName)
+	{
+		pTextureName = "";
+	}
+
+	return MF_SetAmxString(amx, params[4], pTextureName, params[5]);
+}
+
 
 AMX_NATIVE_INFO Natives[] = 
 {
@@ -1533,6 +1582,7 @@ AMX_NATIVE_INFO Natives[] =
 	{ "wpnmod_get_gun_position", wpnmod_get_gun_position},
 	{ "wpnmod_explode_entity", wpnmod_explode_entity},
 	{ "wpnmod_decal_trace", wpnmod_decal_trace},
+	{ "wpnmod_trace_texture", wpnmod_trace_texture},
 
 	{ NULL, NULL }
 };

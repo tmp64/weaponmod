@@ -420,3 +420,14 @@ native wpnmod_explode_entity(const iEntity, const bitsDamageType = 0, const szCa
  * @param szDecalName		Decal name.
  */
 native wpnmod_decal_trace(const iTrace, const iDecalIndex = -1, const szDecalName[] = "");
+
+/**
+ * Detects the texture of an entity from a direction.
+ *
+ * @param iEntity			Entity index that we want to get the texture.
+ * @param vecSrc			The point from where the trace starts.
+ * @param vecEnd			The point where the trace ends.
+ * @param szTextureName		Buffer to save the texture name.
+ * @param iLen				Buffer's length.
+ */
+native wpnmod_trace_texture(const iEntity, const Float: vecSrc[3], const Float: vecEnd[3], szTextureName[], const iLen);
