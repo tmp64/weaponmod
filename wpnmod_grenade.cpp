@@ -109,8 +109,10 @@ void Grenade_Explode(edict_t* pGrenade, int bitsDamageType)
 
 	if (pTrace.flFraction != 1.0)
 	{
+		float flPullOut = pGrenade->v.fov ? pGrenade->v.fov : pGrenade->v.dmg * 0.6;
+
 		TraceResult tr;
-		TRACE_LINE(pGrenade->v.origin, pTrace.vecEndPos + (pTrace.vecPlaneNormal * pGrenade->v.dmg * 0.6), ignore_monsters, pGrenade, &tr);
+		TRACE_LINE(pGrenade->v.origin, pTrace.vecEndPos + (pTrace.vecPlaneNormal * flPullOut), ignore_monsters, pGrenade, &tr);
 
 		if (tr.flFraction == 1.0)
 		{
