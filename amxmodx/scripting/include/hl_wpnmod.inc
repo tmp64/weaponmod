@@ -228,6 +228,27 @@ native wpnmod_set_offset_float(const iEntity, const e_Offsets: iOffset, const Fl
 native Float: wpnmod_get_offset_float(const iEntity, const e_Offsets: iOffset);
 
 /**
+ * Set the corresponding cbase field in private data with the index.
+ *
+ * @param iEntity			The entity to examine the private data.
+ * @param iOffset			Offset (See e_CBase constants).
+ * @param iValue			The index to store.
+ * @param iExtraOffset		The extra offset.
+ */
+native wpnmod_set_offset_cbase(const iEntity, const e_CBase: iOffset, const iValue, const iExtraOffset = 0);
+
+/**
+ * This will return an index of the corresponding cbase field in private data.
+ *
+ * @param iEntity			The entity to examine the private data.
+ * @param iOffset			Offset (See e_CBase constants).
+ * @param iExtraOffset		The extra offset.
+ *
+ * @return					Value from private data. (integer)
+ */
+native wpnmod_get_offset_cbase(const iEntity, const e_CBase: iOffset, const iExtraOffset = 0);
+
+/**
  * Default deploy function.
  *
  * @param iItem				Weapon's entity index.

@@ -74,6 +74,11 @@ void SetPrivateCbase(edict_t *pEntity, int iOffset, edict_t* pValue)
 	*((void**)((int*)(edict_t*)(INDEXENT(0) + ENTINDEX(pEntity))->pvPrivateData + g_pvDataOffsets[iOffset])) = (INDEXENT(0) + ENTINDEX(pValue))->pvPrivateData;
 }
 
+void SetPrivateCbase(edict_t *pEntity, int iOffset, edict_t* pValue, int iExtraRealOffset)
+{
+	*((void**)((int*)(edict_t*)(INDEXENT(0) + ENTINDEX(pEntity))->pvPrivateData + g_pvDataOffsets[iOffset] + iExtraRealOffset)) = (INDEXENT(0) + ENTINDEX(pValue))->pvPrivateData;
+}
+
 int PrimaryAmmoIndex(edict_t *pEntity)
 {
 	return GetPrivateInt(pEntity, pvData_iPrimaryAmmoType);

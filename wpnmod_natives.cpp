@@ -45,12 +45,33 @@
 	}																				\
 
 #define CHECK_OFFSET(x)																						\
-	if ( x < 0 || x >= Offset_End)																			\
+	if (x < 0 || x >= Offset_End)																			\
 	{																										\
 		MF_LogError(amx, AMX_ERR_NATIVE, "Function out of bounds. Got: %d  Max: %d.", x, Offset_End - 1);	\
 		return 0;																							\
 	}																										\
 
+#define CHECK_OFFSET_CBASE(x)																				\
+	if (x < 0 || x >= CBase_End)																			\
+	{																										\
+		MF_LogError(amx, AMX_ERR_NATIVE, "Function out of bounds. Got: %d  Max: %d.", x, CBase_End - 1);	\
+		return 0;																							\
+	}
+
+
+enum e_CBase
+{
+	// Weapon
+	CBase_pPlayer,
+	CBase_pNext,
+
+	// Player
+	CBase_rgpPlayerItems,
+	CBase_pActiveItem,
+	CBase_pLastItem,
+
+	CBase_End
+};
 
 enum e_Offsets
 {
@@ -90,6 +111,15 @@ enum e_Offsets
 	Offset_fuser4,
 	
 	Offset_End
+};
+
+int NativesCBaseOffsets[CBase_End] =
+{
+	pvData_pPlayer,
+	pvData_pNext,
+	pvData_rgpPlayerItems,
+	pvData_pActiveItem,
+	pvData_pLastItem
 };
 
 int NativesPvDataOffsets[Offset_End] =
@@ -698,6 +728,26 @@ static cell AMX_NATIVE_CALL wpnmod_set_offset_float(AMX *amx, cell *params)
 }
 
 /**
+ * Set the corresponding cbase field in private data with the index.
+ *
+ * @param iEntity			The entity to examine the private data.
+ * @param iOffset			Offset (See e_CBase constants).
+ * @param iValue			The index to store.
+ * @param iExtraOffset		The extra offset.
+ *
+ * native wpnmod_set_offset_cbase(const iEntity, const e_CBase: iOffset, const iValue, const iExtraOffset = 0);
+*/
+static cell AMX_NATIVE_CALL wpnmod_set_offset_cbase(AMX *amx, cell *params)
+{
+	CHECK_ENTITY(params[1])
+	CHECK_ENTITY(params[3])
+	CHECK_OFFSET_CBASE(params[2])
+	
+	SetPrivateCbase(INDEXENT2(params[1]), NativesCBaseOffsets[params[2]], INDEXENT2(params[3]), params[4]);
+	return 1;
+}
+
+/**
  * Returns a float from private data.
  *
  * @param iEntity		Entity index.
@@ -716,6 +766,32 @@ static cell AMX_NATIVE_CALL wpnmod_get_offset_float(AMX *amx, cell *params)
 	CHECK_OFFSET(iOffset)
 
 	return amx_ftoc(GetPrivateFloat(INDEXENT2(iEntity), NativesPvDataOffsets[iOffset]));
+}
+
+/**
+ * This will return an index of the corresponding cbase field in private data.
+ *
+ * @param iEntity			The entity to examine the private data.
+ * @param iOffset			Offset (See e_CBase constants).
+ * @param iExtraOffset		The extra offset.
+ *
+ * @return					Value from private data. (integer)
+ *
+ * native wpnmod_get_offset_cbase(const iEntity, const e_CBase: iOffset, const iExtraOffset = 0);
+*/
+static cell AMX_NATIVE_CALL wpnmod_get_offset_cbase(AMX *amx, cell *params)
+{
+	CHECK_ENTITY(params[1])
+	CHECK_OFFSET_CBASE(params[2])
+
+	edict_t* pEntity = GetPrivateCbase(INDEXENT2(params[1]), NativesCBaseOffsets[params[2]], params[3]);
+
+	if (IsValidPev(pEntity))
+	{
+		return ENTINDEX(pEntity);
+	}
+
+	return -1;
 }
 
 /**
@@ -1561,8 +1637,10 @@ AMX_NATIVE_INFO Natives[] =
 	{ "wpnmod_set_touch", wpnmod_set_touch},
 	{ "wpnmod_set_offset_int", wpnmod_set_offset_int},
 	{ "wpnmod_set_offset_float", wpnmod_set_offset_float},
+	{ "wpnmod_set_offset_cbase", wpnmod_set_offset_cbase},
 	{ "wpnmod_get_offset_int", wpnmod_get_offset_int},
 	{ "wpnmod_get_offset_float", wpnmod_get_offset_float},
+	{ "wpnmod_get_offset_cbase", wpnmod_get_offset_cbase},
 	{ "wpnmod_get_player_ammo", wpnmod_get_player_ammo},
 	{ "wpnmod_set_player_ammo", wpnmod_set_player_ammo},
 	{ "wpnmod_default_deploy", wpnmod_default_deploy},

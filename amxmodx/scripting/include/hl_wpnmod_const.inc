@@ -39,6 +39,9 @@
 #define _hl_wpnmod_const_included
 
 
+// Maximum available weapons
+#define MAX_WEAPONS						32
+
 // Temp entity bounce sound types
 #define TE_BOUNCE_NULL					0
 #define TE_BOUNCE_SHELL					1
@@ -178,6 +181,20 @@ enum e_ItemInfo
 	ItemInfo_szVersion,
 
 	ItemInfo_End
+};
+
+enum e_CBase
+{
+	// Weapon
+	CBase_pPlayer,
+	CBase_pNext,
+
+	// Player
+	CBase_rgpPlayerItems,
+	CBase_pActiveItem,
+	CBase_pLastItem,
+
+	CBase_End
 };
 
 enum e_Offsets

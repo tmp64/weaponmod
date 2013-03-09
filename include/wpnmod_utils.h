@@ -123,6 +123,7 @@ extern edict_t*	INDEXENT2		(int iEdictNum);
 extern edict_t*	GetPrivateCbase	(edict_t *pEntity, int iOffset);
 extern edict_t*	GetPrivateCbase	(edict_t *pEntity, int iOffset, int iExtraRealOffset);
 extern void		SetPrivateCbase	(edict_t *pEntity, int iOffset, edict_t* pValue);
+extern void		SetPrivateCbase	(edict_t *pEntity, int iOffset, edict_t* pValue, int iExtraRealOffset);
 
 extern int PrimaryAmmoIndex		(edict_t *pEntity);
 extern int SecondaryAmmoIndex	(edict_t *pEntity);
