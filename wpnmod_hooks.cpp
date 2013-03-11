@@ -883,7 +883,7 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 	pEntity = PrivateToEdict(pvEntity);
 	pOther = PrivateToEdict(pvOther);
 
-	if (!IsValidPev(pEntity) || !FNullEnt(pOther))
+	if (!IsValidPev(pEntity))
 	{
 		return;
 	}
