@@ -266,6 +266,20 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 	iClip		= GetPrivateInt(pWeapon, pvData_iClip);
 	iInReload	= GetPrivateInt(pWeapon, pvData_fInReload);
 
+	if (WeaponInfoArray[iId].iForward[Fwd_Wpn_ItemPostFrame])
+	{
+		MF_ExecuteForward
+		(
+			WeaponInfoArray[iId].iForward[Fwd_Wpn_ItemPostFrame],
+
+			static_cast<cell>(ENTINDEX(pWeapon)), 
+			static_cast<cell>(ENTINDEX(pPlayer)), 
+			static_cast<cell>(iClip), 
+			static_cast<cell>(iAmmoPrimary),
+			static_cast<cell>(iAmmoSecondary)
+		);
+	}
+
 	if (iInReload && flNextAttack <= gpGlobals->time)
 	{
 		// complete the reload. 

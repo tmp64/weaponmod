@@ -80,6 +80,7 @@ enum e_WpnFwds
 	Fwd_Wpn_IsUseable,
 	Fwd_Wpn_AddToPlayer,
 	Fwd_Wpn_AddToPlayer2,
+	Fwd_Wpn_ItemPostFrame,
 
 	Fwd_Wpn_End
 };
