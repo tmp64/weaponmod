@@ -57,7 +57,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>copy "..\msvc10\Debug\weaponmod_amxx.dll" "$(MODULES)\weaponmod_amxx.dll"</Command>
+      <Command>copy "..\msvc12\Debug\weaponmod_amxx.dll" "$(MODULES)\weaponmod_amxx.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -75,7 +75,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <PostBuildEvent>
-      <Command>copy "..\msvc10\Release\weaponmod_amxx.dll" "$(MODULES)\weaponmod_amxx.dll"</Command>
+      <Command>copy "..\msvc12\Release\weaponmod_amxx.dll" "$(MODULES)\weaponmod_amxx.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
