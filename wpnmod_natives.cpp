@@ -1376,6 +1376,8 @@ static cell AMX_NATIVE_CALL wpnmod_fire_contact_grenade(AMX *amx, cell *params)
 	Vector vecStart;
 	Vector vecVelocity;
 
+	int iGrenadeIndex;
+
 	cell *vStart = MF_GetAmxAddr(amx, params[2]);
 	cell *vVelocity = MF_GetAmxAddr(amx, params[3]);
 
@@ -1391,6 +1393,8 @@ static cell AMX_NATIVE_CALL wpnmod_fire_contact_grenade(AMX *amx, cell *params)
 
 	if (IsValidPev(pGrenade))
 	{
+		iGrenadeIndex = ENTINDEX(pGrenade);
+
 		char *funcname = MF_GetAmxString(amx, params[4], 0, NULL);
 
 		if (funcname)
@@ -1404,13 +1408,10 @@ static cell AMX_NATIVE_CALL wpnmod_fire_contact_grenade(AMX *amx, cell *params)
 				FP_DONE
 			);
 
-			if (iForward != -1)
-			{
-				g_Ents[ENTINDEX(pGrenade)].iExplode = iForward;
-			}
+			g_Ents[iGrenadeIndex].iExplode = iForward == -1 ? NULL : iForward;
 		}
 
-		return ENTINDEX(pGrenade);
+		return iGrenadeIndex;
 	}
 
 	return -1;
@@ -1436,6 +1437,8 @@ static cell AMX_NATIVE_CALL wpnmod_fire_timed_grenade(AMX *amx, cell *params)
 	Vector vecStart;
 	Vector vecVelocity;
 
+	int iGrenadeIndex;
+
 	cell *vStart = MF_GetAmxAddr(amx, params[2]);
 	cell *vVelocity = MF_GetAmxAddr(amx, params[3]);
 
@@ -1451,6 +1454,8 @@ static cell AMX_NATIVE_CALL wpnmod_fire_timed_grenade(AMX *amx, cell *params)
 
 	if (IsValidPev(pGrenade))
 	{
+		iGrenadeIndex = ENTINDEX(pGrenade);
+
 		char *funcname = MF_GetAmxString(amx, params[5], 0, NULL);
 
 		if (funcname)
@@ -1464,10 +1469,7 @@ static cell AMX_NATIVE_CALL wpnmod_fire_timed_grenade(AMX *amx, cell *params)
 				FP_DONE
 			);
 
-			if (iForward != -1)
-			{
-				g_Ents[ENTINDEX(pGrenade)].iExplode = iForward;
-			}
+			g_Ents[iGrenadeIndex].iExplode = iForward == -1 ? NULL : iForward;
 		}
 
 		return ENTINDEX(pGrenade);
@@ -1535,10 +1537,7 @@ static cell AMX_NATIVE_CALL wpnmod_explode_entity(AMX *amx, cell *params)
 			FP_DONE
 		);
 
-		if (iForward != -1)
-		{
-			g_Ents[params[1]].iExplode = iForward;
-		}
+		g_Ents[params[1]].iExplode = iForward == -1 ? NULL : iForward;
 	}
 
 	Grenade_Explode(INDEXENT2(params[1]), params[2]);

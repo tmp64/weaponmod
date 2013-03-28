@@ -54,6 +54,8 @@ edict_t* Grenade_ShootContact(edict_t *pOwner, Vector vecStart, Vector vecVeloci
 		pGrenade->v.nextthink = gpGlobals->time;
 		pGrenade->v.avelocity.x = RANDOM_FLOAT(-100, -500);
 
+		g_Ents[ENTINDEX(pGrenade)].iExplode = NULL;
+
 		SET_ORIGIN(pGrenade, vecStart);
 	}
 
@@ -82,6 +84,8 @@ edict_t* Grenade_ShootTimed(edict_t *pOwner, Vector vecStart, Vector vecVelocity
 
 		pGrenade->v.sequence = RANDOM_LONG( 3, 6 );
 		pGrenade->v.framerate = 1.0;
+
+		g_Ents[ENTINDEX(pGrenade)].iExplode = NULL;
 
 		SET_ORIGIN(pGrenade, vecStart);
 		SET_MODEL(pGrenade, "models/w_grenade.mdl");
@@ -232,18 +236,19 @@ void Grenade_BounceTouch(void *pPrivate, void *pPrivate2)
 	}
 
 	// only do damage if we're moving fairly fast
-	/*if (m_flNextAttack < gpGlobals->time && pev->velocity.Length() > 100)
+	if (GetPrivateFloat(pGrenade, pvData_flNextAttack) < gpGlobals->time && pGrenade->v.velocity.Length() > 100)
 	{
-		entvars_t *pevOwner = VARS( pev->owner );
-		if (pevOwner)
+		if (pGrenade->v.owner)
 		{
-			TraceResult tr = UTIL_GetGlobalTrace( );
-			ClearMultiDamage( );
-			pOther->TraceAttack(pevOwner, 1, gpGlobals->v_forward, &tr, DMG_CLUB ); 
-			ApplyMultiDamage( pev, pevOwner);
+			TraceResult tr = UTIL_GetGlobalTrace();
+
+			CLEAR_MULTI_DAMAGE();
+			TRACE_ATTACK(pOther, pGrenade->v.owner, 1, gpGlobals->v_forward, tr, DMG_CLUB);
+			APPLY_MULTI_DAMAGE(pGrenade, pGrenade->v.owner);
 		}
-		m_flNextAttack = gpGlobals->time + 1.0; // debounce
-	}*/
+
+		SetPrivateFloat(pGrenade, pvData_flNextAttack, gpGlobals->time + 1.0);
+	}
 
 	if (pGrenade->v.flags & FL_ONGROUND)
 	{

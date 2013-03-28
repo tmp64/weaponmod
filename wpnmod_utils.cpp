@@ -504,6 +504,23 @@ void UTIL_DecalTrace(TraceResult *pTrace, int iDecalIndex)
 	MESSAGE_END();
 }
 
+TraceResult UTIL_GetGlobalTrace( )
+{
+	TraceResult tr;
+
+	tr.fAllSolid		= gpGlobals->trace_allsolid;
+	tr.fStartSolid		= gpGlobals->trace_startsolid;
+	tr.fInOpen			= gpGlobals->trace_inopen;
+	tr.fInWater			= gpGlobals->trace_inwater;
+	tr.flFraction		= gpGlobals->trace_fraction;
+	tr.flPlaneDist		= gpGlobals->trace_plane_dist;
+	tr.pHit			= gpGlobals->trace_ent;
+	tr.vecEndPos		= gpGlobals->trace_endpos;
+	tr.vecPlaneNormal	= gpGlobals->trace_plane_normal;
+	tr.iHitgroup		= gpGlobals->trace_hitgroup;
+	return tr;
+}
+
 void UTIL_EmitAmbientSound( edict_t *entity, const Vector &vecOrigin, const char *samp, float vol, float attenuation, int fFlags, int pitch )
 {
 	float rgfl[3];
