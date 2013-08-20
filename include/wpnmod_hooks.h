@@ -46,7 +46,7 @@ typedef struct
 	int iExplode;
 } EntData;
 
-extern EntData*	g_Ents;
+extern EntData* g_Ents;
 
 #ifdef WIN32
 
@@ -92,7 +92,7 @@ extern EntData*	g_Ents;
 	typedef void	(*FuncApplyMultiDamage)		(entvars_t*, entvars_t*);
 	typedef void	(*FuncPrecacheOtherWeapon)	(const char*);
 
-	void PrecacheOtherWeapon_HookHandler(const char *szClassname);
+	void	PrecacheOtherWeapon_HookHandler		(const char *szClassname);
 
 	// int CBasePlayer::GetAmmoIndex(const char *psz)
 	//
@@ -218,28 +218,30 @@ extern EntData*	g_Ents;
 
 	extern VirtualHookData g_RpgAddAmmo_Hook;
 	extern VirtualHookData g_PlayerSpawn_Hook;
+	extern VirtualHookData g_PlayerPostThink_Hook;
 	extern VirtualHookData g_WorldPrecache_Hook;
 	extern VirtualHookData g_CrowbarHooks[CrowbarHook_End];
 
 #ifdef WIN32
 	
-	typedef int		(__fastcall *FuncGetItemInfo)	(void*, DUMMY, ItemInfo*);
-	typedef BOOL	(__fastcall *FuncCanDeploy)		(void*, DUMMY);
-	typedef BOOL	(__fastcall *FuncDeploy)		(void*, DUMMY);
-	typedef BOOL	(__fastcall *FuncCanHolster)	(void*, DUMMY);
-	typedef void	(__fastcall *FuncHolster)		(void*, DUMMY, int);
-	typedef void	(__fastcall *FuncItemPostFrame)	(void*, DUMMY);
-	typedef BOOL	(__fastcall *FuncIsUseable)		(void*, DUMMY);
-	typedef int		(__fastcall *FuncAddToPlayer)	(void*, DUMMY, void*);
-	typedef int		(__fastcall *FuncItemSlot)		(void*, DUMMY);
-	typedef void*	(__fastcall *FuncRespawn)		(void*, DUMMY);
-	typedef BOOL	(__fastcall *FuncAddAmmo)		(void*, DUMMY, void*);
-	typedef void	(__fastcall *FuncSpawn)			(void*, DUMMY);
-	typedef void	(__fastcall *FuncPrecache)		(void*, DUMMY);
-	typedef int		(__fastcall *FuncDamageDecal)	(void*, DUMMY, int);
-	typedef int		(__fastcall *FuncClassify)		(void*, DUMMY);
-	typedef int		(__fastcall *FuncTraceAttack)	(void*, DUMMY, entvars_t *, float, Vector, TraceResult*, int);
-	typedef int		(__fastcall *FuncTakeDamage)	(void*, DUMMY, entvars_t *, entvars_t *, float, int);
+	typedef int		(__fastcall *FuncGetItemInfo)		(void*, DUMMY, ItemInfo*);
+	typedef BOOL	(__fastcall *FuncCanDeploy)			(void*, DUMMY);
+	typedef BOOL	(__fastcall *FuncDeploy)			(void*, DUMMY);
+	typedef BOOL	(__fastcall *FuncCanHolster)		(void*, DUMMY);
+	typedef void	(__fastcall *FuncHolster)			(void*, DUMMY, int);
+	typedef void	(__fastcall *FuncItemPostFrame)		(void*, DUMMY);
+	typedef BOOL	(__fastcall *FuncIsUseable)			(void*, DUMMY);
+	typedef int		(__fastcall *FuncAddToPlayer)		(void*, DUMMY, void*);
+	typedef int		(__fastcall *FuncItemSlot)			(void*, DUMMY);
+	typedef void*	(__fastcall *FuncRespawn)			(void*, DUMMY);
+	typedef BOOL	(__fastcall *FuncAddAmmo)			(void*, DUMMY, void*);
+	typedef void	(__fastcall *FuncSpawn)				(void*, DUMMY);
+	typedef void	(__fastcall *FuncPlayerPostThink)	(void*, DUMMY);
+	typedef void	(__fastcall *FuncPrecache)			(void*, DUMMY);
+	typedef int		(__fastcall *FuncDamageDecal)		(void*, DUMMY, int);
+	typedef int		(__fastcall *FuncClassify)			(void*, DUMMY);
+	typedef int		(__fastcall *FuncTraceAttack)		(void*, DUMMY, entvars_t *, float, Vector, TraceResult*, int);
+	typedef int		(__fastcall *FuncTakeDamage)		(void*, DUMMY, entvars_t *, entvars_t *, float, int);
 
 	int		__fastcall Weapon_GetItemInfo	(void* pvItem, DUMMY, ItemInfo* p);
 	BOOL	__fastcall Weapon_CanDeploy		(void* pvItem);
@@ -254,6 +256,7 @@ extern EntData*	g_Ents;
 	BOOL	__fastcall AmmoBox_AddAmmo		(void* pvAmmo, DUMMY, void* pvOther);
 	int		__fastcall Item_Block			(void* pvItem, int DUMMY, void* pvOther);
 	void	__fastcall Player_Spawn			(void* pvPlayer);
+	void	__fastcall Player_PostThink		(void* pvPlayer);
 	void	__fastcall World_Precache		(void* pvEntity);
 
 	// virtual int CBasePlayerItem::GetItemInfo(ItemInfo* p);
@@ -402,6 +405,13 @@ extern EntData*	g_Ents;
 			reinterpret_cast<FuncSpawn>(g_PlayerSpawn_Hook.address)(pvPlayer, DUMMY_VAL);
 		}
 
+	// void PostThink();
+	// 
+		inline void PLAYER_POST_THINK(void* pvPlayer)
+		{
+			reinterpret_cast<FuncPlayerPostThink>(g_PlayerPostThink_Hook.address)(pvPlayer, DUMMY_VAL);
+		}
+
 	// virtual int DamageDecal(CBaseEntity* pEntity, int bitsDamageType);
 	//
 		inline int GET_DAMAGE_DECAL(edict_t* pentEntity)
@@ -444,6 +454,7 @@ extern EntData*	g_Ents;
 	typedef void*	(*FuncRespawn)			(void*);
 	typedef BOOL	(*FuncAddAmmo)			(void*, void*);
 	typedef void	(*FuncSpawn)			(void*);
+	typedef void	(*FuncPlayerPostThink)	(void*);
 	typedef void	(*FuncPrecache)			(void*);
 	typedef int		(*FuncDamageDecal)		(void*, int);
 	typedef int		(*FuncClassify)			(void*);
@@ -463,6 +474,7 @@ extern EntData*	g_Ents;
 	BOOL	AmmoBox_AddAmmo			(void* pvAmmo, void* pvOther);
 	int		Item_Block				(void* pvItem, void* pvOther);
 	void	Player_Spawn			(void* pvPlayer);
+	void	Player_PostThink		(void* pvPlayer);
 	void	World_Precache			(void* pvEntity);
 
 	// virtual int CBasePlayerItem::GetItemInfo(ItemInfo* p);
@@ -609,6 +621,13 @@ extern EntData*	g_Ents;
 		inline void PLAYER_SPAWN(void* pvPlayer)
 		{
 			reinterpret_cast<FuncSpawn>(g_PlayerSpawn_Hook.address)(pvPlayer);
+		}
+
+	// void PostThink();
+	// 
+		inline void PLAYER_POST_THINK(void* pvPlayer)
+		{
+			reinterpret_cast<FuncPlayerPostThink>(g_PlayerPostThink_Hook.address)(pvPlayer);
 		}
 
 	// virtual int DamageDecal(CBaseEntity* pEntity, int bitsDamageType);

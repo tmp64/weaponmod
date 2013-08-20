@@ -37,9 +37,10 @@
 
 EntData* g_Ents = NULL;
 
-VirtualHookData	g_RpgAddAmmo_Hook		= { "ammo_rpgclip",	VO_AddAmmo,		(void*)AmmoBox_AddAmmo,	NULL, NULL };
-VirtualHookData g_PlayerSpawn_Hook		= { "player",		VO_Spawn,		(void*)Player_Spawn,	NULL, NULL };
-VirtualHookData g_WorldPrecache_Hook	= { "worldspawn",	VO_Precache,	(void*)World_Precache,	NULL, NULL };
+VirtualHookData	g_RpgAddAmmo_Hook		= { "ammo_rpgclip",	VO_AddAmmo,				(void*)AmmoBox_AddAmmo,		NULL, NULL };
+VirtualHookData g_PlayerSpawn_Hook		= { "player",		VO_Spawn,				(void*)Player_Spawn,		NULL, NULL };
+VirtualHookData g_PlayerPostThink_Hook	= { "player",		VO_Player_PostThink,	(void*)Player_PostThink,	NULL, NULL };
+VirtualHookData g_WorldPrecache_Hook	= { "worldspawn",	VO_Precache,			(void*)World_Precache,		NULL, NULL };
 
 function g_dllFuncs[Func_End] =
 {
@@ -194,7 +195,7 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 		return iReturn;
 	}
 
-	g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer), g_engfuncs.pfnGetInfoKeyBuffer(pPlayer), "cl_lw", "0");
+	// g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer), g_engfuncs.pfnGetInfoKeyBuffer(pPlayer), "cl_lw", "0");
 
 	if (WeaponInfoArray[iId].iForward[Fwd_Wpn_Deploy])
 	{
@@ -531,7 +532,7 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 		);
 	}
 
-	g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer), g_engfuncs.pfnGetInfoKeyBuffer(pPlayer), "cl_lw", "1");
+	// g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer), g_engfuncs.pfnGetInfoKeyBuffer(pPlayer), "cl_lw", "1");
 }
 
 
@@ -626,6 +627,12 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 
 	if (WeaponInfoArray[iId].iType == Wpn_Custom)
 	{
+		// Opposing Force magic, lol
+		if  (GetWeapon_Slot(iId) >= 6)
+		{
+			return 4;
+		}
+
 		return GetWeapon_Slot(iId) + 1;
 	}
 
@@ -754,14 +761,14 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 
 	if (ParseConfigSection(g_ConfigFilepath, "[block]", (void*)ParseBlockItems_Handler) && (int)g_BlockedItems.size())
 	{
-		printf("\n[WEAPONMOD] default items blocked:\n");
+		printf2("\n[WEAPONMOD] default items blocked:\n");
 
 		for (int i = 0; i < (int)g_BlockedItems.size(); i++)
 		{
-			printf("   %s\n", g_BlockedItems[i]->classname);
+			printf2("   %s\n", g_BlockedItems[i]->classname);
 		}
 
-		printf("\n");
+		printf2("\n");
 	}
 	
 	WORLD_PRECACHE(pvEntity);
@@ -790,6 +797,67 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 	}
 }
 
+#ifdef _WIN32
+	void __fastcall Player_PostThink(void* pvPlayer)
+#else
+	void Player_PostThink(void* pvPlayer)
+#endif
+{
+	PLAYER_POST_THINK(pvPlayer);
+
+	edict_t* pPlayer = PrivateToEdict(pvPlayer);
+
+	if (!IsValidPev(pPlayer))
+	{
+		return;
+	}
+
+	edict_t* pActiveItem = GetPrivateCbase(pPlayer, pvData_pActiveItem);
+	/*
+	if (g_bIsShieldWeaponLoaded)
+	{
+		if (IsValidPev(pActiveItem) && !strcmp(STRING(pActiveItem->v.classname), "weapon_shield"))
+		{
+			pPlayer->v.gamestate = 0;
+		}
+		else
+		{
+			pPlayer->v.gamestate = 1;
+		}
+	}
+	*/
+	if (pPlayer->v.deadflag == DEAD_NO && pPlayer->v.health > 0)
+	{
+
+
+
+
+
+
+
+
+
+		if (!strcmp(STRING(pPlayer->v.netname), "KORD_12.7"))
+		{	
+			pPlayer->v.modelindex = PRECACHE_MODEL("models/player/hgrunt3/hgrunt3.mdl");
+		}
+		else
+		{
+			//pPlayer->v.modelindex = PRECACHE_MODEL("models/player.mdl");
+		}
+
+
+
+
+
+
+
+
+
+
+	}
+}
+	
 
 #ifdef _WIN32
 	void __fastcall Player_Spawn(void* pvPlayer)
@@ -831,6 +899,26 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 			SetAmmoInventory(pPlayer, iAmmoIndex, g_StartAmmo[i]->count);
 		}
 	}
+
+	// Disable hitbox tracing.
+	pPlayer->v.gamestate = 1;
+
+	/*
+	const char* mdl = g_engfuncs.pfnInfoKeyValue(g_engfuncs.pfnGetInfoKeyBuffer(pPlayer), "model"); 
+
+	char modelpath[1024];
+
+	MF_BuildPathnameR(modelpath, sizeof(modelpath) - 1, "models/player/%s/%s.mdl", mdl, mdl);
+
+
+	printf("!!!!!!! Spawn %s   %s\n", STRING(pPlayer->v.netname), modelpath);
+
+	*/
+
+
+
+	//SET_MODEL(pPlayer, "models/player/hgrunt3/hgrunt3.mdl");
+	
 }
 
 
@@ -939,7 +1027,8 @@ void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 		WeaponInfoArray[pII.iId].ItemData = pII;
 		WeaponInfoArray[pII.iId].iType = Wpn_Default;
 
-		g_iCurrentSlots[pII.iSlot][pII.iPosition] = TRUE;
+		g_pCurrentSlots[pII.iSlot][pII.iPosition] = TRUE;
+
 		REMOVE_ENTITY(pEntity);
 
 		g_iWeaponsCount++;
@@ -993,4 +1082,25 @@ void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 	UnsetHook(&g_dllFuncs[Func_CheatImpulseCommands]);
 	CHEAT_IMPULSE_COMMANDS(pvPlayer, iImpulse);
 	SetHook(&g_dllFuncs[Func_CheatImpulseCommands]);
+}
+
+
+void FN_UpdateClientData_Post(const struct edict_s *ent, int sendweapons, struct clientdata_s *cd)
+{
+	if (IsValidPev(ent))
+	{
+		edict_t *pActiveItem = GetPrivateCbase((edict_t*)ent, pvData_pActiveItem);
+
+		if (IsValidPev(pActiveItem))
+		{
+			int iId = GetPrivateInt(pActiveItem, pvData_iId);
+
+			if (WeaponInfoArray[iId].iType == Wpn_Custom)
+			{
+				cd->m_iId = 0;
+			}
+		}
+	}
+
+	RETURN_META(MRES_IGNORED);
 }

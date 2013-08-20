@@ -39,6 +39,7 @@
 extern void ParseBSP();
 extern void ParseSpawnPoints();
 
+extern void ParseSlots_Handler			(char* data);
 extern void ParseSignatures_Handler		(char* data);
 extern void ParseVtableBase_Handler		(char* data);
 extern void ParseVtableOffsets_Handler	(char* data);

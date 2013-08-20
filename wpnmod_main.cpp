@@ -37,6 +37,7 @@
 #include "wpnmod_hooks.h"
 #include "utils.h"
 
+bool g_bIsActive = true;
 
 int AmxxCheckGame(const char* game)
 {
@@ -45,8 +46,6 @@ int AmxxCheckGame(const char* game)
 
 void OnAmxxAttach()
 {
-	BOOL bAddNatives = TRUE; 
-
 	cvar_aghlru = CVAR_GET_POINTER("aghl.ru");
 	cvar_sv_cheats = CVAR_GET_POINTER("sv_cheats");
 	cvar_mp_weaponstay = CVAR_GET_POINTER("mp_weaponstay");
@@ -69,17 +68,18 @@ void OnAmxxAttach()
 
 	if (!FindModuleByAddr((void*)MDLL_FUNC->pfnGetGameDescription(), &g_GameDllModule))
 	{
-		printf("[WEAPONMOD] Failed to locate %s\n", GET_GAME_INFO(PLID, GINFO_DLL_FILENAME));
-		bAddNatives = FALSE;
+		printf2("[WEAPONMOD] Failed to locate %s\n", GET_GAME_INFO(PLID, GINFO_DLL_FILENAME));
+		g_bIsActive = false;
 	}
 
 	if (!Util::FileExists(filepath))
 	{
-		printf("[WEAPONMOD] Failed to find mod config file. \"%s\"\n", filepath);
-		bAddNatives = FALSE;
+		printf2("[WEAPONMOD] Failed to find mod config file. \"%s\"\n", filepath);
+		g_bIsActive = false;
 	}
 	else
 	{
+		ParseConfigSection(filepath, "[slots]", (void*)ParseSlots_Handler);
 		ParseConfigSection(filepath, "[signatures]", (void*)ParseSignatures_Handler);
 		ParseConfigSection(filepath, "[vtable_base]", (void*)ParseVtableBase_Handler);
 		ParseConfigSection(filepath, "[vtable_offsets]", (void*)ParseVtableOffsets_Handler);
@@ -97,35 +97,41 @@ void OnAmxxAttach()
 				// CheatImpulseCommands is not critical function
 				if (i == Func_CheatImpulseCommands)
 				{
-					printf("[WEAPONMOD] Mod \"%s\" don't have cheat commands, impulse 101 not active.\n", modname);
+					printf2("[WEAPONMOD] Mod \"%s\" don't have cheat commands, impulse 101 not active.\n", modname);
 				}
 				else
 				{
-					printf("[WEAPONMOD] Failed to find \"%s\" function.\n", g_dllFuncs[i].name);
-					bAddNatives = FALSE;
+					printf2("[WEAPONMOD] Failed to find \"%s\" function.\n", g_dllFuncs[i].name);
+					g_bIsActive = false;
 				}
 			}
 		}
 	}
 
-	if (!bAddNatives)
+	if (!g_bIsActive)
 	{
-		printf("[WEAPONMOD] Cannot register natives.\n");
+		printf2("[WEAPONMOD] Cannot register natives.\n");
 	}
 	else
 	{
 		MF_AddNatives(Natives);
 		SetHookVirtual(&g_WorldPrecache_Hook);
 
-		printf("[WEAPONMOD] Found %s at %p\n", GET_GAME_INFO(PLID, GINFO_DLL_FILENAME), g_GameDllModule.base);
+		printf2("[WEAPONMOD] Found %s at %p\n", GET_GAME_INFO(PLID, GINFO_DLL_FILENAME), g_GameDllModule.base);
 
-		printf("\n   Half-Life Weapon Mod version %s Copyright (c) 2012 AGHL.RU Dev Team. \n"
+		printf2("\n   Half-Life Weapon Mod version %s Copyright (c) 2012 - 2013 AGHL.RU Dev Team. \n"
 			"   Weapon Mod comes with ABSOLUTELY NO WARRANTY; for details type `wpnmod gpl'.\n", Plugin_info.version);
-		printf("   This is free software and you are welcome to redistribute it under \n"
+		printf2("   This is free software and you are welcome to redistribute it under \n"
 			"   certain conditions; type 'wpnmod gpl' for details.\n  \n");
 	}
 
-	g_Ents = new EntData[gpGlobals->maxEntities];
+	g_Ents			= new EntData	[gpGlobals->maxEntities];
+	g_pCurrentSlots	= new int*		[g_iMaxWeaponSlots];
+
+	for (int i = 0; i < g_iMaxWeaponSlots; ++i)
+	{
+		memset((g_pCurrentSlots[i] = new int [g_iMaxWeaponPositions]), 0, sizeof(int) * g_iMaxWeaponPositions);
+	}
 
 	cvar_t version = {"hl_wpnmod_version", Plugin_info.version, FCVAR_SERVER};
 	
@@ -153,11 +159,22 @@ void OnAmxxDetach()
 	UnsetHookVirtual(&g_WorldPrecache_Hook);
 	UnsetHookVirtual(&g_RpgAddAmmo_Hook);
 	
+	for (int i = 0; i < g_iMaxWeaponSlots; ++i)
+	{
+		delete [] g_pCurrentSlots[i];
+	}
+
 	delete [] g_Ents;
+	delete [] g_pCurrentSlots;
 }
 
 void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 {
+	if (!g_bIsActive)
+	{
+		RETURN_META(MRES_IGNORED);
+	}
+
 	ParseBSP();
 	SetConfigFile();
 	ParseSpawnPoints();
@@ -178,7 +195,11 @@ void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 		}
 	}
 
+	SetShieldHitboxTracing();
+
 	SetHookVirtual(&g_PlayerSpawn_Hook);
+	SetHookVirtual(&g_PlayerPostThink_Hook);
+
 	RETURN_META(MRES_IGNORED);
 }
 
@@ -202,9 +223,13 @@ void ServerDeactivate()
 	g_iWeaponInitID = 0;
 	g_iAmmoBoxIndex = 0;
 
-	memset(g_iCurrentSlots, 0, sizeof(g_iCurrentSlots));
 	memset(WeaponInfoArray, 0, sizeof(WeaponInfoArray));
 	memset(AmmoBoxInfoArray, 0, sizeof(AmmoBoxInfoArray));
+
+	for (int i = 0; i < g_iMaxWeaponSlots; ++i)
+	{
+		memset(g_pCurrentSlots[i], 0, sizeof(int) * g_iMaxWeaponPositions);
+	}
 
 	for (int i = 0; i < (int)g_Decals.size(); i++)
 	{
@@ -221,12 +246,14 @@ void ServerDeactivate()
 		UnsetHookVirtual(g_BlockedItems[i]);
 		delete g_BlockedItems[i];
 	}
-
+	
 	g_Decals.clear();
 	g_StartAmmo.clear();
 	g_BlockedItems.clear();
 
 	UnsetHookVirtual(&g_PlayerSpawn_Hook);
+	UnsetHookVirtual(&g_PlayerPostThink_Hook);
+
 	RETURN_META(MRES_IGNORED);
 }
 
@@ -234,6 +261,11 @@ void ServerDeactivate()
 
 void ClientCommand(edict_t *pEntity)
 {
+	if (!g_bIsActive)
+	{
+		RETURN_META(MRES_IGNORED);
+	}
+
 	static const char* cmd = NULL;
 
 	cmd = CMD_ARGV(0);
@@ -309,18 +341,23 @@ void ClientCommand(edict_t *pEntity)
 
 void WpnModCommand(void)
 {
+	if (!g_bIsActive)
+	{
+		RETURN_META(MRES_IGNORED);
+	}
+
 	const char *cmd = CMD_ARGV(1);
 
 	if (!strcmp(cmd, "version")) 
 	{
-		printf("%s %s (%s)\n", Plugin_info.name, Plugin_info.version, Plugin_info.url);
-		printf("Author:\n\tKORD_12.7 (AGHL.RU Dev Team)\n");
-		printf("Compiled: %s\n", __DATE__ ", " __TIME__);
+		printf2("%s %s (%s)\n", Plugin_info.name, Plugin_info.version, Plugin_info.url);
+		printf2("Author:\n\tKORD_12.7 (AGHL.RU Dev Team)\n");
+		printf2("Compiled: %s\n", __DATE__ ", " __TIME__);
 
 	}
 	else if (!strcmp(cmd, "credits"))
 	{
-		printf("Credits:\n\tAMXX Dev team, 6a6kin, GordonFreeman, Koshak, Lev, noo00oob.\n");
+		printf2("Credits:\n\tAMXX Dev team, 6a6kin, GordonFreeman, Koshak, Lev, noo00oob.\n");
 	}
 	else if (!strcmp(cmd, "items"))
 	{
@@ -329,68 +366,68 @@ void WpnModCommand(void)
 		int weapons = 0;
 		int ammo = 0;
 
-		printf("\nCurrently loaded weapons:\n");
+		printf2("\nCurrently loaded weapons:\n");
 
 		for (i = 1; i <= g_iWeaponsCount; i++)
 		{
 			if (WeaponInfoArray[i].iType == Wpn_Custom)
 			{
 				items++;
-				printf(" [%2d] %-23.22s\n", ++weapons, GetWeapon_pszName(i));
+				printf2(" [%2d] %-23.22s\n", ++weapons, GetWeapon_pszName(i));
 			}
 		}
 
-		printf("\nCurrently loaded ammo:\n");
+		printf2("\nCurrently loaded ammo:\n");
 
 		for (i = 1; i <= g_iAmmoBoxIndex; i++)
 		{
 			items++;
-			printf(" [%2d] %-23.22s\n", ++ammo, AmmoBoxInfoArray[i].classname.c_str());
+			printf2(" [%2d] %-23.22s\n", ++ammo, AmmoBoxInfoArray[i].classname.c_str());
 		}
 
-		printf("\nTotal:\n");
-		printf("%4d items (%d weapons, %d ammo).\n\n", items, weapons, ammo);
+		printf2("\nTotal:\n");
+		printf2("%4d items (%d weapons, %d ammo).\n\n", items, weapons, ammo);
 	}
 	else if (!strcmp(cmd, "gpl"))
 	{
-		printf("Half-Life Weapon Mod\n");
-		printf("\n");
-		printf(" by the AGHL.RU Dev Team\n");
-		printf("\n");
-		printf("\n");
-		printf("  This program is free software; you can redistribute it and/or modify it\n");
-		printf("  under the terms of the GNU General Public License as published by the\n");
-		printf("  Free Software Foundation; either version 2 of the License, or (at\n");
-		printf("  your option) any later version.\n");
-		printf("\n");
-		printf("  This program is distributed in the hope that it will be useful, but\n");
-		printf("  WITHOUT ANY WARRANTY; without even the implied warranty of\n");
-		printf("  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU\n");
-		printf("  General Public License for more details.\n");
-		printf("\n");
-		printf("  You should have received a copy of the GNU General Public License\n");
-		printf("  along with this program; if not, write to the Free Software Foundation,\n");
-		printf("  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA\n");
-		printf("\n");
-		printf("  In addition, as a special exception, the author gives permission to\n");
-		printf("  link the code of this program with the Half-Life Game Engine (\"HL\n");
-		printf("  Engine\") and Modified Game Libraries (\"MODs\") developed by Valve,\n");
-		printf("  L.L.C (\"Valve\"). You must obey the GNU General Public License in all\n");
-		printf("  respects for all of the code used other than the HL Engine and MODs\n");
-		printf("  from Valve. If you modify this file, you may extend this exception\n");
-		printf("  to your version of the file, but you are not obligated to do so. If\n");
-		printf("  you do not wish to do so, delete this exception statement from your\n");
-		printf("  version.\n");
-		printf("\n");
+		printf2("Half-Life Weapon Mod\n");
+		printf2("\n");
+		printf2(" by the AGHL.RU Dev Team\n");
+		printf2("\n");
+		printf2("\n");
+		printf2("  This program is free software; you can redistribute it and/or modify it\n");
+		printf2("  under the terms of the GNU General Public License as published by the\n");
+		printf2("  Free Software Foundation; either version 2 of the License, or (at\n");
+		printf2("  your option) any later version.\n");
+		printf2("\n");
+		printf2("  This program is distributed in the hope that it will be useful, but\n");
+		printf2("  WITHOUT ANY WARRANTY; without even the implied warranty of\n");
+		printf2("  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU\n");
+		printf2("  General Public License for more details.\n");
+		printf2("\n");
+		printf2("  You should have received a copy of the GNU General Public License\n");
+		printf2("  along with this program; if not, write to the Free Software Foundation,\n");
+		printf2("  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA\n");
+		printf2("\n");
+		printf2("  In addition, as a special exception, the author gives permission to\n");
+		printf2("  link the code of this program with the Half-Life Game Engine (\"HL\n");
+		printf2("  Engine\") and Modified Game Libraries (\"MODs\") developed by Valve,\n");
+		printf2("  L.L.C (\"Valve\"). You must obey the GNU General Public License in all\n");
+		printf2("  respects for all of the code used other than the HL Engine and MODs\n");
+		printf2("  from Valve. If you modify this file, you may extend this exception\n");
+		printf2("  to your version of the file, but you are not obligated to do so. If\n");
+		printf2("  you do not wish to do so, delete this exception statement from your\n");
+		printf2("  version.\n");
+		printf2("\n");
 	}
 	else
 	{
 		// Unknown command
-		printf("Usage: wpnmod < command > [ argument ]\n");
-		printf("Commands:\n");
-		printf("   %-22s - %s\n", "version", "displays version information.");
-		printf("   %-22s - %s\n", "credits", "displays credits information.");
-		printf("   %-22s - %s\n", "items", "displays information about registered weapons and ammo.");
-		printf("   %-22s - %s\n", "gpl", "print the license.");
+		printf2("Usage: wpnmod < command > [ argument ]\n");
+		printf2("Commands:\n");
+		printf2("   %-22s - %s\n", "version", "displays version information.");
+		printf2("   %-22s - %s\n", "credits", "displays credits information.");
+		printf2("   %-22s - %s\n", "items", "displays information about registered weapons and ammo.");
+		printf2("   %-22s - %s\n", "gpl", "print the license.");
 	}
 }

@@ -49,9 +49,6 @@
 
 #define WEAPON_RESPAWN_TIME					20
 
-#define MAX_WEAPON_SLOTS					5
-#define MAX_WEAPON_POSITIONS				5
-
 #define ITEM_FLAG_SELECTONEMPTY				1
 #define ITEM_FLAG_NOAUTORELOAD				2
 #define ITEM_FLAG_NOAUTOSWITCHEMPTY			4
@@ -146,10 +143,14 @@ typedef struct
 extern AMX_NATIVE_INFO Natives[];
 
 extern edict_t* g_EquipEnt;
+extern int**	g_pCurrentSlots;
 
 extern int g_iWeaponsCount;
 extern int g_iWeaponInitID;
 extern int g_iAmmoBoxIndex;
+
+extern int g_iMaxWeaponSlots;
+extern int g_iMaxWeaponPositions;
 
 extern cvar_t *cvar_aghlru;
 extern cvar_t *cvar_sv_cheats;
@@ -166,7 +167,6 @@ extern WeaponData	WeaponInfoArray	[MAX_WEAPONS];
 extern AmmoBoxData	AmmoBoxInfoArray[MAX_WEAPONS];
 
 extern char	g_ConfigFilepath[1024];
-extern int	g_iCurrentSlots[MAX_WEAPON_SLOTS][MAX_WEAPON_POSITIONS];
 
 extern void		SetConfigFile	(void);
 extern void		WpnModCommand	(void);

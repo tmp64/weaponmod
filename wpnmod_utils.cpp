@@ -45,6 +45,8 @@
 int g_vtblOffsets[VO_End];
 int g_pvDataOffsets[pvData_End];
 
+//bool g_bIsShieldWeaponLoaded = false;
+
 edict_t *GetPrivateCbase(edict_t *pEntity, int iOffset)
 {
     void *pPrivate = *((void **)((int *)(edict_t *)(INDEXENT(0) + ENTINDEX(pEntity))->pvPrivateData + g_pvDataOffsets[iOffset]));
@@ -167,7 +169,7 @@ void SelectItem(edict_t *pPlayer, const char *pstr)
 
 	edict_t *pCheck = NULL;
 
-	for (int i = 0 ; i < MAX_ITEM_TYPES ; i++ )
+	for (int i = 0 ; i <= g_iMaxWeaponSlots ; i++)
 	{
 		pCheck = GetPrivateCbase(pPlayer, pvData_rgpPlayerItems, i);
 
@@ -201,7 +203,7 @@ BOOL GetNextBestWeapon(edict_t* pPlayer, edict_t* pCurrentWeapon)
 		return FALSE;
 	}
 
-	for (int i = 0 ; i < MAX_ITEM_TYPES ; i++ )
+	for (int i = 0 ; i <= g_iMaxWeaponSlots ; i++)
 	{
 		pCheck = GetPrivateCbase(pPlayer, pvData_rgpPlayerItems, i);
 
@@ -239,6 +241,251 @@ BOOL GetNextBestWeapon(edict_t* pPlayer, edict_t* pCurrentWeapon)
 
 	SwitchWeapon(pPlayer, pBest);
 	return TRUE;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void SetShieldHitboxTracing()
+{
+	/*for (int i = 1; i <= g_iWeaponsCount; i++)
+	{
+		if (WeaponInfoArray[i].iType == Wpn_Custom && !stricmp(GetWeapon_pszName(i), "weapon_shield"))
+		{
+			g_bIsShieldWeaponLoaded = true;
+			break;
+		}
+	}
+
+	if (!g_bIsShieldWeaponLoaded)
+	{
+		return;
+	}*/
+
+
+
+
+
+
+	/*
+	module hEngine = { NULL, NULL, NULL };
+
+	if (!FindModuleByAddr((void*)g_engfuncs.pfnAlertMessage, &hEngine))
+	{
+		printf2("[WEAPONMOD] Failed to locate engine, shield hitbox tracing not active!\n");
+		return;
+	}
+
+#ifdef __linux__
+
+	size_t pAdress = (size_t)FindFunction(&hEngine, "g_bIsCStrike");
+
+#else
+
+	signature sig =
+	{
+		"\xC3\xE8\x00\x00\x00\x00\xA1\x00\x00\x00\x00\x85\xC0\x75\x00\xA1",
+		"xx????x????xxx?x", 16
+	};
+
+	size_t pAdress = (size_t)FindFunction(&hEngine, sig);
+
+	if (pAdress)
+	{
+		pAdress += 7;
+	}
+
+#endif 
+
+	if (!pAdress)
+	{
+		printf2("[WEAPONMOD] Failed to enable shield hitbox tracing!\n");
+	}
+	else
+	{
+		*(int*)*(size_t*)(pAdress) = 1;
+		printf2("[WEAPONMOD] Shield hitbox tracing enabled at %p\n", pAdress);
+	}
+
+
+	*/
+
+
+
+
+
+
+
+
+
+
+	signature sig_GetAmmoIndex =
+	{
+		"\x6A\x00\xFF\x00\x00\x00\x00\x00\x53\xFF\x00\x00\x00\x00\x00\x8B\x00\x00\x00\xE8",
+		"x?x?????xx?????x???x", 20
+	};
+
+	size_t pAdress_GetAmmoIndex = (size_t)FindFunction(&g_GameDllModule, sig_GetAmmoIndex);
+
+	if (pAdress_GetAmmoIndex)
+	{
+		pAdress_GetAmmoIndex += 20;
+	}
+
+	size_t lol = *(size_t*)pAdress_GetAmmoIndex + pAdress_GetAmmoIndex + 4;
+	printf2("[WEAPONMOD] pAdress_GetAmmoIndex is  %p [ %p ]\n", lol, g_dllFuncs[Func_GetAmmoIndex].address);
+	g_dllFuncs[Func_GetAmmoIndex].address = (void*)lol;
+
+
+
+
+
+
+
+
+
+
+	signature sig_RadiusDamage =
+	{
+		"\xE8\x00\x00\x00\x00\x56\xE8\x00\x00\x00\x00\x83\xC4\x00\x5F\x5E\xC3",
+		"x????xx????xx?xxx", 17
+	};
+
+	size_t pAdress_RadiusDamage = (size_t)FindFunction(&g_GameDllModule, sig_RadiusDamage);
+
+	if (pAdress_RadiusDamage)
+	{
+		pAdress_RadiusDamage += 1;
+	}
+
+	size_t pRadiusDamage = *(size_t*)pAdress_RadiusDamage + pAdress_RadiusDamage + 4;
+	printf2("[WEAPONMOD] pRadiusDamage is  %p [ %p ]\n", pRadiusDamage, g_dllFuncs[Func_RadiusDamage].address);
+	g_dllFuncs[Func_RadiusDamage].address = (void*)pRadiusDamage;
+
+
+
+
+
+
+
+	
+
+
+	
+
+
+
+
+
+
+
+	// 
+	// UTIL_PrecacheOtherWeapon
+	// 
+
+	signature sig = 
+	{
+		"weapon_rpg", "", 0
+	};
+	
+	size_t pAdress = (size_t)FindFunction(&g_GameDllModule, sig);
+
+	printf2("[WEAPONMOD] weapon_rpg is  %p   %s\n", pAdress, pAdress);
+
+	if (!pAdress)
+	{
+		printf2("[WEAPONMOD]: %s: parsing error: \"UTIL_PrecacheOtherWeapon\" not found (1)\n", __FUNCTION__);
+		return;
+	}
+
+	/*for(int i = 0; i < 6; i++)
+	{
+		printf("%02X\n", ((char*)pAdress)[i]);
+	}*/
+
+	char pattern[] = "\x68\x00\x00\x00\x00\xE8";
+	
+	*(size_t*)(pattern + 1) = pAdress;
+
+	printf2
+     (
+          "[WEAPONMOD] (%.02X %.02X %.02X %.02X %.02X %.02X)\n", 
+
+          pattern[0], 
+          pattern[1], 
+          pattern[2], 
+          pattern[3], 
+          pattern[4], 
+          pattern[5]
+     );
+
+	sig.text = pattern;
+	sig.mask = "xxxxxx";
+	sig.size = 6;
+
+	pAdress = (size_t)FindFunction(&g_GameDllModule, sig);
+
+	printf2
+     (
+          "[WEAPONMOD] (%.2X %.2X %.2X %.2X %.2X %.2X)\n", 
+
+          sig.text[0], 
+          sig.text[1], 
+          sig.text[2], 
+          sig.text[3], 
+          sig.text[4], 
+          sig.text[5]
+     );
+
+	if (!pAdress)
+	{
+		printf2("[WEAPONMOD]: %s: parsing error: \"UTIL_PrecacheOtherWeapon\" not found (2)\n", __FUNCTION__);
+		return;
+	}
+	
+	pAdress += 6;
+	pAdress = *(size_t*)pAdress + pAdress + 4;
+	
+	printf2("[WEAPONMOD] pPrecacheOtherWeapon is  %p [ %p ]\n", pAdress, g_dllFuncs[Func_PrecacheOtherWeapon].address);
+	g_dllFuncs[Func_PrecacheOtherWeapon].address = (void*)pAdress;
+
+	// 
+	// ClearMultiDamage
+	// 
+
+	sig.text = "\x0F\x85\x00\x00\x00\x00\x8B\x00\x00\x8B\x80\x00\x00\x00\x00\x3B\x00\x00\x00\x00\x00\x0F\x84\x00\x00\x00\x00\xE8\x00\x00\x00\x00\x8B\x15\x00\x00\x00\x00\x8B";
+	sig.mask = "xx????x??xx????x?????xx????x????xx????x";
+	sig.size = strlen(sig.mask);
+
+	pAdress = (size_t)FindFunction(&g_GameDllModule, sig);
+
+	if (!pAdress)
+	{
+		printf2("[WEAPONMOD]: %s: parsing error: \"ClearMultiDamage\" not found\n", __FUNCTION__);
+		return;
+	}
+
+	pAdress += 28;
+	pAdress = *(size_t*)pAdress + pAdress + 4;
+	printf2("[WEAPONMOD] pClearMultiDamage is  %p [ %p ]\n", pAdress, g_dllFuncs[Func_ClearMultiDamage].address);
+	g_dllFuncs[Func_ClearMultiDamage].address = (void*)pAdress;
+
+
+	
+
+
+
 }
 
 void SendWeaponAnim(edict_t* pPlayer, edict_t* pWeapon, int iAnim)
@@ -765,6 +1012,7 @@ void RadiusDamage2(Vector vecSrc, edict_t* pInflictor, edict_t* pAttacker, float
 		}
 
 		vecSpot = (pEntity->v.absmax + pEntity->v.absmin) * 0.5;
+
 		TRACE_LINE(vecSrc, vecSpot, dont_ignore_monsters, pInflictor, &tr);
 
 		if (tr.flFraction != 1.0 && (FNullEnt(tr.pHit) || !ENTINDEX(tr.pHit) || tr.pHit->v.movetype == MOVETYPE_PUSH))
@@ -803,3 +1051,16 @@ void RadiusDamage2(Vector vecSrc, edict_t* pInflictor, edict_t* pAttacker, float
 		}
 	}
 }
+
+void printf2(char *fmt, ...)
+{
+	va_list argptr;
+	static char string[384];
+	va_start(argptr, fmt);
+	vsnprintf(string, sizeof(string) - 1, fmt, argptr);
+	string[sizeof(string) - 1] = '\0';
+	va_end(argptr);
+
+	SERVER_PRINT(string);
+}
+

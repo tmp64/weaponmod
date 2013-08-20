@@ -188,7 +188,7 @@ namespace Util
 	
 		if( !data )
 			return NULL;
-		
+
 	// skip whitespace
 	skipwhite:
 		while(( c = ((byte)*data)) <= ' ' )
@@ -231,7 +231,7 @@ namespace Util
 			token[len] = 0;
 			return data + 1;
 		}
-
+		
 		// parse a regular word
 		do
 		{

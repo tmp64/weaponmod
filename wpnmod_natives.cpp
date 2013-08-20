@@ -1617,6 +1617,67 @@ static cell AMX_NATIVE_CALL wpnmod_trace_texture(AMX *amx, cell *params)
 	return MF_SetAmxString(amx, params[4], pTextureName, params[5]);
 }
 
+/**
+ * Precache view model and all sound sequences in it.
+ *
+ * @param szModelPath		Path to model.
+ *
+ * native wpnmod_precache_model_sequences(const szModelPath[]);
+*/
+static cell AMX_NATIVE_CALL wpnmod_precache_model_sequences(AMX *amx, cell *params)
+{
+	char modelpath[1024];
+
+	MF_BuildPathnameR(modelpath, sizeof(modelpath) - 1, "%s", MF_GetAmxString(amx, params[1], 0, NULL));
+
+	FILE *fp = fopen(modelpath, "rb");
+
+	if (fp)
+	{
+		int iEvent = 0;
+		int iNumSeq = 0;
+		int iSeqIndex = 0;
+		int iNumEvents = 0;
+		int iEventIndex = 0;
+
+		fseek(fp, 164, SEEK_SET);
+		fread(&iNumSeq, sizeof(int), 1, fp);
+		fread(&iSeqIndex, sizeof(int), 1, fp);
+
+		//String strSound = NULL;
+
+		for (int k, i = 0; i < iNumSeq; i++)
+		{
+			fseek(fp, iSeqIndex + 48 + 176 * i, SEEK_SET);
+			fread(&iNumEvents, sizeof(int), 1, fp);
+			fread(&iEventIndex, sizeof(int), 1, fp);
+			fseek(fp, iEventIndex + 176 * i, SEEK_SET);
+
+			for (k = 0; k < iNumEvents; k++)
+			{
+				fseek(fp, iEventIndex + 4 + 76 * k, SEEK_SET);
+				fread(&iEvent, sizeof(int), 1, fp);
+				fseek(fp, 4, SEEK_CUR);
+				
+				if (iEvent == 5004)
+				{
+					fread(&modelpath, 64, 1, fp);
+
+					if (strlen(modelpath))
+					{
+						//	strtolower(szSoundPath);
+						//PRECACHE_SOUND(szSoundPath);
+					}
+				
+					//printf2(" * Sound: %s\n", modelpath);
+				}
+			}
+		}
+	}
+
+	return fclose(fp);
+}
+
 
 AMX_NATIVE_INFO Natives[] = 
 {
@@ -1660,6 +1721,7 @@ AMX_NATIVE_INFO Natives[] =
 	{ "wpnmod_explode_entity", wpnmod_explode_entity},
 	{ "wpnmod_decal_trace", wpnmod_decal_trace},
 	{ "wpnmod_trace_texture", wpnmod_trace_texture},
+	{ "wpnmod_precache_model_sequences", wpnmod_precache_model_sequences},
 
 	{ NULL, NULL }
 };

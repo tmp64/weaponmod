@@ -89,6 +89,7 @@ void	SetHook			(function *func);
 void	UnsetHook		(function *func);
 
 void*	FindFunction	(module *lib, signature sig);
+void*	FindFunction	(module *lib, const char *name);
 void*	FindFunction	(function *func);
 
 int		FindModuleByAddr	(void *addr, module *lib);

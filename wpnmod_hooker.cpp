@@ -146,27 +146,52 @@ int FindModuleByAddr (void *addr, module *lib)
 
 void *FindFunction (module *lib, signature sig)
 {
-	if (!lib)
+	if (!lib || !sig.text)
+	{
 		return NULL;
-	
-	if (!sig.text || !sig.mask || sig.size == 0)
-		return NULL;
-	
+	}
+
 	unsigned char *pBuff = (unsigned char *)lib->base;
 	unsigned char *pEnd = (unsigned char *)lib->base+lib->size-sig.size;
 
 	unsigned long i;
-	while (pBuff < pEnd)
+
+	if (sig.mask && sig.size)
 	{
-		for (i = 0; i < sig.size; i++) {
-			if ((sig.mask[i] != '?') && ((unsigned char)(sig.text[i]) != pBuff[i]))
-				break;
+		while (pBuff < pEnd)
+		{
+			for (i = 0; i < sig.size; i++) {
+				if ((sig.mask[i] != '?') && ((unsigned char)(sig.text[i]) != pBuff[i]))
+					break;
+			}
+
+			if (i == sig.size)
+			{
+				return (void*)pBuff;
+			}
+
+			pBuff++;
 		}
+	}
+	else
+	{
+		sig.size = strlen(sig.text);
 
-		if (i == sig.size)
-			return (void*)pBuff;
+		while (pBuff < pEnd)
+		{
+			for (i = 0; i < sig.size; i++)
+			{
+				if (pBuff[i] != sig.text[i])
+					break;
+			}
 
-		pBuff++;
+			if (i == sig.size)
+			{
+				return (void*)pBuff;
+			}
+
+			pBuff++;
+		}
 	}
 
     return NULL;

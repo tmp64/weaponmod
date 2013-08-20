@@ -36,7 +36,7 @@
 
 // Module info
 #define MODULE_NAME "HL Weapon Mod"
-#define MODULE_VERSION "0.8"
+#define MODULE_VERSION "0.9"
 #define MODULE_AUTHOR "AGHL.RU Dev Team"
 #define MODULE_URL "http://www.aghl.ru/"
 #define MODULE_LOGTAG "WEAPONMOD"
@@ -200,7 +200,7 @@
 // #define FN_StartFrame_Post					StartFrame_Post
 // #define FN_ParmsNewLevel_Post				ParmsNewLevel_Post
 // #define FN_ParmsChangeLevel_Post				ParmsChangeLevel_Post
-//#define FN_GetGameDescription_Post			GetGameDescription_Post
+// #define FN_GetGameDescription_Post			GetGameDescription_Post
 // #define FN_PlayerCustomization_Post			PlayerCustomization_Post
 // #define FN_SpectatorConnect_Post				SpectatorConnect_Post
 // #define FN_SpectatorDisconnect_Post			SpectatorDisconnect_Post
@@ -210,7 +210,7 @@
 // #define FN_PM_Init_Post						PM_Init_Post
 // #define FN_PM_FindTextureType_Post			PM_FindTextureType_Post
 // #define FN_SetupVisibility_Post				SetupVisibility_Post
-// #define FN_UpdateClientData_Post				UpdateClientData_Post
+#define FN_UpdateClientData_Post				UpdateClientData_Post
 // #define FN_AddToFullPack_Post				AddToFullPack_Post
 // #define FN_CreateBaseline_Post				CreateBaseline_Post
 // #define FN_RegisterEncoders_Post				RegisterEncoders_Post

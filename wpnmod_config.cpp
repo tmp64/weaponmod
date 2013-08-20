@@ -52,13 +52,16 @@ int g_iWeaponsCount			= 0;
 int g_iWeaponInitID			= 0;
 int g_iAmmoBoxIndex			= 0;
 
+int g_iMaxWeaponSlots		= 5;
+int g_iMaxWeaponPositions	= 5;
+
 BOOL g_CrowbarHooksEnabled	= 0;
 BOOL g_AmmoBoxHooksEnabled	= 0;
 
 WeaponData	WeaponInfoArray	[MAX_WEAPONS];
 AmmoBoxData AmmoBoxInfoArray[MAX_WEAPONS];
 
-int g_iCurrentSlots[MAX_WEAPON_SLOTS][MAX_WEAPON_POSITIONS];
+int** g_pCurrentSlots = NULL;
 
 
 void SetConfigFile()
@@ -73,19 +76,19 @@ void SetConfigFile()
 
 void AutoSlotDetection(int iWeaponID, int iSlot, int iPosition)
 {
-	if (iSlot >= MAX_WEAPON_SLOTS || iSlot < 0)
+	if (iSlot >= g_iMaxWeaponSlots || iSlot < 0)
 	{
-		iSlot = MAX_WEAPON_SLOTS - 1;
+		iSlot = g_iMaxWeaponSlots - 1;
 	}
 
-	if (iPosition >= MAX_WEAPON_POSITIONS || iPosition < 0)
+	if (iPosition >= g_iMaxWeaponPositions || iPosition < 0)
 	{
-		iPosition = MAX_WEAPON_POSITIONS - 1;
+		iPosition = g_iMaxWeaponPositions - 1;
 	}
 
-	if (!g_iCurrentSlots[iSlot][iPosition])
+	if (!g_pCurrentSlots[iSlot][iPosition])
 	{
-		g_iCurrentSlots[iSlot][iPosition] = iWeaponID;
+		g_pCurrentSlots[iSlot][iPosition] = iWeaponID;
 
 		WeaponInfoArray[iWeaponID].ItemData.iSlot = iSlot;
 		WeaponInfoArray[iWeaponID].ItemData.iPosition = iPosition;
@@ -94,13 +97,13 @@ void AutoSlotDetection(int iWeaponID, int iSlot, int iPosition)
 	{
 		BOOL bFound = FALSE;
 
-		for (int k, i = 0; i < MAX_WEAPON_SLOTS && !bFound; i++)
+		for (int k, i = 0; i < g_iMaxWeaponSlots && !bFound; i++)
 		{
-			for (k = 0; k < MAX_WEAPON_POSITIONS; k++)
+			for (k = 0; k < g_iMaxWeaponPositions; k++)
 			{
-				if (!g_iCurrentSlots[i][k])
+				if (!g_pCurrentSlots[i][k])
 				{
-					g_iCurrentSlots[i][k] = iWeaponID;
+					g_pCurrentSlots[i][k] = iWeaponID;
 
 					WeaponInfoArray[iWeaponID].ItemData.iSlot = i;
 					WeaponInfoArray[iWeaponID].ItemData.iPosition = k;

@@ -159,8 +159,8 @@ void ParseSpawnPoints()
 
 			}
 		}
-
-		printf("[WEAPONMOD] \"%s.ini\": spawn %d weapons and %d ammoboxes.\n", STRING(gpGlobals->mapname), wpns, ammoboxes);
+		
+		printf2("[WEAPONMOD] \"%s.ini\": spawn %d weapons and %d ammoboxes.\n", STRING(gpGlobals->mapname), wpns, ammoboxes);
 		fclose(stream);
 	}
 }
@@ -290,6 +290,22 @@ void ParseSignatures_Handler(char* data)
 	{
 		g_dllFuncs[iIndex].name = STRING(ALLOC_STRING(szData[0]));
 		g_dllFuncs[iIndex].sig = ParseSig(szData[1]);
+	}
+
+	iIndex++;
+}
+
+void ParseSlots_Handler(char* data)
+{
+	static int iIndex = 0;
+
+	if (!iIndex)
+	{
+		g_iMaxWeaponSlots = atoi(data);
+	}
+	else if (iIndex == 1)
+	{
+		g_iMaxWeaponPositions = atoi(data);
 	}
 
 	iIndex++;
@@ -476,6 +492,33 @@ void ParseBSP()
 	fclose(fp);
 
 	char token[2048];
+
+
+
+	/*
+	int control = 0;
+		char* start = strchr(data, '{');
+
+		if(start)
+		{
+			start++;
+			control++;
+			while(control)
+			{
+				if(*start == '{')
+					control++;
+				else if(*start == '}')
+					control--;
+
+				if(*start > 127 || *start < 0)
+					*start = '\n';
+
+				start++;
+			}
+		}
+*/
+
+
 
 	while(( data = Util::COM_ParseFile(data, token)) != NULL )
 	{
