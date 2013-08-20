@@ -248,7 +248,7 @@ signature ParseSig(char *input)
 
 	char *sigText = new char[256];
 	char *sigMask = new char[256];
-	
+
 	int sigLen = 0, state = 0;
 
 	while ((arg = Util::ParseArg(&input, state, '"')) && state)

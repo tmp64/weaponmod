@@ -1,35 +1,35 @@
 /*
- * Half-Life Weapon Mod
- * Copyright (c) 2012 - 2013 AGHL.RU Dev Team
- * 
- * http://aghl.ru/forum/ - Russian Half-Life and Adrenaline Gamer Community
- *
- *
- *    This program is free software; you can redistribute it and/or modify it
- *    under the terms of the GNU General Public License as published by the
- *    Free Software Foundation; either version 2 of the License, or (at
- *    your option) any later version.
- *
- *    This program is distributed in the hope that it will be useful, but
- *    WITHOUT ANY WARRANTY; without even the implied warranty of
- *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *    General Public License for more details.
- *
- *    You should have received a copy of the GNU General Public License
- *    along with this program; if not, write to the Free Software Foundation,
- *    Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- *    In addition, as a special exception, the author gives permission to
- *    link the code of this program with the Half-Life Game Engine ("HL
- *    Engine") and Modified Game Libraries ("MODs") developed by Valve,
- *    L.L.C ("Valve").  You must obey the GNU General Public License in all
- *    respects for all of the code used other than the HL Engine and MODs
- *    from Valve.  If you modify this file, you may extend this exception
- *    to your version of the file, but you are not obligated to do so.  If
- *    you do not wish to do so, delete this exception statement from your
- *    version.
- *
- */
+* Half-Life Weapon Mod
+* Copyright (c) 2012 - 2013 AGHL.RU Dev Team
+* 
+* http://aghl.ru/forum/ - Russian Half-Life and Adrenaline Gamer Community
+*
+*
+*    This program is free software; you can redistribute it and/or modify it
+*    under the terms of the GNU General Public License as published by the
+*    Free Software Foundation; either version 2 of the License, or (at
+*    your option) any later version.
+*
+*    This program is distributed in the hope that it will be useful, but
+*    WITHOUT ANY WARRANTY; without even the implied warranty of
+*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+*    General Public License for more details.
+*
+*    You should have received a copy of the GNU General Public License
+*    along with this program; if not, write to the Free Software Foundation,
+*    Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*
+*    In addition, as a special exception, the author gives permission to
+*    link the code of this program with the Half-Life Game Engine ("HL
+*    Engine") and Modified Game Libraries ("MODs") developed by Valve,
+*    L.L.C ("Valve").  You must obey the GNU General Public License in all
+*    respects for all of the code used other than the HL Engine and MODs
+*    from Valve.  If you modify this file, you may extend this exception
+*    to your version of the file, but you are not obligated to do so.  If
+*    you do not wish to do so, delete this exception statement from your
+*    version.
+*
+*/
 
 #include "wpnmod_hooks.h"
 #include "wpnmod_utils.h"
@@ -37,8 +37,8 @@
 
 #ifdef __linux__
 
-	bool g_ExtraThink = false;
-	bool g_ExtraTouch = false;
+bool g_ExtraThink = false;
+bool g_ExtraTouch = false;
 
 #endif
 
@@ -49,26 +49,26 @@ int g_pvDataOffsets[pvData_End];
 
 edict_t *GetPrivateCbase(edict_t *pEntity, int iOffset)
 {
-    void *pPrivate = *((void **)((int *)(edict_t *)(INDEXENT(0) + ENTINDEX(pEntity))->pvPrivateData + g_pvDataOffsets[iOffset]));
+	void *pPrivate = *((void **)((int *)(edict_t *)(INDEXENT(0) + ENTINDEX(pEntity))->pvPrivateData + g_pvDataOffsets[iOffset]));
 
-    if (!pPrivate)
-    {
-        return NULL;
-    }
+	if (!pPrivate)
+	{
+		return NULL;
+	}
 
-    return PrivateToEdict(pPrivate);	
+	return PrivateToEdict(pPrivate);	
 }
 
 edict_t *GetPrivateCbase(edict_t *pEntity, int iOffset, int iExtraRealOffset)
 {
-    void *pPrivate = *((void **)((int *)(edict_t *)(INDEXENT(0) + ENTINDEX(pEntity))->pvPrivateData + g_pvDataOffsets[iOffset] + iExtraRealOffset));
+	void *pPrivate = *((void **)((int *)(edict_t *)(INDEXENT(0) + ENTINDEX(pEntity))->pvPrivateData + g_pvDataOffsets[iOffset] + iExtraRealOffset));
 
-    if (!pPrivate)
-    {
-        return NULL;
-    }
+	if (!pPrivate)
+	{
+		return NULL;
+	}
 
-    return PrivateToEdict(pPrivate);	
+	return PrivateToEdict(pPrivate);	
 }
 
 void SetPrivateCbase(edict_t *pEntity, int iOffset, edict_t* pValue)
@@ -118,7 +118,7 @@ edict_t* INDEXENT2(int iEdictNum)
 	{
 		return MF_GetPlayerEdict(iEdictNum);
 	}
-	
+
 	return (*g_engfuncs.pfnPEntityOfEntIndex)(iEdictNum); 
 }
 
@@ -193,7 +193,7 @@ BOOL GetNextBestWeapon(edict_t* pPlayer, edict_t* pCurrentWeapon)
 
 	ItemInfo pII_Check;
 	ItemInfo pII_Current;
-	
+
 	int iBestWeight = -1;
 
 	GET_ITEM_INFO(pCurrentWeapon, &pII_Current);
@@ -261,16 +261,16 @@ void SetShieldHitboxTracing()
 {
 	/*for (int i = 1; i <= g_iWeaponsCount; i++)
 	{
-		if (WeaponInfoArray[i].iType == Wpn_Custom && !stricmp(GetWeapon_pszName(i), "weapon_shield"))
-		{
-			g_bIsShieldWeaponLoaded = true;
-			break;
-		}
+	if (WeaponInfoArray[i].iType == Wpn_Custom && !stricmp(GetWeapon_pszName(i), "weapon_shield"))
+	{
+	g_bIsShieldWeaponLoaded = true;
+	break;
+	}
 	}
 
 	if (!g_bIsShieldWeaponLoaded)
 	{
-		return;
+	return;
 	}*/
 
 
@@ -283,39 +283,39 @@ void SetShieldHitboxTracing()
 
 	if (!FindModuleByAddr((void*)g_engfuncs.pfnAlertMessage, &hEngine))
 	{
-		printf2("[WEAPONMOD] Failed to locate engine, shield hitbox tracing not active!\n");
-		return;
+	printf2("[WEAPONMOD] Failed to locate engine, shield hitbox tracing not active!\n");
+	return;
 	}
 
-#ifdef __linux__
+	#ifdef __linux__
 
 	size_t pAdress = (size_t)FindFunction(&hEngine, "g_bIsCStrike");
 
-#else
+	#else
 
 	signature sig =
 	{
-		"\xC3\xE8\x00\x00\x00\x00\xA1\x00\x00\x00\x00\x85\xC0\x75\x00\xA1",
-		"xx????x????xxx?x", 16
+	"\xC3\xE8\x00\x00\x00\x00\xA1\x00\x00\x00\x00\x85\xC0\x75\x00\xA1",
+	"xx????x????xxx?x", 16
 	};
 
 	size_t pAdress = (size_t)FindFunction(&hEngine, sig);
 
 	if (pAdress)
 	{
-		pAdress += 7;
+	pAdress += 7;
 	}
 
-#endif 
+	#endif 
 
 	if (!pAdress)
 	{
-		printf2("[WEAPONMOD] Failed to enable shield hitbox tracing!\n");
+	printf2("[WEAPONMOD] Failed to enable shield hitbox tracing!\n");
 	}
 	else
 	{
-		*(int*)*(size_t*)(pAdress) = 1;
-		printf2("[WEAPONMOD] Shield hitbox tracing enabled at %p\n", pAdress);
+	*(int*)*(size_t*)(pAdress) = 1;
+	printf2("[WEAPONMOD] Shield hitbox tracing enabled at %p\n", pAdress);
 	}
 
 
@@ -379,10 +379,10 @@ void SetShieldHitboxTracing()
 
 
 
-	
 
 
-	
+
+
 
 
 
@@ -398,7 +398,7 @@ void SetShieldHitboxTracing()
 	{
 		"weapon_rpg", "", 0
 	};
-	
+
 	size_t pAdress = (size_t)FindFunction(&g_GameDllModule, sig);
 
 	printf2("[WEAPONMOD] weapon_rpg is  %p   %s\n", pAdress, pAdress);
@@ -411,52 +411,52 @@ void SetShieldHitboxTracing()
 
 	/*for(int i = 0; i < 6; i++)
 	{
-		printf("%02X\n", ((char*)pAdress)[i]);
+	printf("%02X\n", ((char*)pAdress)[i]);
 	}*/
 
-	char pattern[] = "\x68\x00\x00\x00\x00\xE8";
-	
+	unsigned char pattern[] = "\x68\x00\x00\x00\x00\xE8";
+
 	*(size_t*)(pattern + 1) = pAdress;
 
 	printf2
-     (
-          "[WEAPONMOD] (%.02X %.02X %.02X %.02X %.02X %.02X)\n", 
+		(
+		"[WEAPONMOD] (%02X %02X %02X %02X %02X %02X)\n", 
 
-          pattern[0], 
-          pattern[1], 
-          pattern[2], 
-          pattern[3], 
-          pattern[4], 
-          pattern[5]
-     );
+		pattern[0], 
+		pattern[1], 
+		pattern[2], 
+		pattern[3], 
+		pattern[4], 
+		pattern[5]
+	);
 
-	sig.text = pattern;
+	sig.text = (char*)pattern;
 	sig.mask = "xxxxxx";
 	sig.size = 6;
 
 	pAdress = (size_t)FindFunction(&g_GameDllModule, sig);
 
 	printf2
-     (
-          "[WEAPONMOD] (%.2X %.2X %.2X %.2X %.2X %.2X)\n", 
+		(
+		"[WEAPONMOD] (%.2X %.2X %.2X %.2X %.2X %.2X)\n", 
 
-          sig.text[0], 
-          sig.text[1], 
-          sig.text[2], 
-          sig.text[3], 
-          sig.text[4], 
-          sig.text[5]
-     );
+		sig.text[0], 
+		sig.text[1], 
+		sig.text[2], 
+		sig.text[3], 
+		sig.text[4], 
+		sig.text[5]
+	);
 
 	if (!pAdress)
 	{
 		printf2("[WEAPONMOD]: %s: parsing error: \"UTIL_PrecacheOtherWeapon\" not found (2)\n", __FUNCTION__);
 		return;
 	}
-	
+
 	pAdress += 6;
 	pAdress = *(size_t*)pAdress + pAdress + 4;
-	
+
 	printf2("[WEAPONMOD] pPrecacheOtherWeapon is  %p [ %p ]\n", pAdress, g_dllFuncs[Func_PrecacheOtherWeapon].address);
 	g_dllFuncs[Func_PrecacheOtherWeapon].address = (void*)pAdress;
 
@@ -482,7 +482,7 @@ void SetShieldHitboxTracing()
 	g_dllFuncs[Func_ClearMultiDamage].address = (void*)pAdress;
 
 
-	
+
 
 
 
@@ -490,17 +490,17 @@ void SetShieldHitboxTracing()
 
 void SendWeaponAnim(edict_t* pPlayer, edict_t* pWeapon, int iAnim)
 {
-	#define OBS_IN_EYE 4
+#define OBS_IN_EYE 4
 
 	pPlayer->v.weaponanim = iAnim;
 
 	MESSAGE_BEGIN(MSG_ONE, SVC_WEAPONANIM, NULL, pPlayer);
-		WRITE_BYTE(iAnim);
-		WRITE_BYTE(pWeapon->v.body);
+	WRITE_BYTE(iAnim);
+	WRITE_BYTE(pWeapon->v.body);
 	MESSAGE_END();
 
 	edict_t* pSpectator = NULL;
-	
+
 	// Also send anim to all spectators.
 	for (int i = 0; i <= gpGlobals->maxClients; i++)
 	{
@@ -516,8 +516,8 @@ void SendWeaponAnim(edict_t* pPlayer, edict_t* pWeapon, int iAnim)
 			pSpectator->v.weaponanim = iAnim;
 
 			MESSAGE_BEGIN(MSG_ONE, SVC_WEAPONANIM, NULL, pSpectator);
-				WRITE_BYTE(iAnim);
-				WRITE_BYTE(pWeapon->v.body);
+			WRITE_BYTE(iAnim);
+			WRITE_BYTE(pWeapon->v.body);
 			MESSAGE_END();
 		}
 	}
@@ -553,7 +553,7 @@ BOOL Entity_IsInWorld(edict_t *pEntity)
 	if (pEntity->v.origin.x <= -4096) return FALSE;
 	if (pEntity->v.origin.y <= -4096) return FALSE;
 	if (pEntity->v.origin.z <= -4096) return FALSE;
-/*
+	/*
 	float flMaxVelocity = CVAR_GET_FLOAT("sv_maxvelocity");
 
 	// speed
@@ -563,7 +563,7 @@ BOOL Entity_IsInWorld(edict_t *pEntity)
 	if (pEntity->v.velocity.x <= -flMaxVelocity) return FALSE;
 	if (pEntity->v.velocity.y <= -flMaxVelocity) return FALSE;
 	if (pEntity->v.velocity.z <= -flMaxVelocity) return FALSE;
-*/
+	*/
 	return TRUE;
 }
 
@@ -590,17 +590,17 @@ void UTIL_Bubbles( Vector mins, Vector maxs, int count )
 	flHeight = flHeight - mins.z;
 
 	MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, mid );
-		WRITE_BYTE( TE_BUBBLES );
-		WRITE_COORD( mins.x );	// mins
-		WRITE_COORD( mins.y );
-		WRITE_COORD( mins.z );
-		WRITE_COORD( maxs.x );	// maxz
-		WRITE_COORD( maxs.y );
-		WRITE_COORD( maxs.z );
-		WRITE_COORD( flHeight );			// height
-		WRITE_SHORT( MODEL_INDEX("sprites/bubble.spr") );
-		WRITE_BYTE( count ); // count
-		WRITE_COORD( 8 ); // speed
+	WRITE_BYTE( TE_BUBBLES );
+	WRITE_COORD( mins.x );	// mins
+	WRITE_COORD( mins.y );
+	WRITE_COORD( mins.z );
+	WRITE_COORD( maxs.x );	// maxz
+	WRITE_COORD( maxs.y );
+	WRITE_COORD( maxs.z );
+	WRITE_COORD( flHeight );			// height
+	WRITE_SHORT( MODEL_INDEX("sprites/bubble.spr") );
+	WRITE_BYTE( count ); // count
+	WRITE_COORD( 8 ); // speed
 	MESSAGE_END();
 }
 
@@ -644,17 +644,17 @@ float UTIL_WaterLevel( const Vector &position, float minz, float maxz )
 void UTIL_EjectBrass(const Vector &vecOrigin, const Vector &vecVelocity, float rotation, int model, int soundtype)
 {
 	MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, vecOrigin );
-		WRITE_BYTE( TE_MODEL);
-		WRITE_COORD( vecOrigin.x);
-		WRITE_COORD( vecOrigin.y);
-		WRITE_COORD( vecOrigin.z);
-		WRITE_COORD( vecVelocity.x);
-		WRITE_COORD( vecVelocity.y);
-		WRITE_COORD( vecVelocity.z);
-		WRITE_ANGLE( rotation );
-		WRITE_SHORT( model );
-		WRITE_BYTE ( soundtype);
-		WRITE_BYTE ( 25 );// 2.5 seconds
+	WRITE_BYTE( TE_MODEL);
+	WRITE_COORD( vecOrigin.x);
+	WRITE_COORD( vecOrigin.y);
+	WRITE_COORD( vecOrigin.z);
+	WRITE_COORD( vecVelocity.x);
+	WRITE_COORD( vecVelocity.y);
+	WRITE_COORD( vecVelocity.z);
+	WRITE_ANGLE( rotation );
+	WRITE_SHORT( model );
+	WRITE_BYTE ( soundtype);
+	WRITE_BYTE ( 25 );// 2.5 seconds
 	MESSAGE_END();
 }
 
@@ -675,19 +675,19 @@ void UTIL_DecalGunshot(TraceResult *pTrace)
 		}
 
 		int index = g_Decals[decalNumber]->index;
-		
+
 		if (index < 0 || pTrace->flFraction == 1.0)
 		{
 			return;
 		}
 
 		MESSAGE_BEGIN(MSG_PAS, SVC_TEMPENTITY, pTrace->vecEndPos);
-			WRITE_BYTE(TE_GUNSHOTDECAL);
-			WRITE_COORD(pTrace->vecEndPos.x );
-			WRITE_COORD(pTrace->vecEndPos.y );
-			WRITE_COORD(pTrace->vecEndPos.z );
-			WRITE_SHORT((short)ENTINDEX(pTrace->pHit));
-			WRITE_BYTE(index);
+		WRITE_BYTE(TE_GUNSHOTDECAL);
+		WRITE_COORD(pTrace->vecEndPos.x );
+		WRITE_COORD(pTrace->vecEndPos.y );
+		WRITE_COORD(pTrace->vecEndPos.z );
+		WRITE_SHORT((short)ENTINDEX(pTrace->pHit));
+		WRITE_BYTE(index);
 		MESSAGE_END();
 	}
 }
@@ -716,7 +716,7 @@ void UTIL_DecalTrace(TraceResult *pTrace, int iDecalIndex)
 
 		entityIndex = ENTINDEX(pTrace->pHit);
 	}
-		
+
 	message = TE_DECAL;
 	if (entityIndex != 0)
 	{
@@ -735,17 +735,17 @@ void UTIL_DecalTrace(TraceResult *pTrace, int iDecalIndex)
 			iDecalIndex -= 256;
 		}
 	}
-	
+
 	MESSAGE_BEGIN(MSG_BROADCAST, SVC_TEMPENTITY);
 	WRITE_BYTE(message);
 	WRITE_COORD(pTrace->vecEndPos.x);
 	WRITE_COORD(pTrace->vecEndPos.y);
 	WRITE_COORD(pTrace->vecEndPos.z);
 	WRITE_BYTE(iDecalIndex);
-	
+
 	if (entityIndex)
 	{
-			WRITE_SHORT(entityIndex);
+		WRITE_SHORT(entityIndex);
 	}
 
 	MESSAGE_END();
@@ -796,7 +796,7 @@ float TEXTURETYPE_PlaySound(TraceResult *ptr,  Vector vecSrc, Vector vecEnd)
 
 	if (pEntity && CLASSIFY(pEntity) != CLASS_NONE && CLASSIFY(pEntity) != CLASS_MACHINE)
 		// hit body
-		chTextureType = CHAR_TEX_FLESH;
+			chTextureType = CHAR_TEX_FLESH;
 	else
 	{
 		// hit world
@@ -811,7 +811,7 @@ float TEXTURETYPE_PlaySound(TraceResult *ptr,  Vector vecSrc, Vector vecEnd)
 			pTextureName = TRACE_TEXTURE( pEntity, rgfl1, rgfl2 );
 		else
 			pTextureName = TRACE_TEXTURE( ENT(0), rgfl1, rgfl2 );
-			
+
 		if ( pTextureName )
 		{
 			// strip leading '-0' or '+0~' or '{' or '!'
@@ -823,7 +823,7 @@ float TEXTURETYPE_PlaySound(TraceResult *ptr,  Vector vecSrc, Vector vecEnd)
 			// '}}'
 			strcpy(szbuffer, pTextureName);
 			szbuffer[CBTEXTURENAMEMAX - 1] = 0;
-			
+
 			// get texture type
 			chTextureType = MDLL_PM_FindTextureType(szbuffer);
 		}
@@ -897,7 +897,7 @@ float TEXTURETYPE_PlaySound(TraceResult *ptr,  Vector vecSrc, Vector vecEnd)
 
 	// play material hit sound
 	UTIL_EmitAmbientSound(ENT(0), ptr->vecEndPos, rgsz[RANDOM_LONG(0,cnt-1)], fvol, fattn, 0, 96 + RANDOM_LONG(0,0xf));
-			
+
 	return fvolbar;
 }
 
@@ -906,10 +906,10 @@ void FireBulletsPlayer(edict_t* pPlayer, edict_t* pAttacker, int iShotsCount, Ve
 	float x, y, z;
 	static int tracerCount;
 	TraceResult tr;
-	
+
 	Vector vecSrc = pPlayer->v.origin + pPlayer->v.view_ofs; 
 	MAKE_VECTORS(pPlayer->v.v_angle + pPlayer->v.punchangle);
-	
+
 	Vector vecDirShooting = gpGlobals->v_forward;
 	Vector vecRight = gpGlobals->v_right;
 	Vector vecUp = gpGlobals->v_up;
@@ -931,9 +931,9 @@ void FireBulletsPlayer(edict_t* pPlayer, edict_t* pAttacker, int iShotsCount, Ve
 		} while (z > 1);
 
 		Vector vecDir = vecDirShooting +
-						x * vecSpread.x * vecRight +
-						y * vecSpread.y * vecUp;
-		
+			x * vecSpread.x * vecRight +
+			y * vecSpread.y * vecUp;
+
 		Vector vecEnd = vecSrc + vecDir * flDistance;
 
 		TRACE_LINE(vecSrc, vecEnd, dont_ignore_monsters, pPlayer, &tr);
@@ -944,13 +944,13 @@ void FireBulletsPlayer(edict_t* pPlayer, edict_t* pAttacker, int iShotsCount, Ve
 			Vector vecTracerSrc = vecSrc + Vector (0 , 0 , -4) + gpGlobals->v_right * 2 + gpGlobals->v_forward * 16;
 
 			MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, vecTracerSrc );
-				WRITE_BYTE( TE_TRACER );
-				WRITE_COORD( vecTracerSrc.x );
-				WRITE_COORD( vecTracerSrc.y );
-				WRITE_COORD( vecTracerSrc.z );
-				WRITE_COORD( tr.vecEndPos.x );
-				WRITE_COORD( tr.vecEndPos.y );
-				WRITE_COORD( tr.vecEndPos.z );
+			WRITE_BYTE( TE_TRACER );
+			WRITE_COORD( vecTracerSrc.x );
+			WRITE_COORD( vecTracerSrc.y );
+			WRITE_COORD( vecTracerSrc.z );
+			WRITE_COORD( tr.vecEndPos.x );
+			WRITE_COORD( tr.vecEndPos.y );
+			WRITE_COORD( tr.vecEndPos.z );
 			MESSAGE_END();
 		}
 
@@ -986,7 +986,7 @@ void RadiusDamage2(Vector vecSrc, edict_t* pInflictor, edict_t* pAttacker, float
 	{
 		pAttacker = pInflictor;
 	}
-	
+
 	vecSrc.z += 1;
 
 	while (!FNullEnt((pEntity = FIND_ENTITY_IN_SPHERE(pEntity, vecSrc, flRadius))))
@@ -1027,7 +1027,7 @@ void RadiusDamage2(Vector vecSrc, edict_t* pInflictor, edict_t* pAttacker, float
 
 		flAdjustedDamage = (vecSrc - tr.vecEndPos).Length() * falloff;
 		flAdjustedDamage = flDamage - flAdjustedDamage;
-			
+
 		if (flAdjustedDamage <= 0)
 		{
 			continue;
@@ -1038,7 +1038,7 @@ void RadiusDamage2(Vector vecSrc, edict_t* pInflictor, edict_t* pAttacker, float
 			tr.vecEndPos = vecSrc;
 			tr.flFraction = 0.0;
 		}
-		
+
 		if (tr.flFraction != 1.0)
 		{
 			CLEAR_MULTI_DAMAGE();

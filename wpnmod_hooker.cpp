@@ -146,7 +146,7 @@ int FindModuleByAddr (void *addr, module *lib)
 
 void *FindFunction (module *lib, signature sig)
 {
-	if (!lib || !sig.text)
+	if (!lib || !sig.text[0])
 	{
 		return NULL;
 	}
@@ -156,11 +156,12 @@ void *FindFunction (module *lib, signature sig)
 
 	unsigned long i;
 
-	if (sig.mask && sig.size)
+	if (sig.mask[0] && sig.size)
 	{
 		while (pBuff < pEnd)
 		{
-			for (i = 0; i < sig.size; i++) {
+			for (i = 0; i < sig.size; i++)
+			{
 				if ((sig.mask[i] != '?') && ((unsigned char)(sig.text[i]) != pBuff[i]))
 					break;
 			}
