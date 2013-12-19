@@ -1,11 +1,6 @@
 #(C)2004-2005 AMX Mod X Development Team
 # Makefile written by David "BAILOPAN" Anderson
 
-HLSDK = ../hlsdk
-MM_ROOT = ../metamod
-
-### EDIT BELOW FOR OTHER PROJECTS ###
-
 
 OPT_FLAGS = -O3 -funroll-loops -s -pipe -fomit-frame-pointer -fno-strict-aliasing -DNDEBUG
 
@@ -21,8 +16,7 @@ OBJECTS = sdk/amxxmodule.cpp wpnmod_config.cpp wpnmod_grenade.cpp wpnmod_hooker.
 
 LINK = 
 
-INCLUDE = -I. -I$(HLSDK) -I$(HLSDK)/dlls -I$(HLSDK)/engine -I$(HLSDK)/game_shared -I$(HLSDK)/game_shared \
-	-I$(MM_ROOT) -I$(HLSDK)/common -I$(HLSDK)/pm_shared -I./tableentries -Isdk -Iinclude
+INCLUDE = -I. -Idep/hlsdk/common -Idep/hlsdk/dlls -Idep/hlsdk/engine -Idep/hlsdk/pm_shared -Idep/metamod -Isdk -Iinclude
 
 GCC_VERSION := $(shell $(CPP) -dumpversion >&1 | cut -b1)
 
@@ -69,4 +63,3 @@ clean:
 	rm -rf Debug/*.o
 	rm -rf Debug/sdk/*.o
 	rm -rf Debug/$(NAME)_$(BIN_SUFFIX)
-	

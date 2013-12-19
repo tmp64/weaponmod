@@ -36,6 +36,7 @@
 
 
 #if defined _WIN32
+	#define NOGDI
 	#include <windows.h>
 	#include <psapi.h>
 #else
