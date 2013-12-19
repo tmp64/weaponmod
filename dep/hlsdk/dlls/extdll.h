@@ -25,6 +25,7 @@
 #define DEBUG 1
 #endif
 
+#ifdef _WIN32
 // Silence certain warnings
 #pragma warning(disable : 4244)		// int or float down-conversion
 #pragma warning(disable : 4305)		// int or float data truncation
@@ -33,7 +34,6 @@
 #pragma warning(disable : 4100)		// unreferenced formal parameter
 
 // Prevent tons of unused windows definitions
-#ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #define NOWINRES
 #define NOSERVICE

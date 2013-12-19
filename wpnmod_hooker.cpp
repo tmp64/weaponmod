@@ -82,7 +82,6 @@ long getBaseLen(void *baseAddress)
 			{
 				length = (unsigned long)end  - (unsigned long)start;
 
-				char ignore[100];
 				int value;
 
 				while(!feof(fp))
@@ -127,11 +126,8 @@ int FindModuleByAddr (void *addr, module *lib)
 		return FALSE;
 
 	Dl_info info;
-
-	if (!dladdr(addr, &info) && !info.dli_fbase || !info.dli_fname)
-	{
+	if (!dladdr(addr, &info) || !info.dli_fbase || !info.dli_fname)
 		return FALSE;
-	}
 
 	lib->base = info.dli_fbase;
 	lib->size = (size_t)getBaseLen(lib->base);
