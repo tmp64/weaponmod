@@ -1052,7 +1052,7 @@ void RadiusDamage2(Vector vecSrc, edict_t* pInflictor, edict_t* pAttacker, float
 	}
 }
 
-void printf2(char *fmt, ...)
+void printf2(const char *fmt, ...)
 {
 	va_list argptr;
 	static char string[384];
