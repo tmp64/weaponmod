@@ -33,21 +33,18 @@
 
 #include "wpnmod_hooker.h"
 
-#include <extdll.h>
-#include <meta_api.h>
-
 
 #if defined _WIN32
 int FindModuleByAddr (void *addr, module *lib)
 {
 	MEMORY_BASIC_INFORMATION mem;
-    VirtualQuery(addr, &mem, sizeof(mem));
- 
-    IMAGE_DOS_HEADER *dos = (IMAGE_DOS_HEADER*)mem.AllocationBase;
-    IMAGE_NT_HEADERS *pe = (IMAGE_NT_HEADERS*)((unsigned long)dos+(unsigned long)dos->e_lfanew);
- 
-    if(pe->Signature != IMAGE_NT_SIGNATURE)
-    {
+	VirtualQuery(addr, &mem, sizeof(mem));
+
+	IMAGE_DOS_HEADER *dos = (IMAGE_DOS_HEADER*)mem.AllocationBase;
+	IMAGE_NT_HEADERS *pe = (IMAGE_NT_HEADERS*)((unsigned long)dos+(unsigned long)dos->e_lfanew);
+
+	if(pe->Signature != IMAGE_NT_SIGNATURE)
+	{
 		return FALSE;
 	}
 
@@ -93,14 +90,14 @@ long getBaseLen(void *baseAddress)
 					if (fgets(buffer, sizeof(buffer)-1, fp) == NULL)
 						return 0;
 
-    				sscanf
-    				(
-    					buffer, 
-    					"%lx-%lx %*s %*s %*s %d", 
-    					reinterpret_cast< long unsigned int * > (&start), 
-    					reinterpret_cast< long unsigned int * > (&end), 
-    					&value
-    				);
+					sscanf
+						(
+						buffer, 
+						"%lx-%lx %*s %*s %*s %d", 
+						reinterpret_cast< long unsigned int * > (&start), 
+						reinterpret_cast< long unsigned int * > (&end), 
+						&value
+						);
 
 					if(!value)
 					{		
@@ -111,7 +108,7 @@ long getBaseLen(void *baseAddress)
 						length += (unsigned long)end  - (unsigned long)start;
 					}
 				}
-				
+
 				break;
 			}
 		}
@@ -128,7 +125,7 @@ int FindModuleByAddr (void *addr, module *lib)
 {
 	if (!lib)
 		return FALSE;
-	
+
 	Dl_info info;
 
 	if (!dladdr(addr, &info) && !info.dli_fbase || !info.dli_fname)
@@ -195,14 +192,14 @@ void *FindFunction (module *lib, signature sig)
 		}
 	}
 
-    return NULL;
+	return NULL;
 }
 
 void *FindFunction (module *lib, const char *name)
 {
 	if (!lib)
 		return NULL;
-	
+
 	return DLSYM((DLHANDLE)lib->handler, name);
 }
 
@@ -210,13 +207,13 @@ void *FindFunction (function *func)
 {
 	if (!func)
 		return NULL;
-	
+
 	void *address = NULL;
 	if (NULL == (address = FindFunction(func->lib, func->name)))
 	{
 		return FindFunction(func->lib, func->sig);
 	}
-	
+
 	return address;
 }
 
@@ -240,10 +237,10 @@ int CreateFunctionHook(function *func)
 	if (NULL != (func->address = (unsigned char*)FindFunction(func)) && func->handler)
 	{
 		memcpy(func->origin, func->address, 5);
-		
+
 		func->patch[0]=0xE9;
 		*(unsigned long *)&func->patch[1] = (unsigned long)func->handler-(unsigned long)func->address-5;
-		
+
 		return (func->done = TRUE);
 	}
 

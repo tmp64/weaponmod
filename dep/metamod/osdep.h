@@ -136,7 +136,7 @@ extern mBOOL dlclose_handle_invalid;
 		dlclose_handle_invalid = mFALSE;
 		return(dlclose(handle));
 	}
-	inline char* DLERROR(void) {
+	inline const char* DLERROR(void) {
 		if (dlclose_handle_invalid)
 			return("Invalid handle.");
 		return(dlerror());

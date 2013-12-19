@@ -34,10 +34,12 @@
 #ifndef _LIBFUNC_H
 #define _LIBFUNC_H
 
+#include <extdll.h>
+#include <meta_api.h>
+
 
 #if defined _WIN32
 	#define NOGDI
-	#include <windows.h>
 	#include <psapi.h>
 #else
 	#include <dlfcn.h>
