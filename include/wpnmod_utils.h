@@ -339,6 +339,6 @@ extern	void	UTIL_DecalGunshot	(TraceResult *pTrace);
 extern	void	FireBulletsPlayer	(edict_t* pPlayer, edict_t* pAttacker, int iShotsCount, Vector vecSpread, float flDistance, float flDamage, int bitsDamageType, BOOL bTracers);
 
 extern	void	SetShieldHitboxTracing		(void);
-extern	void	printf2						(char *fmt, ...);
+extern	void	printf2						(const char *fmt, ...);
 
 #endif // _UTILS_H
