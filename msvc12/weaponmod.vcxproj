@@ -8,7 +8,7 @@
     <ProjectConfiguration Include="Release|Win32">
       <Configuration>Release</Configuration>
       <Platform>Win32</Platform>
-    </ProjectConfiguration>
+    </ProjectConfiguration> 
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{2B11606F-5F7E-4243-9DFA-9B13D40DDA6D}</ProjectGuid>
@@ -79,6 +79,7 @@
     <ClCompile Include="..\wpnmod_hooker.cpp" />
     <ClCompile Include="..\wpnmod_hooks.cpp" />
     <ClCompile Include="..\wpnmod_main.cpp" />
+    <ClCompile Include="..\wpnmod_memory.cpp" />
     <ClCompile Include="..\wpnmod_natives.cpp" />
     <ClCompile Include="..\wpnmod_parse.cpp" />
     <ClCompile Include="..\wpnmod_utils.cpp" />
@@ -92,14 +93,12 @@
     <ClInclude Include="..\include\wpnmod_grenade.h" />
     <ClInclude Include="..\include\wpnmod_hooker.h" />
     <ClInclude Include="..\include\wpnmod_hooks.h" />
+    <ClInclude Include="..\include\wpnmod_memory.h" />
     <ClInclude Include="..\include\wpnmod_parse.h" />
     <ClInclude Include="..\include\wpnmod_utils.h" />
     <ClInclude Include="..\include\wpnmod_vhooker.h" />
     <ClInclude Include="..\sdk\amxxmodule.h" />
     <ClInclude Include="..\sdk\moduleconfig.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\Makefile" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

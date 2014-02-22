@@ -33,18 +33,21 @@
 
 #include "wpnmod_hooker.h"
 
+#include <extdll.h>
+#include <meta_api.h>
+
 
 #if defined _WIN32
 int FindModuleByAddr (void *addr, module *lib)
 {
 	MEMORY_BASIC_INFORMATION mem;
-	VirtualQuery(addr, &mem, sizeof(mem));
-
-	IMAGE_DOS_HEADER *dos = (IMAGE_DOS_HEADER*)mem.AllocationBase;
-	IMAGE_NT_HEADERS *pe = (IMAGE_NT_HEADERS*)((unsigned long)dos+(unsigned long)dos->e_lfanew);
-
-	if(pe->Signature != IMAGE_NT_SIGNATURE)
-	{
+    VirtualQuery(addr, &mem, sizeof(mem));
+ 
+    IMAGE_DOS_HEADER *dos = (IMAGE_DOS_HEADER*)mem.AllocationBase;
+    IMAGE_NT_HEADERS *pe = (IMAGE_NT_HEADERS*)((unsigned long)dos+(unsigned long)dos->e_lfanew);
+ 
+    if(pe->Signature != IMAGE_NT_SIGNATURE)
+    {
 		return FALSE;
 	}
 
@@ -89,14 +92,14 @@ long getBaseLen(void *baseAddress)
 					if (fgets(buffer, sizeof(buffer)-1, fp) == NULL)
 						return 0;
 
-					sscanf
-						(
-						buffer, 
-						"%lx-%lx %*s %*s %*s %d", 
-						reinterpret_cast< long unsigned int * > (&start), 
-						reinterpret_cast< long unsigned int * > (&end), 
-						&value
-						);
+    				sscanf
+    				(
+    					buffer, 
+    					"%lx-%lx %*s %*s %*s %d", 
+    					reinterpret_cast< long unsigned int * > (&start), 
+    					reinterpret_cast< long unsigned int * > (&end), 
+    					&value
+    				);
 
 					if(!value)
 					{		
@@ -107,7 +110,7 @@ long getBaseLen(void *baseAddress)
 						length += (unsigned long)end  - (unsigned long)start;
 					}
 				}
-
+				
 				break;
 			}
 		}
@@ -124,10 +127,13 @@ int FindModuleByAddr (void *addr, module *lib)
 {
 	if (!lib)
 		return FALSE;
-
+	
 	Dl_info info;
-	if (!dladdr(addr, &info) || !info.dli_fbase || !info.dli_fname)
+
+	if (!dladdr(addr, &info) && !info.dli_fbase || !info.dli_fname)
+	{
 		return FALSE;
+	}
 
 	lib->base = info.dli_fbase;
 	lib->size = (size_t)getBaseLen(lib->base);
@@ -137,7 +143,7 @@ int FindModuleByAddr (void *addr, module *lib)
 }
 #endif
 
-void *FindFunction (module *lib, signature sig)
+void *FindFunction(module *lib, signature sig)
 {
 	if (!lib || !sig.text[0])
 	{
@@ -149,94 +155,119 @@ void *FindFunction (module *lib, signature sig)
 
 	unsigned long i;
 
-	if (sig.mask[0] && sig.size)
+	while (pBuff < pEnd)
 	{
-		while (pBuff < pEnd)
+		for (i = 0; i < sig.size; i++)
 		{
-			for (i = 0; i < sig.size; i++)
-			{
-				if ((sig.mask[i] != '?') && ((unsigned char)(sig.text[i]) != pBuff[i]))
-					break;
-			}
-
-			if (i == sig.size)
-			{
-				return (void*)pBuff;
-			}
-
-			pBuff++;
+			if ((sig.mask[i] != '?') && ((unsigned char)(sig.text[i]) != pBuff[i]))
+				break;
 		}
-	}
-	else
-	{
-		sig.size = strlen(sig.text);
 
-		while (pBuff < pEnd)
+		if (i == sig.size)
 		{
-			for (i = 0; i < sig.size; i++)
-			{
-				if (pBuff[i] != sig.text[i])
-					break;
-			}
-
-			if (i == sig.size)
-			{
-				return (void*)pBuff;
-			}
-
-			pBuff++;
+			return (void*)pBuff;
 		}
-	}
 
-	return NULL;
+		pBuff++;
+	}
+	
+    return NULL;
 }
 
-void *FindFunction (module *lib, const char *name)
+size_t FindFunction(module *lib, const unsigned char *pattern, const char *mask)
 {
 	if (!lib)
+	{
 		return NULL;
+	}
 
+	size_t pattern_len = strlen(mask);
+
+	unsigned char *pBuff = (unsigned char *)lib->base;
+	unsigned char *pEnd = (unsigned char *)lib->base + lib->size - pattern_len;
+
+	unsigned long i;
+
+	while (pBuff < pEnd)
+	{
+		for (i = 0; i < pattern_len; i++)
+		{
+			if ((mask[i] != '?') && ((unsigned char)(pattern[i]) != pBuff[i]))
+				break;
+		}
+
+		if (i == pattern_len)
+		{
+			return (size_t)(void*)pBuff;
+		}
+
+		pBuff++;
+	}
+	
+    return NULL;
+}
+
+void *FindFunction(module *lib, const char *name)
+{
+	if (!lib)
+	{
+		return NULL;
+	}
+	
 	return DLSYM((DLHANDLE)lib->handler, name);
 }
 
-void *FindFunction (function *func)
+void *FindFunction(function *func)
 {
 	if (!func)
 		return NULL;
-
+	
 	void *address = NULL;
 	if (NULL == (address = FindFunction(func->lib, func->name)))
 	{
 		return FindFunction(func->lib, func->sig);
 	}
-
+	
 	return address;
 }
 
 void SetHook(function *func)
 {
 	if(AllowWriteToMemory(func->address))
+	{
 		memcpy(func->address, func->patch, 5);
+	}
 }
 
 void UnsetHook(function *func)
 {
 	if(AllowWriteToMemory(func->address))
+	{
 		memcpy(func->address, func->origin, 5);
+	}
 }
 
 int CreateFunctionHook(function *func)
 {
 	if (!func)
+	{
 		return 0;
+	}
 
-	if (NULL != (func->address = (unsigned char*)FindFunction(func)) && func->handler)
+	printf("!!!!!!! %p\n", func->address);
+
+	if (!func->address)
+	{
+		func->address = (unsigned char*)FindFunction(func);
+	}
+
+	if (func->address && func->handler)
 	{
 		memcpy(func->origin, func->address, 5);
-
+		
 		func->patch[0]=0xE9;
 		*(unsigned long *)&func->patch[1] = (unsigned long)func->handler-(unsigned long)func->address-5;
-
+		
 		return (func->done = TRUE);
 	}
 
@@ -255,3 +286,64 @@ int AllowWriteToMemory(void *address)
 		return TRUE;
 	return FALSE;
 }
+
+size_t FindStringInDLL(size_t start, size_t end, const char *string)
+{
+	size_t pattern_len = strlen(string);
+
+	unsigned char *current = (unsigned char*)(start);
+	unsigned char *cend = (unsigned char*)(end - pattern_len);
+
+	size_t i;
+
+	while (current < cend)
+	{
+		for (i = 0; i < pattern_len; i++)
+		{
+			if (current[i] != string[i])
+			{
+				break;
+			}
+		}
+
+		if (i == pattern_len)
+		{
+			return (size_t)(void*)current;
+		}
+
+		current++;
+	}
+
+	return NULL;
+}
+
+size_t FindAdressInDLL(size_t start, size_t end, unsigned char *pattern, char *mask)
+{
+	size_t pattern_len = strlen(mask);
+
+	unsigned char *current = (unsigned char*)(start);
+	unsigned char *cend = (unsigned char*)(end - pattern_len);
+
+	size_t i = 0;
+
+	while (current < cend)
+	{
+		for (i = 0; i < pattern_len; i++)
+		{
+			if ((mask[i] != '?') && ((unsigned char)(pattern[i]) != current[i]))
+			{
+				break;
+			}
+		}
+
+		if (i == pattern_len)
+		{
+			return (size_t)(void*)current;
+		}
+
+		current++;
+	}
+	
+    return NULL;
+}
+

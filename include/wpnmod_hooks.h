@@ -77,13 +77,18 @@ extern EntData* g_Ents;
 		Func_ApplyMultiDamage,
 		Func_PlayerSetAnimation,
 		Func_PrecacheOtherWeapon,
-		Func_GiveNamedItem,
-		Func_CheatImpulseCommands,
 
 		Func_End
 	};
 
-	extern module	g_GameDllModule;
+	extern module		g_GameDllModule;
+
+	extern function		g_funcGiveNamedItem;
+
+
+
+
+
 	extern function g_dllFuncs[Func_End];
 
 	typedef int		(*FuncGetAmmoIndex)			(const char*);
@@ -131,25 +136,16 @@ extern EntData* g_Ents;
 
 #ifdef WIN32
 
-	typedef void	(__fastcall	*FuncCheatImpulseCommands)	(void*, DUMMY, int);
 	typedef void	(__fastcall	*FuncGiveNamedItem)			(void*, DUMMY, const char *);
 	typedef void	(__fastcall *FuncSetAnimation)			(void*, DUMMY, int);
 
-	void	__fastcall	CheatImpulseCommands_HookHandler	(void* pvPlayer, int DUMMY, int iImpulse);
 	void	__fastcall	GiveNamedItem_HookHandler			(void* pvPlayer, int DUMMY, const char *szName);
 	
 	// void CBasePlayer::GiveNamedItem(const char *pszName)
 	//
 		inline void GIVE_NAMED_ITEM(void* pvPlayer, const char *szClassname)
 		{
-			reinterpret_cast<FuncGiveNamedItem>(g_dllFuncs[Func_GiveNamedItem].address)(pvPlayer, DUMMY_VAL, szClassname);
-		}
-
-	// void CBasePlayer::CheatImpulseCommands(int iImpulse)
-	//
-		inline void CHEAT_IMPULSE_COMMANDS(void* pvPlayer, int iImpulse)
-		{
-			reinterpret_cast<FuncCheatImpulseCommands>(g_dllFuncs[Func_CheatImpulseCommands].address)(pvPlayer, DUMMY_VAL, iImpulse);
+			reinterpret_cast<FuncGiveNamedItem>(g_funcGiveNamedItem.address)(pvPlayer, DUMMY_VAL, szClassname);
 		}
 
 	// void SetAnimation(PLAYER_ANIM playerAnim);
@@ -161,25 +157,16 @@ extern EntData* g_Ents;
 
 #else
 
-	typedef void	(*FuncCheatImpulseCommands)	(void*, int);
 	typedef void	(*FuncGiveNamedItem)		(void*, const char *);
 	typedef void	(*FuncSetAnimation)			(void*, int);
 
-	void	CheatImpulseCommands_HookHandler	(void* pvPlayer, int iImpulse);
 	void	GiveNamedItem_HookHandler			(void* pvPlayer, const char *szName);
 	
 	// void CBasePlayer::GiveNamedItem(const char *pszName)
 	//
 		inline void GIVE_NAMED_ITEM(void* pvPlayer, const char *szClassname)
 		{
-			reinterpret_cast<FuncGiveNamedItem>(g_dllFuncs[Func_GiveNamedItem].address)(pvPlayer, szClassname);
-		}
-
-	// void CBasePlayer::CheatImpulseCommands(int iImpulse)
-	//
-		inline void CHEAT_IMPULSE_COMMANDS(void* pvPlayer, int iImpulse)
-		{
-			reinterpret_cast<FuncCheatImpulseCommands>(g_dllFuncs[Func_CheatImpulseCommands].address)(pvPlayer, iImpulse);
+			reinterpret_cast<FuncGiveNamedItem>(g_funcGiveNamedItem.address)(pvPlayer, szClassname);
 		}
 
 	// void SetAnimation(PLAYER_ANIM playerAnim);

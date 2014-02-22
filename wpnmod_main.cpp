@@ -31,24 +31,76 @@
  *
  */
 
-#include "wpnmod_config.h"
 #include "wpnmod_parse.h"
-#include "wpnmod_utils.h"
-#include "wpnmod_hooks.h"
+#include "wpnmod_memory.h"
 #include "utils.h"
 
+
 bool g_bIsActive = true;
+
 
 int AmxxCheckGame(const char* game)
 {
 	return !stricmp(game, "cstrike") || !stricmp(game, "czero") ? AMXX_GAME_BAD : AMXX_GAME_OK;
 }
 
+int WpnMod_Init(void)
+{
+	printf2("[%s]: Start.\n", Plugin_info.logtag, g_GameDllModule.base);
+
+	if (!FindModuleByAddr((void*)MDLL_FUNC->pfnGetGameDescription(), &g_GameDllModule))
+	{
+		printf2("[%s]:  Failed to locate %s\n", Plugin_info.logtag, GET_GAME_INFO(PLID, GINFO_DLL_FILENAME));
+		return 0;
+	}
+
+	printf2("[%s]:  Found %s at %p\n", Plugin_info.logtag, GET_GAME_INFO(PLID, GINFO_DLL_FILENAME), g_GameDllModule.base);
+
+	size_t start = (size_t)g_GameDllModule.base;
+	size_t end = (size_t)g_GameDllModule.base + (size_t)g_GameDllModule.size;
+
+	if (!FindFuncsInDll(start, end))
+	{
+		printf2("[%s]: Errors occurred. Please visit http://aghl.ru/forum/ for support.\n", Plugin_info.logtag, g_GameDllModule.base);
+		return 0;
+	}
+
+	printf2("[%s]: Done.\n", Plugin_info.logtag, g_GameDllModule.base);
+
+	printf2("\n   Half-Life Weapon Mod version %s Copyright (c) 2012 - 2013 AGHL.RU Dev Team. \n"
+		"   Weapon Mod comes with ABSOLUTELY NO WARRANTY; for details type `wpnmod gpl'.\n", Plugin_info.version);
+	printf2("   This is free software and you are welcome to redistribute it under \n"
+		"   certain conditions; type 'wpnmod gpl' for details.\n  \n");
+
+	return 1;
+}
+
 void OnAmxxAttach()
 {
+	printf("!!!!!!!!!!!! OnAmxxAttach\n");
+
+
+
+
+
+	SetHookVirtual(&g_WorldPrecache_Hook);
+
 	cvar_aghlru = CVAR_GET_POINTER("aghl.ru");
 	cvar_sv_cheats = CVAR_GET_POINTER("sv_cheats");
 	cvar_mp_weaponstay = CVAR_GET_POINTER("mp_weaponstay");
+
+	g_Ents = new EntData[gpGlobals->maxEntities];
+	cvar_t version = {"hl_wpnmod_version", Plugin_info.version, FCVAR_SERVER};
+
+	REG_SVR_COMMAND("wpnmod", WpnModCommand);
+	CVAR_REGISTER(&version);
+	MF_AddNatives(Natives);
+
+
+
+
+
+
 
 	char filepath[1024];
 	
@@ -72,6 +124,8 @@ void OnAmxxAttach()
 		g_bIsActive = false;
 	}
 
+	//SetShieldHitboxTracing();
+
 	if (!Util::FileExists(filepath))
 	{
 		printf2("[WEAPONMOD] Failed to find mod config file. \"%s\"\n", filepath);
@@ -79,7 +133,6 @@ void OnAmxxAttach()
 	}
 	else
 	{
-		ParseConfigSection(filepath, "[slots]", (void*)ParseSlots_Handler);
 		ParseConfigSection(filepath, "[signatures]", (void*)ParseSignatures_Handler);
 		ParseConfigSection(filepath, "[vtable_base]", (void*)ParseVtableBase_Handler);
 		ParseConfigSection(filepath, "[vtable_offsets]", (void*)ParseVtableOffsets_Handler);
@@ -94,49 +147,20 @@ void OnAmxxAttach()
 
 			if (!g_dllFuncs[i].address)
 			{
-				// CheatImpulseCommands is not critical function
-				if (i == Func_CheatImpulseCommands)
-				{
-					printf2("[WEAPONMOD] Mod \"%s\" don't have cheat commands, impulse 101 not active.\n", modname);
-				}
-				else
-				{
-					printf2("[WEAPONMOD] Failed to find \"%s\" function.\n", g_dllFuncs[i].name);
-					g_bIsActive = false;
-				}
+				printf2("[WEAPONMOD] Failed to find \"%s\" function.\n", g_dllFuncs[i].name);
+				g_bIsActive = false;
 			}
 		}
 	}
 
-	if (!g_bIsActive)
-	{
-		printf2("[WEAPONMOD] Cannot register natives.\n");
-	}
-	else
-	{
-		MF_AddNatives(Natives);
-		SetHookVirtual(&g_WorldPrecache_Hook);
 
-		printf2("[WEAPONMOD] Found %s at %p\n", GET_GAME_INFO(PLID, GINFO_DLL_FILENAME), g_GameDllModule.base);
-
-		printf2("\n   Half-Life Weapon Mod version %s Copyright (c) 2012 - 2013 AGHL.RU Dev Team. \n"
-			"   Weapon Mod comes with ABSOLUTELY NO WARRANTY; for details type `wpnmod gpl'.\n", Plugin_info.version);
-		printf2("   This is free software and you are welcome to redistribute it under \n"
-			"   certain conditions; type 'wpnmod gpl' for details.\n  \n");
-	}
-
-	g_Ents			= new EntData	[gpGlobals->maxEntities];
+	
 	g_pCurrentSlots	= new int*		[g_iMaxWeaponSlots];
 
 	for (int i = 0; i < g_iMaxWeaponSlots; ++i)
 	{
 		memset((g_pCurrentSlots[i] = new int [g_iMaxWeaponPositions]), 0, sizeof(int) * g_iMaxWeaponPositions);
 	}
-
-	cvar_t version = {"hl_wpnmod_version", Plugin_info.version, FCVAR_SERVER};
-	
-	REG_SVR_COMMAND("wpnmod", WpnModCommand);
-	CVAR_REGISTER (&version);
 }
 
 void OnAmxxDetach()
@@ -169,11 +193,19 @@ void OnAmxxDetach()
 }
 
 void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
-{
-	if (!g_bIsActive)
+{/*
+	printf2("!!!!! %d   %d\n\n", g_iMaxWeaponSlots, g_iMaxWeaponPositions);
+
+	for (int i = 0; i < g_iMaxWeaponSlots; ++i)
 	{
-		RETURN_META(MRES_IGNORED);
+		for (int k = 0; k < g_iMaxWeaponPositions; ++k)
+		{
+			printf2("Slot %d | Pos %d - %d\n", i, k, g_pCurrentSlots[i][k]);
+		}
 	}
+	*/
+
+
 
 	ParseBSP();
 	SetConfigFile();
@@ -198,7 +230,7 @@ void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 	SetShieldHitboxTracing();
 
 	SetHookVirtual(&g_PlayerSpawn_Hook);
-	SetHookVirtual(&g_PlayerPostThink_Hook);
+	//SetHookVirtual(&g_PlayerPostThink_Hook);
 
 	RETURN_META(MRES_IGNORED);
 }
@@ -261,11 +293,6 @@ void ServerDeactivate()
 
 void ClientCommand(edict_t *pEntity)
 {
-	if (!g_bIsActive)
-	{
-		RETURN_META(MRES_IGNORED);
-	}
-
 	static const char* cmd = NULL;
 
 	cmd = CMD_ARGV(0);
@@ -285,7 +312,7 @@ void ClientCommand(edict_t *pEntity)
 		SelectItem(pEntity, cmd);
 		RETURN_META(MRES_SUPERCEDE);
 	}
-	else if (!_stricmp(cmd, "give") && cvar_sv_cheats->value && g_dllFuncs[Func_CheatImpulseCommands].address)
+	else if (!_stricmp(cmd, "give") && cvar_sv_cheats->value /* && CHEAT */)
 	{
 		const char* item = CMD_ARGV(1);
 
@@ -341,11 +368,6 @@ void ClientCommand(edict_t *pEntity)
 
 void WpnModCommand(void)
 {
-	if (!g_bIsActive)
-	{
-		RETURN_META(MRES_IGNORED);
-	}
-
 	const char *cmd = CMD_ARGV(1);
 
 	if (!strcmp(cmd, "version")) 

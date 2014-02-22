@@ -42,6 +42,12 @@ VirtualHookData g_PlayerSpawn_Hook		= { "player",		VO_Spawn,				(void*)Player_Sp
 VirtualHookData g_PlayerPostThink_Hook	= { "player",		VO_Player_PostThink,	(void*)Player_PostThink,	NULL, NULL };
 VirtualHookData g_WorldPrecache_Hook	= { "worldspawn",	VO_Precache,			(void*)World_Precache,		NULL, NULL };
 
+
+
+function g_funcGiveNamedItem = HOOK(GiveNamedItem_HookHandler);
+
+
+
 function g_dllFuncs[Func_End] =
 {
 	HOOK(NULL),
@@ -49,9 +55,7 @@ function g_dllFuncs[Func_End] =
 	HOOK(NULL),
 	HOOK(NULL),
 	HOOK(NULL),
-	HOOK(PrecacheOtherWeapon_HookHandler),
-	HOOK(GiveNamedItem_HookHandler),
-	HOOK(CheatImpulseCommands_HookHandler)
+	HOOK(PrecacheOtherWeapon_HookHandler)
 };
 
 module g_GameDllModule = { NULL, NULL, NULL };
@@ -1010,7 +1014,49 @@ void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 	edict_t	*pEntity = CREATE_NAMED_ENTITY(MAKE_STRING(szClassname));
 	
 	if (IsValidPev(pEntity))
-	{
+	{/*
+		ItemInfo pII;
+		GET_ITEM_INFO(pEntity, &pII);
+
+		printf("lol %d %d\n", pII.iSlot, pII.iPosition);
+
+		if (pII.iSlot > g_iMaxWeaponSlots)
+		{
+			printf("Increase Slots %d ---> %d \n", g_iMaxWeaponSlots, pII.iSlot);
+
+			g_pCurrentSlots	= (int**)realloc((int**)g_pCurrentSlots, sizeof(int) * pII.iSlot);
+
+			for (int i = g_iMaxWeaponSlots; i < pII.iSlot; ++i)
+			{
+				printf("Create positions [ size %d ] in slot %d \n", g_iMaxWeaponPositions, i);
+
+				memset((g_pCurrentSlots[i] = new int [g_iMaxWeaponPositions]), 0, sizeof(int) * g_iMaxWeaponPositions);
+			}
+
+			g_iMaxWeaponSlots = pII.iSlot;
+		}
+
+		if (pII.iPosition > g_iMaxWeaponPositions)
+		{
+			printf("Increase Positions %d ---> %d \n", g_iMaxWeaponPositions, pII.iPosition);
+
+			g_iMaxWeaponPositions = pII.iPosition;
+
+			for (int i = 0; i < g_iMaxWeaponSlots; ++i)
+			{
+				printf("Realloc positions in slot %d to size %d\n", i, g_iMaxWeaponPositions);
+
+				g_pCurrentSlots[i] = (int*)realloc((int*)g_pCurrentSlots[i], sizeof(int) *g_iMaxWeaponPositions);
+			}
+		}
+
+		*/
+		
+		
+
+
+
+
 		for (int i = 0; i < (int)g_BlockedItems.size(); i++)
 		{
 			if (!stricmp(g_BlockedItems[i]->classname,szClassname))
@@ -1051,12 +1097,12 @@ void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 		GiveNamedItem(PrivateToEdict(pvPlayer), szName);
 	}
 
-	UnsetHook(&g_dllFuncs[Func_GiveNamedItem]);
+	UnsetHook(&g_funcGiveNamedItem);
 	GIVE_NAMED_ITEM(pvPlayer, szName);
-	SetHook(&g_dllFuncs[Func_GiveNamedItem]);
+	SetHook(&g_funcGiveNamedItem);
 }
 
-
+/*
 #ifdef _WIN32
 	void __fastcall CheatImpulseCommands_HookHandler(void* pvPlayer, int DUMMY, int iImpulse)
 #else
@@ -1083,7 +1129,7 @@ void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 	CHEAT_IMPULSE_COMMANDS(pvPlayer, iImpulse);
 	SetHook(&g_dllFuncs[Func_CheatImpulseCommands]);
 }
-
+*/
 
 void FN_UpdateClientData_Post(const struct edict_s *ent, int sendweapons, struct clientdata_s *cd)
 {

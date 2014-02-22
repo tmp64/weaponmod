@@ -2240,7 +2240,7 @@ static META_FUNCTIONS g_MetaFunctions_Table =
 	GetEngineFunctions_Post
 };
 
-C_DLLEXPORT int Meta_Query(char *ifvers, plugin_info_t **pPlugInfo, mutil_funcs_t *pMetaUtilFuncs)
+C_DLLEXPORT int Meta_Query(char	*ifvers, plugin_info_t **pPlugInfo,	mutil_funcs_t *pMetaUtilFuncs)
 {
 	if ((int) CVAR_GET_FLOAT("developer") != 0)
 		UTIL_LogPrintf("[%s] dev: called: Meta_Query; version=%s, ours=%s\n", 
@@ -2290,9 +2290,11 @@ C_DLLEXPORT int Meta_Query(char *ifvers, plugin_info_t **pPlugInfo, mutil_funcs_
 	return 1;
 }
 
-
+int WpnMod_Init();
 C_DLLEXPORT int Meta_Attach(PLUG_LOADTIME now, META_FUNCTIONS *pFunctionTable, meta_globals_t *pMGlobals, gamedll_funcs_t *pGamedllFuncs)
 {
+	printf("!!!!!!!!!!!! METAATTACH\n");
+
 	if(now > Plugin_info.loadable) {
 		LOG_ERROR(PLID, "Can't load module right now");
 		return(FALSE);
@@ -2311,7 +2313,7 @@ C_DLLEXPORT int Meta_Attach(PLUG_LOADTIME now, META_FUNCTIONS *pFunctionTable, m
 	gpGamedllFuncs=pGamedllFuncs;
 
 	// Let's go.
-	return (TRUE);
+	return (WpnMod_Init());
 }
 
 C_DLLEXPORT int Meta_Detach(PLUG_LOADTIME now, PL_UNLOAD_REASON reason)

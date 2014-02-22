@@ -295,21 +295,6 @@ void ParseSignatures_Handler(char* data)
 	iIndex++;
 }
 
-void ParseSlots_Handler(char* data)
-{
-	static int iIndex = 0;
-
-	if (!iIndex)
-	{
-		g_iMaxWeaponSlots = atoi(data);
-	}
-	else if (iIndex == 1)
-	{
-		g_iMaxWeaponPositions = atoi(data);
-	}
-
-	iIndex++;
-}
 
 void ParseVtableBase_Handler(char* data)
 {
@@ -492,33 +477,6 @@ void ParseBSP()
 	fclose(fp);
 
 	char token[2048];
-
-
-
-	/*
-	int control = 0;
-		char* start = strchr(data, '{');
-
-		if(start)
-		{
-			start++;
-			control++;
-			while(control)
-			{
-				if(*start == '{')
-					control++;
-				else if(*start == '}')
-					control--;
-
-				if(*start > 127 || *start < 0)
-					*start = '\n';
-
-				start++;
-			}
-		}
-*/
-
-
 
 	while(( data = Util::COM_ParseFile(data, token)) != NULL )
 	{
