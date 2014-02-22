@@ -90,6 +90,8 @@ bool Parse_ClearMultiDamage(size_t start, size_t end)
 		return false;
 	}
 
+	g_dllFuncs[Func_ClearMultiDamage].address = (void*)pAdress;
+
 	return true;
 }
 
@@ -119,6 +121,8 @@ bool Parse_ApplyMultiDamage(size_t start, size_t end)
 		return false;
 	}
 
+	g_dllFuncs[Func_ApplyMultiDamage].address = (void*)pAdress;
+
 	return true;
 }
 
@@ -141,6 +145,15 @@ bool Parse_PrecacheOtherWeapon(size_t start, size_t end)
 		return false;
 	}
 
+	g_dllFuncs[Func_PrecacheOtherWeapon].address = (void*)pAdress;
+	
+	if (!CreateFunctionHook(&g_dllFuncs[Func_PrecacheOtherWeapon]))
+	{
+		printf2("[%s]:   Error: failed to hook \"%s\"\n", Plugin_info.logtag, funcname);
+		return false;
+	}
+
+	SetHook(&g_dllFuncs[Func_PrecacheOtherWeapon]);
 	return true;
 }
 
@@ -156,10 +169,14 @@ bool Parse_GetAmmoIndex(size_t start, size_t end)
 	unsigned char	pattern[]			= "\x68\x00\x00\x00\x00\x89\x46\x00\xE8";
 	size_t			BytesOffset			= 9;
 
-	if (!ParseFunc(start, end, funcname, string, pattern, mask, BytesOffset))
+	size_t pAdress = ParseFunc(start, end, funcname, string, pattern, mask, BytesOffset);
+
+	if (!pAdress)
 	{
 		return false;
 	}
+
+	g_dllFuncs[Func_GetAmmoIndex].address = (void*)pAdress;
 
 	return true;
 }
@@ -249,6 +266,8 @@ bool Parse_SetAnimation(size_t start, size_t end)
 	{
 		return false;
 	}
+
+	g_dllFuncs[Func_PlayerSetAnimation].address = (void*)pAdress;
 
 	return true;
 }

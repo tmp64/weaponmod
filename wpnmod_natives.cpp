@@ -223,7 +223,7 @@ static cell AMX_NATIVE_CALL wpnmod_register_weapon(AMX *amx, cell *params)
 
 			if (!g_CrowbarHooksEnabled)
 			{
-				g_CrowbarHooksEnabled = TRUE;
+				g_CrowbarHooksEnabled = 1;
 		
 				for (int k = 0; k < CrowbarHook_End; k++)
 				{
@@ -285,6 +285,8 @@ static cell AMX_NATIVE_CALL wpnmod_register_weapon_forward(AMX *amx, cell *param
 		FP_CELL, 
 		FP_DONE
 	);
+
+	printf2("!!!!!!111111      %d   %d    %d\n", iId,  Fwd , WeaponInfoArray[iId].iForward[Fwd]);
 
 	if (WeaponInfoArray[iId].iForward[Fwd] == -1)
 	{

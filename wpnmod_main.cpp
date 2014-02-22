@@ -36,11 +36,13 @@
 #include "utils.h"
 
 
-bool g_bIsActive = true;
 
 
 int AmxxCheckGame(const char* game)
 {
+
+	printf("!!!!!!!!!!!! OnAmxxCheckGame\n");
+
 	return !stricmp(game, "cstrike") || !stricmp(game, "czero") ? AMXX_GAME_BAD : AMXX_GAME_OK;
 }
 
@@ -118,18 +120,11 @@ void OnAmxxAttach()
 	
 	MF_BuildPathnameR(filepath, sizeof(filepath) - 1, "%s/weaponmod/mods/%s%s.ini", MF_GetLocalInfo("amxx_configsdir", "addons/amxmodx/configs"), modname, prefix);
 
-	if (!FindModuleByAddr((void*)MDLL_FUNC->pfnGetGameDescription(), &g_GameDllModule))
-	{
-		printf2("[WEAPONMOD] Failed to locate %s\n", GET_GAME_INFO(PLID, GINFO_DLL_FILENAME));
-		g_bIsActive = false;
-	}
-
 	//SetShieldHitboxTracing();
 
 	if (!Util::FileExists(filepath))
 	{
 		printf2("[WEAPONMOD] Failed to find mod config file. \"%s\"\n", filepath);
-		g_bIsActive = false;
 	}
 	else
 	{
@@ -137,24 +132,8 @@ void OnAmxxAttach()
 		ParseConfigSection(filepath, "[vtable_base]", (void*)ParseVtableBase_Handler);
 		ParseConfigSection(filepath, "[vtable_offsets]", (void*)ParseVtableOffsets_Handler);
 		ParseConfigSection(filepath, "[pvdata_offsets]", (void*)ParsePvDataOffsets_Handler);
-
-		for (int i = 0; i < Func_End; i++)
-		{
-			if (CreateFunctionHook(&g_dllFuncs[i]))
-			{
-				SetHook(&g_dllFuncs[i]);
-			}
-
-			if (!g_dllFuncs[i].address)
-			{
-				printf2("[WEAPONMOD] Failed to find \"%s\" function.\n", g_dllFuncs[i].name);
-				g_bIsActive = false;
-			}
-		}
 	}
 
-
-	
 	g_pCurrentSlots	= new int*		[g_iMaxWeaponSlots];
 
 	for (int i = 0; i < g_iMaxWeaponSlots; ++i)
@@ -174,12 +153,12 @@ void OnAmxxDetach()
 			UnsetHook(&g_dllFuncs[i]);
 		}
 	}
-	
+	/*
 	for (i = 0; i < CrowbarHook_End; i++)
 	{
 		UnsetHookVirtual(&g_CrowbarHooks[i]);
 	}
-
+	*/
 	UnsetHookVirtual(&g_WorldPrecache_Hook);
 	UnsetHookVirtual(&g_RpgAddAmmo_Hook);
 	
@@ -227,7 +206,7 @@ void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 		}
 	}
 
-	SetShieldHitboxTracing();
+	// SetShieldHitboxTracing();
 
 	SetHookVirtual(&g_PlayerSpawn_Hook);
 	//SetHookVirtual(&g_PlayerPostThink_Hook);
@@ -284,7 +263,14 @@ void ServerDeactivate()
 	g_BlockedItems.clear();
 
 	UnsetHookVirtual(&g_PlayerSpawn_Hook);
-	UnsetHookVirtual(&g_PlayerPostThink_Hook);
+	//UnsetHookVirtual(&g_PlayerPostThink_Hook);
+
+	g_CrowbarHooksEnabled = 0;
+
+	for (int i = 0; i < CrowbarHook_End; i++)
+	{
+		UnsetHookVirtual(&g_CrowbarHooks[i]);
+	}
 
 	RETURN_META(MRES_IGNORED);
 }

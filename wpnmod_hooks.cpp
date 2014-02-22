@@ -199,10 +199,12 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 		return iReturn;
 	}
 
-	// g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer), g_engfuncs.pfnGetInfoKeyBuffer(pPlayer), "cl_lw", "0");
+	g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer), g_engfuncs.pfnGetInfoKeyBuffer(pPlayer), "cl_lw", "0");
 
 	if (WeaponInfoArray[iId].iForward[Fwd_Wpn_Deploy])
 	{
+		
+
 		iReturn = MF_ExecuteForward
 		(
 			WeaponInfoArray[iId].iForward[Fwd_Wpn_Deploy],
@@ -536,7 +538,7 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 		);
 	}
 
-	// g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer), g_engfuncs.pfnGetInfoKeyBuffer(pPlayer), "cl_lw", "1");
+	g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer), g_engfuncs.pfnGetInfoKeyBuffer(pPlayer), "cl_lw", "1");
 }
 
 
@@ -1147,6 +1149,6 @@ void FN_UpdateClientData_Post(const struct edict_s *ent, int sendweapons, struct
 			}
 		}
 	}
-
+	
 	RETURN_META(MRES_IGNORED);
 }
