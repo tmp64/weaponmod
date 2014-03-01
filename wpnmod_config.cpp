@@ -1,6 +1,6 @@
 /*
  * Half-Life Weapon Mod
- * Copyright (c) 2012 - 2013 AGHL.RU Dev Team
+ * Copyright (c) 2012 - 2014 AGHL.RU Dev Team
  * 
  * http://aghl.ru/forum/ - Russian Half-Life and Adrenaline Gamer Community
  *
@@ -40,7 +40,6 @@ char g_ConfigFilepath[1024];
 
 edict_t* g_EquipEnt			= NULL;
 
-cvar_t *cvar_aghlru			= NULL;
 cvar_t *cvar_sv_cheats		= NULL;
 cvar_t *cvar_mp_weaponstay	= NULL;
 
@@ -55,14 +54,48 @@ int g_iAmmoBoxIndex			= 0;
 int g_iMaxWeaponSlots		= 5;
 int g_iMaxWeaponPositions	= 5;
 
-BOOL g_CrowbarHooksEnabled	= 0;
-BOOL g_AmmoBoxHooksEnabled	= 0;
+bool g_bCrowbarHooked	= false;
+bool g_bAmmoBoxHooked	= false;
+
+SUBMOD g_GameMod;
 
 WeaponData	WeaponInfoArray	[MAX_WEAPONS];
 AmmoBoxData AmmoBoxInfoArray[MAX_WEAPONS];
 
 int** g_pCurrentSlots = NULL;
 
+SUBMOD CheckSubMod(const char* game)
+{
+	if (!stricmp(game, "ag"))
+	{
+		printf2("[%s]: Adrenaline Gamer detected.\n", Plugin_info.logtag);
+		return SUBMOD_AG;
+	}
+	else if (!stricmp(game, "gearbox"))
+	{
+		printf2("[%s]: Opposing Force detected.\n", Plugin_info.logtag);
+		return SUBMOD_GEARBOX;
+	}
+	else if (!stricmp(game, "valve"))
+	{
+		if (CVAR_GET_POINTER("sv_ag_version"))
+		{
+			printf2("[%s]: Adrenaline Gamer Mini detected.\n", Plugin_info.logtag);
+			return SUBMOD_MINIAG;
+		}
+		else if (CVAR_GET_POINTER("aghl.ru"))
+		{
+			printf2("[%s]: Bugfixed and improved HL release detected.\n", Plugin_info.logtag);
+			return SUBMOD_AGHLRU;
+		}
+
+		printf2("[%s]: Half-Life assumed.\n", Plugin_info.logtag);
+		return SUBMOD_VALVE;
+	}
+
+	printf2("[%s]: Unknown mod detected (\"%s\").\n", Plugin_info.logtag, MF_GetModname());
+	return SUBMOD_UNKNOWN;
+}
 
 void SetConfigFile()
 {
@@ -108,7 +141,7 @@ void AutoSlotDetection(int iWeaponID, int iSlot, int iPosition)
 					WeaponInfoArray[iWeaponID].ItemData.iSlot = i;
 					WeaponInfoArray[iWeaponID].ItemData.iPosition = k;
 
-					printf("[WEAPONMOD] \"%s\" is moved to slot %d-%d.\n", GetWeapon_pszName(iWeaponID), i + 1, k + 1);
+					printf2("[WEAPONMOD] \"%s\" is moved to slot %d-%d.\n", GetWeapon_pszName(iWeaponID), i + 1, k + 1);
 
 					bFound = TRUE;
 					break;
@@ -119,7 +152,7 @@ void AutoSlotDetection(int iWeaponID, int iSlot, int iPosition)
 		if (!bFound)
 		{
 			WeaponInfoArray[iWeaponID].ItemData.iPosition = MAX_WEAPONS;
-			printf("[WEAPONMOD] No free slot for \"%s\" in HUD!\n", GetWeapon_pszName(iWeaponID));
+			printf2("[WEAPONMOD] No free slot for \"%s\" in HUD!\n", GetWeapon_pszName(iWeaponID));
 		}
 	}
 }

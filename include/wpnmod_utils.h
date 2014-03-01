@@ -1,6 +1,6 @@
 /*
  * Half-Life Weapon Mod
- * Copyright (c) 2012 - 2013 AGHL.RU Dev Team
+ * Copyright (c) 2012 - 2014 AGHL.RU Dev Team
  * 
  * http://aghl.ru/forum/ - Russian Half-Life and Adrenaline Gamer Community
  *
@@ -118,67 +118,8 @@ enum PrivateDataOffsets
 	pvData_End
 };
 
-typedef struct clientdata_s
-{
-	vec3_t				origin;
-	vec3_t				velocity;
-
-	int					viewmodel;
-	vec3_t				punchangle;
-	int					flags;
-	int					waterlevel;
-	int					watertype;
-	vec3_t				view_ofs;
-	float				health;
-
-	int					bInDuck;
-
-	int					weapons; // remove?
-	
-	int					flTimeStepSound;
-	int					flDuckTime;
-	int					flSwimTime;
-	int					waterjumptime;
-
-	float				maxspeed;
-
-	float				fov;
-	int					weaponanim;
-
-	int					m_iId;
-	int					ammo_shells;
-	int					ammo_nails;
-	int					ammo_cells;
-	int					ammo_rockets;
-	float				m_flNextAttack;
-	
-	int					tfstate;
-
-	int					pushmsec;
-
-	int					deadflag;
-
-	char				physinfo[256];
-
-	// For mods
-	int					iuser1;
-	int					iuser2;
-	int					iuser3;
-	int					iuser4;
-	float				fuser1;
-	float				fuser2;
-	float				fuser3;
-	float				fuser4;
-	vec3_t				vuser1;
-	vec3_t				vuser2;
-	vec3_t				vuser3;
-	vec3_t				vuser4;
-} clientdata_t;
-
 extern int g_vtblOffsets[VO_End];
 extern int g_pvDataOffsets[pvData_End];
-
-//extern bool g_bIsShieldWeaponLoaded;
 
 extern edict_t*	INDEXENT2		(int iEdictNum);
 extern edict_t*	GetPrivateCbase	(edict_t *pEntity, int iOffset);
@@ -273,7 +214,7 @@ inline void SetPrivateString(edict_t* pEntity, int iOffset, const char* pValue)
 #endif
 
 inline void SetTouch_(edict_t* e, void* funcAddress) 
-{     
+{
 #ifdef __linux__
 
 	if (!g_ExtraTouch)
@@ -283,15 +224,15 @@ inline void SetTouch_(edict_t* e, void* funcAddress)
 
 	*((long*)e->pvPrivateData + g_pvDataOffsets[pvData_pfnTouch] + 1) = (long)(funcAddress);    
 
-#else    
+#else
 
 	*((long*)e->pvPrivateData + g_pvDataOffsets[pvData_pfnTouch]) = (long)(funcAddress); 
 
-#endif 
+#endif
 }
 
 inline void SetThink_(edict_t* e, void* funcAddress) 
-{     
+{
 #ifdef __linux__
 
 	if (!g_ExtraThink)
@@ -301,11 +242,11 @@ inline void SetThink_(edict_t* e, void* funcAddress)
 
 	*((long*)e->pvPrivateData + g_pvDataOffsets[pvData_pfnThink]) = (long)(funcAddress);     
 
-#else  
+#else
 
 	*((long*)e->pvPrivateData + g_pvDataOffsets[pvData_pfnThink]) = (long)(funcAddress);     
 
-#endif 
+#endif
 }
 
 #define IsValidPev(entity)	(!FNullEnt(entity) && entity->pvPrivateData)
@@ -338,7 +279,6 @@ extern	void	UTIL_EjectBrass		(const Vector &vecOrigin, const Vector &vecVelocity
 extern	void	UTIL_DecalGunshot	(TraceResult *pTrace);
 extern	void	FireBulletsPlayer	(edict_t* pPlayer, edict_t* pAttacker, int iShotsCount, Vector vecSpread, float flDistance, float flDamage, int bitsDamageType, BOOL bTracers);
 
-extern	void	SetShieldHitboxTracing		(void);
 extern	void	printf2						(const char *fmt, ...);
 
 #endif // _UTILS_H

@@ -1,6 +1,6 @@
 /*
  * Half-Life Weapon Mod
- * Copyright (c) 2012 - 2013 AGHL.RU Dev Team
+ * Copyright (c) 2012 - 2014 AGHL.RU Dev Team
  * 
  * http://aghl.ru/forum/ - Russian Half-Life and Adrenaline Gamer Community
  *
@@ -121,7 +121,7 @@
 // (wd) are Will Day's notes
 // - GetEntityAPI2 functions
 // #define FN_GameDLLInit				GameDLLInit					/* pfnGameInit() */
-// #define FN_DispatchSpawn				DispatchSpawn				/* pfnSpawn() */
+#define FN_DispatchSpawn				DispatchSpawn				/* pfnSpawn() */
 // #define FN_DispatchThink				DispatchThink				/* pfnThink() */
 // #define FN_DispatchUse				DispatchUse					/* pfnUse() */
 // #define FN_DispatchTouch				DispatchTouch				/* pfnTouch() */
@@ -492,7 +492,7 @@
 // #define FN_GetPhysicsKeyValue_Post			GetPhysicsKeyValue_Post
 // #define FN_SetPhysicsKeyValue_Post			SetPhysicsKeyValue_Post
 // #define FN_GetPhysicsInfoString_Post			GetPhysicsInfoString_Post
-//#define FN_PrecacheEvent_Post				PrecacheEvent_Post
+// #define FN_PrecacheEvent_Post				PrecacheEvent_Post
 // #define FN_PlaybackEvent_Post				PlaybackEvent_Post
 // #define FN_SetFatPVS_Post					SetFatPVS_Post
 // #define FN_SetFatPAS_Post					SetFatPAS_Post
@@ -515,7 +515,7 @@
 // #define FN_Voice_SetClientListening_Post		Voice_SetClientListening_Post
 // #define FN_GetPlayerAuthId_Post				GetPlayerAuthId_Post
 
-// #define FN_OnFreeEntPrivateData				OnFreeEntPrivateData				
+#define FN_OnFreeEntPrivateData				OnFreeEntPrivateData
 // #define FN_GameShutdown						GameShutdown
 // #define FN_ShouldCollide						ShouldCollide
 

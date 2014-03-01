@@ -1,6 +1,6 @@
 /*
  * Half-Life Weapon Mod
- * Copyright (c) 2012 - 2013 AGHL.RU Dev Team
+ * Copyright (c) 2012 - 2014 AGHL.RU Dev Team
  * 
  * http://aghl.ru/forum/ - Russian Half-Life and Adrenaline Gamer Community
  *
@@ -36,9 +36,10 @@
 
 #include "amxxmodule.h"
 
+#define CLIENT_PRINT (*g_engfuncs.pfnClientPrintf)
+
 namespace Util
 {
-	extern	int		ReadNumber		(char *input);
 	extern	bool	FileExists		(const char *dir);
 	extern	char*	COM_ParseFile	(char *data, char *token);
 	extern	char*	ParseArg		(char** line, int& state, char delimiter);

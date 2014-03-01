@@ -1,6 +1,6 @@
 /*
  * Half-Life Weapon Mod
- * Copyright (c) 2012 - 2013 AGHL.RU Dev Team
+ * Copyright (c) 2012 - 2014 AGHL.RU Dev Team
  * 
  * http://aghl.ru/forum/ - Russian Half-Life and Adrenaline Gamer Community
  *
@@ -74,16 +74,6 @@ namespace Util
 		}
 
 		return vecResult;
-	}
-
-	int ReadNumber(char *input)
-	{
-		if (*input == '0' && (*(input + 1) == 'x' || *(input + 1) == 'X'))
-		{
-			return strtoul(input, NULL, 16);
-		}
-
-		return strtoul(input, NULL, 10);
 	}
 
 	char* ParseArg(char** line, int& state, char delimiter)

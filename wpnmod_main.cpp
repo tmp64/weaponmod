@@ -1,6 +1,6 @@
 /*
  * Half-Life Weapon Mod
- * Copyright (c) 2012 - 2013 AGHL.RU Dev Team
+ * Copyright (c) 2012 - 2014 AGHL.RU Dev Team
  * 
  * http://aghl.ru/forum/ - Russian Half-Life and Adrenaline Gamer Community
  *
@@ -36,19 +36,15 @@
 #include "utils.h"
 
 
-
-
 int AmxxCheckGame(const char* game)
 {
-
-	printf("!!!!!!!!!!!! OnAmxxCheckGame\n");
-
 	return !stricmp(game, "cstrike") || !stricmp(game, "czero") ? AMXX_GAME_BAD : AMXX_GAME_OK;
 }
 
+// Called by Meta_Attach.
 int WpnMod_Init(void)
 {
-	printf2("[%s]: Start.\n", Plugin_info.logtag, g_GameDllModule.base);
+	printf2("[%s]: Start.\n", Plugin_info.logtag);
 
 	if (!FindModuleByAddr((void*)MDLL_FUNC->pfnGetGameDescription(), &g_GameDllModule))
 	{
@@ -63,13 +59,13 @@ int WpnMod_Init(void)
 
 	if (!FindFuncsInDll(start, end))
 	{
-		printf2("[%s]: Errors occurred. Please visit http://aghl.ru/forum/ for support.\n", Plugin_info.logtag, g_GameDllModule.base);
+		printf2("[%s]: Errors occurred. Please visit http://aghl.ru/forum/ for support.\n", Plugin_info.logtag);
 		return 0;
 	}
 
-	printf2("[%s]: Done.\n", Plugin_info.logtag, g_GameDllModule.base);
+	printf2("[%s]: Done.\n", Plugin_info.logtag);
 
-	printf2("\n   Half-Life Weapon Mod version %s Copyright (c) 2012 - 2013 AGHL.RU Dev Team. \n"
+	printf2("\n   Half-Life Weapon Mod version %s Copyright (c) 2012 - 2014 AGHL.RU Dev Team.\n"
 		"   Weapon Mod comes with ABSOLUTELY NO WARRANTY; for details type `wpnmod gpl'.\n", Plugin_info.version);
 	printf2("   This is free software and you are welcome to redistribute it under \n"
 		"   certain conditions; type 'wpnmod gpl' for details.\n  \n");
@@ -77,90 +73,57 @@ int WpnMod_Init(void)
 	return 1;
 }
 
-void OnAmxxAttach()
+bool g_bWorldSpawned = 0;
+
+// Called by worldspawn.
+void W_Precache(void)
 {
-	printf("!!!!!!!!!!!! OnAmxxAttach\n");
+	g_GameMod = CheckSubMod(MF_GetModname());
 
-
-
-
-
-	SetHookVirtual(&g_WorldPrecache_Hook);
-
-	cvar_aghlru = CVAR_GET_POINTER("aghl.ru");
 	cvar_sv_cheats = CVAR_GET_POINTER("sv_cheats");
 	cvar_mp_weaponstay = CVAR_GET_POINTER("mp_weaponstay");
 
-	g_Ents = new EntData[gpGlobals->maxEntities];
-	cvar_t version = {"hl_wpnmod_version", Plugin_info.version, FCVAR_SERVER};
+	Offsets_Init();
+	SetConfigFile();
 
-	REG_SVR_COMMAND("wpnmod", WpnModCommand);
-	CVAR_REGISTER(&version);
-	MF_AddNatives(Natives);
-
-
-
-
-
-
-
-	char filepath[1024];
-	
-	const char *prefix = "";
-	const char *modname = MF_GetModname();
-
-	if (cvar_aghlru)
+	if (ParseConfigSection(g_ConfigFilepath, "[block]", (void*)ParseBlockItems_Handler) && (int)g_BlockedItems.size())
 	{
-		prefix = "_aghlru";
-	}
-	else if (!_stricmp(modname, "valve") && CVAR_GET_POINTER("sv_ag_version"))
-	{
-		prefix = "_miniag";
-	}
-	
-	MF_BuildPathnameR(filepath, sizeof(filepath) - 1, "%s/weaponmod/mods/%s%s.ini", MF_GetLocalInfo("amxx_configsdir", "addons/amxmodx/configs"), modname, prefix);
+		printf2("[%s]: Blocked default items:\n", Plugin_info.logtag);
 
-	//SetShieldHitboxTracing();
-
-	if (!Util::FileExists(filepath))
-	{
-		printf2("[WEAPONMOD] Failed to find mod config file. \"%s\"\n", filepath);
-	}
-	else
-	{
-		ParseConfigSection(filepath, "[signatures]", (void*)ParseSignatures_Handler);
-		ParseConfigSection(filepath, "[vtable_base]", (void*)ParseVtableBase_Handler);
-		ParseConfigSection(filepath, "[vtable_offsets]", (void*)ParseVtableOffsets_Handler);
-		ParseConfigSection(filepath, "[pvdata_offsets]", (void*)ParsePvDataOffsets_Handler);
+		for (int i = 0; i < (int)g_BlockedItems.size(); i++)
+		{
+			printf2("[%s]:   %s\n", Plugin_info.logtag, g_BlockedItems[i]->classname);
+		}
 	}
 
-	g_pCurrentSlots	= new int*		[g_iMaxWeaponSlots];
+	g_pCurrentSlots	= new int* [g_iMaxWeaponSlots];
 
 	for (int i = 0; i < g_iMaxWeaponSlots; ++i)
 	{
 		memset((g_pCurrentSlots[i] = new int [g_iMaxWeaponPositions]), 0, sizeof(int) * g_iMaxWeaponPositions);
 	}
+
+	g_Ents = new EntData[gpGlobals->maxEntities];
+
+	cvar_t version = {"hl_wpnmod_version", Plugin_info.version, FCVAR_SERVER};
+	REG_SVR_COMMAND("wpnmod", WpnModCommand);
+	CVAR_REGISTER(&version);
 }
 
-void OnAmxxDetach()
+void OnAmxxAttach(void)
 {
-	int i;
+	MF_AddNatives(Natives);
+}
 
-	for (i = 0; i < Func_End; i++)
+void OnAmxxDetach(void)
+{
+	for (int i = 0; i < Func_End; i++)
 	{
 		if (g_dllFuncs[i].done)
 		{
 			UnsetHook(&g_dllFuncs[i]);
 		}
 	}
-	/*
-	for (i = 0; i < CrowbarHook_End; i++)
-	{
-		UnsetHookVirtual(&g_CrowbarHooks[i]);
-	}
-	*/
-	UnsetHookVirtual(&g_WorldPrecache_Hook);
-	UnsetHookVirtual(&g_RpgAddAmmo_Hook);
 	
 	for (int i = 0; i < g_iMaxWeaponSlots; ++i)
 	{
@@ -171,20 +134,20 @@ void OnAmxxDetach()
 	delete [] g_pCurrentSlots;
 }
 
-void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
-{/*
-	printf2("!!!!! %d   %d\n\n", g_iMaxWeaponSlots, g_iMaxWeaponPositions);
-
-	for (int i = 0; i < g_iMaxWeaponSlots; ++i)
+int DispatchSpawn(edict_t *pent)
+{
+	if (!g_bWorldSpawned)
 	{
-		for (int k = 0; k < g_iMaxWeaponPositions; ++k)
-		{
-			printf2("Slot %d | Pos %d - %d\n", i, k, g_pCurrentSlots[i][k]);
-		}
+		W_Precache();
+		g_bWorldSpawned = true;
 	}
-	*/
 
+	RETURN_META_VALUE(MRES_IGNORED, 0);
+}
 
+void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
+{
+	EnableShieldHitboxTracing();
 
 	ParseBSP();
 	SetConfigFile();
@@ -206,11 +169,15 @@ void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 		}
 	}
 
-	// SetShieldHitboxTracing();
-
 	SetHookVirtual(&g_PlayerSpawn_Hook);
 	//SetHookVirtual(&g_PlayerPostThink_Hook);
 
+	RETURN_META(MRES_IGNORED);
+}
+
+void FN_OnFreeEntPrivateData(edict_t *pEnt)
+{
+	//printf2("!!!!!!!!!!!!!!   %d  %s\n", ENTINDEX(pEnt), STRING(pEnt->v.classname));
 	RETURN_META(MRES_IGNORED);
 }
 
@@ -262,20 +229,21 @@ void ServerDeactivate()
 	g_StartAmmo.clear();
 	g_BlockedItems.clear();
 
-	UnsetHookVirtual(&g_PlayerSpawn_Hook);
-	//UnsetHookVirtual(&g_PlayerPostThink_Hook);
-
-	g_CrowbarHooksEnabled = 0;
+	g_bWorldSpawned = false;
+	g_bCrowbarHooked = false;
+	g_bAmmoBoxHooked = false;
 
 	for (int i = 0; i < CrowbarHook_End; i++)
 	{
 		UnsetHookVirtual(&g_CrowbarHooks[i]);
 	}
 
+	UnsetHookVirtual(&g_RpgAddAmmo_Hook);
+	UnsetHookVirtual(&g_PlayerSpawn_Hook);
+	//UnsetHookVirtual(&g_PlayerPostThink_Hook);
+
 	RETURN_META(MRES_IGNORED);
 }
-
-#define CLIENT_PRINT (*g_engfuncs.pfnClientPrintf)
 
 void ClientCommand(edict_t *pEntity)
 {
@@ -312,7 +280,7 @@ void ClientCommand(edict_t *pEntity)
 		int i = 0;
 		int ammo = 0;
 		int weapons = 0;
-		
+
 		static char buf[1024];
 		size_t len = 0;
 
@@ -431,11 +399,12 @@ void WpnModCommand(void)
 	else
 	{
 		// Unknown command
-		printf2("Usage: wpnmod < command > [ argument ]\n");
+		printf2("\nUsage: wpnmod < command > [ argument ]\n");
 		printf2("Commands:\n");
-		printf2("   %-22s - %s\n", "version", "displays version information.");
-		printf2("   %-22s - %s\n", "credits", "displays credits information.");
-		printf2("   %-22s - %s\n", "items", "displays information about registered weapons and ammo.");
-		printf2("   %-22s - %s\n", "gpl", "print the license.");
+		printf2("   %-10s - %s\n", "version", "displays version information.");
+		printf2("   %-10s - %s\n", "credits", "displays credits information.");
+		printf2("   %-10s - %s\n", "items", "displays information about registered weapons and ammo.");
+		printf2("   %-10s - %s\n", "gpl", "print the license.");
+		printf2("\n");
 	}
 }

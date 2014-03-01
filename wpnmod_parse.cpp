@@ -1,6 +1,6 @@
 /*
  * Half-Life Weapon Mod
- * Copyright (c) 2012 - 2013 AGHL.RU Dev Team
+ * Copyright (c) 2012 - 2014 AGHL.RU Dev Team
  * 
  * http://aghl.ru/forum/ - Russian Half-Life and Adrenaline Gamer Community
  *
@@ -127,13 +127,15 @@ void ParseSpawnPoints()
 
 	if (stream)
 	{
+		//printf2("[%s]: Spawned custom items from \"%s.ini\":\n", Plugin_info.logtag, STRING(gpGlobals->mapname));
+
 		char data[2048];
 		int wpns = 0, ammoboxes = 0;
 
 		while (!feof(stream))
 		{
 			fgets(data, sizeof(data) - 1, stream);
-			
+
 			char *b = &data[0];
 
 			if (*b != ';')
@@ -147,20 +149,25 @@ void ParseSpawnPoints()
 					strcpy(szData[i], arg);
 				}
 
-				if (Weapon_Spawn(szData[0], strlen(szData[1]) ? Util::ParseVec(szData[1]) : Vector(0, 0, 0), strlen(szData[2])  ? Util::ParseVec(szData[2]) : Vector(0, 0, 0)))
+				Vector vecOrigin = strlen(szData[1]) ? Util::ParseVec(szData[1]) : Vector(0, 0, 0);
+				Vector vecAngles = strlen(szData[2]) ? Util::ParseVec(szData[2]) : Vector(0, 0, 0);
+
+				if (Weapon_Spawn(szData[0], vecOrigin, vecAngles))
 				{
 					wpns++;
+					//printf2("   %s at %f %f %f\n", szData[0], vecOrigin.x, vecOrigin.y, vecOrigin.z);
 				}
 
-				if (Ammo_Spawn(szData[0], strlen(szData[1]) ? Util::ParseVec(szData[1]) : Vector(0, 0, 0), strlen(szData[2]) ? Util::ParseVec(szData[2]) : Vector(0, 0, 0)))
+				if (Ammo_Spawn(szData[0], vecOrigin, vecAngles))
 				{
 					ammoboxes++;
+					//printf2("   %s at %f %f %f\n", szData[0], vecOrigin.x, vecOrigin.y, vecOrigin.z);
 				}
 
 			}
 		}
-		
-		printf2("[WEAPONMOD] \"%s.ini\": spawn %d weapons and %d ammoboxes.\n", STRING(gpGlobals->mapname), wpns, ammoboxes);
+
+		printf2("[%s]: Spawned %d weapons and %d ammoboxes from \"%s.ini\".\n", Plugin_info.logtag, wpns, ammoboxes, STRING(gpGlobals->mapname));
 		fclose(stream);
 	}
 }
@@ -239,163 +246,14 @@ void ParseAmmo_Handler(char* data)
 	g_StartAmmo.push_back(p);
 }
 
-signature ParseSig(char *input)
-{
-	signature sig;
-
-	char *arg;
-	char szData[256][3];
-
-	char *sigText = new char[256];
-	char *sigMask = new char[256];
-
-	int sigLen = 0, state = 0;
-
-	while ((arg = Util::ParseArg(&input, state, '"')) && state)
-	{
-		strcpy(szData[sigLen], arg);
-		sigLen++;
-	}
-
-	for (int i = 0; i < sigLen; i++)
-	{
-		sigMask[i] = (*szData[i] == '*') ? '?' : 'x';
-		sigText[i] = strtoul(szData[i], NULL, 16);
-	}
-
-	sigMask[sigLen] = 0;
-	sigText[sigLen] = 0;
-
-	sig.mask = sigMask;
-	sig.text = sigText;
-	sig.size = sigLen;
-
-	return sig;
-}
-
-void ParseSignatures_Handler(char* data)
-{
-	char* arg;
-	char szData[2][256];
-
-	for (int state = 0, i = 0; i < 2; i++)
-	{
-		arg = Util::ParseArg(&data, state, '"');
-		strcpy(szData[i], arg);
-	}
-
-	static int iIndex = 0;
-
-	if (iIndex < Func_End)
-	{
-		g_dllFuncs[iIndex].name = STRING(ALLOC_STRING(szData[0]));
-		g_dllFuncs[iIndex].sig = ParseSig(szData[1]);
-	}
-
-	iIndex++;
-}
 
 
-void ParseVtableBase_Handler(char* data)
-{
-	char* arg;
-	char szData[2][16];
 
-	static int iIndex = 0;
 
-	for (int state = 0, i = 0; i < 2; i++)
-	{
-		arg = Util::ParseArg(&data, state, ':');
-		strcpy(szData[i], arg);
-	}
 
-	Util::TrimLine(szData[0]);
-	Util::TrimLine(szData[1]);
 
-	if (!iIndex)
-	{
-		#ifdef _WIN32
-			SetVTableOffsetBase(Util::ReadNumber(szData[0]));
-		#else
-			SetVTableOffsetBase(Util::ReadNumber(szData[1]));
-		#endif
-	}
-	else if (iIndex == 1)
-	{
-		#ifdef _WIN32
-			SetVTableOffsetPev(Util::ReadNumber(szData[0]));
-		#else
-			SetVTableOffsetPev(Util::ReadNumber(szData[1]));
-		#endif
-	}
 
-	iIndex++;
-}
 
-void ParseVtableOffsets_Handler(char* data)
-{
-	char* arg;
-	char szData[2][4];
-
-	for (int state = 0, i = 0; i < 2; i++)
-	{
-		arg = Util::ParseArg(&data, state, ':');
-		strcpy(szData[i], arg);
-	}
-
-	static int iIndex = 0;
-
-	if (iIndex < VO_End)
-	{
-#ifdef _WIN32
-		g_vtblOffsets[iIndex] = atoi(szData[0]);
-#else
-		g_vtblOffsets[iIndex] = atoi(szData[0]) + atoi(szData[1]);
-#endif
-	}
-
-	iIndex++;
-}
-
-void ParsePvDataOffsets_Handler(char* data)
-{
-	char* arg;
-	char szData[2][4];
-
-	for (int state = 0, i = 0; i < 2; i++)
-	{
-		arg = Util::ParseArg(&data, state, ':');
-		strcpy(szData[i], arg);
-	}
-
-	static int iIndex = 0;
-
-	if (iIndex < pvData_End)
-	{
-#ifdef _WIN32
-		g_pvDataOffsets[iIndex] = atoi(szData[0]);
-#else
-		if (iIndex == pvData_pfnThink)
-		{
-			if (strlen(szData[1]))
-			{
-				g_ExtraThink = true;
-			}
-		}
-		else if (iIndex == pvData_pfnTouch)
-		{
-			if (strlen(szData[1]))
-			{
-				g_ExtraTouch = true;
-			}
-		}
-
-		g_pvDataOffsets[iIndex] = atoi(szData[0]) + atoi(szData[1]);
-#endif
-	}
-
-	iIndex++;
-}
 
 // Thanks to Eg@r4$il{ and HLSDK.
 void KeyValueFromBSP(char *pKey, char *pValue, int iNewent)

@@ -1,6 +1,6 @@
 /*
  * Half-Life Weapon Mod
- * Copyright (c) 2012 - 2013 AGHL.RU Dev Team
+ * Copyright (c) 2012 - 2014 AGHL.RU Dev Team
  * 
  * http://aghl.ru/forum/ - Russian Half-Life and Adrenaline Gamer Community
  *
@@ -36,6 +36,8 @@
 #include "wpnmod_utils.h"
 #include "wpnmod_hooks.h"
 
+
+#define AMXX_NATIVE(x) static cell AMX_NATIVE_CALL x (AMX *amx, cell *params)
 
 #define CHECK_ENTITY(x)																\
 	if (x != 0 && (FNullEnt(INDEXENT2(x)) || x < 0 || x > gpGlobals->maxEntities))	\
@@ -175,7 +177,7 @@ int NativesPvDataOffsets[Offset_End] =
  *
  * native wpnmod_register_weapon(const szName[], const iSlot, const iPosition, const szAmmo1[], const iMaxAmmo1, const szAmmo2[], const iMaxAmmo2, const iMaxClip, const iFlags, const iWeight);
 */
-static cell AMX_NATIVE_CALL wpnmod_register_weapon(AMX *amx, cell *params)
+AMXX_NATIVE(wpnmod_register_weapon)
 {
 	#define UD_FINDPLUGIN 3
 
@@ -221,10 +223,10 @@ static cell AMX_NATIVE_CALL wpnmod_register_weapon(AMX *amx, cell *params)
 
 			AutoSlotDetection(i, params[2] - 1, params[3] - 1);
 
-			if (!g_CrowbarHooksEnabled)
+			if (!g_bCrowbarHooked)
 			{
-				g_CrowbarHooksEnabled = 1;
-		
+				g_bCrowbarHooked = true;
+
 				for (int k = 0; k < CrowbarHook_End; k++)
 				{
 					SetHookVirtual(&g_CrowbarHooks[k]);
@@ -232,7 +234,7 @@ static cell AMX_NATIVE_CALL wpnmod_register_weapon(AMX *amx, cell *params)
 			}
 
 			g_iWeaponInitID = i;
-			
+
 			UnsetHook(&g_dllFuncs[Func_PrecacheOtherWeapon]);
 			PRECACHE_OTHER_WEAPON("weapon_crowbar");
 			SetHook(&g_dllFuncs[Func_PrecacheOtherWeapon]);
@@ -254,7 +256,7 @@ static cell AMX_NATIVE_CALL wpnmod_register_weapon(AMX *amx, cell *params)
  *
  * native wpnmod_register_weapon_forward(const iWeaponID, const e_Forwards: iForward, const szCallBack[]);
 */
-static cell AMX_NATIVE_CALL wpnmod_register_weapon_forward(AMX *amx, cell *params)
+AMXX_NATIVE(wpnmod_register_weapon_forward)
 {
 	int iId = params[1];
 
@@ -286,8 +288,6 @@ static cell AMX_NATIVE_CALL wpnmod_register_weapon_forward(AMX *amx, cell *param
 		FP_DONE
 	);
 
-	printf2("!!!!!!111111      %d   %d    %d\n", iId,  Fwd , WeaponInfoArray[iId].iForward[Fwd]);
-
 	if (WeaponInfoArray[iId].iForward[Fwd] == -1)
 	{
 		WeaponInfoArray[iId].iForward[Fwd] = 0;
@@ -308,7 +308,7 @@ static cell AMX_NATIVE_CALL wpnmod_register_weapon_forward(AMX *amx, cell *param
  *
  * native wpnmod_get_weapon_info(const iId, const e_ItemInfo: iInfoType, any:...);
  */
-static cell AMX_NATIVE_CALL wpnmod_get_weapon_info(AMX *amx, cell *params)
+AMXX_NATIVE(wpnmod_get_weapon_info)
 {
 	enum e_ItemInfo
 	{
@@ -441,7 +441,7 @@ static cell AMX_NATIVE_CALL wpnmod_get_weapon_info(AMX *amx, cell *params)
  *
  * native wpnmod_get_ammobox_info(const iId, const e_AmmoInfo: iInfoType, any:...);
  */
-static cell AMX_NATIVE_CALL wpnmod_get_ammobox_info(AMX *amx, cell *params)
+AMXX_NATIVE(wpnmod_get_ammobox_info)
 {
 	enum e_AmmoInfo
 	{
@@ -517,7 +517,7 @@ static cell AMX_NATIVE_CALL wpnmod_get_ammobox_info(AMX *amx, cell *params)
  *
  * native wpnmod_get_weapon_count();
 */
-static cell AMX_NATIVE_CALL wpnmod_get_weapon_count(AMX *amx, cell *params)
+AMXX_NATIVE(wpnmod_get_weapon_count)
 {
 	return g_iWeaponsCount;
 }
@@ -529,7 +529,7 @@ static cell AMX_NATIVE_CALL wpnmod_get_weapon_count(AMX *amx, cell *params)
  *
  * native wpnmod_get_ammobox_count();
 */
-static cell AMX_NATIVE_CALL wpnmod_get_ammobox_count(AMX *amx, cell *params)
+AMXX_NATIVE(wpnmod_get_ammobox_count)
 {
 	return g_iAmmoBoxIndex;
 }
@@ -542,7 +542,7 @@ static cell AMX_NATIVE_CALL wpnmod_get_ammobox_count(AMX *amx, cell *params)
  *
  * native wpnmod_send_weapon_anim(const iItem, const iAnim);
 */
-static cell AMX_NATIVE_CALL wpnmod_send_weapon_anim(AMX *amx, cell *params)
+AMXX_NATIVE(wpnmod_send_weapon_anim)
 {
 	CHECK_ENTITY(params[1])
 
@@ -566,7 +566,7 @@ static cell AMX_NATIVE_CALL wpnmod_send_weapon_anim(AMX *amx, cell *params)
  *
  * native wpnmod_set_player_anim(const iPlayer, const PLAYER_ANIM: iPlayerAnim);
 */
-static cell AMX_NATIVE_CALL wpnmod_set_player_anim(AMX *amx, cell *params)
+AMXX_NATIVE(wpnmod_set_player_anim)
 {
 	int iPlayer = params[1];
 	int iPlayerAnim = params[2];
@@ -584,7 +584,7 @@ static cell AMX_NATIVE_CALL wpnmod_set_player_anim(AMX *amx, cell *params)
  *
  * native wpnmod_set_anim_ext(const iPlayer, const szAnimExt[]);
 */
-static cell AMX_NATIVE_CALL wpnmod_set_anim_ext(AMX *amx, cell *params)
+AMXX_NATIVE(wpnmod_set_anim_ext)
 {
 	int iPlayer = params[1];
 
@@ -602,7 +602,7 @@ static cell AMX_NATIVE_CALL wpnmod_set_anim_ext(AMX *amx, cell *params)
  *
  * native wpnmod_get_anim_ext(const iPlayer, szDest[], iMaxLen);
  */
-static cell AMX_NATIVE_CALL wpnmod_get_anim_ext(AMX *amx, cell *params)
+AMXX_NATIVE(wpnmod_get_anim_ext)
 {
 	int iPlayer = params[1];
 
@@ -621,7 +621,7 @@ static cell AMX_NATIVE_CALL wpnmod_get_anim_ext(AMX *amx, cell *params)
  *
  * native wpnmod_get_player_ammo(const iPlayer, const szAmmoName[]);
 */
-static cell AMX_NATIVE_CALL wpnmod_get_player_ammo(AMX *amx, cell *params)
+AMXX_NATIVE(wpnmod_get_player_ammo)
 {
 	int iPlayer = params[1];
 
@@ -646,7 +646,7 @@ static cell AMX_NATIVE_CALL wpnmod_get_player_ammo(AMX *amx, cell *params)
  *
  * native wpnmod_set_player_ammo(const iPlayer, const szAmmoName[], const iAmount);
 */
-static cell AMX_NATIVE_CALL wpnmod_set_player_ammo(AMX *amx, cell *params)
+AMXX_NATIVE(wpnmod_set_player_ammo)
 {
 	int iPlayer = params[1];
 
@@ -672,7 +672,7 @@ static cell AMX_NATIVE_CALL wpnmod_set_player_ammo(AMX *amx, cell *params)
  *
  * native wpnmod_set_offset_int(const iEntity, const e_Offsets: iOffset, const iValue);
 */
-static cell AMX_NATIVE_CALL wpnmod_set_offset_int(AMX *amx, cell *params)
+AMXX_NATIVE(wpnmod_set_offset_int)
 {
 	int iEntity = params[1];
 	int iOffset = params[2];
@@ -695,7 +695,7 @@ static cell AMX_NATIVE_CALL wpnmod_set_offset_int(AMX *amx, cell *params)
  *
  * native wpnmod_get_offset_int(const iEntity, const e_Offsets: iOffset);
 */
-static cell AMX_NATIVE_CALL wpnmod_get_offset_int(AMX *amx, cell *params)
+AMXX_NATIVE(wpnmod_get_offset_int)
 {
 	int iEntity = params[1];
 	int iOffset = params[2];
@@ -715,7 +715,7 @@ static cell AMX_NATIVE_CALL wpnmod_get_offset_int(AMX *amx, cell *params)
  *
  * native wpnmod_set_offset_float(const iEntity, const e_Offsets: iOffset, const Float: flValue);
 */
-static cell AMX_NATIVE_CALL wpnmod_set_offset_float(AMX *amx, cell *params)
+AMXX_NATIVE(wpnmod_set_offset_float)
 {
 	int iEntity = params[1];
 	int iOffset = params[2];
@@ -739,7 +739,7 @@ static cell AMX_NATIVE_CALL wpnmod_set_offset_float(AMX *amx, cell *params)
  *
  * native wpnmod_set_offset_cbase(const iEntity, const e_CBase: iOffset, const iValue, const iExtraOffset = 0);
 */
-static cell AMX_NATIVE_CALL wpnmod_set_offset_cbase(AMX *amx, cell *params)
+AMXX_NATIVE(wpnmod_set_offset_cbase)
 {
 	CHECK_ENTITY(params[1])
 	CHECK_ENTITY(params[3])
@@ -759,7 +759,7 @@ static cell AMX_NATIVE_CALL wpnmod_set_offset_cbase(AMX *amx, cell *params)
  *
  * native Float: wpnmod_get_offset_float(const iEntity, const e_Offsets: iOffset);
 */
-static cell AMX_NATIVE_CALL wpnmod_get_offset_float(AMX *amx, cell *params)
+AMXX_NATIVE(wpnmod_get_offset_float)
 {
 	int iEntity = params[1];
 	int iOffset = params[2];
@@ -781,7 +781,7 @@ static cell AMX_NATIVE_CALL wpnmod_get_offset_float(AMX *amx, cell *params)
  *
  * native wpnmod_get_offset_cbase(const iEntity, const e_CBase: iOffset, const iExtraOffset = 0);
 */
-static cell AMX_NATIVE_CALL wpnmod_get_offset_cbase(AMX *amx, cell *params)
+AMXX_NATIVE(wpnmod_get_offset_cbase)
 {
 	CHECK_ENTITY(params[1])
 	CHECK_OFFSET_CBASE(params[2])
@@ -807,7 +807,7 @@ static cell AMX_NATIVE_CALL wpnmod_get_offset_cbase(AMX *amx, cell *params)
  *
  * native wpnmod_default_deploy(const iItem, const szViewModel[], const szWeaponModel[], const iAnim, const szAnimExt[]);
 */
-static cell AMX_NATIVE_CALL wpnmod_default_deploy(AMX *amx, cell *params)
+AMXX_NATIVE(wpnmod_default_deploy)
 {
 	int iEntity = params[1];
 	int iAnim = params[4];
@@ -853,7 +853,7 @@ static cell AMX_NATIVE_CALL wpnmod_default_deploy(AMX *amx, cell *params)
  *
  * native wpnmod_default_reload(const iItem, const iClipSize, const iAnim, const Float: flDelay);
 */
-static cell AMX_NATIVE_CALL wpnmod_default_reload(AMX *amx, cell *params)
+AMXX_NATIVE(wpnmod_default_reload)
 {
 	int iEntity = params[1];
 	int iClipSize = params[2];
@@ -905,7 +905,7 @@ static cell AMX_NATIVE_CALL wpnmod_default_reload(AMX *amx, cell *params)
  *
  * native wpnmod_set_think(const iItem, const szCallBack[]);
 */
-static cell AMX_NATIVE_CALL wpnmod_set_think(AMX *amx, cell *params)
+AMXX_NATIVE(wpnmod_set_think)
 {
 	int iEntity = params[1];
 
@@ -951,7 +951,7 @@ static cell AMX_NATIVE_CALL wpnmod_set_think(AMX *amx, cell *params)
  *
  * native wpnmod_set_touch(const iEntity, const szCallBack[]);
 */
-static cell AMX_NATIVE_CALL wpnmod_set_touch(AMX *amx, cell *params)
+AMXX_NATIVE(wpnmod_set_touch)
 {
 	int iEntity = params[1];
 
@@ -1000,7 +1000,7 @@ static cell AMX_NATIVE_CALL wpnmod_set_touch(AMX *amx, cell *params)
  *
  * native wpnmod_fire_bullets(const iPlayer, const iAttacker, const iShotsCount, const Float: vecSpread[3], const Float: flDistance, const Float: flDamage, const bitsDamageType, const iTracerFreq);
 */
-static cell AMX_NATIVE_CALL wpnmod_fire_bullets(AMX *amx, cell *params)
+AMXX_NATIVE(wpnmod_fire_bullets)
 {
 	int iPlayer = params[1];
 	int iAttacker = params[2];
@@ -1032,39 +1032,6 @@ static cell AMX_NATIVE_CALL wpnmod_fire_bullets(AMX *amx, cell *params)
 }
 
 /**
- * Make damage upon entities within a certain range.
- * 	Only damage ents that can clearly be seen by the explosion.
- *
- * @param vecSrc			Origin of explosion.
- * @param iInflictor		Entity which causes the damage impact.
- * @param iAttacker			Attacker index.
- * @param flDamage			Damage amount.
- * @param flRadius			Damage radius.
- * @param iClassIgnore		Class to ignore.
- * @param bitsDamageType	Damage type (see CLASSIFY defines).
- *
- * native wpnmod_radius_damage(const Float: vecSrc[3], const iInflictor, const iAttacker, const Float: flDamage, const Float: flRadius, const iClassIgnore, const bitsDamageType);
-*/
-static cell AMX_NATIVE_CALL wpnmod_radius_damage(AMX *amx, cell *params)
-{
-	Vector vecSrc;
-	cell *vSrc = MF_GetAmxAddr(amx, params[1]);
-
-	vecSrc.x = amx_ctof(vSrc[0]);
-	vecSrc.y = amx_ctof(vSrc[1]);
-	vecSrc.z = amx_ctof(vSrc[2]);
-
-	int iInflictor = params[2];
-	int iAttacker = params[3];
-
-	CHECK_ENTITY(iInflictor)
-	CHECK_ENTITY(iAttacker)
-	
-	RADIUS_DAMAGE(vecSrc, &INDEXENT2(iInflictor)->v, &INDEXENT2(iAttacker)->v, amx_ctof(params[4]), amx_ctof(params[5]), params[6], params[7]);
-	return 1;
-}
-
-/**
  * Same as wpnmod_radius_damage, but blocks 'ghost mines' and 'ghost nades'.
  *
  * @param vecSrc			Origin of explosion.
@@ -1077,7 +1044,7 @@ static cell AMX_NATIVE_CALL wpnmod_radius_damage(AMX *amx, cell *params)
  *
  * native wpnmod_radius_damage2(const Float: vecSrc[3], const iInflictor, const iAttacker, const Float: flDamage, const Float: flRadius, const iClassIgnore, const bitsDamageType);
 */
-static cell AMX_NATIVE_CALL wpnmod_radius_damage2(AMX *amx, cell *params)
+AMXX_NATIVE(wpnmod_radius_damage2)
 {
 	Vector vecSrc;
 	cell *vSrc = MF_GetAmxAddr(amx, params[1]);
@@ -1097,6 +1064,14 @@ static cell AMX_NATIVE_CALL wpnmod_radius_damage2(AMX *amx, cell *params)
 }
 
 /**
+ * Deprecated. See wpnmod_radius_damage2 instead.
+*/
+AMXX_NATIVE(wpnmod_radius_damage)
+{
+	return wpnmod_radius_damage2(amx, params);
+}
+
+/**
  * Eject a brass from player's weapon.
  *
  * @param iPlayer			Player index.
@@ -1108,7 +1083,7 @@ static cell AMX_NATIVE_CALL wpnmod_radius_damage2(AMX *amx, cell *params)
  *
  * native wpnmod_eject_brass(const iPlayer, const iShellModelIndex, const iSoundtype, const Float: flForwardScale, const Float: flUpScale, const Float: flRightScale);
 */
-static cell AMX_NATIVE_CALL wpnmod_eject_brass(AMX *amx, cell *params)
+AMXX_NATIVE(wpnmod_eject_brass)
 {
 	int iPlayer = params[1];
 
@@ -1137,7 +1112,7 @@ static cell AMX_NATIVE_CALL wpnmod_eject_brass(AMX *amx, cell *params)
  *
  * native wpnmod_reset_empty_sound(const iItem);
 */
-static cell AMX_NATIVE_CALL wpnmod_reset_empty_sound(AMX *amx, cell *params)
+AMXX_NATIVE(wpnmod_reset_empty_sound)
 {
 	int iEntity = params[1];
 
@@ -1153,7 +1128,7 @@ static cell AMX_NATIVE_CALL wpnmod_reset_empty_sound(AMX *amx, cell *params)
  *
  * native wpnmod_play_empty_sound(const iItem);
 */
-static cell AMX_NATIVE_CALL wpnmod_play_empty_sound(AMX *amx, cell *params)
+AMXX_NATIVE(wpnmod_play_empty_sound)
 {
 	int iEntity = params[1];
 	CHECK_ENTITY(iEntity)
@@ -1185,7 +1160,7 @@ static cell AMX_NATIVE_CALL wpnmod_play_empty_sound(AMX *amx, cell *params)
  *
  * native wpnmod_create_item(const szName[], const Float: vecOrigin[3] = {0.0, 0.0, 0.0}, const Float: vecAngles[3] = {0.0, 0.0, 0.0});
 */
-static cell AMX_NATIVE_CALL wpnmod_create_item(AMX *amx, cell *params)
+AMXX_NATIVE(wpnmod_create_item)
 {
 	char *itemname = MF_GetAmxString(amx, params[1], 0, NULL);
 
@@ -1231,7 +1206,7 @@ static cell AMX_NATIVE_CALL wpnmod_create_item(AMX *amx, cell *params)
  *
  * native wpnmod_register_ammobox(const szClassname[]);
  */
-static cell AMX_NATIVE_CALL wpnmod_register_ammobox(AMX *amx, cell *params)
+AMXX_NATIVE(wpnmod_register_ammobox)
 {
 	if (g_iAmmoBoxIndex >= MAX_WEAPONS)
 	{
@@ -1239,9 +1214,9 @@ static cell AMX_NATIVE_CALL wpnmod_register_ammobox(AMX *amx, cell *params)
 		return -1;
 	}
 
-	if (!g_AmmoBoxHooksEnabled)
+	if (!g_bAmmoBoxHooked)
 	{
-		g_AmmoBoxHooksEnabled = TRUE;
+		g_bAmmoBoxHooked = true;
 		SetHookVirtual(&g_RpgAddAmmo_Hook);
 	}
 
@@ -1269,7 +1244,7 @@ static cell AMX_NATIVE_CALL wpnmod_register_ammobox(AMX *amx, cell *params)
  *
  * native wpnmod_register_ammobox_forward(const iWeaponID, const e_AmmoFwds: iForward, const szCallBack[]);
  */
-static cell AMX_NATIVE_CALL wpnmod_register_ammobox_forward(AMX *amx, cell *params)
+AMXX_NATIVE(wpnmod_register_ammobox_forward)
 {
 	int iId = params[1];
 
@@ -1313,7 +1288,7 @@ static cell AMX_NATIVE_CALL wpnmod_register_ammobox_forward(AMX *amx, cell *para
  *
  * native wpnmod_clear_multi_damage();
  */
-static cell AMX_NATIVE_CALL wpnmod_clear_multi_damage(AMX *amx, cell *params)
+AMXX_NATIVE(wpnmod_clear_multi_damage)
 {
 	CLEAR_MULTI_DAMAGE();
 	return 1;
@@ -1327,7 +1302,7 @@ static cell AMX_NATIVE_CALL wpnmod_clear_multi_damage(AMX *amx, cell *params)
  *
  * native wpnmod_apply_multi_damage(const iInflictor, const iAttacker);
  */
-static cell AMX_NATIVE_CALL wpnmod_apply_multi_damage(AMX *amx, cell *params)
+AMXX_NATIVE(wpnmod_apply_multi_damage)
 {
 	CHECK_ENTITY(params[1])
 	CHECK_ENTITY(params[2])
@@ -1345,7 +1320,7 @@ static cell AMX_NATIVE_CALL wpnmod_apply_multi_damage(AMX *amx, cell *params)
  *
  * native wpnmod_get_damage_decal(const iEntity);
  */
-static cell AMX_NATIVE_CALL wpnmod_get_damage_decal(AMX *amx, cell *params)
+AMXX_NATIVE(wpnmod_get_damage_decal)
 {
 	CHECK_ENTITY(params[1])
 
@@ -1371,7 +1346,7 @@ static cell AMX_NATIVE_CALL wpnmod_get_damage_decal(AMX *amx, cell *params)
  *
  * native wpnmod_fire_contact_grenade(const iPlayer, const Float: vecStart[3], const Float: vecVelocity[3], const szCallBack[] = "");
 */
-static cell AMX_NATIVE_CALL wpnmod_fire_contact_grenade(AMX *amx, cell *params)
+AMXX_NATIVE(wpnmod_fire_contact_grenade)
 {
 	CHECK_ENTITY(params[1])
 
@@ -1432,7 +1407,7 @@ static cell AMX_NATIVE_CALL wpnmod_fire_contact_grenade(AMX *amx, cell *params)
  *
  * native wpnmod_fire_timed_grenade(const iPlayer, const Float: vecStart[3], const Float: vecVelocity[3], const Float: flTime = 3.0, const szCallBack[] = "");
 */
-static cell AMX_NATIVE_CALL wpnmod_fire_timed_grenade(AMX *amx, cell *params)
+AMXX_NATIVE(wpnmod_fire_timed_grenade)
 {
 	CHECK_ENTITY(params[1])
 
@@ -1491,7 +1466,7 @@ static cell AMX_NATIVE_CALL wpnmod_fire_timed_grenade(AMX *amx, cell *params)
  *
  * native wpnmod_get_gun_position(const iPlayer, Float: vecResult[3], const Float: flForwardScale = 1.0, const Float: flRightScale = 1.0, const Float: flUpScale = 1.0);
 */
-static cell AMX_NATIVE_CALL wpnmod_get_gun_position(AMX *amx, cell *params)
+AMXX_NATIVE(wpnmod_get_gun_position)
 {
 	CHECK_ENTITY(params[1])
 	edict_t* pPlayer = INDEXENT2(params[1]);
@@ -1522,7 +1497,7 @@ static cell AMX_NATIVE_CALL wpnmod_get_gun_position(AMX *amx, cell *params)
  *
  * native wpnmod_explode_entity(const iEntity, const bitsDamageType = 0, const szCallBack[] = "");
 */
-static cell AMX_NATIVE_CALL wpnmod_explode_entity(AMX *amx, cell *params)
+AMXX_NATIVE(wpnmod_explode_entity)
 {
 	CHECK_ENTITY(params[1])
 
@@ -1555,7 +1530,7 @@ static cell AMX_NATIVE_CALL wpnmod_explode_entity(AMX *amx, cell *params)
  *
  * native wpnmod_decal_trace(const iTrace, const iDecalIndex = -1, const szDecalName[] = "");
 */
-static cell AMX_NATIVE_CALL wpnmod_decal_trace(AMX *amx, cell *params)
+AMXX_NATIVE(wpnmod_decal_trace)
 {
 	TraceResult *pTrace = reinterpret_cast<TraceResult *>(params[1]);
 
@@ -1581,7 +1556,7 @@ static cell AMX_NATIVE_CALL wpnmod_decal_trace(AMX *amx, cell *params)
  *
  * native wpnmod_trace_texture(const iEntity, const Float: vecSrc[3], const Float: vecEnd[3], szTextureName[], const iLen);
 */
-static cell AMX_NATIVE_CALL wpnmod_trace_texture(AMX *amx, cell *params)
+AMXX_NATIVE(wpnmod_trace_texture)
 {
 	Vector vecSrc;
 	Vector vecEnd;
@@ -1626,7 +1601,7 @@ static cell AMX_NATIVE_CALL wpnmod_trace_texture(AMX *amx, cell *params)
  *
  * native wpnmod_precache_model_sequences(const szModelPath[]);
 */
-static cell AMX_NATIVE_CALL wpnmod_precache_model_sequences(AMX *amx, cell *params)
+AMXX_NATIVE(wpnmod_precache_model_sequences)
 {
 	char modelpath[1024];
 

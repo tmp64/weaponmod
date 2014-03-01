@@ -39,7 +39,7 @@
 class String
 {
 public:
-	String() 
+	String()
 	{
 		v = NULL;
 		a_size = 0;
@@ -47,23 +47,23 @@ public:
 	}
 
 	~String()
-	{ 
-		if (v) 
-			delete [] v; 
-	}
-
-	String(const char *src) 
 	{
-		v = NULL; 
-		a_size = 0;
-		assign(src); 
+		if (v)
+			delete [] v;
 	}
 
-	const char * _fread(FILE *fp) 	 
-	{ 	 
-		Grow(512, false); 	 
-		char *ret = fgets(v, 511, fp); 	 
-		return ret; 	 
+	String(const char *src)
+	{
+		v = NULL;
+		a_size = 0;
+		assign(src);
+	}
+
+	const char * _fread(FILE *fp)
+	{
+		Grow(512, false);
+		char *ret = fgets(v, 511, fp);
+		return ret;
 	}
 
 	String(const String &src) 
@@ -399,7 +399,7 @@ private:
 		if (v)
 			delete [] v;
 		else
-			strcpy(n, "");			
+			strcpy(n, "");
 		v = n;
 		a_size = d + 1;
 	}

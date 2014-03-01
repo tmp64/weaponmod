@@ -1,6 +1,6 @@
 /*
  * Half-Life Weapon Mod
- * Copyright (c) 2012 - 2013 AGHL.RU Dev Team
+ * Copyright (c) 2012 - 2014 AGHL.RU Dev Team
  * 
  * http://aghl.ru/forum/ - Russian Half-Life and Adrenaline Gamer Community
  *
@@ -34,46 +34,39 @@
 #include "wpnmod_parse.h"
 #include "wpnmod_utils.h"
 #include "wpnmod_hooks.h"
+#include "entity_state.h"
 
 EntData* g_Ents = NULL;
 
-VirtualHookData	g_RpgAddAmmo_Hook		= { "ammo_rpgclip",	VO_AddAmmo,				(void*)AmmoBox_AddAmmo,		NULL, NULL };
-VirtualHookData g_PlayerSpawn_Hook		= { "player",		VO_Spawn,				(void*)Player_Spawn,		NULL, NULL };
-VirtualHookData g_PlayerPostThink_Hook	= { "player",		VO_Player_PostThink,	(void*)Player_PostThink,	NULL, NULL };
-VirtualHookData g_WorldPrecache_Hook	= { "worldspawn",	VO_Precache,			(void*)World_Precache,		NULL, NULL };
-
-
-
-function g_funcGiveNamedItem = HOOK(GiveNamedItem_HookHandler);
-
-
-
 function g_dllFuncs[Func_End] =
 {
-	HOOK(NULL),
-	HOOK(NULL),
-	HOOK(NULL),
-	HOOK(NULL),
-	HOOK(NULL),
-	HOOK(PrecacheOtherWeapon_HookHandler)
+	HOOK(NULL),		// GetAmmoIndex
+	HOOK(NULL),		// ClearMultiDamage
+	HOOK(NULL),		// ApplyMultiDamage
+	HOOK(NULL),		// PlayerSetAnimation
+	HOOK(PrecacheOtherWeapon_HookHandler),
+	HOOK(GiveNamedItem_HookHandler)
 };
 
 module g_GameDllModule = { NULL, NULL, NULL };
 
 VirtualHookData g_CrowbarHooks[CrowbarHook_End] = 
 {
-	VHOOK(Respawn),
-	VHOOK(AddToPlayer),
-	VHOOK(GetItemInfo),
-	VHOOK(CanDeploy),
-	VHOOK(Deploy),
-	VHOOK(CanHolster),
-	VHOOK(Holster),
-	VHOOK(ItemPostFrame),
-	VHOOK(ItemSlot),
-	VHOOK(IsUseable)
+	VHOOK_CROWBAR(Respawn),
+	VHOOK_CROWBAR(AddToPlayer),
+	VHOOK_CROWBAR(GetItemInfo),
+	VHOOK_CROWBAR(CanDeploy),
+	VHOOK_CROWBAR(Deploy),
+	VHOOK_CROWBAR(CanHolster),
+	VHOOK_CROWBAR(Holster),
+	VHOOK_CROWBAR(ItemPostFrame),
+	VHOOK_CROWBAR(ItemSlot),
+	VHOOK_CROWBAR(IsUseable)
 };
 
+VirtualHookData	g_RpgAddAmmo_Hook		= VHOOK("ammo_rpgclip",		VO_AddAmmo,				AmmoBox_AddAmmo);
+VirtualHookData g_PlayerSpawn_Hook		= VHOOK("player",			VO_Spawn,				Player_Spawn);
+VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	Player_PostThink);
 
 #ifdef _WIN32
 	int __fastcall Weapon_GetItemInfo(void* pvItem, DUMMY, ItemInfo* p)
@@ -586,7 +579,7 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 			}
 		}
 
-		if (!cvar_aghlru)
+		if (g_GameMod != SUBMOD_AGHLRU)
 		{
 			static int msgWeapPickup = 0;
 			if (msgWeapPickup || (msgWeapPickup = REG_USER_MSG( "WeapPickup", 1 )))		
@@ -633,7 +626,7 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 
 	if (WeaponInfoArray[iId].iType == Wpn_Custom)
 	{
-		// Opposing Force magic, lol
+		// Opposing Force magic, lol.
 		if  (GetWeapon_Slot(iId) >= 6)
 		{
 			return 4;
@@ -665,7 +658,7 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 	{
 		return RESPAWN(pvItem);
 	}
-
+	
 	edict_t* pItem = Weapon_Spawn(GetWeapon_pszName(iId), pWeapon->v.origin, pWeapon->v.angles);
 
 	if (IsValidPev(pItem))
@@ -754,30 +747,6 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 	}
 
 	return FALSE;
-}
-
-
-#ifdef _WIN32
-	void __fastcall World_Precache(void* pvEntity)
-#else
-	void World_Precache(void* pvEntity)
-#endif
-{
-	SetConfigFile();
-
-	if (ParseConfigSection(g_ConfigFilepath, "[block]", (void*)ParseBlockItems_Handler) && (int)g_BlockedItems.size())
-	{
-		printf2("\n[WEAPONMOD] default items blocked:\n");
-
-		for (int i = 0; i < (int)g_BlockedItems.size(); i++)
-		{
-			printf2("   %s\n", g_BlockedItems[i]->classname);
-		}
-
-		printf2("\n");
-	}
-	
-	WORLD_PRECACHE(pvEntity);
 }
 
 
@@ -1099,9 +1068,9 @@ void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 		GiveNamedItem(PrivateToEdict(pvPlayer), szName);
 	}
 
-	UnsetHook(&g_funcGiveNamedItem);
+	UnsetHook(&g_dllFuncs[Func_GiveNamedItem]);
 	GIVE_NAMED_ITEM(pvPlayer, szName);
-	SetHook(&g_funcGiveNamedItem);
+	SetHook(&g_dllFuncs[Func_GiveNamedItem]);
 }
 
 /*

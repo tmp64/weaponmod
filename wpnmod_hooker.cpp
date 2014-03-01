@@ -1,6 +1,6 @@
 /*
  * Half-Life Weapon Mod
- * Copyright (c) 2012 - 2013 AGHL.RU Dev Team
+ * Copyright (c) 2012 - 2014 AGHL.RU Dev Team
  * 
  * http://aghl.ru/forum/ - Russian Half-Life and Adrenaline Gamer Community
  *
@@ -253,8 +253,6 @@ int CreateFunctionHook(function *func)
 	{
 		return 0;
 	}
-
-	printf("!!!!!!! %p\n", func->address);
 
 	if (!func->address)
 	{

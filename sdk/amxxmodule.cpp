@@ -39,11 +39,13 @@
 #include <stdio.h>
 #include "amxxmodule.h"
 
+int WpnMod_Init(void);
+
 /************* METAMOD SUPPORT *************/
 #ifdef USE_METAMOD
 
 enginefuncs_t g_engfuncs;
-globalvars_t  *gpGlobals;
+globalvars_t *gpGlobals;
 
 DLL_FUNCTIONS *g_pFunctionTable;
 DLL_FUNCTIONS *g_pFunctionTable_Post;
@@ -53,7 +55,7 @@ NEW_DLL_FUNCTIONS *g_pNewFunctionsTable;
 NEW_DLL_FUNCTIONS *g_pNewFunctionsTable_Post;
 
 // GetEntityAPI2 functions
-static DLL_FUNCTIONS g_EntityAPI_Table = 
+static DLL_FUNCTIONS g_EntityAPI_Table =
 {
 #ifdef FN_GameDLLInit
 	FN_GameDLLInit,
@@ -308,7 +310,7 @@ static DLL_FUNCTIONS g_EntityAPI_Table =
 }; // g_EntityAPI2_Table
 
 // GetEntityAPI2_Post functions
-static DLL_FUNCTIONS g_EntityAPI_Post_Table = 
+static DLL_FUNCTIONS g_EntityAPI_Post_Table =
 {
 #ifdef FN_GameDLLInit_Post
 	FN_GameDLLInit_Post,
@@ -562,7 +564,7 @@ static DLL_FUNCTIONS g_EntityAPI_Post_Table =
 #endif
 }; // g_EntityAPI2_Table
 
-static enginefuncs_t g_EngineFuncs_Table = 
+static enginefuncs_t g_EngineFuncs_Table =
 {
 #ifdef FN_PrecacheModel
 	FN_PrecacheModel,
@@ -2012,7 +2014,7 @@ static enginefuncs_t g_EngineFuncs_Post_Table =
 }; // g_EngineFuncs_Post_Table
 
 
-static NEW_DLL_FUNCTIONS g_NewFuncs_Table = 
+static NEW_DLL_FUNCTIONS g_NewFuncs_Table =
 {
 #ifdef FN_OnFreeEntPrivateData
 	FN_OnFreeEntPrivateData,
@@ -2032,7 +2034,7 @@ static NEW_DLL_FUNCTIONS g_NewFuncs_Table =
 };
 
 
-static NEW_DLL_FUNCTIONS g_NewFuncs_Post_Table = 
+static NEW_DLL_FUNCTIONS g_NewFuncs_Post_Table =
 {
 #ifdef FN_OnFreeEntPrivateData_Post
 	FN_OnFreeEntPrivateData_Post,
@@ -2290,11 +2292,8 @@ C_DLLEXPORT int Meta_Query(char	*ifvers, plugin_info_t **pPlugInfo,	mutil_funcs_
 	return 1;
 }
 
-int WpnMod_Init();
 C_DLLEXPORT int Meta_Attach(PLUG_LOADTIME now, META_FUNCTIONS *pFunctionTable, meta_globals_t *pMGlobals, gamedll_funcs_t *pGamedllFuncs)
 {
-	printf("!!!!!!!!!!!! METAATTACH\n");
-
 	if(now > Plugin_info.loadable) {
 		LOG_ERROR(PLID, "Can't load module right now");
 		return(FALSE);

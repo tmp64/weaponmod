@@ -1,6 +1,6 @@
 /*
  * Half-Life Weapon Mod
- * Copyright (c) 2012 - 2013 AGHL.RU Dev Team
+ * Copyright (c) 2012 - 2014 AGHL.RU Dev Team
  * 
  * http://aghl.ru/forum/ - Russian Half-Life and Adrenaline Gamer Community
  *
@@ -59,52 +59,38 @@
 
 struct module
 {
-	void             *base;
-	size_t           size;
-	void             *handler;
+	void*	base;
+	size_t	size;
+	void*	handler;
 };
 
 struct signature
 {
-	const char       *text;
-	const char       *mask;
-	size_t           size;
+	const char*		text;
+	const char*		mask;
+	size_t			size;
 };
 
 struct function
 {
-	const char       *name;
+	const char*		name;
 	
-	module           *lib;
+	module*			lib;
+	signature		sig;
 	
-	signature        sig;
+	void*			address;
+	void*			handler;
 	
-	void             *address;
-	void             *handler;
-	
-	unsigned char    patch[5];
-	unsigned char    origin[5];
+	unsigned char	patch[5];
+	unsigned char	origin[5];
 
-	int              done;
+	int				done;
 };
-
-
-
-
-
-
-
-
-
-
-
-
 
 void	SetHook					(function *func);
 void	UnsetHook				(function *func);
 
 void*	FindFunction			(function *func);
-
 void*	FindFunction			(module *lib, signature sig);
 void*	FindFunction			(module *lib, const char *name);
 size_t	FindFunction			(module *lib, const unsigned char *pattern, const char *mask);

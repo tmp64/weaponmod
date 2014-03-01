@@ -1,6 +1,6 @@
 /*
  * Half-Life Weapon Mod
- * Copyright (c) 2012 - 2013 AGHL.RU Dev Team
+ * Copyright (c) 2012 - 2014 AGHL.RU Dev Team
  * 
  * http://aghl.ru/forum/ - Russian Half-Life and Adrenaline Gamer Community
  *
@@ -54,6 +54,18 @@
 #define ITEM_FLAG_NOAUTOSWITCHEMPTY			4
 #define ITEM_FLAG_LIMITINWORLD				8
 #define ITEM_FLAG_EXHAUSTIBLE				16
+
+typedef enum
+{
+	SUBMOD_UNKNOWN = 0,
+
+	SUBMOD_AG,
+	SUBMOD_VALVE,
+	SUBMOD_GEARBOX,
+
+	SUBMOD_AGHLRU,
+	SUBMOD_MINIAG,
+} SUBMOD;
 
 enum e_AmmoFwds
 {
@@ -116,8 +128,8 @@ typedef struct
 typedef struct
 {
 	String		title;
-    String		author;
-    String		version;
+	String		author;
+	String		version;
 
 	e_WpnType	iType;
 	ItemInfo	ItemData;
@@ -142,7 +154,7 @@ typedef struct
 
 extern AMX_NATIVE_INFO Natives[];
 
-extern edict_t* g_EquipEnt;
+extern edict_t*	g_EquipEnt;
 extern int**	g_pCurrentSlots;
 
 extern int g_iWeaponsCount;
@@ -152,7 +164,6 @@ extern int g_iAmmoBoxIndex;
 extern int g_iMaxWeaponSlots;
 extern int g_iMaxWeaponPositions;
 
-extern cvar_t *cvar_aghlru;
 extern cvar_t *cvar_sv_cheats;
 extern cvar_t *cvar_mp_weaponstay;
 
@@ -160,8 +171,10 @@ extern CVector <DecalList*>			g_Decals;
 extern CVector <StartAmmo*>			g_StartAmmo;
 extern CVector <VirtualHookData*>	g_BlockedItems;
 
-extern BOOL g_AmmoBoxHooksEnabled;
-extern BOOL g_CrowbarHooksEnabled;
+extern bool g_bAmmoBoxHooked;
+extern bool g_bCrowbarHooked;
+
+extern SUBMOD g_GameMod;
 
 extern WeaponData	WeaponInfoArray	[MAX_WEAPONS];
 extern AmmoBoxData	AmmoBoxInfoArray[MAX_WEAPONS];
@@ -170,6 +183,7 @@ extern char	g_ConfigFilepath[1024];
 
 extern void		SetConfigFile	(void);
 extern void		WpnModCommand	(void);
+extern SUBMOD	CheckSubMod		(const char* game);
 
 extern	edict_t*		Ammo_Spawn			(const char* szName, Vector vecOrigin, Vector vecAngles);
 extern	edict_t*		Weapon_Spawn		(const char* szName, Vector vecOrigin, Vector vecAngles);
@@ -194,14 +208,14 @@ inline int			GetWeapon_Flags(const int iId)			{ return WeaponInfoArray[iId].Item
 class CPlugin
 {
 public:
-    AMX           amx;
-    void*         code;
+	AMX amx;
+	void* code;
 
-    String        name;
-    String        version;
-	String        title;
-    String        author;
-    String        errorMsg;
+	String	name;
+	String	version;
+	String	title;
+	String	author;
+	String	errorMsg;
 };
 
 typedef enum

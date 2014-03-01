@@ -1,6 +1,6 @@
 /*
  * Half-Life Weapon Mod
- * Copyright (c) 2012 - 2013 AGHL.RU Dev Team
+ * Copyright (c) 2012 - 2014 AGHL.RU Dev Team
  * 
  * http://aghl.ru/forum/ - Russian Half-Life and Adrenaline Gamer Community
  *
@@ -39,10 +39,6 @@
 extern void ParseBSP();
 extern void ParseSpawnPoints();
 
-extern void ParseSignatures_Handler		(char* data);
-extern void ParseVtableBase_Handler		(char* data);
-extern void ParseVtableOffsets_Handler	(char* data);
-extern void ParsePvDataOffsets_Handler	(char* data);
 extern void ParseAmmo_Handler			(char* data);
 extern void ParseEquipment_Handler		(char* data);
 extern void ParseBlockItems_Handler		(char* szBlockItem);

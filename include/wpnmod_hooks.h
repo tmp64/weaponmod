@@ -1,6 +1,6 @@
 /*
  * Half-Life Weapon Mod
- * Copyright (c) 2012 - 2013 AGHL.RU Dev Team
+ * Copyright (c) 2012 - 2014 AGHL.RU Dev Team
  * 
  * http://aghl.ru/forum/ - Russian Half-Life and Adrenaline Gamer Community
  *
@@ -71,28 +71,20 @@ extern EntData* g_Ents;
 
 	enum LibFunctions
 	{
-		Func_RadiusDamage,
 		Func_GetAmmoIndex,
 		Func_ClearMultiDamage,
 		Func_ApplyMultiDamage,
 		Func_PlayerSetAnimation,
 		Func_PrecacheOtherWeapon,
+		Func_GiveNamedItem,
 
 		Func_End
 	};
 
-	extern module		g_GameDllModule;
-
-	extern function		g_funcGiveNamedItem;
-
-
-
-
-
-	extern function g_dllFuncs[Func_End];
+	extern module	g_GameDllModule;
+	extern function	g_dllFuncs[Func_End];
 
 	typedef int		(*FuncGetAmmoIndex)			(const char*);
-	typedef void	(*FuncRadiusDamage)			(Vector, entvars_s*, entvars_s*, float, float, int, int);
 	typedef void	(*FuncClearMultiDamage)		(void);
 	typedef void	(*FuncApplyMultiDamage)		(entvars_t*, entvars_t*);
 	typedef void	(*FuncPrecacheOtherWeapon)	(const char*);
@@ -106,16 +98,9 @@ extern EntData* g_Ents;
 			return reinterpret_cast<FuncGetAmmoIndex>(g_dllFuncs[Func_GetAmmoIndex].address)(ammoName);
 		}
 
-	// void RadiusDamage( Vector vecSrc, entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, float flRadius, int iClassIgnore, int bitsDamageType )
-	//
-		void inline RADIUS_DAMAGE(Vector vecSrc, entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, float flRadius, int iClassIgnore, int bitsDamageType)
-		{
-			return reinterpret_cast<FuncRadiusDamage>(g_dllFuncs[Func_RadiusDamage].address)(vecSrc, pevInflictor, pevAttacker, flDamage, flRadius, iClassIgnore, bitsDamageType);
-		}
-		
 	// void ClearMultiDamage(void)
 	//
-		inline void CLEAR_MULTI_DAMAGE( void )
+		inline void CLEAR_MULTI_DAMAGE(void)
 		{
 			reinterpret_cast<FuncClearMultiDamage>(g_dllFuncs[Func_ClearMultiDamage].address)();
 		}
@@ -129,27 +114,27 @@ extern EntData* g_Ents;
 
 	// void UTIL_PrecacheOtherWeapon(const char *szClassname)
 	//
-		inline void PRECACHE_OTHER_WEAPON(const char *szClassname)
+		inline void PRECACHE_OTHER_WEAPON(const char* szClassname)
 		{
 			reinterpret_cast<FuncPrecacheOtherWeapon>(g_dllFuncs[Func_PrecacheOtherWeapon].address)(szClassname);
 		}
 
 #ifdef WIN32
 
-	typedef void	(__fastcall	*FuncGiveNamedItem)			(void*, DUMMY, const char *);
+	typedef void	(__fastcall	*FuncGiveNamedItem)			(void*, DUMMY, const char*);
 	typedef void	(__fastcall *FuncSetAnimation)			(void*, DUMMY, int);
 
-	void	__fastcall	GiveNamedItem_HookHandler			(void* pvPlayer, int DUMMY, const char *szName);
+	void	__fastcall	GiveNamedItem_HookHandler			(void* pvPlayer, int DUMMY, const char* szName);
 	
 	// void CBasePlayer::GiveNamedItem(const char *pszName)
 	//
-		inline void GIVE_NAMED_ITEM(void* pvPlayer, const char *szClassname)
+		inline void GIVE_NAMED_ITEM(void* pvPlayer, const char* szClassname)
 		{
-			reinterpret_cast<FuncGiveNamedItem>(g_funcGiveNamedItem.address)(pvPlayer, DUMMY_VAL, szClassname);
+			reinterpret_cast<FuncGiveNamedItem>(g_dllFuncs[Func_GiveNamedItem].address)(pvPlayer, DUMMY_VAL, szClassname);
 		}
 
 	// void SetAnimation(PLAYER_ANIM playerAnim);
-	// 
+	//
 		inline void SET_ANIMATION(edict_t* pentPlayer, int animation)
 		{
 			reinterpret_cast<FuncSetAnimation>(g_dllFuncs[Func_PlayerSetAnimation].address)(pentPlayer->pvPrivateData, DUMMY_VAL, animation);
@@ -166,11 +151,11 @@ extern EntData* g_Ents;
 	//
 		inline void GIVE_NAMED_ITEM(void* pvPlayer, const char *szClassname)
 		{
-			reinterpret_cast<FuncGiveNamedItem>(g_funcGiveNamedItem.address)(pvPlayer, szClassname);
+			reinterpret_cast<FuncGiveNamedItem>(g_dllFuncs[Func_GiveNamedItem].address)(pvPlayer, szClassname);
 		}
 
 	// void SetAnimation(PLAYER_ANIM playerAnim);
-	// 
+	//
 		inline void SET_ANIMATION(edict_t* pentPlayer, int animation)
 		{
 			reinterpret_cast<FuncSetAnimation>(g_dllFuncs[Func_PlayerSetAnimation].address)(pentPlayer->pvPrivateData, animation);
@@ -182,7 +167,12 @@ extern EntData* g_Ents;
 // VIRTUAL FUNCTIONS
 //
 
-	#define VHOOK(call)													\
+	#define VHOOK(classname, offset, call)				\
+	{													\
+		classname, offset, (void*)call, NULL, NULL,		\
+	}													\
+
+	#define VHOOK_CROWBAR(call)											\
 	{																	\
 		"weapon_crowbar", VO_##call, (void*)Weapon_##call, NULL, NULL,	\
 	}																	\
@@ -206,11 +196,10 @@ extern EntData* g_Ents;
 	extern VirtualHookData g_RpgAddAmmo_Hook;
 	extern VirtualHookData g_PlayerSpawn_Hook;
 	extern VirtualHookData g_PlayerPostThink_Hook;
-	extern VirtualHookData g_WorldPrecache_Hook;
 	extern VirtualHookData g_CrowbarHooks[CrowbarHook_End];
 
 #ifdef WIN32
-	
+
 	typedef int		(__fastcall *FuncGetItemInfo)		(void*, DUMMY, ItemInfo*);
 	typedef BOOL	(__fastcall *FuncCanDeploy)			(void*, DUMMY);
 	typedef BOOL	(__fastcall *FuncDeploy)			(void*, DUMMY);
@@ -244,7 +233,6 @@ extern EntData* g_Ents;
 	int		__fastcall Item_Block			(void* pvItem, int DUMMY, void* pvOther);
 	void	__fastcall Player_Spawn			(void* pvPlayer);
 	void	__fastcall Player_PostThink		(void* pvPlayer);
-	void	__fastcall World_Precache		(void* pvEntity);
 
 	// virtual int CBasePlayerItem::GetItemInfo(ItemInfo* p);
 	//
@@ -355,7 +343,7 @@ extern EntData* g_Ents;
 		}
 
 	// virtual CBaseEntity* Respawn(void);
-	// 
+	//
 		inline void* RESPAWN(void* pvItem)
 		{
 			return reinterpret_cast<FuncRespawn>(g_CrowbarHooks[CrowbarHook_Respawn].address)(pvItem, DUMMY_VAL);
@@ -378,13 +366,6 @@ extern EntData* g_Ents;
 			return reinterpret_cast<FuncAddAmmo>(GET_VTABLE(pentAmmo)[g_vtblOffsets[VO_AddAmmo]])(pentAmmo->pvPrivateData, DUMMY_VAL, pentOther->pvPrivateData);
 		}
 
-	// void Precache(void);
-	// 
-		inline void WORLD_PRECACHE(void* pvEntity)
-		{
-			reinterpret_cast<FuncPrecache>(g_WorldPrecache_Hook.address)(pvEntity, DUMMY_VAL);
-		}
-
 	// void Spawn(void);
 	// 
 		inline void PLAYER_SPAWN(void* pvPlayer)
@@ -393,7 +374,7 @@ extern EntData* g_Ents;
 		}
 
 	// void PostThink();
-	// 
+	//
 		inline void PLAYER_POST_THINK(void* pvPlayer)
 		{
 			reinterpret_cast<FuncPlayerPostThink>(g_PlayerPostThink_Hook.address)(pvPlayer, DUMMY_VAL);
@@ -407,14 +388,14 @@ extern EntData* g_Ents;
 		}
 
 	// int Classify( void );
-	// 
+	//
 		inline int CLASSIFY(edict_t* pentEntity)
 		{
 			return reinterpret_cast<FuncClassify>(GET_VTABLE(pentEntity)[g_vtblOffsets[VO_Classify]])(pentEntity->pvPrivateData, DUMMY_VAL);
 		}
 
 	// virtual void TraceAttack(entvars_t* pevAttacker, float flDamage, Vector vecDir, TraceResult* ptr, int bitsDamageType);
-	// 
+	//
 		inline void TRACE_ATTACK(edict_t* pentVictim, edict_t* pentAttacker, float damage, Vector vecDir, TraceResult tr, int bitsDamageType)
 		{
 			reinterpret_cast<FuncTraceAttack>(GET_VTABLE(pentVictim)[g_vtblOffsets[VO_TraceAttack]])(pentVictim->pvPrivateData, DUMMY_VAL, VARS(pentAttacker), damage, vecDir, &tr, bitsDamageType);
@@ -462,11 +443,10 @@ extern EntData* g_Ents;
 	int		Item_Block				(void* pvItem, void* pvOther);
 	void	Player_Spawn			(void* pvPlayer);
 	void	Player_PostThink		(void* pvPlayer);
-	void	World_Precache			(void* pvEntity);
 
 	// virtual int CBasePlayerItem::GetItemInfo(ItemInfo* p);
 	//
-		inline int GET_ITEM_INFO( void* pvItem, ItemInfo* p )
+		inline int GET_ITEM_INFO( void* pvItem, ItemInfo* p)
 		{
 			return reinterpret_cast<FuncGetItemInfo>(g_CrowbarHooks[CrowbarHook_GetItemInfo].address)(pvItem, p);
 		}
@@ -573,7 +553,7 @@ extern EntData* g_Ents;
 		}
 
 	// virtual CBaseEntity* Respawn(void);
-	// 
+	//
 		inline void* RESPAWN(void* pvItem)
 		{
 			return reinterpret_cast<FuncRespawn>(g_CrowbarHooks[CrowbarHook_Respawn].address)(pvItem);
@@ -596,22 +576,15 @@ extern EntData* g_Ents;
 			return reinterpret_cast<FuncAddAmmo>(GET_VTABLE(pentAmmo)[g_vtblOffsets[VO_AddAmmo]])(pentAmmo->pvPrivateData, pentOther->pvPrivateData);
 		}
 
-	// void Precache(void);
-	// 
-		inline void WORLD_PRECACHE(void* pvEntity)
-		{
-			reinterpret_cast<FuncPrecache>(g_WorldPrecache_Hook.address)(pvEntity);
-		}
-
 	// void Spawn(void);
-	// 
+	//
 		inline void PLAYER_SPAWN(void* pvPlayer)
 		{
 			reinterpret_cast<FuncSpawn>(g_PlayerSpawn_Hook.address)(pvPlayer);
 		}
 
 	// void PostThink();
-	// 
+	//
 		inline void PLAYER_POST_THINK(void* pvPlayer)
 		{
 			reinterpret_cast<FuncPlayerPostThink>(g_PlayerPostThink_Hook.address)(pvPlayer);
@@ -625,14 +598,14 @@ extern EntData* g_Ents;
 		}
 	
 	// int Classify( void );
-	// 
+	//
 		inline int CLASSIFY(edict_t* pentEntity)
 		{
 			return reinterpret_cast<FuncClassify>(GET_VTABLE(pentEntity)[g_vtblOffsets[VO_Classify]])(pentEntity->pvPrivateData);
 		}
 
 	// virtual void TraceAttack(entvars_t* pevAttacker, float flDamage, Vector vecDir, TraceResult* ptr, int bitsDamageType);
-	// 
+	//
 		inline void TRACE_ATTACK(edict_t* pentVictim, edict_t* pentAttacker, float damage, Vector vecDir, TraceResult tr, int bitsDamageType)
 		{
 			reinterpret_cast<FuncTraceAttack>(GET_VTABLE(pentVictim)[g_vtblOffsets[VO_TraceAttack]])(pentVictim->pvPrivateData, VARS(pentAttacker), damage, vecDir, &tr, bitsDamageType);
