@@ -32,6 +32,7 @@
  */
 
 #include "wpnmod_pvdata.h"
+#include "wpnmod_config.h"
 #include "wpnmod_utils.h"
 
 //
@@ -39,6 +40,7 @@
 //
 GameOffset GamePvDatasOffsets[pvData_End] =
 {
+	// CBaseEntity
 	{4,		0},		// m_pfnThink
 	{5,		0},		// m_pfnTouch
 	{8,		3},		// ammo_9mm
@@ -54,9 +56,13 @@ GameOffset GamePvDatasOffsets[pvData_End] =
 	{18,	3},		// m_chargeReady
 	{19,	3},		// m_fInAttack
 	{20,	3},		// m_fireState
+
+	// CBasePlayerItem
 	{28,	4},		// m_pPlayer
 	{29,	4},		// m_pNext
 	{30,	4},		// m_iId
+
+	// CBasePlayerWeapon
 	{31,	4},		// m_iPlayEmptySound
 	{32,	4},		// m_fFireOnEmpty
 	{33,	4},		// m_flPumpTime
@@ -69,8 +75,12 @@ GameOffset GamePvDatasOffsets[pvData_End] =
 	{40,	4},		// m_iClip
 	{43,	4},		// m_fInReload
 	{44,	4},		// m_iDefaultAmmo
+
+	// CBaseMonster
 	{90,	5},		// m_LastHitGroup
 	{148,	5},		// m_flNextAttack
+
+	// CBasePlayer
 	{173,	5},		// m_iWeaponVolume
 	{175,	5},		// m_iWeaponFlash
 	{298,	5},		// m_iFOV
@@ -83,6 +93,49 @@ GameOffset GamePvDatasOffsets[pvData_End] =
 
 void pvData_Init(void)
 {
+#ifdef __linux__
+	if (/* NEW GCC*/)
+	{
+		for (int i = pvData_ammo_9mm; i < pvData_pPlayer; i++)
+		{
+			GamePvDatasOffsets[i].iValue = 4;
+		}
+	}
+#endif 
+	// Adrenaline Gamer and Adrenaline Gamer mini.
+	if (g_GameMod == SUBMOD_AG || g_GameMod == SUBMOD_MINIAG)
+	{
+		for (int i = pvData_iWeaponVolume; i < pvData_End; i++)
+		{
+			GamePvDatasOffsets[i].iValue -= 5;
+		}
+	}
+	// Opposing Force.
+	else if (g_GameMod == SUBMOD_GEARBOX)
+	{
+		// Override pvdata offsets.
+		GamePvDatasOffsets[pvData_pfnThink].iValue = 5;
+		GamePvDatasOffsets[pvData_pfnTouch].iValue = 6;
+
+		for (int i = pvData_ammo_9mm; i < pvData_flStartThrow; i++)
+		{
+			GamePvDatasOffsets[i].iValue += 1;
+		}
+
+		for (int i = pvData_flStartThrow; i < pvData_iWeaponVolume; i++)
+		{
+			GamePvDatasOffsets[i].iValue += 3;
+		}
+
+		GamePvDatasOffsets[pvData_iWeaponVolume].iValue		= 184;
+		GamePvDatasOffsets[pvData_iWeaponFlash].iValue		= 186;
+		GamePvDatasOffsets[pvData_iFOV].iValue				= 311;
+		GamePvDatasOffsets[pvData_rgpPlayerItems].iValue	= 343;
+		GamePvDatasOffsets[pvData_pActiveItem].iValue		= 350;
+		GamePvDatasOffsets[pvData_pLastItem].iValue			= 352;
+		GamePvDatasOffsets[pvData_rgAmmo].iValue			= 354;
+		GamePvDatasOffsets[pvData_szAnimExtention].iValue	= 431;
+	}
 }
 
 edict_t *GetPrivateCbase(edict_t *pEntity, int iOffset)

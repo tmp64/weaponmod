@@ -406,7 +406,7 @@ char* ParseArg(char** line, int& state, char delimiter)
 	return arg;
 }
 
-char *COM_ParseFile( char *data, char *token )
+char *COM_ParseFile(char *data, char *token )
 {
 	int	c, len;
 

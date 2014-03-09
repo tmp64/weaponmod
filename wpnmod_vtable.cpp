@@ -65,21 +65,79 @@ GameOffset GameVirtualOffsets[VO_End] =
 
 void Vtable_Init(void)
 {
-	// Bugfixed and improved HL release. Only set PEV and BASE offsets.
-	if (g_GameMod == SUBMOD_AGHLRU)
+	// Default PEV and BASE offsets.
+	SetVTableOffsetPev(4);
+	SetVTableOffsetBase(0x0);
+
+#ifdef __linux__
+	if (/* NEW GCC*/)
 	{
-#ifdef _WIN32
-		SetVTableOffsetPev(4);
-		SetVTableOffsetBase(0x0);
-#else
+		for (int i = 0; i < VO_End; i++)
+		{
+			GameVirtualOffsets[i].iExtraOffset = 0;
+		}
+	}
+#endif 
+
+	// Bugfixed and improved HL release.
+	// Or usual Half-Life.
+	if (g_GameMod == SUBMOD_AGHLRU || g_GameMod == SUBMOD_VALVE)
+	{
+#ifdef __linux__
+		if (!/* NEW GCC*/)
+		{
+			SetVTableOffsetPev(0);
+			SetVTableOffsetBase(0x60);
+		}
+#endif 
+	}
+	// Opposing Force.
+	else if (g_GameMod == SUBMOD_GEARBOX)
+	{
+#ifdef __linux__
+		if (!/* NEW GCC*/)
+		{
+			SetVTableOffsetPev(0);
+			SetVTableOffsetBase(0x6C);
+		}
+#endif 
+		// More slots in OP4.
+		g_iMaxWeaponSlots = 7;
+
+		// Override vtable offsets.
+		GameVirtualOffsets[VO_DamageDecal].iValue		= 29;
+		GameVirtualOffsets[VO_Respawn].iValue			= 48;
+		GameVirtualOffsets[VO_AddAmmo].iValue			= 59;
+		GameVirtualOffsets[VO_AddToPlayer].iValue		= 60;
+		GameVirtualOffsets[VO_GetItemInfo].iValue		= 62;
+		GameVirtualOffsets[VO_CanDeploy].iValue			= 63;
+		GameVirtualOffsets[VO_Deploy].iValue			= 64;
+		GameVirtualOffsets[VO_CanHolster].iValue		= 65;
+		GameVirtualOffsets[VO_Holster].iValue			= 66;
+		GameVirtualOffsets[VO_ItemPostFrame].iValue		= 69;
+		GameVirtualOffsets[VO_ItemSlot].iValue			= 78;
+		GameVirtualOffsets[VO_IsUseable].iValue			= 85;
+		GameVirtualOffsets[VO_Player_PostThink].iValue	= 130;
+	}
+	else if (g_GameMod == SUBMOD_AG || g_GameMod == SUBMOD_MINIAG)
+	{
+#ifdef __linux__
 		SetVTableOffsetPev(0);
 		SetVTableOffsetBase(0x60);
 #endif 
-	}
-	else if (g_GameMod == SUBMOD_GEARBOX)
-	{
-		// More slots in OP4
-		g_iMaxWeaponSlots = 7;
+		// Override vtable offsets.
+		GameVirtualOffsets[VO_Respawn].iValue			= 48;
+		GameVirtualOffsets[VO_AddAmmo].iValue			= 58;
+		GameVirtualOffsets[VO_AddToPlayer].iValue		= 59;
+		GameVirtualOffsets[VO_GetItemInfo].iValue		= 61;
+		GameVirtualOffsets[VO_CanDeploy].iValue			= 62;
+		GameVirtualOffsets[VO_Deploy].iValue			= 63;
+		GameVirtualOffsets[VO_CanHolster].iValue		= 64;
+		GameVirtualOffsets[VO_Holster].iValue			= 65;
+		GameVirtualOffsets[VO_ItemPostFrame].iValue		= 68;
+		GameVirtualOffsets[VO_ItemSlot].iValue			= 76;
+		GameVirtualOffsets[VO_IsUseable].iValue			= 83;
+		GameVirtualOffsets[VO_Player_PostThink].iValue	= 130;
 	}
 }
 
@@ -163,6 +221,4 @@ bool HandleHookVirtual(VirtualHookData* hook, bool bRevert)
 	REMOVE_ENTITY( pEdict );
 	return true;
 }
-
-
 

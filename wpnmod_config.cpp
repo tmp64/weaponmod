@@ -100,7 +100,7 @@ void SetConfigFile()
 {
 	MF_BuildPathnameR(g_ConfigFilepath, sizeof(g_ConfigFilepath) - 1, "%s/weaponmod/weaponmod-%s.ini", MF_GetLocalInfo("amxx_configsdir", "addons/amxmodx/configs"), STRING(gpGlobals->mapname));
 	
-	if (FileExists(g_ConfigFilepath))
+	if (!FileExists(g_ConfigFilepath))
 	{
 		MF_BuildPathnameR(g_ConfigFilepath, sizeof(g_ConfigFilepath) - 1, "%s/weaponmod/weaponmod.ini", MF_GetLocalInfo("amxx_configsdir", "addons/amxmodx/configs"));
 	}

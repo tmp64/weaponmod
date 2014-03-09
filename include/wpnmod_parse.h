@@ -46,9 +46,9 @@ extern void OnParseBlockedItems		(String dummy, String BlockedItem);
 
 extern bool ParseSection			(char* filePath, const char* section, void* handler, int separator);
 
-extern	char*	COM_ParseFile		(char *data, char *token);
+extern	char*	COM_ParseFile		(char *data, char* token);
 extern	char*	ParseArg			(char** line, int& state, char delimiter);
-extern	Vector	ParseVec			(char *pString);
+extern	Vector	ParseVec			(char* pString);
 
 #endif // _PARSER_H
 
