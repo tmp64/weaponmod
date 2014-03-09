@@ -35,62 +35,6 @@
 #include "wpnmod_utils.h"
 
 
-#ifdef __linux__
-
-bool g_ExtraThink = false;
-bool g_ExtraTouch = false;
-
-#endif
-
-int g_vtblOffsets[VO_End];
-int g_pvDataOffsets[pvData_End];
-
-//bool g_bIsShieldWeaponLoaded = false;
-
-edict_t *GetPrivateCbase(edict_t *pEntity, int iOffset)
-{
-	void *pPrivate = *((void **)((int *)(edict_t *)(INDEXENT(0) + ENTINDEX(pEntity))->pvPrivateData + g_pvDataOffsets[iOffset]));
-
-	if (!pPrivate)
-	{
-		return NULL;
-	}
-
-	return PrivateToEdict(pPrivate);
-}
-
-edict_t *GetPrivateCbase(edict_t *pEntity, int iOffset, int iExtraRealOffset)
-{
-	void *pPrivate = *((void **)((int *)(edict_t *)(INDEXENT(0) + ENTINDEX(pEntity))->pvPrivateData + g_pvDataOffsets[iOffset] + iExtraRealOffset));
-
-	if (!pPrivate)
-	{
-		return NULL;
-	}
-
-	return PrivateToEdict(pPrivate);
-}
-
-void SetPrivateCbase(edict_t *pEntity, int iOffset, edict_t* pValue)
-{
-	*((void**)((int*)(edict_t*)(INDEXENT(0) + ENTINDEX(pEntity))->pvPrivateData + g_pvDataOffsets[iOffset])) = (INDEXENT(0) + ENTINDEX(pValue))->pvPrivateData;
-}
-
-void SetPrivateCbase(edict_t *pEntity, int iOffset, edict_t* pValue, int iExtraRealOffset)
-{
-	*((void**)((int*)(edict_t*)(INDEXENT(0) + ENTINDEX(pEntity))->pvPrivateData + g_pvDataOffsets[iOffset] + iExtraRealOffset)) = (INDEXENT(0) + ENTINDEX(pValue))->pvPrivateData;
-}
-
-int PrimaryAmmoIndex(edict_t *pEntity)
-{
-	return GetPrivateInt(pEntity, pvData_iPrimaryAmmoType);
-}
-
-int SecondaryAmmoIndex(edict_t *pEntity)
-{
-	return GetPrivateInt(pEntity, pvData_iSecondaryAmmoType);
-}
-
 int GetAmmoInventory(edict_t* pPlayer, int iAmmoIndex)
 {
 	if (!IsValidPev(pPlayer) || iAmmoIndex == -1)
@@ -119,21 +63,21 @@ edict_t* INDEXENT2(int iEdictNum)
 		return MF_GetPlayerEdict(iEdictNum);
 	}
 
-	return (*g_engfuncs.pfnPEntityOfEntIndex)(iEdictNum); 
+	return INDEXENT(iEdictNum); 
 }
 
-BOOL SwitchWeapon(edict_t* pPlayer, edict_t* pWeapon) 
+bool SwitchWeapon(edict_t* pPlayer, edict_t* pWeapon) 
 {
 	if (!IsValidPev(pWeapon) || !CAN_DEPLOY(pWeapon))
 	{
-		return FALSE;
+		return false;
 	}
 
 	edict_t* pActiveItem = GetPrivateCbase(pPlayer, pvData_pActiveItem);
 
 	if (pActiveItem == pWeapon)
 	{
-		return FALSE;
+		return false;
 	}
 
 	if (IsValidPev(pActiveItem))
@@ -145,10 +89,10 @@ BOOL SwitchWeapon(edict_t* pPlayer, edict_t* pWeapon)
 	SetPrivateCbase(pPlayer, pvData_pActiveItem, pWeapon);
 
 	DEPLOY(pWeapon);
-	return TRUE;
+	return true;
 }
 
-void SelectLastItem(edict_t *pPlayer)
+void SelectLastItem(edict_t* pPlayer)
 {
 	edict_t* pLastItem = GetPrivateCbase(pPlayer, pvData_pLastItem);
 
@@ -160,7 +104,7 @@ void SelectLastItem(edict_t *pPlayer)
 	SwitchWeapon(pPlayer, pLastItem);
 }
 
-void SelectItem(edict_t *pPlayer, const char *pstr)
+void SelectItem(edict_t* pPlayer, const char* pstr)
 {
 	if (!IsValidPev(pPlayer) || !pstr)
 	{
@@ -186,7 +130,7 @@ void SelectItem(edict_t *pPlayer, const char *pstr)
 	}
 }
 
-BOOL GetNextBestWeapon(edict_t* pPlayer, edict_t* pCurrentWeapon)
+bool GetNextBestWeapon(edict_t* pPlayer, edict_t* pCurrentWeapon)
 {
 	edict_t* pBest= NULL;
 	edict_t* pCheck = NULL;
@@ -200,7 +144,7 @@ BOOL GetNextBestWeapon(edict_t* pPlayer, edict_t* pCurrentWeapon)
 
 	if (!CAN_HOLSTER(pCurrentWeapon))
 	{
-		return FALSE;
+		return false;
 	}
 
 	for (int i = 0 ; i <= g_iMaxWeaponSlots ; i++)
@@ -217,7 +161,7 @@ BOOL GetNextBestWeapon(edict_t* pPlayer, edict_t* pCurrentWeapon)
 				{
 					if (SwitchWeapon(pPlayer, pCheck))
 					{
-						return TRUE;
+						return true;
 					}
 				}
 			}
@@ -236,11 +180,11 @@ BOOL GetNextBestWeapon(edict_t* pPlayer, edict_t* pCurrentWeapon)
 
 	if (!pBest)
 	{
-		return FALSE;
+		return false;
 	}
 
 	SwitchWeapon(pPlayer, pBest);
-	return TRUE;
+	return true;
 }
 
 void SendWeaponAnim(edict_t* pPlayer, edict_t* pWeapon, int iAnim)
@@ -278,7 +222,7 @@ void SendWeaponAnim(edict_t* pPlayer, edict_t* pWeapon, int iAnim)
 	}
 }
 
-void GiveNamedItem(edict_t *pPlayer, const char *szName)
+void GiveNamedItem(edict_t* pPlayer, const char* szName)
 {
 	edict_t *pItem = Weapon_Spawn(szName, pPlayer->v.origin, Vector (0, 0, 0));
 
@@ -299,27 +243,17 @@ void GiveNamedItem(edict_t *pPlayer, const char *szName)
 	}
 }
 
-BOOL Entity_IsInWorld(edict_t *pEntity)
+bool Entity_IsInWorld(edict_t* pEntity)
 {
 	// position 
-	if (pEntity->v.origin.x >= 4096) return FALSE;
-	if (pEntity->v.origin.y >= 4096) return FALSE;
-	if (pEntity->v.origin.z >= 4096) return FALSE;
-	if (pEntity->v.origin.x <= -4096) return FALSE;
-	if (pEntity->v.origin.y <= -4096) return FALSE;
-	if (pEntity->v.origin.z <= -4096) return FALSE;
-	/*
-	float flMaxVelocity = CVAR_GET_FLOAT("sv_maxvelocity");
+	if (pEntity->v.origin.x >= 4096) return false;
+	if (pEntity->v.origin.y >= 4096) return false;
+	if (pEntity->v.origin.z >= 4096) return false;
+	if (pEntity->v.origin.x <= -4096) return false;
+	if (pEntity->v.origin.y <= -4096) return false;
+	if (pEntity->v.origin.z <= -4096) return false;
 
-	// speed
-	if (pEntity->v.velocity.x >= flMaxVelocity) return FALSE;
-	if (pEntity->v.velocity.y >= flMaxVelocity) return FALSE;
-	if (pEntity->v.velocity.z >= flMaxVelocity) return FALSE;
-	if (pEntity->v.velocity.x <= -flMaxVelocity) return FALSE;
-	if (pEntity->v.velocity.y <= -flMaxVelocity) return FALSE;
-	if (pEntity->v.velocity.z <= -flMaxVelocity) return FALSE;
-	*/
-	return TRUE;
+	return true;
 }
 
 Vector UTIL_VecToAngles(const Vector &vec)
@@ -329,7 +263,7 @@ Vector UTIL_VecToAngles(const Vector &vec)
 	return Vector(rgflVecOut);
 }
 
-void UTIL_MakeAimVectors( const Vector &vecAngles )
+void UTIL_MakeAimVectors(const Vector &vecAngles)
 {
 	float rgflVec[3];
 	vecAngles.CopyToArray(rgflVec);
@@ -337,7 +271,7 @@ void UTIL_MakeAimVectors( const Vector &vecAngles )
 	MAKE_VECTORS(rgflVec);
 }
 
-void UTIL_Bubbles( Vector mins, Vector maxs, int count )
+void UTIL_Bubbles(Vector mins, Vector maxs, int count)
 {
 	Vector mid =  (mins + maxs) * 0.5;
 
@@ -359,7 +293,7 @@ void UTIL_Bubbles( Vector mins, Vector maxs, int count )
 	MESSAGE_END();
 }
 
-float UTIL_WaterLevel( const Vector &position, float minz, float maxz )
+float UTIL_WaterLevel(const Vector &position, float minz, float maxz)
 {
 	Vector midUp = position;
 	midUp.z = minz;
@@ -413,7 +347,7 @@ void UTIL_EjectBrass(const Vector &vecOrigin, const Vector &vecVelocity, float r
 	MESSAGE_END();
 }
 
-void UTIL_DecalGunshot(TraceResult *pTrace)
+void UTIL_DecalGunshot(TraceResult* pTrace)
 {
 	if (!pTrace->pHit || pTrace->pHit->free || (pTrace->pHit->v.flags & FL_KILLME))
 	{
@@ -447,7 +381,7 @@ void UTIL_DecalGunshot(TraceResult *pTrace)
 	}
 }
 
-void UTIL_DecalTrace(TraceResult *pTrace, int iDecalIndex)
+void UTIL_DecalTrace(TraceResult* pTrace, int iDecalIndex)
 {
 	short entityIndex;
 	int message;
@@ -523,7 +457,7 @@ TraceResult UTIL_GetGlobalTrace( )
 	return tr;
 }
 
-void UTIL_EmitAmbientSound( edict_t *entity, const Vector &vecOrigin, const char *samp, float vol, float attenuation, int fFlags, int pitch )
+void UTIL_EmitAmbientSound(edict_t *entity, const Vector &vecOrigin, const char *samp, float vol, float attenuation, int fFlags, int pitch)
 {
 	float rgfl[3];
 	vecOrigin.CopyToArray(rgfl);
@@ -532,7 +466,7 @@ void UTIL_EmitAmbientSound( edict_t *entity, const Vector &vecOrigin, const char
 }
 
 // hit the world, try to play sound based on texture material type
-float TEXTURETYPE_PlaySound(TraceResult *ptr,  Vector vecSrc, Vector vecEnd)
+float TEXTURETYPE_PlaySound(TraceResult* ptr,  Vector vecSrc, Vector vecEnd)
 {
 	char chTextureType;
 	float fvol;
@@ -807,7 +741,7 @@ void RadiusDamage2(Vector vecSrc, edict_t* pInflictor, edict_t* pAttacker, float
 	}
 }
 
-void printf2(const char *fmt, ...)
+void printf2(const char* fmt, ...)
 {
 	va_list argptr;
 	static char string[384];
@@ -817,5 +751,30 @@ void printf2(const char *fmt, ...)
 	va_end(argptr);
 
 	SERVER_PRINT(string);
+}
+
+bool FileExists(const char *file)
+{
+	#if defined WIN32 || defined _WIN32
+		DWORD attr = GetFileAttributes(file);
+
+		if (attr == INVALID_FILE_ATTRIBUTES)
+			return 0;
+
+		if (attr == FILE_ATTRIBUTE_DIRECTORY)
+			return 0;
+
+		return 1;
+	#else
+		struct stat s;
+
+		if (stat(file, &s) != 0)
+			return 0;
+
+		if (S_ISDIR(s.st_mode))
+			return 0;
+
+		return 1;
+	#endif
 }
 

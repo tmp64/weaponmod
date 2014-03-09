@@ -40,7 +40,7 @@
 #include "CVector.h"
 #include "cbase.h"
 
-#include "wpnmod_vhooker.h"
+#include "wpnmod_vtable.h"
 
 
 #ifdef __linux__

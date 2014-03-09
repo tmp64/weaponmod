@@ -231,20 +231,26 @@ void *FindFunction(function *func)
 	return address;
 }
 
-void SetHook(function *func)
+bool SetHook(function *func)
 {
-	if(AllowWriteToMemory(func->address))
+	if (!AllowWriteToMemory(func->address))
 	{
-		memcpy(func->address, func->patch, 5);
+		return false;
 	}
+
+	memcpy(func->address, func->patch, 5);
+	return true;
 }
 
-void UnsetHook(function *func)
+bool UnsetHook(function *func)
 {
-	if(AllowWriteToMemory(func->address))
+	if (!AllowWriteToMemory(func->address))
 	{
-		memcpy(func->address, func->origin, 5);
+		return false;
 	}
+
+	memcpy(func->address, func->origin, 5);
+	return true;
 }
 
 int CreateFunctionHook(function *func)

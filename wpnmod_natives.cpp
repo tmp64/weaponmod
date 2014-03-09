@@ -235,9 +235,11 @@ AMXX_NATIVE(wpnmod_register_weapon)
 
 			g_iWeaponInitID = i;
 
-			UnsetHook(&g_dllFuncs[Func_PrecacheOtherWeapon]);
-			PRECACHE_OTHER_WEAPON("weapon_crowbar");
-			SetHook(&g_dllFuncs[Func_PrecacheOtherWeapon]);
+			if (UnsetHook(&g_dllFuncs[Func_PrecacheOtherWeapon]))
+			{
+				PRECACHE_OTHER_WEAPON("weapon_crowbar");
+				SetHook(&g_dllFuncs[Func_PrecacheOtherWeapon]);
+			}
 
 			return i;
 		}
@@ -546,7 +548,7 @@ AMXX_NATIVE(wpnmod_send_weapon_anim)
 {
 	CHECK_ENTITY(params[1])
 
-	edict_t *pWeapon = INDEXENT(params[1]);
+	edict_t *pWeapon = INDEXENT2(params[1]);
 	edict_t *pPlayer = GetPrivateCbase(pWeapon, pvData_pPlayer);
 
 	if (!IsValidPev(pPlayer))

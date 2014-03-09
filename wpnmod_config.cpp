@@ -33,7 +33,6 @@
 
 #include "wpnmod_config.h"
 #include "wpnmod_utils.h"
-#include "utils.h"
 
 
 char g_ConfigFilepath[1024];
@@ -101,7 +100,7 @@ void SetConfigFile()
 {
 	MF_BuildPathnameR(g_ConfigFilepath, sizeof(g_ConfigFilepath) - 1, "%s/weaponmod/weaponmod-%s.ini", MF_GetLocalInfo("amxx_configsdir", "addons/amxmodx/configs"), STRING(gpGlobals->mapname));
 	
-	if (!Util::FileExists(g_ConfigFilepath))
+	if (FileExists(g_ConfigFilepath))
 	{
 		MF_BuildPathnameR(g_ConfigFilepath, sizeof(g_ConfigFilepath) - 1, "%s/weaponmod/weaponmod.ini", MF_GetLocalInfo("amxx_configsdir", "addons/amxmodx/configs"));
 	}

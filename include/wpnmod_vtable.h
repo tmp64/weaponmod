@@ -31,20 +31,85 @@
  *
  */
 
-#ifndef UTILS_H
-#define UTILS_H
+#ifndef _VTABLE_H
+#define _VTABLE_H
 
 #include "amxxmodule.h"
 
-#define CLIENT_PRINT (*g_engfuncs.pfnClientPrintf)
 
-namespace Util
+#ifdef WIN32
+
+	#define DUMMY_VAL 0
+	#define GET_VTABLE_OFFSET(x) GameVirtualOffsets[x].iValue
+
+	typedef int DUMMY;
+
+#else
+
+	#include <sys/types.h>
+	#include <sys/stat.h>
+	#include <sys/mman.h>
+	#include <unistd.h>
+
+	#define ALIGN(ar)				((intptr_t)ar & ~(sysconf(_SC_PAGESIZE) - 1))
+	#define GET_VTABLE_OFFSET(x)	(GameVirtualOffsets[x].iValue + GameVirtualOffsets[x].iExtraOffset)
+
+#endif
+
+#define GET_VTABLE_ENT(e)	(*((void***)(((char*)e->pvPrivateData) + g_EntityVTableOffsetBase)))
+
+enum VTableOffsets 
 {
-	extern	bool	FileExists		(const char *dir);
-	extern	char*	COM_ParseFile	(char *data, char *token);
-	extern	char*	ParseArg		(char** line, int& state, char delimiter);
-	extern	void	TrimLine		(char *input);
-	extern	Vector	ParseVec		(char *pString);
-}
+	VO_Spawn,
+	VO_Precache,
+	VO_Classify,
+	VO_TraceAttack,
+	VO_TakeDamage,
+	VO_DamageDecal,
+	VO_Respawn,
+	VO_AddAmmo,
+	VO_AddToPlayer,
+	VO_GetItemInfo,
+	VO_CanDeploy,
+	VO_Deploy,
+	VO_CanHolster,
+	VO_Holster,
+	VO_ItemPostFrame,
+	VO_ItemSlot,
+	VO_IsUseable,
+	VO_Player_PostThink,
 
-#endif // UTILS_H
+	VO_End
+};
+
+struct GameOffset
+{
+	int	iValue;
+	int	iExtraOffset;
+};
+
+struct VirtualHookData
+{
+	const char*	classname;
+
+	int		offset;
+	void*	handler;
+	void*	address;
+	int		done;
+};
+
+extern GameOffset GameVirtualOffsets[VO_End];
+
+extern int g_EntityVTableOffsetPev;
+extern int g_EntityVTableOffsetBase;
+
+extern void Vtable_Init			(void);
+
+extern void SetVTableOffsetPev	(int iOffset);
+extern void SetVTableOffsetBase	(int iOffset);
+
+extern void SetHookVirtual		(VirtualHookData* hook);
+extern void UnsetHookVirtual	(VirtualHookData* hook);
+extern bool HandleHookVirtual	(VirtualHookData* hook, bool revert);
+
+#endif  // _VTABLE_H

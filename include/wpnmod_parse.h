@@ -35,14 +35,20 @@
 #define _PARSER_H
 
 #include "amxxmodule.h"
+#include "CString.h"
 
-extern void ParseBSP();
-extern void ParseSpawnPoints();
+extern void ParseBSP				(void);
+extern void ParseSpawnPoints		(void);
 
-extern void ParseAmmo_Handler			(char* data);
-extern void ParseEquipment_Handler		(char* data);
-extern void ParseBlockItems_Handler		(char* szBlockItem);
-extern BOOL ParseConfigSection			(char *Filepath, char *pSection, void *pHandler);
+extern void OnParseStartAmmos		(String item, String count);
+extern void OnParseStartEquipments	(String item, String count);
+extern void OnParseBlockedItems		(String dummy, String BlockedItem);
+
+extern bool ParseSection			(char* filePath, const char* section, void* handler, int separator);
+
+extern	char*	COM_ParseFile		(char *data, char *token);
+extern	char*	ParseArg			(char** line, int& state, char delimiter);
+extern	Vector	ParseVec			(char *pString);
 
 #endif // _PARSER_H
 

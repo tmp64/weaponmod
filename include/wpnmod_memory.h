@@ -47,7 +47,6 @@ bool	Parse_GetAmmoIndex			(size_t start, size_t end);
 bool	Parse_GiveNamedItem			(size_t start, size_t end);
 bool	Parse_SetAnimation			(size_t start, size_t end);
 
-void	Offsets_Init				(void);
 void	EnableShieldHitboxTracing	(void);
 
 size_t	ParseFunc	(size_t start, size_t end, char* funcname, unsigned char* pattern, char* mask, size_t bytes);

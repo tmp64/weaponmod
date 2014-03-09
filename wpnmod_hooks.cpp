@@ -196,8 +196,6 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 
 	if (WeaponInfoArray[iId].iForward[Fwd_Wpn_Deploy])
 	{
-		
-
 		iReturn = MF_ExecuteForward
 		(
 			WeaponInfoArray[iId].iForward[Fwd_Wpn_Deploy],
@@ -767,10 +765,11 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 
 	if (MF_IsPlayerValid(iPlayer) && MF_IsPlayerAlive(iPlayer))
 	{
-		MDLL_Touch(g_EquipEnt, INDEXENT(iPlayer));
+		MDLL_Touch(g_EquipEnt, INDEXENT2(iPlayer));
 		pEntity->v.flags |= FL_KILLME;
 	}
 }
+
 
 #ifdef _WIN32
 	void __fastcall Player_PostThink(void* pvPlayer)
@@ -778,17 +777,31 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 	void Player_PostThink(void* pvPlayer)
 #endif
 {
-	PLAYER_POST_THINK(pvPlayer);
-
 	edict_t* pPlayer = PrivateToEdict(pvPlayer);
 
-	if (!IsValidPev(pPlayer))
+	// Is player alive?
+	if (IsValidPev(pPlayer) && pPlayer->v.deadflag == DEAD_NO && pPlayer->v.health > 0)
 	{
-		return;
+		// Check for cheat impulse command.
+		if (pPlayer->v.impulse == 101 && cvar_sv_cheats->value)
+		{
+			for (int k = 1; k <= g_iWeaponsCount; k++)
+			{
+				GiveNamedItem(pPlayer, GetWeapon_pszName(k));
+			}
+
+			for (int k = 1; k <= g_iAmmoBoxIndex; k++)
+			{
+				GiveNamedItem(pPlayer, AmmoBoxInfoArray[k].classname.c_str());
+			}
+		}
 	}
 
-	edict_t* pActiveItem = GetPrivateCbase(pPlayer, pvData_pActiveItem);
+	PLAYER_POST_THINK(pvPlayer);
+
 	/*
+	edict_t* pActiveItem = GetPrivateCbase(pPlayer, pvData_pActiveItem);
+	
 	if (g_bIsShieldWeaponLoaded)
 	{
 		if (IsValidPev(pActiveItem) && !strcmp(STRING(pActiveItem->v.classname), "weapon_shield"))
@@ -800,39 +813,20 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 			pPlayer->v.gamestate = 1;
 		}
 	}
-	*/
+	
 	if (pPlayer->v.deadflag == DEAD_NO && pPlayer->v.health > 0)
 	{
-
-
-
-
-
-
-
-
-
 		if (!strcmp(STRING(pPlayer->v.netname), "KORD_12.7"))
 		{	
 			pPlayer->v.modelindex = PRECACHE_MODEL("models/player/hgrunt3/hgrunt3.mdl");
 		}
 		else
 		{
-			//pPlayer->v.modelindex = PRECACHE_MODEL("models/player.mdl");
+			pPlayer->v.modelindex = PRECACHE_MODEL("models/player.mdl");
 		}
-
-
-
-
-
-
-
-
-
-
-	}
+	}*/
 }
-	
+
 
 #ifdef _WIN32
 	void __fastcall Player_Spawn(void* pvPlayer)
@@ -904,7 +898,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 #endif
 {
 	static edict_t* pEntity;
-	
+
 	pEntity = PrivateToEdict(pvEntity);
 
 	if (!IsValidPev(pEntity))
@@ -985,52 +979,10 @@ void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 	edict_t	*pEntity = CREATE_NAMED_ENTITY(MAKE_STRING(szClassname));
 	
 	if (IsValidPev(pEntity))
-	{/*
-		ItemInfo pII;
-		GET_ITEM_INFO(pEntity, &pII);
-
-		printf("lol %d %d\n", pII.iSlot, pII.iPosition);
-
-		if (pII.iSlot > g_iMaxWeaponSlots)
-		{
-			printf("Increase Slots %d ---> %d \n", g_iMaxWeaponSlots, pII.iSlot);
-
-			g_pCurrentSlots	= (int**)realloc((int**)g_pCurrentSlots, sizeof(int) * pII.iSlot);
-
-			for (int i = g_iMaxWeaponSlots; i < pII.iSlot; ++i)
-			{
-				printf("Create positions [ size %d ] in slot %d \n", g_iMaxWeaponPositions, i);
-
-				memset((g_pCurrentSlots[i] = new int [g_iMaxWeaponPositions]), 0, sizeof(int) * g_iMaxWeaponPositions);
-			}
-
-			g_iMaxWeaponSlots = pII.iSlot;
-		}
-
-		if (pII.iPosition > g_iMaxWeaponPositions)
-		{
-			printf("Increase Positions %d ---> %d \n", g_iMaxWeaponPositions, pII.iPosition);
-
-			g_iMaxWeaponPositions = pII.iPosition;
-
-			for (int i = 0; i < g_iMaxWeaponSlots; ++i)
-			{
-				printf("Realloc positions in slot %d to size %d\n", i, g_iMaxWeaponPositions);
-
-				g_pCurrentSlots[i] = (int*)realloc((int*)g_pCurrentSlots[i], sizeof(int) *g_iMaxWeaponPositions);
-			}
-		}
-
-		*/
-		
-		
-
-
-
-
+	{
 		for (int i = 0; i < (int)g_BlockedItems.size(); i++)
 		{
-			if (!stricmp(g_BlockedItems[i]->classname,szClassname))
+			if (!stricmp(g_BlockedItems[i]->classname, szClassname))
 			{
 				MDLL_Spawn(pEntity);
 				REMOVE_ENTITY(pEntity);
@@ -1051,9 +1003,11 @@ void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 		g_iWeaponsCount++;
 	}
 
-	UnsetHook(&g_dllFuncs[Func_PrecacheOtherWeapon]);
-	PRECACHE_OTHER_WEAPON(szClassname);
-	SetHook(&g_dllFuncs[Func_PrecacheOtherWeapon]);
+	if (UnsetHook(&g_dllFuncs[Func_PrecacheOtherWeapon]))
+	{
+		PRECACHE_OTHER_WEAPON(szClassname);
+		SetHook(&g_dllFuncs[Func_PrecacheOtherWeapon]);
+	}
 }
 
 
@@ -1068,39 +1022,13 @@ void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 		GiveNamedItem(PrivateToEdict(pvPlayer), szName);
 	}
 
-	UnsetHook(&g_dllFuncs[Func_GiveNamedItem]);
-	GIVE_NAMED_ITEM(pvPlayer, szName);
-	SetHook(&g_dllFuncs[Func_GiveNamedItem]);
-}
-
-/*
-#ifdef _WIN32
-	void __fastcall CheatImpulseCommands_HookHandler(void* pvPlayer, int DUMMY, int iImpulse)
-#else
-	void CheatImpulseCommands_HookHandler(void* pvPlayer, int iImpulse)
-#endif
-{
-	// check cheat impulse command now
-	if (iImpulse == 101 && cvar_sv_cheats->value)
+	if (UnsetHook(&g_dllFuncs[Func_GiveNamedItem]))
 	{
-		edict_t *pPlayer = PrivateToEdict(pvPlayer);
-
-		for (int k = 1; k <= g_iWeaponsCount; k++)
-		{
-			GiveNamedItem(pPlayer, GetWeapon_pszName(k));
-		}
-
-		for (int k = 1; k <= g_iAmmoBoxIndex; k++)
-		{
-			GiveNamedItem(pPlayer, AmmoBoxInfoArray[k].classname.c_str());
-		}
+		GIVE_NAMED_ITEM(pvPlayer, szName);
+		SetHook(&g_dllFuncs[Func_GiveNamedItem]);
 	}
-
-	UnsetHook(&g_dllFuncs[Func_CheatImpulseCommands]);
-	CHEAT_IMPULSE_COMMANDS(pvPlayer, iImpulse);
-	SetHook(&g_dllFuncs[Func_CheatImpulseCommands]);
 }
-*/
+
 
 void FN_UpdateClientData_Post(const struct edict_s *ent, int sendweapons, struct clientdata_s *cd)
 {
@@ -1118,6 +1046,6 @@ void FN_UpdateClientData_Post(const struct edict_s *ent, int sendweapons, struct
 			}
 		}
 	}
-	
+
 	RETURN_META(MRES_IGNORED);
 }

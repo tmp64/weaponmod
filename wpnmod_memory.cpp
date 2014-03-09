@@ -60,7 +60,7 @@ bool FindFuncsInDll(size_t start, size_t end)
 
 		func++;
 	}
-	
+
 	return bSuccess;
 }
 
@@ -219,7 +219,7 @@ bool Parse_GiveNamedItem(size_t start, size_t end)
 bool Parse_SetAnimation(size_t start, size_t end)
 {
 	char			funcname[]		= "CBasePlayer::SetAnimation";
-	
+
 	char			string[]		= "models/v_satchel_radio.mdl";
 	char			mask[]			= "x??xxxxx";
 	unsigned char	pattern[]		= "\x8B\x00\x00\xB9\x00\x00\x00\x00";
@@ -233,7 +233,7 @@ bool Parse_SetAnimation(size_t start, size_t end)
 	size_t pAdress = NULL;
 	size_t pCurrent = NULL;
 	size_t pCandidate = NULL;
-	
+
 	pCurrent = FindStringInDLL(start, end, string);
 
 	while (pCurrent != NULL)
@@ -336,7 +336,7 @@ size_t ParseFunc(size_t start, size_t end, char* funcname, unsigned char* patter
 
 	size_t pAdress = NULL;
 	size_t pCurrent = NULL;
-	
+
 	pCurrent = FindAdressInDLL(start, end, pattern, mask);
 
 	while (pCurrent != NULL)
@@ -361,7 +361,7 @@ size_t ParseFunc(size_t start, size_t end, char* funcname, unsigned char* patter
 	pAdress = *(size_t*)pAdress + pAdress + 4;
 
 	printf2("[%s]:   Found \"%s\" at %p\n", Plugin_info.logtag, funcname, pAdress);
-	
+
 	return pAdress;
 }
 
@@ -405,153 +405,5 @@ size_t ParseFunc(size_t start, size_t end, char* funcname, char* string, unsigne
 	printf2("[%s]:   Found \"%s\" at %p\n", Plugin_info.logtag, funcname, pAdress);
 
 	return pAdress;
-}
-
-
-
-
-
-
-
-
-typedef struct
-{
-	int	iValue;
-	int	iExtraOffset;
-} GameOffset;
-
-//
-// Default vtbl offsets for Bugfixed and improved HL release.
-//
-GameOffset g_vtbl_offsets[VO_End] = 
-{
-	{0,		2},		// Spawn
-	{1,		2},		// Precache
-	{8,		2},		// Classify
-	{10,	2},		// TraceAttack
-	{11,	2},		// TakeDamage
-	{28,	2},		// DamageDecal
-	{47,	2},		// Respawn
-	{57,	2},		// AddAmmo
-	{58,	2},		// AddToPlayer
-	{60,	2},		// GetItemInfo
-	{61,	2},		// CanDeploy
-	{62,	2},		// Deploy
-	{63,	2},		// CanHolster
-	{64,	2},		// Holster
-	{67,	2},		// ItemPostFrame
-	{75,	2},		// ItemSlot
-	{82,	2},		// IsUseable
-	{0,		2}
-};
-
-//
-// Default vtbl offsets for Bugfixed and improved HL release.
-//
-GameOffset g_pvData_offsets[pvData_End] = 
-{
-};
-
-
-
-
-
-
-
-void Offsets_Init(void)
-{
-	//int extra_cbase = 0;
-	int extra_vtable = 0;
-	//int extra_cbase = 0;
-
-	// if (g_GameMod == SUBMOD_AGHLRU)
-	{
-#ifdef _WIN32
-		SetVTableOffsetPev(4);
-		SetVTableOffsetBase(0x0);
-#else
-		SetVTableOffsetPev(0);
-		SetVTableOffsetBase(0x60);
-
-		extra_vtable = 2;
-
-#endif
-		g_vtblOffsets[VO_Spawn]				= extra_vtable +	0;
-		g_vtblOffsets[VO_Precache]			= extra_vtable +	1;
-		g_vtblOffsets[VO_Classify]			= extra_vtable +	8;
-		g_vtblOffsets[VO_TraceAttack]		= extra_vtable +	10;
-		g_vtblOffsets[VO_TakeDamage]		= extra_vtable +	11;
-		g_vtblOffsets[VO_DamageDecal]		= extra_vtable +	28;
-		g_vtblOffsets[VO_Respawn]			= extra_vtable +	47;
-		g_vtblOffsets[VO_AddAmmo]			= extra_vtable +	57;
-		g_vtblOffsets[VO_AddToPlayer]		= extra_vtable +	58;
-		g_vtblOffsets[VO_GetItemInfo]		= extra_vtable +	60;
-		g_vtblOffsets[VO_CanDeploy]			= extra_vtable +	61;
-		g_vtblOffsets[VO_Deploy]			= extra_vtable +	62;
-		g_vtblOffsets[VO_CanHolster]		= extra_vtable +	63;
-		g_vtblOffsets[VO_Holster]			= extra_vtable +	64;
-		g_vtblOffsets[VO_ItemPostFrame]		= extra_vtable +	67;
-		g_vtblOffsets[VO_ItemSlot]			= extra_vtable +	75;
-		g_vtblOffsets[VO_IsUseable]			= extra_vtable +	82;
-
-		g_pvDataOffsets[pvData_pfnThink] = 4;
-		g_pvDataOffsets[pvData_pfnTouch] = 5;
-
-
-		
-		int pvdata[pvData_End] =
-		{
-			4,		// m_pfnThink
-			5,		// m_pfnTouch
-			8,		// ammo_9mm
-			9,		// ammo_357
-			10,		// ammo_bolts
-			11,		// ammo_buckshot
-			12,		// ammo_rockets
-			13,		// ammo_uranium
-			14,		// ammo_hornets
-			15,		// ammo_argrens
-			16,		// m_flStartThrow
-			17,		// m_flReleaseThrow
-			18,		// m_chargeReady
-			19,		// m_fInAttack
-			20,		// m_fireState
-			28,		// m_pPlayer
-			29,		// m_pNext
-			30,		// m_iId
-			31,		// m_iPlayEmptySound
-			32,		// m_fFireOnEmpty
-			33,		// m_flPumpTime
-			34,		// m_fInSpecialReload
-			35,		// m_flNextPrimaryAttack
-			36,		// m_flNextSecondaryAttack
-			37,		// m_flTimeWeaponIdle
-			38,		// m_iPrimaryAmmoType
-			39,		// m_iSecondaryAmmoType
-			40,		// m_iClip
-			43,		// m_fInReload
-			44,		// m_iDefaultAmmo
-			90,		// m_LastHitGroup
-			148,	// m_flNextAttack
-			173,	// m_iWeaponVolume
-			175,	// m_iWeaponFlash
-			298,	// m_iFOV
-			300,	// m_rgpPlayerItems
-			306,	// m_pActiveItem
-			308,	// m_pLastItem
-			310,	// m_rgAmmo
-			387		// m_szAnimExtention
-		};
-
-		memcpy(g_pvDataOffsets, pvdata, sizeof(int) * pvData_End);
-	}
-	if (g_GameMod == SUBMOD_AG || g_GameMod == SUBMOD_MINIAG)
-	{
-	}
-	else if (g_GameMod == SUBMOD_GEARBOX)
-	{
-		// More slots in OP4
-		g_iMaxWeaponSlots = 7;
-	}
 }
 

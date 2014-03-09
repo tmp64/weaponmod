@@ -7,9 +7,6 @@
     <ClCompile Include="..\sdk\amxxmodule.cpp">
       <Filter>Module SDK\SDK Base</Filter>
     </ClCompile>
-    <ClCompile Include="..\utils.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\wpnmod_hooker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -25,9 +22,6 @@
     <ClCompile Include="..\wpnmod_hooks.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\wpnmod_vhooker.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\wpnmod_config.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -37,6 +31,12 @@
     <ClCompile Include="..\wpnmod_memory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\wpnmod_vtable.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wpnmod_pvdata.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\sdk\moduleconfig.h">
@@ -44,9 +44,6 @@
     </ClInclude>
     <ClInclude Include="..\sdk\amxxmodule.h">
       <Filter>Module SDK\SDK Base</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\utils.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\wpnmod_utils.h">
       <Filter>Header Files</Filter>
@@ -58,9 +55,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\wpnmod_parse.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\wpnmod_vhooker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\wpnmod_config.h">
@@ -76,6 +70,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\wpnmod_memory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\wpnmod_vtable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\wpnmod_pvdata.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

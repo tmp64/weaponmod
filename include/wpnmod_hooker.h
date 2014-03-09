@@ -87,8 +87,8 @@ struct function
 	int				done;
 };
 
-void	SetHook					(function *func);
-void	UnsetHook				(function *func);
+bool	SetHook					(function *func);
+bool	UnsetHook				(function *func);
 
 void*	FindFunction			(function *func);
 void*	FindFunction			(module *lib, signature sig);

@@ -79,7 +79,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\sdk\amxxmodule.cpp" />
-    <ClCompile Include="..\utils.cpp" />
     <ClCompile Include="..\wpnmod_config.cpp" />
     <ClCompile Include="..\wpnmod_grenade.cpp" />
     <ClCompile Include="..\wpnmod_hooker.cpp" />
@@ -88,21 +87,22 @@
     <ClCompile Include="..\wpnmod_memory.cpp" />
     <ClCompile Include="..\wpnmod_natives.cpp" />
     <ClCompile Include="..\wpnmod_parse.cpp" />
+    <ClCompile Include="..\wpnmod_pvdata.cpp" />
     <ClCompile Include="..\wpnmod_utils.cpp" />
-    <ClCompile Include="..\wpnmod_vhooker.cpp" />
+    <ClCompile Include="..\wpnmod_vtable.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\CString.h" />
     <ClInclude Include="..\include\CVector.h" />
-    <ClInclude Include="..\include\utils.h" />
     <ClInclude Include="..\include\wpnmod_config.h" />
     <ClInclude Include="..\include\wpnmod_grenade.h" />
     <ClInclude Include="..\include\wpnmod_hooker.h" />
     <ClInclude Include="..\include\wpnmod_hooks.h" />
     <ClInclude Include="..\include\wpnmod_memory.h" />
     <ClInclude Include="..\include\wpnmod_parse.h" />
+    <ClInclude Include="..\include\wpnmod_pvdata.h" />
     <ClInclude Include="..\include\wpnmod_utils.h" />
-    <ClInclude Include="..\include\wpnmod_vhooker.h" />
+    <ClInclude Include="..\include\wpnmod_vtable.h" />
     <ClInclude Include="..\sdk\amxxmodule.h" />
     <ClInclude Include="..\sdk\moduleconfig.h" />
   </ItemGroup>

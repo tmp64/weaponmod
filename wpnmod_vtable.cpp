@@ -31,13 +31,57 @@
  *
  */
 
-#include "amxxmodule.h"
-#include "wpnmod_vhooker.h"
-#include "wpnmod_utils.h"
+#include "wpnmod_vtable.h"
+#include "wpnmod_config.h"
 
 
-int g_EntityVTableOffsetPev;
-int g_EntityVTableOffsetBase;
+int g_EntityVTableOffsetPev = NULL;
+int g_EntityVTableOffsetBase = NULL;
+
+//
+// Default vtbl offsets for Bugfixed and improved HL release.
+//
+GameOffset GameVirtualOffsets[VO_End] = 
+{
+	{0,		2},		// Spawn
+	{1,		2},		// Precache
+	{8,		2},		// Classify
+	{10,	2},		// TraceAttack
+	{11,	2},		// TakeDamage
+	{28,	2},		// DamageDecal
+	{47,	2},		// Respawn
+	{57,	2},		// AddAmmo
+	{58,	2},		// AddToPlayer
+	{60,	2},		// GetItemInfo
+	{61,	2},		// CanDeploy
+	{62,	2},		// Deploy
+	{63,	2},		// CanHolster
+	{64,	2},		// Holster
+	{67,	2},		// ItemPostFrame
+	{75,	2},		// ItemSlot
+	{82,	2},		// IsUseable
+	{128,	2}		// Player_PostThink
+};
+
+void Vtable_Init(void)
+{
+	// Bugfixed and improved HL release. Only set PEV and BASE offsets.
+	if (g_GameMod == SUBMOD_AGHLRU)
+	{
+#ifdef _WIN32
+		SetVTableOffsetPev(4);
+		SetVTableOffsetBase(0x0);
+#else
+		SetVTableOffsetPev(0);
+		SetVTableOffsetBase(0x60);
+#endif 
+	}
+	else if (g_GameMod == SUBMOD_GEARBOX)
+	{
+		// More slots in OP4
+		g_iMaxWeaponSlots = 7;
+	}
+}
 
 void SetVTableOffsetPev(int iOffset)
 {
@@ -77,7 +121,7 @@ bool HandleHookVirtual(VirtualHookData* hook, bool bRevert)
 		return FALSE;
 	}
 
-	void** vtable = GET_VTABLE(pEdict);
+	void** vtable = GET_VTABLE_ENT(pEdict);
 
 	if (vtable == NULL)
 	{
@@ -86,7 +130,7 @@ bool HandleHookVirtual(VirtualHookData* hook, bool bRevert)
 
 	int** ivtable = (int**)vtable;
 
-	int offset = g_vtblOffsets[hook->offset];
+	int offset = GET_VTABLE_OFFSET(hook->offset);
 
 	if (!bRevert)
 	{
@@ -119,3 +163,6 @@ bool HandleHookVirtual(VirtualHookData* hook, bool bRevert)
 	REMOVE_ENTITY( pEdict );
 	return true;
 }
+
+
+

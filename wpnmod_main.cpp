@@ -33,7 +33,6 @@
 
 #include "wpnmod_parse.h"
 #include "wpnmod_memory.h"
-#include "utils.h"
 
 
 int AmxxCheckGame(const char* game)
@@ -73,20 +72,19 @@ int WpnMod_Init(void)
 	return 1;
 }
 
-bool g_bWorldSpawned = 0;
-
 // Called by worldspawn.
 void W_Precache(void)
 {
 	g_GameMod = CheckSubMod(MF_GetModname());
 
+	pvData_Init();
+	Vtable_Init();
+	SetConfigFile();
+
 	cvar_sv_cheats = CVAR_GET_POINTER("sv_cheats");
 	cvar_mp_weaponstay = CVAR_GET_POINTER("mp_weaponstay");
 
-	Offsets_Init();
-	SetConfigFile();
-
-	if (ParseConfigSection(g_ConfigFilepath, "[block]", (void*)ParseBlockItems_Handler) && (int)g_BlockedItems.size())
+	if (ParseSection(g_ConfigFilepath, "[block]", (void*)OnParseBlockedItems, -1) && (int)g_BlockedItems.size())
 	{
 		printf2("[%s]: Blocked default items:\n", Plugin_info.logtag);
 
@@ -104,15 +102,20 @@ void W_Precache(void)
 	}
 
 	g_Ents = new EntData[gpGlobals->maxEntities];
-
-	cvar_t version = {"hl_wpnmod_version", Plugin_info.version, FCVAR_SERVER};
-	REG_SVR_COMMAND("wpnmod", WpnModCommand);
-	CVAR_REGISTER(&version);
 }
 
 void OnAmxxAttach(void)
 {
+	cvar_t version = 
+	{
+		"hl_wpnmod_version",
+		Plugin_info.version,
+		FCVAR_SERVER
+	};
+
 	MF_AddNatives(Natives);
+	REG_SVR_COMMAND("wpnmod", WpnModCommand);
+	CVAR_REGISTER(&version);
 }
 
 void OnAmxxDetach(void)
@@ -124,7 +127,7 @@ void OnAmxxDetach(void)
 			UnsetHook(&g_dllFuncs[i]);
 		}
 	}
-	
+
 	for (int i = 0; i < g_iMaxWeaponSlots; ++i)
 	{
 		delete [] g_pCurrentSlots[i];
@@ -133,6 +136,8 @@ void OnAmxxDetach(void)
 	delete [] g_Ents;
 	delete [] g_pCurrentSlots;
 }
+
+bool g_bWorldSpawned = false;
 
 int DispatchSpawn(edict_t *pent)
 {
@@ -150,14 +155,13 @@ void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 	EnableShieldHitboxTracing();
 
 	ParseBSP();
-	SetConfigFile();
 	ParseSpawnPoints();
 
 	// Parse default equipments and ammo.
-	ParseConfigSection(g_ConfigFilepath, "[ammo]", (void*)ParseAmmo_Handler);
-	ParseConfigSection(g_ConfigFilepath, "[equipment]", (void*)ParseEquipment_Handler);
+	ParseSection(g_ConfigFilepath, "[ammo]", (void*)OnParseStartAmmos, ':');
+	ParseSection(g_ConfigFilepath, "[equipment]", (void*)OnParseStartEquipments	, ':');
 
-	// Remove blocked items.
+	// Remove blocked items from map.
 	for (int i = 0; i < (int)g_BlockedItems.size(); i++)
 	{
 		edict_t *pFind = FIND_ENTITY_BY_CLASSNAME(NULL, g_BlockedItems[i]->classname);
@@ -170,7 +174,7 @@ void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 	}
 
 	SetHookVirtual(&g_PlayerSpawn_Hook);
-	//SetHookVirtual(&g_PlayerPostThink_Hook);
+	SetHookVirtual(&g_PlayerPostThink_Hook);
 
 	RETURN_META(MRES_IGNORED);
 }
@@ -240,7 +244,7 @@ void ServerDeactivate()
 
 	UnsetHookVirtual(&g_RpgAddAmmo_Hook);
 	UnsetHookVirtual(&g_PlayerSpawn_Hook);
-	//UnsetHookVirtual(&g_PlayerPostThink_Hook);
+	UnsetHookVirtual(&g_PlayerPostThink_Hook);
 
 	RETURN_META(MRES_IGNORED);
 }
@@ -266,7 +270,7 @@ void ClientCommand(edict_t *pEntity)
 		SelectItem(pEntity, cmd);
 		RETURN_META(MRES_SUPERCEDE);
 	}
-	else if (!_stricmp(cmd, "give") && cvar_sv_cheats->value /* && CHEAT */)
+	else if (!_stricmp(cmd, "give") && cvar_sv_cheats->value)
 	{
 		const char* item = CMD_ARGV(1);
 
