@@ -216,7 +216,11 @@ void SetTouch_(edict_t* pEntity, void* funcAddress)
 {
 #ifdef __linux__
 
-	if (!g_bNewGCC)
+	if (g_bNewGCC)
+	{
+		*((long*)pEntity->pvPrivateData + GET_PVDATA_OFFSET(pvData_pfnTouch) + 2) = NULL;
+	}
+	else
 	{
 		*((long*)pEntity->pvPrivateData + GET_PVDATA_OFFSET(pvData_pfnTouch)) = funcAddress == NULL ? NULL : 0xFFFF0000;
 	}
@@ -234,7 +238,11 @@ void SetThink_(edict_t* pEntity, void* funcAddress)
 {
 #ifdef __linux__
 
-	if (!g_bNewGCC)
+	if (g_bNewGCC)
+	{
+		*((long*)pEntity->pvPrivateData + GET_PVDATA_OFFSET(pvData_pfnThink) + 1) = NULL;
+	}
+	else
 	{
 		*((long*)pEntity->pvPrivateData + GET_PVDATA_OFFSET(pvData_pfnThink) - 1) = funcAddress == NULL ? NULL : 0xFFFF0000;
 	}
