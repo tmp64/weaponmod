@@ -36,12 +36,12 @@
 
 void *g_pParseDllFuncs[] =
 {
-	&Parse_ClearMultiDamage,
-	&Parse_ApplyMultiDamage,
-	&Parse_PrecacheOtherWeapon,
-	&Parse_GetAmmoIndex,
-	&Parse_GiveNamedItem,
-	&Parse_SetAnimation,
+	(void*)&Parse_ClearMultiDamage,
+	(void*)&Parse_ApplyMultiDamage,
+	(void*)&Parse_PrecacheOtherWeapon,
+	(void*)&Parse_GetAmmoIndex,
+	(void*)&Parse_GiveNamedItem,
+	(void*)&Parse_SetAnimation,
 	NULL,
 };
 
