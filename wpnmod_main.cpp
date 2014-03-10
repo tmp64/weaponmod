@@ -83,7 +83,7 @@ void W_Precache(void)
 
 	cvar_sv_cheats = CVAR_GET_POINTER("sv_cheats");
 	cvar_mp_weaponstay = CVAR_GET_POINTER("mp_weaponstay");
-	/*
+	
 	if (ParseSection(g_ConfigFilepath, "[block]", (void*)OnParseBlockedItems, -1) && (int)g_BlockedItems.size())
 	{
 		printf2("[%s]: Blocked default items:\n", Plugin_info.logtag);
@@ -93,7 +93,7 @@ void W_Precache(void)
 			printf2("[%s]:   %s\n", Plugin_info.logtag, g_BlockedItems[i]->classname);
 		}
 	}
-	*/
+	
 	g_pCurrentSlots	= new int* [g_iMaxWeaponSlots];
 
 	for (int i = 0; i < g_iMaxWeaponSlots; ++i)
@@ -154,12 +154,12 @@ void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 {
 	// EnableShieldHitboxTracing();
 
-//	ParseBSP();
-//	ParseSpawnPoints();
+	ParseBSP();
+	ParseSpawnPoints();
 
 	// Parse default equipments and ammo.
-//	ParseSection(g_ConfigFilepath, "[ammo]", (void*)OnParseStartAmmos, ':');
-//	ParseSection(g_ConfigFilepath, "[equipment]", (void*)OnParseStartEquipments	, ':');
+	ParseSection(g_ConfigFilepath, "[ammo]", (void*)OnParseStartAmmos, ':');
+	ParseSection(g_ConfigFilepath, "[equipment]", (void*)OnParseStartEquipments	, ':');
 
 	// Remove blocked items from map.
 	for (int i = 0; i < (int)g_BlockedItems.size(); i++)
