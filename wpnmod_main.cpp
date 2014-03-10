@@ -83,7 +83,7 @@ void W_Precache(void)
 
 	cvar_sv_cheats = CVAR_GET_POINTER("sv_cheats");
 	cvar_mp_weaponstay = CVAR_GET_POINTER("mp_weaponstay");
-
+	/*
 	if (ParseSection(g_ConfigFilepath, "[block]", (void*)OnParseBlockedItems, -1) && (int)g_BlockedItems.size())
 	{
 		printf2("[%s]: Blocked default items:\n", Plugin_info.logtag);
@@ -93,12 +93,12 @@ void W_Precache(void)
 			printf2("[%s]:   %s\n", Plugin_info.logtag, g_BlockedItems[i]->classname);
 		}
 	}
-
-	//g_pCurrentSlots	= new int* [g_iMaxWeaponSlots];
+	*/
+	g_pCurrentSlots	= new int* [g_iMaxWeaponSlots];
 
 	for (int i = 0; i < g_iMaxWeaponSlots; ++i)
 	{
-		memset(/*(g_pCurrentSlots[i] = new int [g_iMaxWeaponPositions])*/g_bCurrentSlots[i], 0, sizeof(int) * g_iMaxWeaponPositions);
+		memset((g_pCurrentSlots[i] = new int [g_iMaxWeaponPositions]), 0, sizeof(int) * g_iMaxWeaponPositions);
 	}
 
 	g_Ents = new EntData[gpGlobals->maxEntities];
@@ -128,13 +128,13 @@ void OnAmxxDetach(void)
 		}
 	}
 
-	/*for (int i = 0; i < g_iMaxWeaponSlots; ++i)
+	for (int i = 0; i < g_iMaxWeaponSlots; ++i)
 	{
 		delete [] g_pCurrentSlots[i];
-	}*/
+	}
 
 	delete [] g_Ents;
-	//delete [] g_pCurrentSlots;
+	delete [] g_pCurrentSlots;
 }
 
 bool g_bWorldSpawned = false;
@@ -154,12 +154,12 @@ void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 {
 	// EnableShieldHitboxTracing();
 
-	ParseBSP();
-	ParseSpawnPoints();
+//	ParseBSP();
+//	ParseSpawnPoints();
 
 	// Parse default equipments and ammo.
-	ParseSection(g_ConfigFilepath, "[ammo]", (void*)OnParseStartAmmos, ':');
-	ParseSection(g_ConfigFilepath, "[equipment]", (void*)OnParseStartEquipments	, ':');
+//	ParseSection(g_ConfigFilepath, "[ammo]", (void*)OnParseStartAmmos, ':');
+//	ParseSection(g_ConfigFilepath, "[equipment]", (void*)OnParseStartEquipments	, ':');
 
 	// Remove blocked items from map.
 	for (int i = 0; i < (int)g_BlockedItems.size(); i++)
@@ -210,7 +210,7 @@ void ServerDeactivate()
 
 	for (int i = 0; i < g_iMaxWeaponSlots; ++i)
 	{
-		memset(/*g_pCurrentSlots*/g_bCurrentSlots[i], 0, sizeof(int) * g_iMaxWeaponPositions);
+		memset(g_pCurrentSlots, 0, sizeof(int) * g_iMaxWeaponPositions);
 	}
 
 	for (int i = 0; i < (int)g_Decals.size(); i++)

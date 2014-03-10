@@ -61,9 +61,7 @@ SUBMOD g_GameMod;
 WeaponData	WeaponInfoArray	[MAX_WEAPONS];
 AmmoBoxData AmmoBoxInfoArray[MAX_WEAPONS];
 
-//int** g_pCurrentSlots = NULL;
-
-int g_bCurrentSlots[10][10];
+int** g_pCurrentSlots = NULL;
 
 SUBMOD CheckSubMod(const char* game)
 {
@@ -120,9 +118,9 @@ void AutoSlotDetection(int iWeaponID, int iSlot, int iPosition)
 		iPosition = g_iMaxWeaponPositions - 1;
 	}
 
-	if (!/*g_pCurrentSlots*/g_bCurrentSlots[iSlot][iPosition])
+	if (!g_pCurrentSlots[iSlot][iPosition])
 	{
-		/*g_pCurrentSlots*/g_bCurrentSlots[iSlot][iPosition] = iWeaponID;
+		g_pCurrentSlots[iSlot][iPosition] = iWeaponID;
 
 		WeaponInfoArray[iWeaponID].ItemData.iSlot = iSlot;
 		WeaponInfoArray[iWeaponID].ItemData.iPosition = iPosition;
@@ -135,9 +133,9 @@ void AutoSlotDetection(int iWeaponID, int iSlot, int iPosition)
 		{
 			for (k = 0; k < g_iMaxWeaponPositions; k++)
 			{
-				if (!/*g_pCurrentSlots*/g_bCurrentSlots[i][k])
+				if (!g_pCurrentSlots[i][k])
 				{
-					/*g_pCurrentSlots*/g_bCurrentSlots[i][k] = iWeaponID;
+					g_pCurrentSlots[i][k] = iWeaponID;
 
 					WeaponInfoArray[iWeaponID].ItemData.iSlot = i;
 					WeaponInfoArray[iWeaponID].ItemData.iPosition = k;

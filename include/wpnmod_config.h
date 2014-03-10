@@ -156,8 +156,7 @@ typedef struct
 extern AMX_NATIVE_INFO Natives[];
 
 extern edict_t*	g_EquipEnt;
-//extern int**	g_pCurrentSlots;
-extern int g_bCurrentSlots[10][10];
+extern int**	g_pCurrentSlots;
 
 extern int g_iWeaponsCount;
 extern int g_iWeaponInitID;
