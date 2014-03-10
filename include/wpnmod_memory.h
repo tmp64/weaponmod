@@ -39,7 +39,14 @@
 #include "wpnmod_hooks.h"
 
 #ifdef __linux__
+
 	extern bool g_bNewGCC;
+
+#else
+
+	size_t ParseFunc(size_t start, size_t end, char* funcname, unsigned char* pattern, char* mask, size_t bytes);
+	size_t ParseFunc(size_t start, size_t end, char* funcname, char* string, unsigned char* pattern, char* mask, size_t bytes);
+
 #endif
 
 bool	FindFuncsInDll				(size_t start, size_t end);
@@ -51,8 +58,5 @@ bool	Parse_GiveNamedItem			(size_t start, size_t end);
 bool	Parse_SetAnimation			(size_t start, size_t end);
 
 void	EnableShieldHitboxTracing	(void);
-
-size_t	ParseFunc	(size_t start, size_t end, char* funcname, unsigned char* pattern, char* mask, size_t bytes);
-size_t	ParseFunc	(size_t start, size_t end, char* funcname, char* string, unsigned char* pattern, char* mask, size_t bytes);
 
 #endif // _WPNMOD_MEMORY_H

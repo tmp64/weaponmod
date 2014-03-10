@@ -780,7 +780,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 	edict_t* pPlayer = PrivateToEdict(pvPlayer);
 
 	// Is player alive?
-	if (IsValidPev(pPlayer) && pPlayer->v.deadflag == DEAD_NO && pPlayer->v.health > 0)
+	if (IsValidPev(pPlayer) && pPlayer->v.movetype != MOVETYPE_NOCLIP && pPlayer->v.deadflag == DEAD_NO && pPlayer->v.health > 0)
 	{
 		// Check for cheat impulse command.
 		if (pPlayer->v.impulse == 101 && cvar_sv_cheats->value)

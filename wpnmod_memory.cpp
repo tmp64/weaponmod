@@ -65,6 +65,17 @@ bool FindFuncsInDll(size_t start, size_t end)
 		func++;
 	}
 
+	if (!bSuccess)
+	{
+		for (int i = 0; i < Func_End; i++)
+		{
+			if (g_dllFuncs[i].done)
+			{
+				UnsetHook(&g_dllFuncs[i]);
+			}
+		}
+	}
+
 	return bSuccess;
 }
 
@@ -355,8 +366,8 @@ bool Parse_SetAnimation(size_t start, size_t end)
 #else
 
 	char			string[]		= "models/v_satchel_radio.mdl";
-	char			mask[]			= "x??xxxxx";
-	unsigned char	pattern[]		= "\x8B\x00\x00\xB9\x00\x00\x00\x00";
+	char			mask[]			= "xxxxx";
+	unsigned char	pattern[]		= "\xB9\x00\x00\x00\x00";
 
 	char			mask2[]			= "xx?xxx";
 	unsigned char	pattern2[]		= "\x8B\x4E\x00\x6A\x05\xE8";
@@ -370,9 +381,9 @@ bool Parse_SetAnimation(size_t start, size_t end)
 
 	pCurrent = FindStringInDLL(start, end, string);
 
-	while (pCurrent != NULL)
+	while (pCurrent)
 	{
-		*(size_t*)(pattern + 4) = (size_t)pCurrent;
+		*(size_t*)(pattern + 1) = (size_t)pCurrent;
 
 		if ((pCandidate = FindAdressInDLL(start, end, pattern, mask)) != NULL)
 		{
@@ -466,6 +477,8 @@ void EnableShieldHitboxTracing()
 	}
 }
 
+#ifdef WIN32
+
 size_t ParseFunc(size_t start, size_t end, char* funcname, unsigned char* pattern, char* mask, size_t bytes)
 {
 	int count = 0;
@@ -542,4 +555,6 @@ size_t ParseFunc(size_t start, size_t end, char* funcname, char* string, unsigne
 
 	return pAdress;
 }
+
+#endif
 

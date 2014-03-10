@@ -328,16 +328,26 @@ void WpnModCommand(void)
 {
 	const char *cmd = CMD_ARGV(1);
 
-	if (!strcmp(cmd, "version")) 
+	if (!strcmp(cmd, "credits"))
+	{
+		printf2("Credits:\n\tAMXX Dev team, 6a6kin, GordonFreeman, Koshak, Lev, noo00oob.\n");
+	}
+	else  if (!strcmp(cmd, "version")) 
 	{
 		printf2("%s %s (%s)\n", Plugin_info.name, Plugin_info.version, Plugin_info.url);
 		printf2("Author:\n\tKORD_12.7 (AGHL.RU Dev Team)\n");
 		printf2("Compiled: %s\n", __DATE__ ", " __TIME__);
 
 	}
-	else if (!strcmp(cmd, "credits"))
+	else if (!strcmp(cmd, "edicts"))
 	{
-		printf2("Credits:\n\tAMXX Dev team, 6a6kin, GordonFreeman, Koshak, Lev, noo00oob.\n");
+		for (int i = 0; i < gpGlobals->maxEntities; i++)
+		{
+			if (IsValidPev(INDEXENT2(i)))
+			{
+				printf2("\t*Edict %d (%s)\n", i, STRING(INDEXENT2(i)->v.classname));
+			}
+		}
 	}
 	else if (!strcmp(cmd, "items"))
 	{
