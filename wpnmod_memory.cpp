@@ -92,6 +92,8 @@ bool Parse_ClearMultiDamage(size_t start, size_t end)
 		return false;
 	}
 
+	printf2("[%s]:   Found \"%s\" at %p\n", Plugin_info.logtag, funcname, pAdress);
+
 #else
 
 	size_t pAdress	= (size_t)FindFunction(&g_GameDllModule, "?SuperBounceTouch@CSqueakGrenade@@AAEXPAVCBaseEntity@@@Z");
@@ -142,6 +144,8 @@ bool Parse_ApplyMultiDamage(size_t start, size_t end)
 		printf2("[%s]:   Error: \"%s\" not found\n", Plugin_info.logtag, funcname);
 		return false;
 	}
+
+	printf2("[%s]:   Found \"%s\" at %p\n", Plugin_info.logtag, funcname, pAdress);
 
 #else
 
@@ -194,6 +198,8 @@ bool Parse_PrecacheOtherWeapon(size_t start, size_t end)
 		return false;
 	}
 
+	printf2("[%s]:   Found \"%s\" at %p\n", Plugin_info.logtag, funcname, pAdress);
+
 #else
 
 	char			string[]			= "weapon_rpg";
@@ -245,6 +251,8 @@ bool Parse_GetAmmoIndex(size_t start, size_t end)
 		return false;
 	}
 
+	printf2("[%s]:   Found \"%s\" at %p\n", Plugin_info.logtag, funcname, pAdress);
+
 #else
 
 	char			string[]			= "357";
@@ -288,6 +296,8 @@ bool Parse_GiveNamedItem(size_t start, size_t end)
 		printf2("[%s]:   Error: \"%s\" not found\n", Plugin_info.logtag, funcname);
 		return false;
 	}
+
+	printf2("[%s]:   Found \"%s\" at %p\n", Plugin_info.logtag, funcname, pAdress);
 
 #else
 
@@ -339,6 +349,8 @@ bool Parse_SetAnimation(size_t start, size_t end)
 		printf2("[%s]:   Error: \"%s\" not found\n", Plugin_info.logtag, funcname);
 		return false;
 	}
+
+	printf2("[%s]:   Found \"%s\" at %p\n", Plugin_info.logtag, funcname, pAdress);
 
 #else
 
