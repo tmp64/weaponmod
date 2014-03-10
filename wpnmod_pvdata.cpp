@@ -32,8 +32,10 @@
  */
 
 #include "wpnmod_pvdata.h"
+#include "wpnmod_memory.h"
 #include "wpnmod_config.h"
 #include "wpnmod_utils.h"
+
 
 //
 // Default pvdata offsets for Bugfixed and improved HL release.
@@ -94,7 +96,7 @@ GameOffset GamePvDatasOffsets[pvData_End] =
 void pvData_Init(void)
 {
 #ifdef __linux__
-	if (/* NEW GCC*/)
+	if (g_bNewGCC)
 	{
 		for (int i = pvData_ammo_9mm; i < pvData_pPlayer; i++)
 		{
@@ -136,6 +138,30 @@ void pvData_Init(void)
 		GamePvDatasOffsets[pvData_rgAmmo].iValue			= 354;
 		GamePvDatasOffsets[pvData_szAnimExtention].iValue	= 431;
 	}
+}
+
+edict_t* PrivateToEdict(const void* pvPrivateData)
+{
+	if (!pvPrivateData || (int)pvPrivateData == -1)
+	{
+		return NULL;
+	}
+
+	char* ptr = (char*)pvPrivateData + g_EntityVTableOffsetPev;
+
+	if (!ptr)
+	{
+		return NULL;
+	}
+
+	entvars_t* pev = *(entvars_t**)ptr;
+
+	if (!pev)
+	{
+		return NULL;
+	}
+
+	return pev->pContainingEntity;
 }
 
 edict_t *GetPrivateCbase(edict_t *pEntity, int iOffset)
@@ -186,11 +212,11 @@ void SetPrivateString(edict_t* pEntity, int iOffset, const char* pValue)
 	#endif
 }
 
-void SetTouch_(edict_t* pEntity, void* funcAddress)
+void SetTouch(edict_t* pEntity, void* funcAddress)
 {
 #ifdef __linux__
 
-	if (!g_ExtraTouch)
+	if (!g_bNewGCC)
 	{
 		*((long*)pEntity->pvPrivateData + GET_PVDATA_OFFSET(pvData_pfnTouch)) = funcAddress == NULL ? NULL : 0xFFFF0000;
 	}
@@ -204,11 +230,11 @@ void SetTouch_(edict_t* pEntity, void* funcAddress)
 #endif
 }
 
-void SetThink_(edict_t* pEntity, void* funcAddress)
+void SetThink(edict_t* pEntity, void* funcAddress)
 {
 #ifdef __linux__
 
-	if (!g_ExtraThink)
+	if (!g_bNewGCC)
 	{
 		*((long*)pEntity->pvPrivateData + GET_PVDATA_OFFSET(pvData_pfnThink) - 1) = funcAddress == NULL ? NULL : 0xFFFF0000;
 	}

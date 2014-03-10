@@ -67,6 +67,9 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <AdditionalIncludeDirectories>$(ProjectDir)..;$(ProjectDir)..\include;$(ProjectDir)..\sdk;$(ProjectDir)..\dep\metamod;$(ProjectDir)..\dep\hlsdk\common;$(ProjectDir)..\dep\hlsdk\engine;$(ProjectDir)..\dep\hlsdk\dlls;$(ProjectDir)..\dep\hlsdk\pm_shared;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <PreprocessorDefinitions>_USING_V110_SDK71_;%(PreprocessorDefinitions);</PreprocessorDefinitions>
+      <UndefinePreprocessorDefinitions>
+      </UndefinePreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>

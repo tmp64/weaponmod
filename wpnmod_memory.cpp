@@ -45,6 +45,10 @@ void *g_pParseDllFuncs[] =
 	NULL,
 };
 
+#ifdef __linux__
+	bool g_bNewGCC = false;
+#endif
+
 bool FindFuncsInDll(size_t start, size_t end)
 {
 	bool bSuccess = true;
@@ -70,9 +74,28 @@ bool FindFuncsInDll(size_t start, size_t end)
 
 bool Parse_ClearMultiDamage(size_t start, size_t end)
 {
+	char funcname[] = "ClearMultiDamage";
+
+#ifdef __linux__
+
+	size_t pAdress	= (size_t)FindFunction(&g_GameDllModule, "ClearMultiDamage__Fv");
+
+	if (!pAdress)
+	{
+		g_bNewGCC = true;
+		pAdress	= (size_t)FindFunction(&g_GameDllModule, "_Z16ClearMultiDamagev");
+	}
+
+	if (!pAdress)
+	{
+		printf2("[%s]:   Error: \"%s\" not found\n", Plugin_info.logtag, funcname);
+		return false;
+	}
+
+#else
+
 	size_t pAdress	= (size_t)FindFunction(&g_GameDllModule, "?SuperBounceTouch@CSqueakGrenade@@AAEXPAVCBaseEntity@@@Z");
 
-	char				funcname[]			= "ClearMultiDamage";
 	char				mask[]				= "x?????x?????x";
 	unsigned char		pattern[]			= "\x3B\x00\x00\x00\x00\x00\x0F\x00\x00\x00\x00\x00\xE8";
 	size_t				BytesOffset			= 13;
@@ -84,11 +107,13 @@ bool Parse_ClearMultiDamage(size_t start, size_t end)
 	}
 
 	pAdress = ParseFunc(pAdress, pAdress + 300, funcname, pattern, mask, BytesOffset);
-	
-	if (pAdress == NULL)
+
+	if (!pAdress)
 	{
 		return false;
 	}
+
+#endif
 
 	g_dllFuncs[Func_ClearMultiDamage].address = (void*)pAdress;
 
@@ -101,9 +126,27 @@ bool Parse_ClearMultiDamage(size_t start, size_t end)
 
 bool Parse_ApplyMultiDamage(size_t start, size_t end)
 {
+	char funcname[] = "ApplyMultiDamage";
+
+#ifdef __linux__
+
+	size_t pAdress	= (size_t)FindFunction(&g_GameDllModule, "ApplyMultiDamage__FP9entvars_sT0");
+
+	if (!pAdress)
+	{
+		pAdress	= (size_t)FindFunction(&g_GameDllModule, "_Z16ApplyMultiDamageP9entvars_sS0_");
+	}
+
+	if (!pAdress)
+	{
+		printf2("[%s]:   Error: \"%s\" not found\n", Plugin_info.logtag, funcname);
+		return false;
+	}
+
+#else
+
 	size_t pAdress	= (size_t)FindFunction(&g_GameDllModule, "?SuperBounceTouch@CSqueakGrenade@@AAEXPAVCBaseEntity@@@Z");
 
-	char				funcname[]			= "ApplyMultiDamage";
 	char				mask[]				= "xxx????x";
 	unsigned char		pattern[]			= "\x50\x50\xE8\x00\x00\x00\x00\x8B";
 	size_t				BytesOffset			= 3;
@@ -116,10 +159,12 @@ bool Parse_ApplyMultiDamage(size_t start, size_t end)
 
 	pAdress = ParseFunc(pAdress, pAdress + 700, funcname, pattern, mask, BytesOffset);
 	
-	if (pAdress == NULL)
+	if (!pAdress)
 	{
 		return false;
 	}
+
+#endif
 
 	g_dllFuncs[Func_ApplyMultiDamage].address = (void*)pAdress;
 
@@ -132,7 +177,25 @@ bool Parse_ApplyMultiDamage(size_t start, size_t end)
 
 bool Parse_PrecacheOtherWeapon(size_t start, size_t end)
 {
-	char			funcname[]			= "UTIL_PrecacheOtherWeapon";
+	char funcname[] = "UTIL_PrecacheOtherWeapon";
+
+#ifdef __linux__
+
+	size_t pAdress	= (size_t)FindFunction(&g_GameDllModule, "UTIL_PrecacheOtherWeapon__FPCc");
+
+	if (!pAdress)
+	{
+		pAdress	= (size_t)FindFunction(&g_GameDllModule, "_Z24UTIL_PrecacheOtherWeaponPKc");
+	}
+
+	if (!pAdress)
+	{
+		printf2("[%s]:   Error: \"%s\" not found\n", Plugin_info.logtag, funcname);
+		return false;
+	}
+
+#else
+
 	char			string[]			= "weapon_rpg";
 	char			mask[]				= "xxxxxx";
 	unsigned char	pattern[]			= "\x68\x00\x00\x00\x00\xE8";
@@ -140,10 +203,12 @@ bool Parse_PrecacheOtherWeapon(size_t start, size_t end)
 
 	size_t pAdress = ParseFunc(start, end, funcname, string, pattern, mask, BytesOffset);
 
-	if (pAdress == NULL)
+	if (!pAdress)
 	{
 		return false;
 	}
+
+#endif
 
 	g_dllFuncs[Func_PrecacheOtherWeapon].address = (void*)pAdress;
 	
@@ -163,7 +228,25 @@ bool Parse_PrecacheOtherWeapon(size_t start, size_t end)
 
 bool Parse_GetAmmoIndex(size_t start, size_t end)
 {
-	char			funcname[]			= "CBasePlayer::GetAmmoIndex";
+	char funcname[] = "CBasePlayer::GetAmmoIndex";
+
+#ifdef __linux__
+
+	size_t pAdress	= (size_t)FindFunction(&g_GameDllModule, "GetAmmoIndex__11CBasePlayerPCc");
+
+	if (!pAdress)
+	{
+		pAdress	= (size_t)FindFunction(&g_GameDllModule, "_ZN11CBasePlayer12GetAmmoIndexEPKc");
+	}
+
+	if (!pAdress)
+	{
+		printf2("[%s]:   Error: \"%s\" not found\n", Plugin_info.logtag, funcname);
+		return false;
+	}
+
+#else
+
 	char			string[]			= "357";
 	char			mask[]				= "xxxxxxx?x";
 	unsigned char	pattern[]			= "\x68\x00\x00\x00\x00\x89\x46\x00\xE8";
@@ -176,6 +259,8 @@ bool Parse_GetAmmoIndex(size_t start, size_t end)
 		return false;
 	}
 
+#endif
+
 	g_dllFuncs[Func_GetAmmoIndex].address = (void*)pAdress;
 
 	return true;
@@ -187,7 +272,25 @@ bool Parse_GetAmmoIndex(size_t start, size_t end)
 
 bool Parse_GiveNamedItem(size_t start, size_t end)
 {
-	char			funcname[]		= "CBasePlayer::GiveNamedItem";
+	char funcname[] = "CBasePlayer::GiveNamedItem";
+
+#ifdef __linux__
+
+	size_t pAdress	= (size_t)FindFunction(&g_GameDllModule, "GiveNamedItem__11CBasePlayerPCc");
+
+	if (!pAdress)
+	{
+		pAdress	= (size_t)FindFunction(&g_GameDllModule, "_ZN11CBasePlayer13GiveNamedItemEPKc");
+	}
+
+	if (!pAdress)
+	{
+		printf2("[%s]:   Error: \"%s\" not found\n", Plugin_info.logtag, funcname);
+		return false;
+	}
+
+#else
+
 	char			string[]		= "weapon_crowbar";
 	char			mask[]			= "xxxxxx?x";
 	unsigned char	pattern[]		= "\x68\x00\x00\x00\x00\x8B\x00\xE8";
@@ -195,10 +298,12 @@ bool Parse_GiveNamedItem(size_t start, size_t end)
 
 	size_t pAdress = ParseFunc(start, end, funcname, string, pattern, mask, BytesOffset);
 
-	if (pAdress == NULL)
+	if (!pAdress)
 	{
 		return false;
 	}
+
+#endif
 
 	g_dllFuncs[Func_GiveNamedItem].address = (void*)pAdress;
 
@@ -218,7 +323,24 @@ bool Parse_GiveNamedItem(size_t start, size_t end)
 
 bool Parse_SetAnimation(size_t start, size_t end)
 {
-	char			funcname[]		= "CBasePlayer::SetAnimation";
+	char funcname[] = "CBasePlayer::SetAnimation";
+
+#ifdef __linux__
+
+	size_t pAdress	= (size_t)FindFunction(&g_GameDllModule, "SetAnimation__11CBasePlayer11PLAYER_ANIM");
+
+	if (!pAdress)
+	{
+		pAdress	= (size_t)FindFunction(&g_GameDllModule, "_ZN11CBasePlayer12SetAnimationE11PLAYER_ANIM");
+	}
+
+	if (!pAdress)
+	{
+		printf2("[%s]:   Error: \"%s\" not found\n", Plugin_info.logtag, funcname);
+		return false;
+	}
+
+#else
 
 	char			string[]		= "models/v_satchel_radio.mdl";
 	char			mask[]			= "x??xxxxx";
@@ -262,10 +384,12 @@ bool Parse_SetAnimation(size_t start, size_t end)
 
 	pAdress = ParseFunc(pAdress, pAdress + 150, funcname, pattern2, mask2, BytesOffset);
 	
-	if (pAdress == NULL)
+	if (!pAdress)
 	{
 		return false;
 	}
+
+#endif
 
 	g_dllFuncs[Func_PlayerSetAnimation].address = (void*)pAdress;
 
@@ -298,26 +422,26 @@ void EnableShieldHitboxTracing()
 		return;
 	}
 
-	#ifdef __linux__
+#ifdef __linux__
 
-		size_t pAdress = (size_t)FindFunction(&hEngine, "g_bIsCStrike");
+	size_t pAdress = (size_t)FindFunction(&hEngine, "g_bIsCStrike");
 
-	#else
+#else
 
-		signature sig =
-		{
-			"\xC3\xE8\x00\x00\x00\x00\xA1\x00\x00\x00\x00\x85\xC0\x75\x00\xA1",
-			"xx????x????xxx?x", 16
-		};
+	signature sig =
+	{
+		"\xC3\xE8\x00\x00\x00\x00\xA1\x00\x00\x00\x00\x85\xC0\x75\x00\xA1",
+		"xx????x????xxx?x", 16
+	};
 
-		size_t pAdress = (size_t)FindFunction(&hEngine, sig);
+	size_t pAdress = (size_t)FindFunction(&hEngine, sig);
 
-		if (pAdress)
-		{
-			pAdress += 7;
-		}
+	if (pAdress)
+	{
+		pAdress += 7;
+	}
 
-	#endif 
+#endif 
 
 	if (!pAdress)
 	{

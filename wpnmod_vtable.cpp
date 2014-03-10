@@ -32,6 +32,7 @@
  */
 
 #include "wpnmod_vtable.h"
+#include "wpnmod_memory.h"
 #include "wpnmod_config.h"
 
 
@@ -70,7 +71,7 @@ void Vtable_Init(void)
 	SetVTableOffsetBase(0x0);
 
 #ifdef __linux__
-	if (/* NEW GCC*/)
+	if (g_bNewGCC)
 	{
 		for (int i = 0; i < VO_End; i++)
 		{
@@ -84,7 +85,7 @@ void Vtable_Init(void)
 	if (g_GameMod == SUBMOD_AGHLRU || g_GameMod == SUBMOD_VALVE)
 	{
 #ifdef __linux__
-		if (!/* NEW GCC*/)
+		if (!g_bNewGCC)
 		{
 			SetVTableOffsetPev(0);
 			SetVTableOffsetBase(0x60);
@@ -95,7 +96,7 @@ void Vtable_Init(void)
 	else if (g_GameMod == SUBMOD_GEARBOX)
 	{
 #ifdef __linux__
-		if (!/* NEW GCC*/)
+		if (!g_bNewGCC)
 		{
 			SetVTableOffsetPev(0);
 			SetVTableOffsetBase(0x6C);

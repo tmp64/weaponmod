@@ -41,6 +41,7 @@
 #include "cbase.h"
 
 #include "wpnmod_vtable.h"
+#include "wpnmod_pvdata.h"
 
 
 #ifdef __linux__
@@ -203,7 +204,7 @@ inline int			GetWeapon_Flags(const int iId)			{ return WeaponInfoArray[iId].Item
 #define SetEntForward(ent, call, handler, forward)	\
 													\
 	g_Ents[ENTINDEX(ent)].i##call = forward;		\
-	Set##call##_(ent, handler);						\
+	Set##call##(ent, handler);						\
 
 class CPlugin
 {

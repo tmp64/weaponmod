@@ -31,6 +31,9 @@
  *
  */
 
+#undef SetThink
+#undef SetTouch
+
 #ifndef _PVDATA_H
 #define _PVDATA_H
 
@@ -96,30 +99,6 @@ enum PrivateDataOffsets
 extern void pvData_Init(void);
 extern GameOffset GamePvDatasOffsets[pvData_End];
 
-inline edict_t* PrivateToEdict(const void* pdata)
-{
-	if (!pdata || (int)pdata == -1)
-	{
-		return NULL;
-	}
-
-	char* ptr = (char*)pdata + g_EntityVTableOffsetPev;
-
-	if (!ptr)
-	{
-		return NULL;
-	}
-
-	entvars_t* pev = *(entvars_t**)ptr;
-
-	if (!pev)
-	{
-		return NULL;
-	}
-
-	return pev->pContainingEntity;
-};
-
 inline int GetPrivateInt(edict_t* pEntity, int iOffset)
 {
 	return *((int*)pEntity->pvPrivateData + GET_PVDATA_OFFSET(iOffset));
@@ -155,15 +134,15 @@ inline void SetPrivateFloat(edict_t* pEntity, int iOffset, float flValue)
 	*((float*)pEntity->pvPrivateData + GET_PVDATA_OFFSET(iOffset)) = flValue;
 }
 
-extern void		SetTouch_			(edict_t* pEntity, void* funcAddress);
-extern void		SetThink_			(edict_t* pEntity, void* funcAddress);
+extern void		SetTouch			(edict_t* pEntity, void* funcAddress);
+extern void		SetThink			(edict_t* pEntity, void* funcAddress);
 
 extern void		SetPrivateCbase		(edict_t* pEntity, int iOffset, edict_t* pValue);
 extern void		SetPrivateCbase		(edict_t* pEntity, int iOffset, edict_t* pValue, int iExtraRealOffset);
 extern void		SetPrivateString	(edict_t* pEntity, int iOffset, const char* pValue);
 
+extern edict_t*	PrivateToEdict		(const void* pvPrivateData);
 extern edict_t*	GetPrivateCbase		(edict_t* pEntity, int iOffset);
 extern edict_t*	GetPrivateCbase		(edict_t* pEntity, int iOffset, int iExtraRealOffset);
-
 
 #endif  // _PVDATA_H

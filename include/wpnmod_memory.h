@@ -38,6 +38,9 @@
 #include "wpnmod_hooker.h"
 #include "wpnmod_hooks.h"
 
+#ifdef __linux__
+	extern bool g_bNewGCC;
+#endif
 
 bool	FindFuncsInDll				(size_t start, size_t end);
 bool	Parse_ClearMultiDamage		(size_t start, size_t end);
