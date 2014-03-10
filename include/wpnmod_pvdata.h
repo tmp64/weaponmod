@@ -31,9 +31,6 @@
  *
  */
 
-#undef SetThink
-#undef SetTouch
-
 #ifndef _PVDATA_H
 #define _PVDATA_H
 
@@ -134,8 +131,8 @@ inline void SetPrivateFloat(edict_t* pEntity, int iOffset, float flValue)
 	*((float*)pEntity->pvPrivateData + GET_PVDATA_OFFSET(iOffset)) = flValue;
 }
 
-extern void		SetTouch			(edict_t* pEntity, void* funcAddress);
-extern void		SetThink			(edict_t* pEntity, void* funcAddress);
+extern void		SetTouch_			(edict_t* pEntity, void* funcAddress);
+extern void		SetThink_			(edict_t* pEntity, void* funcAddress);
 
 extern void		SetPrivateCbase		(edict_t* pEntity, int iOffset, edict_t* pValue);
 extern void		SetPrivateCbase		(edict_t* pEntity, int iOffset, edict_t* pValue, int iExtraRealOffset);

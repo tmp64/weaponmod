@@ -48,8 +48,8 @@ edict_t* Grenade_ShootContact(edict_t *pOwner, Vector vecStart, Vector vecVeloci
 		pGrenade->v.angles = UTIL_VecToAngles(pGrenade->v.velocity);
 		pGrenade->v.owner = pOwner;
 	
-		SetTouch(pGrenade, (void*)Grenade_ExplodeTouch);
-		SetThink(pGrenade, (void*)Grenade_ThinkBeforeContact);
+		SetTouch_(pGrenade, (void*)Grenade_ExplodeTouch);
+		SetThink_(pGrenade, (void*)Grenade_ThinkBeforeContact);
 		
 		pGrenade->v.nextthink = gpGlobals->time;
 		pGrenade->v.avelocity.x = RANDOM_FLOAT(-100, -500);
@@ -76,8 +76,8 @@ edict_t* Grenade_ShootTimed(edict_t *pOwner, Vector vecStart, Vector vecVelocity
 		pGrenade->v.angles = UTIL_VecToAngles(pGrenade->v.velocity);
 		pGrenade->v.owner = pOwner;
 
-		SetTouch(pGrenade, (void*)Grenade_BounceTouch);
-		SetThink(pGrenade, (void*)Grenade_TumbleThink);
+		SetTouch_(pGrenade, (void*)Grenade_BounceTouch);
+		SetThink_(pGrenade, (void*)Grenade_TumbleThink);
 
 		pGrenade->v.dmgtime = gpGlobals->time + flTime;
 		pGrenade->v.nextthink = gpGlobals->time + flTime;
@@ -188,7 +188,7 @@ void Grenade_Explode(edict_t* pGrenade, int bitsDamageType)
 
 		if (IsValidPev(pTaskSmoke))
 		{
-			SetThink(pTaskSmoke, (void*)Grenade_ThinkSmoke);
+			SetThink_(pTaskSmoke, (void*)Grenade_ThinkSmoke);
 
 			pTaskSmoke->v.classname = MAKE_STRING("wpnmod_smoke_task");
 			pTaskSmoke->v.nextthink = gpGlobals->time + 0.3;

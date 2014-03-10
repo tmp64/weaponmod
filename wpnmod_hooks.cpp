@@ -849,7 +849,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 
 		if (IsValidPev(pTaskEnt))
 		{
-			SetThink(pTaskEnt, (void*)Equipment_Think);
+			SetThink_(pTaskEnt, (void*)Equipment_Think);
 			SetPrivateInt(pTaskEnt, pvData_fireState, ENTINDEX(pPlayer));
 
 			pTaskEnt->v.classname = MAKE_STRING("equipment_task");
