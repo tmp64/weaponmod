@@ -94,11 +94,11 @@ void W_Precache(void)
 		}
 	}
 
-	g_pCurrentSlots	= new int* [g_iMaxWeaponSlots];
+	//g_pCurrentSlots	= new int* [g_iMaxWeaponSlots];
 
 	for (int i = 0; i < g_iMaxWeaponSlots; ++i)
 	{
-		memset((g_pCurrentSlots[i] = new int [g_iMaxWeaponPositions]), 0, sizeof(int) * g_iMaxWeaponPositions);
+		memset(/*(g_pCurrentSlots[i] = new int [g_iMaxWeaponPositions])*/g_bCurrentSlots[i], 0, sizeof(int) * g_iMaxWeaponPositions);
 	}
 
 	g_Ents = new EntData[gpGlobals->maxEntities];
@@ -128,13 +128,13 @@ void OnAmxxDetach(void)
 		}
 	}
 
-	for (int i = 0; i < g_iMaxWeaponSlots; ++i)
+	/*for (int i = 0; i < g_iMaxWeaponSlots; ++i)
 	{
 		delete [] g_pCurrentSlots[i];
-	}
+	}*/
 
 	delete [] g_Ents;
-	delete [] g_pCurrentSlots;
+	//delete [] g_pCurrentSlots;
 }
 
 bool g_bWorldSpawned = false;
@@ -210,7 +210,7 @@ void ServerDeactivate()
 
 	for (int i = 0; i < g_iMaxWeaponSlots; ++i)
 	{
-		memset(g_pCurrentSlots[i], 0, sizeof(int) * g_iMaxWeaponPositions);
+		memset(/*g_pCurrentSlots*/g_bCurrentSlots[i], 0, sizeof(int) * g_iMaxWeaponPositions);
 	}
 
 	for (int i = 0; i < (int)g_Decals.size(); i++)

@@ -996,7 +996,7 @@ void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 		WeaponInfoArray[pII.iId].ItemData = pII;
 		WeaponInfoArray[pII.iId].iType = Wpn_Default;
 
-		g_pCurrentSlots[pII.iSlot][pII.iPosition] = TRUE;
+		/*g_pCurrentSlots*/g_bCurrentSlots[pII.iSlot][pII.iPosition] = true;
 
 		REMOVE_ENTITY(pEntity);
 
