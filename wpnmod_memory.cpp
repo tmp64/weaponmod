@@ -82,8 +82,14 @@ bool Parse_ClearMultiDamage(size_t start, size_t end)
 
 	if (!pAdress)
 	{
+		printf2("!!!!!!!!!!!!!! NEW\n");
+
 		g_bNewGCC = true;
 		pAdress	= (size_t)FindFunction(&g_GameDllModule, "_Z16ClearMultiDamagev");
+	}
+	else
+	{
+		printf2("!!!!!!!!!!!!!! OLD\n");
 	}
 
 	if (!pAdress)
