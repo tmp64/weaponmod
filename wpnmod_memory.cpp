@@ -463,7 +463,7 @@ size_t ParseFunc(size_t start, size_t end, char* funcname, unsigned char* patter
 
 	pCurrent = FindAdressInDLL(start, end, pattern, mask);
 
-	while (pCurrent != NULL)
+	while (pCurrent)
 	{
 		count++;
 		pAdress = pCurrent;
@@ -499,11 +499,11 @@ size_t ParseFunc(size_t start, size_t end, char* funcname, char* string, unsigne
 	
 	pCurrent = FindStringInDLL(start, end, string);
 
-	while (pCurrent != NULL)
+	while (pCurrent)
 	{
 		*(size_t*)(pattern + 1) = (size_t)pCurrent;
 
-		if ((pCandidate = FindAdressInDLL(start, end, pattern, mask)) != NULL)
+		if ((pCandidate = FindAdressInDLL(start, end, pattern, mask)))
 		{
 			count++;
 			pAdress = pCandidate;
