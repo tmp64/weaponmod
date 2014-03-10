@@ -447,7 +447,7 @@ extern EntData* g_Ents;
 
 	// virtual int CBasePlayerItem::GetItemInfo(ItemInfo* p);
 	//
-		inline int GET_ITEM_INFO( void* pvItem, ItemInfo* p)
+		inline int GET_ITEM_INFO(void* pvItem, ItemInfo* p)
 		{
 			return reinterpret_cast<FuncGetItemInfo>(g_CrowbarHooks[CrowbarHook_GetItemInfo].address)(pvItem, p);
 		}

@@ -870,7 +870,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 	}
 
 	// Disable hitbox tracing.
-	pPlayer->v.gamestate = 1;
+	//pPlayer->v.gamestate = 1;
 
 	/*
 	const char* mdl = g_engfuncs.pfnInfoKeyValue(g_engfuncs.pfnGetInfoKeyBuffer(pPlayer), "model"); 
