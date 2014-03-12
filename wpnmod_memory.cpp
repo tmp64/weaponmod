@@ -443,7 +443,7 @@ void EnableShieldHitboxTracing()
 
 #ifdef __linux__
 
-	size_t pAdress = (size_t)FindFunction(&hEngine, "g_bIsCStrike");
+	int* pAdress = (int*)FindFunction(&hEngine, "g_bIsCStrike");
 
 #else
 
@@ -469,11 +469,10 @@ void EnableShieldHitboxTracing()
 	else
 	{
 #ifdef __linux__
-		*(int*)(pAdress) = 1;
+		*pAdress = 1;
 #else
 		*(int*)*(size_t*)(pAdress) = 1;
 #endif
-
 		printf2("[%s]: Shield hitbox tracing enabled at %p\n", Plugin_info.logtag, pAdress);
 	}
 }
