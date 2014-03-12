@@ -470,10 +470,9 @@ void EnableShieldHitboxTracing()
 	{
 #ifdef __linux__
 
-		printf2("!!!!!!!!!!!! %p\n", pAdress);
-		printf2("!!!!!!!!!!!! %d\n", *pAdress);
+		printf2("!!!!!!!!!!!! %i\n", pAdress);
 
-		*pAdress = 1;
+		//*pAdress = 1;
 #else
 		*(int*)*(size_t*)(pAdress) = 1;
 #endif
