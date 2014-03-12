@@ -153,7 +153,7 @@ int DispatchSpawn(edict_t *pent)
 
 void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 {
-	// EnableShieldHitboxTracing();
+	EnableShieldHitboxTracing();
 
 	ParseBSP();
 	ParseSpawnPoints();

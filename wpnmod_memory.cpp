@@ -421,7 +421,7 @@ void EnableShieldHitboxTracing()
 
 	for (int i = 1; i <= g_iWeaponsCount; i++)
 	{
-		if (WeaponInfoArray[i].iType == Wpn_Custom && !stricmp(GetWeapon_pszName(i), "weapon_shield"))
+		if (WeaponInfoArray[i].iType == Wpn_Custom && !stricmp(GetWeapon_pszName(i), "weapon_rpg7"))
 		{
 			bShieldRegistered = true;
 			break;
@@ -468,7 +468,12 @@ void EnableShieldHitboxTracing()
 	}
 	else
 	{
+#ifdef __linux__
+		*(int*)(pAdress) = 1;
+#else
 		*(int*)*(size_t*)(pAdress) = 1;
+#endif
+
 		printf2("[%s]: Shield hitbox tracing enabled at %p\n", Plugin_info.logtag, pAdress);
 	}
 }

@@ -205,11 +205,6 @@ void Grenade_Explode(edict_t* pGrenade, int bitsDamageType)
 		MF_ExecuteForward(g_Ents[iGrenade].iExplode, static_cast<cell>(ENTINDEX(pGrenade)), reinterpret_cast<cell>(&pTrace));
 	}
 
-	//g_Ents[iGrenade].iExplode = NULL;
-
-	//SetEntForward(pGrenade, Think, NULL, NULL);
-	//SetEntForward(pGrenade, Touch, NULL, NULL);
-
 	pGrenade->v.velocity = Vector(0, 0, 0);
 	pGrenade->v.effects |= EF_NODRAW;
 	pGrenade->v.flags |= FL_KILLME;
@@ -356,7 +351,7 @@ void Grenade_ExplodeTouch(void *pPrivate, void *pPrivate2)
 	{
 		return;
 	}
-	
+
 	Grenade_Explode(pGrenade, DMG_BLAST);
 }
 
