@@ -129,7 +129,6 @@ bool Parse_ClearMultiDamage(size_t start, size_t end)
 #endif
 
 	g_dllFuncs[Func_ClearMultiDamage].address = (void*)pAdress;
-
 	return true;
 }
 
@@ -182,7 +181,6 @@ bool Parse_ApplyMultiDamage(size_t start, size_t end)
 #endif
 
 	g_dllFuncs[Func_ApplyMultiDamage].address = (void*)pAdress;
-
 	return true;
 }
 
@@ -281,7 +279,6 @@ bool Parse_GetAmmoIndex(size_t start, size_t end)
 #endif
 
 	g_dllFuncs[Func_GetAmmoIndex].address = (void*)pAdress;
-
 	return true;
 }
 
@@ -415,7 +412,6 @@ bool Parse_SetAnimation(size_t start, size_t end)
 #endif
 
 	g_dllFuncs[Func_PlayerSetAnimation].address = (void*)pAdress;
-
 	return true;
 }
 
@@ -425,7 +421,7 @@ void EnableShieldHitboxTracing()
 
 	for (int i = 1; i <= g_iWeaponsCount; i++)
 	{
-		if (WeaponInfoArray[i].iType == Wpn_Custom && !stricmp(GetWeapon_pszName(i), "weapon_rpg7"))
+		if (WeaponInfoArray[i].iType == Wpn_Custom && !stricmp(GetWeapon_pszName(i), "weapon_shield"))
 		{
 			bShieldRegistered = true;
 			break;

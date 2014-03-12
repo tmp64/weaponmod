@@ -147,7 +147,7 @@ void AutoSlotDetection(int iWeaponID, int iSlot, int iPosition)
 				}
 			}
 		}
-		
+
 		if (!bFound)
 		{
 			WeaponInfoArray[iWeaponID].ItemData.iPosition = MAX_WEAPONS;
@@ -245,7 +245,7 @@ edict_t* Ammo_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles)
 	{
 		MDLL_Spawn(pAmmoBox);
 		SET_ORIGIN(pAmmoBox, vecOrigin);
-		
+
 		pAmmoBox->v.classname = MAKE_STRING(AmmoBoxInfoArray[iId].classname.c_str());
 		pAmmoBox->v.angles = vecAngles;
 

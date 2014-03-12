@@ -48,8 +48,8 @@ edict_t* Grenade_ShootContact(edict_t *pOwner, Vector vecStart, Vector vecVeloci
 		pGrenade->v.angles = UTIL_VecToAngles(pGrenade->v.velocity);
 		pGrenade->v.owner = pOwner;
 	
-		SetTouch_(pGrenade, (void*)Grenade_ExplodeTouch);
-		SetThink_(pGrenade, (void*)Grenade_ThinkBeforeContact);
+		Dll_SetTouch(pGrenade, (void*)Grenade_ExplodeTouch);
+		Dll_SetThink(pGrenade, (void*)Grenade_ThinkBeforeContact);
 		
 		pGrenade->v.nextthink = gpGlobals->time;
 		pGrenade->v.avelocity.x = RANDOM_FLOAT(-100, -500);
@@ -76,8 +76,8 @@ edict_t* Grenade_ShootTimed(edict_t *pOwner, Vector vecStart, Vector vecVelocity
 		pGrenade->v.angles = UTIL_VecToAngles(pGrenade->v.velocity);
 		pGrenade->v.owner = pOwner;
 
-		SetTouch_(pGrenade, (void*)Grenade_BounceTouch);
-		SetThink_(pGrenade, (void*)Grenade_TumbleThink);
+		Dll_SetTouch(pGrenade, (void*)Grenade_BounceTouch);
+		Dll_SetThink(pGrenade, (void*)Grenade_TumbleThink);
 
 		pGrenade->v.dmgtime = gpGlobals->time + flTime;
 		pGrenade->v.nextthink = gpGlobals->time + flTime;
@@ -188,7 +188,7 @@ void Grenade_Explode(edict_t* pGrenade, int bitsDamageType)
 
 		if (IsValidPev(pTaskSmoke))
 		{
-			SetThink_(pTaskSmoke, (void*)Grenade_ThinkSmoke);
+			Dll_SetThink(pTaskSmoke, (void*)Grenade_ThinkSmoke);
 
 			pTaskSmoke->v.classname = MAKE_STRING("wpnmod_smoke_task");
 			pTaskSmoke->v.nextthink = gpGlobals->time + 0.3;
@@ -205,10 +205,10 @@ void Grenade_Explode(edict_t* pGrenade, int bitsDamageType)
 		MF_ExecuteForward(g_Ents[iGrenade].iExplode, static_cast<cell>(ENTINDEX(pGrenade)), reinterpret_cast<cell>(&pTrace));
 	}
 
-	g_Ents[iGrenade].iExplode = NULL;
+	//g_Ents[iGrenade].iExplode = NULL;
 
-	SetEntForward(pGrenade, Think, NULL, NULL);
-	SetEntForward(pGrenade, Touch, NULL, NULL);
+	//SetEntForward(pGrenade, Think, NULL, NULL);
+	//SetEntForward(pGrenade, Touch, NULL, NULL);
 
 	pGrenade->v.velocity = Vector(0, 0, 0);
 	pGrenade->v.effects |= EF_NODRAW;

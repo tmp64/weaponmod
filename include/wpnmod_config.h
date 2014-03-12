@@ -104,6 +104,29 @@ enum e_WpnType
 	Wpn_End
 };
 
+class CPlugin
+{
+public:
+	AMX amx;
+	void* code;
+
+	String	name;
+	String	version;
+	String	title;
+	String	author;
+	String	errorMsg;
+};
+
+typedef enum
+{
+	PLAYER_IDLE,
+	PLAYER_WALK,
+	PLAYER_JUMP,
+	PLAYER_SUPERJUMP,
+	PLAYER_DIE,
+	PLAYER_ATTACK1,
+} PLAYER_ANIM;
+
 typedef struct
 {
 	int		iSlot;
@@ -200,33 +223,5 @@ inline const char*	GetWeapon_pszName(const int iId)		{ return WeaponInfoArray[iI
 inline int			GetWeapon_MaxClip(const int iId)		{ return WeaponInfoArray[iId].ItemData.iMaxClip; }
 inline int			GetWeapon_Weight(const int iId)			{ return WeaponInfoArray[iId].ItemData.iWeight; }
 inline int			GetWeapon_Flags(const int iId)			{ return WeaponInfoArray[iId].ItemData.iFlags; }
-
-#define SetEntForward(ent, call, handler, forward)	\
-													\
-	g_Ents[ENTINDEX(ent)].i##call = forward;		\
-	Set##call##_(ent, handler);						\
-
-class CPlugin
-{
-public:
-	AMX amx;
-	void* code;
-
-	String	name;
-	String	version;
-	String	title;
-	String	author;
-	String	errorMsg;
-};
-
-typedef enum
-{
-	PLAYER_IDLE,
-	PLAYER_WALK,
-	PLAYER_JUMP,
-	PLAYER_SUPERJUMP,
-	PLAYER_DIE,
-	PLAYER_ATTACK1,
-} PLAYER_ANIM;
 
 #endif // _CONFIG_H

@@ -131,14 +131,15 @@ inline void SetPrivateFloat(edict_t* pEntity, int iOffset, float flValue)
 	*((float*)pEntity->pvPrivateData + GET_PVDATA_OFFSET(iOffset)) = flValue;
 }
 
-extern void		SetTouch_			(edict_t* pEntity, void* funcAddress);
-extern void		SetThink_			(edict_t* pEntity, void* funcAddress);
+extern void		Dll_SetTouch		(edict_t* pEntity, void* funcAddress);
+extern void		Dll_SetThink		(edict_t* pEntity, void* funcAddress);
 
 extern void		SetPrivateCbase		(edict_t* pEntity, int iOffset, edict_t* pValue);
 extern void		SetPrivateCbase		(edict_t* pEntity, int iOffset, edict_t* pValue, int iExtraRealOffset);
 extern void		SetPrivateString	(edict_t* pEntity, int iOffset, const char* pValue);
 
 extern edict_t*	PrivateToEdict		(const void* pvPrivateData);
+
 extern edict_t*	GetPrivateCbase		(edict_t* pEntity, int iOffset);
 extern edict_t*	GetPrivateCbase		(edict_t* pEntity, int iOffset, int iExtraRealOffset);
 

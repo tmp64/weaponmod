@@ -31,6 +31,7 @@
  *
  */
 
+#include "wpnmod_config.h"
 #include "wpnmod_parse.h"
 #include "wpnmod_memory.h"
 
@@ -83,7 +84,7 @@ void W_Precache(void)
 
 	cvar_sv_cheats = CVAR_GET_POINTER("sv_cheats");
 	cvar_mp_weaponstay = CVAR_GET_POINTER("mp_weaponstay");
-	
+
 	if (ParseSection(g_ConfigFilepath, "[block]", (void*)OnParseBlockedItems, -1) && (int)g_BlockedItems.size())
 	{
 		printf2("[%s]: Blocked default items:\n", Plugin_info.logtag);
@@ -93,7 +94,7 @@ void W_Precache(void)
 			printf2("[%s]:   %s\n", Plugin_info.logtag, g_BlockedItems[i]->classname);
 		}
 	}
-	
+
 	g_pCurrentSlots	= new int* [g_iMaxWeaponSlots];
 
 	for (int i = 0; i < g_iMaxWeaponSlots; ++i)
@@ -181,7 +182,15 @@ void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 
 void FN_OnFreeEntPrivateData(edict_t *pEnt)
 {
-	//printf2("!!!!!!!!!!!!!!   %d  %s\n", ENTINDEX(pEnt), STRING(pEnt->v.classname));
+	if (IsValidPev(pEnt))
+	{
+		int iEntity = ENTINDEX(pEnt);
+
+		g_Ents[iEntity].iThink = NULL;
+		g_Ents[iEntity].iTouch = NULL;
+		g_Ents[iEntity].iExplode = NULL;
+	}
+
 	RETURN_META(MRES_IGNORED);
 }
 
@@ -228,7 +237,7 @@ void ServerDeactivate()
 		UnsetHookVirtual(g_BlockedItems[i]);
 		delete g_BlockedItems[i];
 	}
-	
+
 	g_Decals.clear();
 	g_StartAmmo.clear();
 	g_BlockedItems.clear();

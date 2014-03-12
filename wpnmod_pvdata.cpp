@@ -212,7 +212,7 @@ void SetPrivateString(edict_t* pEntity, int iOffset, const char* pValue)
 	#endif
 }
 
-void SetTouch_(edict_t* pEntity, void* funcAddress)
+void Dll_SetTouch(edict_t* pEntity, void* funcAddress)
 {
 #ifdef __linux__
 
@@ -230,7 +230,7 @@ void SetTouch_(edict_t* pEntity, void* funcAddress)
 #endif
 }
 
-void SetThink_(edict_t* pEntity, void* funcAddress)
+void Dll_SetThink(edict_t* pEntity, void* funcAddress)
 {
 #ifdef __linux__
 

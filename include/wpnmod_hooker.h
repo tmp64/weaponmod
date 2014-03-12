@@ -74,13 +74,13 @@ struct signature
 struct function
 {
 	const char*		name;
-	
+
 	module*			lib;
 	signature		sig;
 	
 	void*			address;
 	void*			handler;
-	
+
 	unsigned char	patch[5];
 	unsigned char	origin[5];
 

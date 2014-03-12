@@ -354,7 +354,7 @@ AMXX_NATIVE(wpnmod_get_weapon_info)
 	{
 		iId = GetPrivateInt(pItem, pvData_iId);
 	}
-	
+
 	if (iId <= 0 || iId > g_iWeaponsCount)
 	{
 		MF_LogError(amx, AMX_ERR_NATIVE, "Invalid weapon id provided (%d).", iId);
@@ -480,7 +480,7 @@ AMXX_NATIVE(wpnmod_get_ammobox_info)
 			}
 		}
 	}
-	
+
 	if (iId <= 0 || iId > g_iAmmoBoxIndex)
 	{
 		MF_LogError(amx, AMX_ERR_NATIVE, "Invalid ammobox id provided (%d).", iId);
@@ -726,7 +726,7 @@ AMXX_NATIVE(wpnmod_set_offset_float)
 
 	CHECK_ENTITY(iEntity)
 	CHECK_OFFSET(iOffset)
-	
+
 	SetPrivateFloat(INDEXENT2(iEntity), NativesPvDataOffsets[iOffset], flValue);
 	return 1;
 }
@@ -746,7 +746,7 @@ AMXX_NATIVE(wpnmod_set_offset_cbase)
 	CHECK_ENTITY(params[1])
 	CHECK_ENTITY(params[3])
 	CHECK_OFFSET_CBASE(params[2])
-	
+
 	SetPrivateCbase(INDEXENT2(params[1]), NativesCBaseOffsets[params[2]], INDEXENT2(params[3]), params[4]);
 	return 1;
 }
@@ -827,7 +827,7 @@ AMXX_NATIVE(wpnmod_default_deploy)
 	{
 		return 0;
 	}
-	
+
 	if (!Weapon_CanDeploy(pItem->pvPrivateData))
 	{
 		return 0;
@@ -917,7 +917,8 @@ AMXX_NATIVE(wpnmod_set_think)
 
 	if (!strlen(funcname))
 	{
-		SetEntForward(INDEXENT2(iEntity), Think, NULL, NULL);
+		g_Ents[iEntity].iThink = NULL;
+		Dll_SetThink(INDEXENT2(iEntity), NULL);
 	}
 	else
 	{
@@ -939,7 +940,8 @@ AMXX_NATIVE(wpnmod_set_think)
 			return 0;
 		}
 
-		SetEntForward(INDEXENT2(iEntity), Think, (void*)Global_Think, iForward);
+		g_Ents[iEntity].iThink  = iForward;
+		Dll_SetThink (INDEXENT2(iEntity), (void*)Global_Think );
 	}
 
 	return 1;
@@ -963,7 +965,8 @@ AMXX_NATIVE(wpnmod_set_touch)
 
 	if (!strlen(funcname))
 	{
-		SetEntForward(INDEXENT2(iEntity), Touch, NULL, NULL);
+		g_Ents[iEntity].iTouch = NULL;
+		Dll_SetTouch(INDEXENT2(iEntity), NULL);
 	}
 	else
 	{
@@ -982,7 +985,8 @@ AMXX_NATIVE(wpnmod_set_touch)
 			return 0;
 		}
 
-		SetEntForward(INDEXENT2(iEntity), Touch, (void*)Global_Touch, iForward);
+		g_Ents[iEntity].iTouch = iForward;
+		Dll_SetTouch(INDEXENT2(iEntity), (void*)Global_Touch);
 	}
 
 	return 1;
@@ -1094,7 +1098,7 @@ AMXX_NATIVE(wpnmod_eject_brass)
 	edict_t* pPlayer = INDEXENT2(iPlayer);
 
 	Vector vecShellVelocity = pPlayer->v.velocity + gpGlobals->v_right * RANDOM_FLOAT(50, 70) + gpGlobals->v_up * RANDOM_FLOAT(100, 150) + gpGlobals->v_forward * 25;
-	
+
 	UTIL_EjectBrass
 	(
 		pPlayer->v.origin + pPlayer->v.view_ofs + gpGlobals->v_up * amx_ctof(params[5]) + gpGlobals->v_forward * amx_ctof(params[4]) + gpGlobals->v_right * amx_ctof(params[6]), 
@@ -1193,7 +1197,7 @@ AMXX_NATIVE(wpnmod_create_item)
 		if (IsValidPev(iItem))
 		{
 			return ENTINDEX(iItem);
-		}	
+		}
 	}
 
 	return -1;
@@ -1332,7 +1336,7 @@ AMXX_NATIVE(wpnmod_get_damage_decal)
 	{
 		return -1;
 	}
-	
+
 	return g_Decals[decalNumber]->index;
 }
 
@@ -1623,7 +1627,7 @@ AMXX_NATIVE(wpnmod_precache_model_sequences)
 		fread(&iNumSeq, sizeof(int), 1, fp);
 		fread(&iSeqIndex, sizeof(int), 1, fp);
 
-		//String strSound = NULL;
+		String sound;
 
 		for (int k, i = 0; i < iNumSeq; i++)
 		{
@@ -1641,14 +1645,12 @@ AMXX_NATIVE(wpnmod_precache_model_sequences)
 				if (iEvent == 5004)
 				{
 					fread(&modelpath, 64, 1, fp);
+					sound.assign(modelpath);
 
-					if (strlen(modelpath))
+					if (sound.size())
 					{
-						//	strtolower(szSoundPath);
-						//PRECACHE_SOUND(szSoundPath);
+						PRECACHE_SOUND((char*)STRING(ALLOC_STRING(sound.c_str())));
 					}
-				
-					//printf2(" * Sound: %s\n", modelpath);
 				}
 			}
 		}
@@ -1700,7 +1702,7 @@ AMX_NATIVE_INFO Natives[] =
 	{ "wpnmod_explode_entity", wpnmod_explode_entity},
 	{ "wpnmod_decal_trace", wpnmod_decal_trace},
 	{ "wpnmod_trace_texture", wpnmod_trace_texture},
-	{ "wpnmod_precache_model_sequences", wpnmod_precache_model_sequences},
+	// { "wpnmod_precache_model_sequences", wpnmod_precache_model_sequences},
 
 	{ NULL, NULL }
 };

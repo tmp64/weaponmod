@@ -510,8 +510,11 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 		return;
 	}
 
-	SetEntForward(pWeapon, Think, NULL, NULL);
-	SetEntForward(pWeapon, Touch, NULL, NULL);
+	Dll_SetThink(pWeapon, NULL);
+	Dll_SetTouch(pWeapon, NULL);
+
+	g_Ents[ENTINDEX(pWeapon)].iThink = NULL;
+	g_Ents[ENTINDEX(pWeapon)].iTouch = NULL;
 
 	edict_t* pPlayer = GetPrivateCbase(pWeapon, pvData_pPlayer);
 
@@ -849,7 +852,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 
 		if (IsValidPev(pTaskEnt))
 		{
-			SetThink_(pTaskEnt, (void*)Equipment_Think);
+			Dll_SetThink(pTaskEnt, (void*)Equipment_Think);
 			SetPrivateInt(pTaskEnt, pvData_fireState, ENTINDEX(pPlayer));
 
 			pTaskEnt->v.classname = MAKE_STRING("equipment_task");
@@ -871,23 +874,6 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 
 	// Disable hitbox tracing.
 	//pPlayer->v.gamestate = 1;
-
-	/*
-	const char* mdl = g_engfuncs.pfnInfoKeyValue(g_engfuncs.pfnGetInfoKeyBuffer(pPlayer), "model"); 
-
-	char modelpath[1024];
-
-	MF_BuildPathnameR(modelpath, sizeof(modelpath) - 1, "models/player/%s/%s.mdl", mdl, mdl);
-
-
-	printf("!!!!!!! Spawn %s   %s\n", STRING(pPlayer->v.netname), modelpath);
-
-	*/
-
-
-
-	//SET_MODEL(pPlayer, "models/player/hgrunt3/hgrunt3.mdl");
-	
 }
 
 
