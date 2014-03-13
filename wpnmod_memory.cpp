@@ -443,7 +443,7 @@ void EnableShieldHitboxTracing()
 
 #ifdef __linux__
 
-	int* pAdress = (int*)FindFunction(&hEngine, "g_bIsCStrike");
+	void* pAdress = FindFunction(&hEngine, "g_bIsCStrike");
 
 #else
 
@@ -470,9 +470,7 @@ void EnableShieldHitboxTracing()
 	{
 #ifdef __linux__
 
-		printf2("!!!!!!!!!!!! %i\n", pAdress);
-
-		//*pAdress = 1;
+		*(int*)pAdress = 1;
 #else
 		*(int*)*(size_t*)(pAdress) = 1;
 #endif

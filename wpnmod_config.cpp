@@ -127,7 +127,7 @@ void AutoSlotDetection(int iWeaponID, int iSlot, int iPosition)
 	}
 	else
 	{
-		BOOL bFound = FALSE;
+		bool bFound = false;
 
 		for (int k, i = 0; i < g_iMaxWeaponSlots && !bFound; i++)
 		{
@@ -140,9 +140,9 @@ void AutoSlotDetection(int iWeaponID, int iSlot, int iPosition)
 					WeaponInfoArray[iWeaponID].ItemData.iSlot = i;
 					WeaponInfoArray[iWeaponID].ItemData.iPosition = k;
 
-					printf2("[WEAPONMOD] \"%s\" is moved to slot %d-%d.\n", GetWeapon_pszName(iWeaponID), i + 1, k + 1);
+					printf2("[%s]: Warning: \"%s\" is moved to slot %d-%d.\n", Plugin_info.logtag, GetWeapon_pszName(iWeaponID), i + 1, k + 1);
 
-					bFound = TRUE;
+					bFound = true;
 					break;
 				}
 			}

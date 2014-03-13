@@ -36,6 +36,8 @@
 #include "wpnmod_memory.h"
 
 
+bool g_bWorldSpawned = false;
+
 int AmxxCheckGame(const char* game)
 {
 	return !stricmp(game, "cstrike") || !stricmp(game, "czero") ? AMXX_GAME_BAD : AMXX_GAME_OK;
@@ -73,13 +75,31 @@ int WpnMod_Init(void)
 	return 1;
 }
 
-// Called by worldspawn.
-void W_Precache(void)
+void Game_Init(void)
 {
-	g_GameMod = CheckSubMod(MF_GetModname());
+	static bool bInitOnce = false;
 
-	pvData_Init();
-	Vtable_Init();
+	if (!bInitOnce)
+	{
+		g_GameMod = CheckSubMod(MF_GetModname());
+
+		pvData_Init();
+		Vtable_Init();
+
+		g_Ents = new EntData[gpGlobals->maxEntities];
+		g_pCurrentSlots = new int* [g_iMaxWeaponSlots];
+
+		for (int i = 0; i < g_iMaxWeaponSlots; ++i)
+		{
+			memset((g_pCurrentSlots[i] = new int [g_iMaxWeaponPositions]), 0, sizeof(int) * g_iMaxWeaponPositions);
+		}
+
+		bInitOnce = true;
+	}
+}
+
+void World_Precache(void)
+{
 	SetConfigFile();
 
 	cvar_sv_cheats = CVAR_GET_POINTER("sv_cheats");
@@ -87,22 +107,13 @@ void W_Precache(void)
 
 	if (ParseSection(g_ConfigFilepath, "[block]", (void*)OnParseBlockedItems, -1) && (int)g_BlockedItems.size())
 	{
-		printf2("[%s]: Blocked default items:\n", Plugin_info.logtag);
+		printf2("[%s]:  Blocked default items:\n", Plugin_info.logtag);
 
 		for (int i = 0; i < (int)g_BlockedItems.size(); i++)
 		{
-			printf2("[%s]:   %s\n", Plugin_info.logtag, g_BlockedItems[i]->classname);
+			printf2("[%s]:   \"%s\"\n", Plugin_info.logtag, g_BlockedItems[i]->classname);
 		}
 	}
-
-	g_pCurrentSlots	= new int* [g_iMaxWeaponSlots];
-
-	for (int i = 0; i < g_iMaxWeaponSlots; ++i)
-	{
-		memset((g_pCurrentSlots[i] = new int [g_iMaxWeaponPositions]), 0, sizeof(int) * g_iMaxWeaponPositions);
-	}
-
-	g_Ents = new EntData[gpGlobals->maxEntities];
 }
 
 void OnAmxxAttach(void)
@@ -138,23 +149,8 @@ void OnAmxxDetach(void)
 	delete [] g_pCurrentSlots;
 }
 
-bool g_bWorldSpawned = false;
-
-int DispatchSpawn(edict_t *pent)
-{
-	if (!g_bWorldSpawned)
-	{
-		W_Precache();
-		g_bWorldSpawned = true;
-	}
-
-	RETURN_META_VALUE(MRES_IGNORED, 0);
-}
-
 void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 {
-	EnableShieldHitboxTracing();
-
 	ParseBSP();
 	ParseSpawnPoints();
 
@@ -177,33 +173,9 @@ void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 	SetHookVirtual(&g_PlayerSpawn_Hook);
 	SetHookVirtual(&g_PlayerPostThink_Hook);
 
-	RETURN_META(MRES_IGNORED);
-}
-
-void FN_OnFreeEntPrivateData(edict_t *pEnt)
-{
-	if (IsValidPev(pEnt))
-	{
-		int iEntity = ENTINDEX(pEnt);
-
-		g_Ents[iEntity].iThink = NULL;
-		g_Ents[iEntity].iTouch = NULL;
-		g_Ents[iEntity].iExplode = NULL;
-	}
+	EnableShieldHitboxTracing();
 
 	RETURN_META(MRES_IGNORED);
-}
-
-int FN_DecalIndex_Post(const char *name)
-{
-	DecalList *p = new DecalList;
-
-	p->name = STRING(ALLOC_STRING(name));
-	p->index = META_RESULT_ORIG_RET(int);
-
-	g_Decals.push_back(p);
-
-	RETURN_META_VALUE(MRES_IGNORED, 0);
 }
 
 void ServerDeactivate()
@@ -219,7 +191,7 @@ void ServerDeactivate()
 
 	for (int i = 0; i < g_iMaxWeaponSlots; ++i)
 	{
-		memset(g_pCurrentSlots, 0, sizeof(int) * g_iMaxWeaponPositions);
+		memset(g_pCurrentSlots[i], 0, sizeof(int) * g_iMaxWeaponPositions);
 	}
 
 	for (int i = 0; i < (int)g_Decals.size(); i++)
@@ -256,6 +228,45 @@ void ServerDeactivate()
 	UnsetHookVirtual(&g_PlayerPostThink_Hook);
 
 	RETURN_META(MRES_IGNORED);
+}
+
+void FN_OnFreeEntPrivateData(edict_t *pEnt)
+{
+	if (g_Ents != NULL && IsValidPev(pEnt))
+	{
+		int iEntity = ENTINDEX(pEnt);
+
+		g_Ents[iEntity].iThink = NULL;
+		g_Ents[iEntity].iTouch = NULL;
+		g_Ents[iEntity].iExplode = NULL;
+	}
+
+	RETURN_META(MRES_IGNORED);
+}
+
+int FN_DecalIndex_Post(const char *name)
+{
+	DecalList *p = new DecalList;
+
+	p->name = STRING(ALLOC_STRING(name));
+	p->index = META_RESULT_ORIG_RET(int);
+
+	g_Decals.push_back(p);
+
+	RETURN_META_VALUE(MRES_IGNORED, 0);
+}
+
+int DispatchSpawn(edict_t *pent)
+{
+	if (!g_bWorldSpawned)
+	{
+		g_bWorldSpawned = true;
+
+		Game_Init();
+		World_Precache();
+	}
+
+	RETURN_META_VALUE(MRES_IGNORED, 0);
 }
 
 void ClientCommand(edict_t *pEntity)

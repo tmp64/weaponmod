@@ -156,7 +156,7 @@ void SetHookVirtual(VirtualHookData* hook)
 {
 	if (hook)
 	{
-		hook->done = HandleHookVirtual(hook, false);
+		HandleHookVirtual(hook, false);
 	}
 }
 
@@ -164,7 +164,7 @@ void UnsetHookVirtual(VirtualHookData* hook)
 {
 	if (hook && hook->done)
 	{
-		hook->done = HandleHookVirtual(hook, true);
+		HandleHookVirtual(hook, true);
 	}
 }
 
@@ -177,14 +177,14 @@ bool HandleHookVirtual(VirtualHookData* hook, bool bRevert)
 	if (pEdict->pvPrivateData == NULL)
 	{
 		REMOVE_ENTITY(pEdict);
-		return FALSE;
+		return (hook->done = false);
 	}
 
 	void** vtable = GET_VTABLE_ENT(pEdict);
 
 	if (vtable == NULL)
 	{
-		return FALSE;
+		return (hook->done = false);
 	}
 
 	int** ivtable = (int**)vtable;
@@ -203,7 +203,7 @@ bool HandleHookVirtual(VirtualHookData* hook, bool bRevert)
 
 	#else
 
-		static DWORD oldProtection;
+		DWORD oldProtection;
 
 		FlushInstructionCache(GetCurrentProcess(), &ivtable[offset], sizeof(int*));
 		VirtualProtect(&ivtable[offset], sizeof(int*), PAGE_READWRITE, &oldProtection);
@@ -212,14 +212,14 @@ bool HandleHookVirtual(VirtualHookData* hook, bool bRevert)
 
 	if (bRevert)
 	{
-		ivtable[offset] = ( int* )hook->address;
+		ivtable[offset] = (int*)hook->address;
 	}
 	else
 	{
-		ivtable[offset] = ( int* )hook->handler;
+		ivtable[offset] = (int*)hook->handler;
 	}
 
-	REMOVE_ENTITY( pEdict );
-	return true;
+	REMOVE_ENTITY(pEdict);
+	return (hook->done = true);
 }
 

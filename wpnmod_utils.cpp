@@ -744,7 +744,7 @@ void RadiusDamage2(Vector vecSrc, edict_t* pInflictor, edict_t* pAttacker, float
 void printf2(const char* fmt, ...)
 {
 	va_list argptr;
-	static char string[384];
+	static char string[MAX_LOGMSG_LEN];
 	va_start(argptr, fmt);
 	vsnprintf(string, sizeof(string) - 1, fmt, argptr);
 	string[sizeof(string) - 1] = '\0';

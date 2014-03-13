@@ -95,7 +95,7 @@ struct VirtualHookData
 	int		offset;
 	void*	handler;
 	void*	address;
-	int		done;
+	bool		done;
 };
 
 extern GameOffset GameVirtualOffsets[VO_End];

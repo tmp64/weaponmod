@@ -282,7 +282,7 @@ int CreateFunctionHook(function *func)
 	return (func->done = FALSE);
 }
 
-int AllowWriteToMemory(void *address)
+bool AllowWriteToMemory(void *address)
 {
 #if defined _WIN32
 	DWORD OldProtection, NewProtection = PAGE_EXECUTE_READWRITE;
@@ -291,8 +291,8 @@ int AllowWriteToMemory(void *address)
 	void* alignedAddress = Align(address);
 	if (!mprotect(alignedAddress, sysconf(_SC_PAGESIZE), (PROT_READ | PROT_WRITE | PROT_EXEC)))
 #endif
-		return TRUE;
-	return FALSE;
+		return true;
+	return false;
 }
 
 size_t FindStringInDLL(size_t start, size_t end, const char *string)

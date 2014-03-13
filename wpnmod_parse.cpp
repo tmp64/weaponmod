@@ -116,7 +116,7 @@ void OnParseBlockedItems(String dummy, String BlockedItem)
 {
 	VirtualHookData *p = new VirtualHookData;
 	
-	p->done = NULL;
+	p->done = false;
 	p->handler = NULL;
 	p->address = NULL;
 	p->classname = STRING(ALLOC_STRING(BlockedItem.c_str()));

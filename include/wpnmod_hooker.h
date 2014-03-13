@@ -89,6 +89,7 @@ struct function
 
 bool	SetHook					(function *func);
 bool	UnsetHook				(function *func);
+bool	AllowWriteToMemory		(void *address);
 
 void*	FindFunction			(function *func);
 void*	FindFunction			(module *lib, signature sig);
@@ -100,6 +101,5 @@ size_t	FindStringInDLL			(size_t start, size_t end, const char *string);
 
 int		FindModuleByAddr		(void *addr, module *lib);
 int		CreateFunctionHook		(function *func);
-int		AllowWriteToMemory		(void *address);
 
 #endif // _LIBFUNC_H
