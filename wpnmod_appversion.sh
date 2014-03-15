@@ -1,7 +1,7 @@
 #!/bin/sh
 
 	# Get old version information from appversion.h
-	if [ -e ./appversion.h ]; then
+	if [ -e ./wpnmod_appversion.h ]; then
 		oldver=$(cat ./wpnmod_appversion.h | grep -i '#define APP_VERSION_STRD' | sed -e 's/#define APP_VERSION_STRD \(.*\)/\1/i')
 		if [ $? -ne 0 ]; then
 			oldver=""

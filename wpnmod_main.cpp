@@ -67,10 +67,10 @@ int WpnMod_Init(void)
 
 	printf2("[%s]: Done.\n", Plugin_info.logtag);
 
-	printf2("\n   Half-Life Weapon Mod version %s Copyright (c) 2012 - 2014 AGHL.RU Dev Team.\n"
+	printf2("\n   Weapon Mod version %s Copyright (c) 2012 - 2014 AGHL.RU Team.\n"
 		"   Weapon Mod comes with ABSOLUTELY NO WARRANTY; for details type `wpnmod gpl'.\n", Plugin_info.version);
 	printf2("   This is free software and you are welcome to redistribute it under \n"
-		"   certain conditions; type 'wpnmod gpl' for details.\n  \n");
+		"   certain conditions; type `wpnmod gpl' for details.\n  \n");
 
 	return 1;
 }
