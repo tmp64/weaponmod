@@ -58,6 +58,15 @@
     <PostBuildEvent>
       <Command>IF EXIST "$(ProjectDir)PostBuild.bat" (CALL "$(ProjectDir)PostBuild.bat" "$(TargetDir)" "$(TargetName)" "$(TargetExt)" "$(ProjectDir)")</Command>
     </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>IF EXIST "$(ProjectDir)PreBuild.bat" (CALL "$(ProjectDir)PreBuild.bat" "$(ProjectDir)..\" "$(ProjectDir)..\..\")</Command>
+    </PreBuildEvent>
+    <CustomBuildStep>
+      <Command>echo Empty Action</Command>
+      <Message>Force build to run Pre-Build event</Message>
+      <Outputs>subversion.always.run;%(Outputs)</Outputs>
+      <Inputs>subversion.always.run;%(Inputs)</Inputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -79,9 +88,27 @@
     <PostBuildEvent>
       <Command>IF EXIST "$(ProjectDir)PostBuild.bat" (CALL "$(ProjectDir)PostBuild.bat" "$(TargetDir)" "$(TargetName)" "$(TargetExt)" "$(ProjectDir)")</Command>
     </PostBuildEvent>
+    <PreBuildEvent>
+      <Message>
+      </Message>
+      <Command>IF EXIST "$(ProjectDir)PreBuild.bat" (CALL "$(ProjectDir)PreBuild.bat" "$(ProjectDir)..\" "$(ProjectDir)..\..\")</Command>
+    </PreBuildEvent>
+    <CustomBuildStep>
+      <Command>echo Empty Action</Command>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Message>Force build to run Pre-Build event</Message>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Outputs>subversion.always.run;%(Outputs)</Outputs>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Inputs>subversion.always.run;%(Inputs)</Inputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\sdk\amxxmodule.cpp" />
+    <ClCompile Include="..\wpnmod_version.cpp" />
     <ClCompile Include="..\wpnmod_config.cpp" />
     <ClCompile Include="..\wpnmod_grenade.cpp" />
     <ClCompile Include="..\wpnmod_hooker.cpp" />
@@ -105,9 +132,13 @@
     <ClInclude Include="..\include\wpnmod_parse.h" />
     <ClInclude Include="..\include\wpnmod_pvdata.h" />
     <ClInclude Include="..\include\wpnmod_utils.h" />
+    <ClInclude Include="..\include\wpnmod_version.h" />
     <ClInclude Include="..\include\wpnmod_vtable.h" />
     <ClInclude Include="..\sdk\amxxmodule.h" />
     <ClInclude Include="..\sdk\moduleconfig.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="weaponmod.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -37,6 +37,9 @@
     <ClCompile Include="..\wpnmod_pvdata.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\wpnmod_version.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\sdk\moduleconfig.h">
@@ -78,6 +81,9 @@
     <ClInclude Include="..\include\wpnmod_pvdata.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\wpnmod_version.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Module SDK">
@@ -95,5 +101,8 @@
     <Filter Include="Module SDK\SDK Base">
       <UniqueIdentifier>{f5d0de4f-9433-4594-a5bd-70580220d456}</UniqueIdentifier>
     </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="weaponmod.rc" />
   </ItemGroup>
 </Project>

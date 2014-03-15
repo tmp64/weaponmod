@@ -31,12 +31,14 @@
  *
  */
 
+#include "wpnmod_appversion.h"
+
 #ifndef __MODULECONFIG_H__
 #define __MODULECONFIG_H__
 
 // Module info
 #define MODULE_NAME "HL Weapon Mod"
-#define MODULE_VERSION "0.9_RC"
+#define MODULE_VERSION APP_VERSION
 #define MODULE_AUTHOR "AGHL.RU Dev Team"
 #define MODULE_URL "http://www.aghl.ru/"
 #define MODULE_LOGTAG "WEAPONMOD"
