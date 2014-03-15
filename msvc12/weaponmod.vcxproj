@@ -59,7 +59,7 @@
       <Command>IF EXIST "$(ProjectDir)PostBuild.bat" (CALL "$(ProjectDir)PostBuild.bat" "$(TargetDir)" "$(TargetName)" "$(TargetExt)" "$(ProjectDir)")</Command>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>IF EXIST "$(ProjectDir)PreBuild.bat" (CALL "$(ProjectDir)PreBuild.bat" "$(ProjectDir)\" "$(ProjectDir)\")</Command>
+      <Command>IF EXIST "$(ProjectDir)PreBuild.bat" (CALL "$(ProjectDir)PreBuild.bat" "$(ProjectDir)\..\" "$(ProjectDir)\..\")</Command>
     </PreBuildEvent>
     <CustomBuildStep>
       <Command>echo Empty Action</Command>
@@ -91,7 +91,7 @@
     <PreBuildEvent>
       <Message>
       </Message>
-      <Command>IF EXIST "$(ProjectDir)PreBuild.bat" (CALL "$(ProjectDir)PreBuild.bat" "$(ProjectDir)\" "$(ProjectDir)\")</Command>
+      <Command>IF EXIST "$(ProjectDir)PreBuild.bat" (CALL "$(ProjectDir)PreBuild.bat" "$(ProjectDir)\..\" "$(ProjectDir)\..\")</Command>
     </PreBuildEvent>
     <CustomBuildStep>
       <Command>echo Empty Action</Command>
