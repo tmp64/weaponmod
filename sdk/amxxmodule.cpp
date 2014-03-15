@@ -32,6 +32,8 @@
 *  Description: AMX Mod X Module Interface Functions
 */
 
+#include "wpnmod_appversion.h"
+
 #include <string.h>
 #include <new>
 #include <stdarg.h>

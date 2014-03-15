@@ -596,6 +596,10 @@ void EnableWeaponboxModels(void)
 	// Let's find "CWeaponBox::PackWeapon" function in game dll.
 	//
 
+#ifdef __linux__
+
+#else
+
 	int count = 0;
 
 	size_t pAdress = NULL;
@@ -674,5 +678,6 @@ void EnableWeaponboxModels(void)
 	pAdress = *(size_t*)pAdress + pAdress + 4;
 
 	printf2("[%s]: Found \"%s\" at %p\n", Plugin_info.logtag, funcname, pAdress);
+#endif
 }
 
