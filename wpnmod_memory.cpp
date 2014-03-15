@@ -415,69 +415,6 @@ bool Parse_SetAnimation(size_t start, size_t end)
 	return true;
 }
 
-void EnableShieldHitboxTracing()
-{
-	bool bShieldRegistered = false;
-
-	for (int i = 1; i <= g_iWeaponsCount; i++)
-	{
-		if (WeaponInfoArray[i].iType == Wpn_Custom && !stricmp(GetWeapon_pszName(i), "weapon_shield"))
-		{
-			bShieldRegistered = true;
-			break;
-		}
-	}
-
-	if (!bShieldRegistered)
-	{
-		return;
-	}
-
-	module hEngine = { NULL, NULL, NULL };
-
-	if (!FindModuleByAddr((void*)g_engfuncs.pfnAlertMessage, &hEngine))
-	{
-		printf2("[%s]: Failed to locate engine, shield hitbox tracing not active.\n", Plugin_info.logtag);
-		return;
-	}
-
-#ifdef __linux__
-
-	void* pAdress = FindFunction(&hEngine, "g_bIsCStrike");
-
-#else
-
-	signature sig =
-	{
-		"\xC3\xE8\x00\x00\x00\x00\xA1\x00\x00\x00\x00\x85\xC0\x75\x00\xA1",
-		"xx????x????xxx?x", 16
-	};
-
-	size_t pAdress = (size_t)FindFunction(&hEngine, sig);
-
-	if (pAdress)
-	{
-		pAdress += 7;
-	}
-
-#endif 
-
-	if (!pAdress)
-	{
-		printf2("[%s]: Failed to enable shield hitbox tracing.\n", Plugin_info.logtag);
-	}
-	else
-	{
-#ifdef __linux__
-
-		*(int*)pAdress = 1;
-#else
-		*(int*)*(size_t*)(pAdress) = 1;
-#endif
-		printf2("[%s]: Shield hitbox tracing enabled at %p\n", Plugin_info.logtag, pAdress);
-	}
-}
-
 #ifdef WIN32
 
 size_t ParseFunc(size_t start, size_t end, char* funcname, unsigned char* pattern, char* mask, size_t bytes)
@@ -558,4 +495,184 @@ size_t ParseFunc(size_t start, size_t end, char* funcname, char* string, unsigne
 }
 
 #endif
+
+void EnableShieldHitboxTracing()
+{
+	bool bShieldRegistered = false;
+
+	for (int i = 1; i <= g_iWeaponsCount; i++)
+	{
+		if (WeaponInfoArray[i].iType == Wpn_Custom && !stricmp(GetWeapon_pszName(i), "weapon_shield"))
+		{
+			bShieldRegistered = true;
+			break;
+		}
+	}
+
+	if (!bShieldRegistered)
+	{
+		return;
+	}
+
+	module hEngine = { NULL, NULL, NULL };
+
+	if (!FindModuleByAddr((void*)g_engfuncs.pfnAlertMessage, &hEngine))
+	{
+		printf2("[%s]: Failed to locate engine, shield hitbox tracing not active.\n", Plugin_info.logtag);
+		return;
+	}
+
+#ifdef __linux__
+
+	void* pAdress = FindFunction(&hEngine, "g_bIsCStrike");
+
+#else
+
+	signature sig =
+	{
+		"\xC3\xE8\x00\x00\x00\x00\xA1\x00\x00\x00\x00\x85\xC0\x75\x00\xA1",
+		"xx????x????xxx?x", 16
+	};
+
+	size_t pAdress = (size_t)FindFunction(&hEngine, sig);
+
+	if (pAdress)
+	{
+		pAdress += 7;
+	}
+
+#endif 
+
+	if (!pAdress)
+	{
+		printf2("[%s]: Failed to enable shield hitbox tracing.\n", Plugin_info.logtag);
+	}
+	else
+	{
+#ifdef __linux__
+
+		*(int*)pAdress = 1;
+#else
+		*(int*)*(size_t*)(pAdress) = 1;
+#endif
+		printf2("[%s]: Shield hitbox tracing enabled at %p\n", Plugin_info.logtag, pAdress);
+	}
+}
+
+void EnableWeaponboxModels(void)
+{
+	//
+	// Check for running amxx plugin, stop if exists.
+	//
+
+	char* plugin_amxx = "weaponbox_models.amxx";
+	int iAmxxScript = MF_FindScriptByName(MF_BuildPathname("%s/%s", MF_GetLocalInfo("amxx_pluginsdir", "addons/amxmodx/plugins"), plugin_amxx));
+
+	if (iAmxxScript != -1)
+	{
+		((CPlugin*)MF_GetScriptAmx(iAmxxScript)->userdata[UD_FINDPLUGIN])->status = PS_STOPPED;
+		printf2("[%s]: Warning: amxx plugin \"%s\" is stopped.\n", Plugin_info.logtag, plugin_amxx);
+	}
+
+	//
+	// Check for running meta plugin, unload if exists.
+	//
+
+#ifdef _WIN32
+	char* plugin_meta = "wpnbox_models_mm.dll";
+#else
+	char* plugin_meta = "wpnbox_models_mm_i386.so";
+#endif
+
+	void* pMetaPlugin = DLOPEN(plugin_meta);
+
+	if (pMetaPlugin)
+	{
+		UNLOAD_PLUGIN_BY_HANDLE(PLID, pMetaPlugin, PT_NEVER, PNL_PLG_FORCED);
+		printf2("[%s]: Warning: meta plugin \"%s\" is unloaded.\n", Plugin_info.logtag, plugin_meta);
+	}
+
+	//
+	// Let's find "CWeaponBox::PackWeapon" function in game dll.
+	//
+
+	int count = 0;
+
+	size_t pAdress = NULL;
+	size_t pCurrent = NULL;
+	size_t pCandidate = NULL;
+
+	char* funcname = "CWeaponBox::PackWeapon";
+
+	size_t start = (size_t)g_GameDllModule.base;
+	size_t end = (size_t)g_GameDllModule.base + (size_t)g_GameDllModule.size;
+
+	//
+	// 50					push eax
+	// 68 EC 65 0C 10		push offset aWeaponbox_0 ; "weaponbox"
+	//
+
+	char			string[]		= "weaponbox";
+	char			mask[]			= "xxxxxx";
+	unsigned char	pattern[]		= "\x50\x68\x00\x00\x00\x00";
+
+	pCurrent = FindStringInDLL(start, end, string);
+
+	while (pCurrent)
+	{
+		*(size_t*)(pattern + 2) = (size_t)pCurrent;
+
+		if ((pCandidate = FindAdressInDLL(start, end, pattern, mask)) != NULL)
+		{
+			count++;
+			pAdress = pCandidate;
+		}
+
+		pCurrent = FindStringInDLL(pCurrent + 1, end, string);
+	}
+
+	if (!count)
+	{
+		printf2("[%s]: Warning: \"%s\" not found [0]\n", Plugin_info.logtag, funcname);
+		return;
+	}
+	else if (count > 1)
+	{
+		printf2("[%s]: Warning: %d candidates found for \"%s\"\n", Plugin_info.logtag, count, funcname);
+		return;
+	}
+
+	//
+	// E8 4A A3 FA FF		call	?Create@CBaseEntity@@SAPAV1@PADABVVector@@1PAUedict_s@@@Z
+	// E8 DD DE 02 00		call	?PackAmmo@CWeaponBox@@QAEHHH@Z
+	// E8 11 DF 02 00		call	?PackWeapon@CWeaponBox@@QAEHPAVCBasePlayerItem@@@Z
+	//
+
+	count = 0;
+
+	char			mask2[]		= "x";
+	unsigned char	pattern2[]	= "\xE8";
+
+	end = pAdress + 300;
+	pCurrent = FindAdressInDLL(pAdress, end, pattern2, mask2);
+
+	// Find third call.
+	while (pCurrent && count != 3)
+	{
+		count++;
+		pAdress = pCurrent;
+		pCurrent = FindAdressInDLL(pCurrent + 1, end, pattern2, mask2);
+	}
+
+	if (count != 3)
+	{
+		printf2("[%s]: Warning: \"%s\" not found [1] (count %d)\n", Plugin_info.logtag, funcname, count);
+		return;
+	}
+
+	pAdress += 1;
+	pAdress = *(size_t*)pAdress + pAdress + 4;
+
+	printf2("[%s]: Found \"%s\" at %p\n", Plugin_info.logtag, funcname, pAdress);
+}
 

@@ -179,8 +179,6 @@ int NativesPvDataOffsets[Offset_End] =
 */
 AMXX_NATIVE(wpnmod_register_weapon)
 {
-	#define UD_FINDPLUGIN 3
-
 	const char *szWeaponName = MF_GetAmxString(amx, params[1], 0, NULL);
 
 	for (int i = 1; i < MAX_WEAPONS; i++)

@@ -238,7 +238,7 @@ void ParseSpawnPoints()
 			}
 		}
 
-		printf2("[%s]: Spawned %d weapons and %d ammoboxes from \"%s.ini\".\n", Plugin_info.logtag, wpns, ammoboxes, STRING(gpGlobals->mapname));
+		printf2("[%s]: Spawned: \"%s.ini\": %d weapons and %d ammoboxes.\n", Plugin_info.logtag, STRING(gpGlobals->mapname), wpns, ammoboxes);
 		fclose(stream);
 	}
 }

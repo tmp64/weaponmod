@@ -44,6 +44,10 @@
 #include "wpnmod_pvdata.h"
 
 
+#define PS_STOPPED		4
+#define UD_FINDPLUGIN	3
+
+
 #ifdef __linux__
 	#define stricmp	strcasecmp
 #endif
@@ -115,6 +119,12 @@ public:
 	String	title;
 	String	author;
 	String	errorMsg;
+
+	int dummy_1;
+	int dummy_2;
+	int dummy_3;
+	int dummy_4;
+	int status;
 };
 
 typedef enum

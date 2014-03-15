@@ -173,6 +173,7 @@ void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 	SetHookVirtual(&g_PlayerSpawn_Hook);
 	SetHookVirtual(&g_PlayerPostThink_Hook);
 
+	EnableWeaponboxModels();
 	EnableShieldHitboxTracing();
 
 	RETURN_META(MRES_IGNORED);
