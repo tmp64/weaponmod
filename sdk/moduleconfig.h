@@ -31,19 +31,10 @@
  *
  */
 
-#include "wpnmod_appversion.h"
 
 #ifndef __MODULECONFIG_H__
 #define __MODULECONFIG_H__
 
-// Module info
-#define MODULE_NAME "HL Weapon Mod"
-#define MODULE_VERSION APP_VERSION
-#define MODULE_AUTHOR "AGHL.RU Dev Team"
-#define MODULE_URL "http://www.aghl.ru/"
-#define MODULE_LOGTAG "WEAPONMOD"
-#define MODULE_LIBRARY "weaponmod"
-#define MODULE_LIBCLASS ""
 // If you want the module not to be reloaded on mapchange, remove / comment out the next line
 #define MODULE_RELOAD_ON_MAPCHANGE
 
