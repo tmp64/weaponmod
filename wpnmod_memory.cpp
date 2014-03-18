@@ -676,7 +676,6 @@ void EnableWeaponboxModels(void)
 
 	pAdress += 1;
 	pAdress = *(size_t*)pAdress + pAdress + 4;
-
 	WPNMOD_LOG("Found \"%s\" at %p\n", funcname, pAdress);
 #endif
 }
