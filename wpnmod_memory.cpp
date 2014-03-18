@@ -256,11 +256,11 @@ bool Parse_GetAmmoIndex(size_t start, size_t end)
 
 	if (!pAdress)
 	{
-		WPNMOD_LOG("[%s]:    Error: \"%s\" not found\n", funcname);
+		WPNMOD_LOG("   Error: \"%s\" not found\n", funcname);
 		return false;
 	}
 
-	WPNMOD_LOG("[%s]:    Found \"%s\" at %p\n", funcname, pAdress);
+	WPNMOD_LOG("   Found \"%s\" at %p\n", funcname, pAdress);
 
 #else
 
