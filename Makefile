@@ -11,7 +11,7 @@ NAME = weaponmod
 
 BIN_SUFFIX = amxx_i386.so
 
-OBJECTS = sdk/amxxmodule.cpp wpnmod_config.cpp wpnmod_grenade.cpp wpnmod_hooker.cpp wpnmod_hooks.cpp wpnmod_main.cpp wpnmod_memory.cpp wpnmod_natives.cpp wpnmod_parse.cpp wpnmod_pvdata.cpp wpnmod_utils.cpp wpnmod_version.cpp wpnmod_vtable.cpp
+OBJECTS = sdk/amxxmodule.cpp wpnmod_config.cpp wpnmod_grenade.cpp wpnmod_hooker.cpp wpnmod_hooks.cpp wpnmod_log.cpp wpnmod_main.cpp wpnmod_memory.cpp wpnmod_natives.cpp wpnmod_parse.cpp wpnmod_pvdata.cpp wpnmod_utils.cpp wpnmod_version.cpp wpnmod_vtable.cpp
 
 
 LINK = 
