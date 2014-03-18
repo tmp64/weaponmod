@@ -11,7 +11,7 @@ NAME = weaponmod
 
 BIN_SUFFIX = amxx_i386.so
 
-OBJECTS = sdk/amxxmodule.cpp wpnmod_config.cpp wpnmod_grenade.cpp wpnmod_hooker.cpp wpnmod_hooks.cpp wpnmod_log.cpp wpnmod_main.cpp wpnmod_memory.cpp wpnmod_natives.cpp wpnmod_parse.cpp wpnmod_pvdata.cpp wpnmod_utils.cpp wpnmod_version.cpp wpnmod_vtable.cpp
+OBJECTS = sdk/amxxmodule.cpp wpnmod_config.cpp wpnmod_grenade.cpp wpnmod_hooker.cpp wpnmod_hooks.cpp wpnmod_main.cpp wpnmod_memory.cpp wpnmod_natives.cpp wpnmod_parse.cpp wpnmod_pvdata.cpp wpnmod_utils.cpp wpnmod_version.cpp wpnmod_vtable.cpp
 
 
 LINK = 
@@ -46,22 +46,19 @@ $(BIN_DIR)/%.o: %.cpp
 all:
 	mkdir -p $(BIN_DIR)
 	mkdir -p $(BIN_DIR)/sdk
-	./wpnmod_appversion.sh
-	$(MAKE) weaponmod
-
-weaponmod: $(OBJ_LINUX)
-	$(CPP) $(INCLUDE) $(CFLAGS) $(OBJ_LINUX) $(LINK) -shared -ldl -lm -o$(BIN_DIR)/$(BINARY)
-	
-
-debug:	
-	$(MAKE) all DEBUG=true
-
-default: all
-
-clean:
 	rm -rf Release/*.o
 	rm -rf Release/sdk/*.o
 	rm -rf Release/$(NAME)_$(BIN_SUFFIX)
 	rm -rf Debug/*.o
 	rm -rf Debug/sdk/*.o
 	rm -rf Debug/$(NAME)_$(BIN_SUFFIX)
+	./wpnmod_appversion.sh
+	$(MAKE) weaponmod
+
+weaponmod: $(OBJ_LINUX)
+	$(CPP) $(INCLUDE) $(CFLAGS) $(OBJ_LINUX) $(LINK) -shared -ldl -lm -o$(BIN_DIR)/$(BINARY)
+	
+debug:	
+	$(MAKE) all DEBUG=true
+
+default: all
