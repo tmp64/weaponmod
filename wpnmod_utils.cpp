@@ -741,21 +741,9 @@ void RadiusDamage2(Vector vecSrc, edict_t* pInflictor, edict_t* pAttacker, float
 	}
 }
 
-void printf2(const char* fmt, ...)
-{
-	va_list argptr;
-	static char string[MAX_LOGMSG_LEN];
-	va_start(argptr, fmt);
-	vsnprintf(string, sizeof(string) - 1, fmt, argptr);
-	string[sizeof(string) - 1] = '\0';
-	va_end(argptr);
-
-	SERVER_PRINT(string);
-}
-
 bool FileExists(const char *file)
 {
-	#if defined WIN32 || defined _WIN32
+	#if defined WIN32
 		DWORD attr = GetFileAttributes(file);
 
 		if (attr == INVALID_FILE_ATTRIBUTES)

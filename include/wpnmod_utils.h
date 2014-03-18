@@ -86,7 +86,6 @@ extern	void	FireBulletsPlayer	(edict_t* pPlayer, edict_t* pAttacker, int iShotsC
 extern	int		GetAmmoInventory	(edict_t* pPlayer, int iAmmoIndex);
 extern	int		SetAmmoInventory	(edict_t* pPlayer, int iAmmoIndex, int iAmount);
 
-extern	void	printf2				(const char* fmt, ...);
 extern	bool	FileExists			(const char *dir);
 
 #endif // _UTILS_H

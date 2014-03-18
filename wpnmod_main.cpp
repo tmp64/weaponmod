@@ -46,32 +46,34 @@ int AmxxCheckGame(const char* game)
 // Called by Meta_Attach.
 int WpnMod_Init(void)
 {
-	printf2("[%s]: Start.\n", Plugin_info.logtag);
+	g_log.Init();
+
+	WPNMOD_LOG("Start.\n");
+#ifdef __linux__
+	WPNMOD_LOG(" Version %s Linux\n", Plugin_info.version);
+#else
+	WPNMOD_LOG(" Version %s Windows\n", Plugin_info.version);
+#endif
 
 	if (!FindModuleByAddr((void*)MDLL_FUNC->pfnGetGameDescription(), &g_GameDllModule))
 	{
-		printf2("[%s]:  Failed to locate %s\n", Plugin_info.logtag, GET_GAME_INFO(PLID, GINFO_DLL_FILENAME));
+		WPNMOD_LOG("  Failed to locate %s\n", GET_GAME_INFO(PLID, GINFO_DLL_FILENAME));
+		WPNMOD_LOG("Errors occurred. Please visit http://aghl.ru/forum/ for support.\n");
 		return 0;
 	}
 
-	printf2("[%s]:  Found %s at %p\n", Plugin_info.logtag, GET_GAME_INFO(PLID, GINFO_DLL_FILENAME), g_GameDllModule.base);
+	WPNMOD_LOG("  Found %s at %p\n", GET_GAME_INFO(PLID, GINFO_DLL_FILENAME), g_GameDllModule.base);
 
 	size_t start = (size_t)g_GameDllModule.base;
 	size_t end = (size_t)g_GameDllModule.base + (size_t)g_GameDllModule.size;
 
 	if (!FindFuncsInDll(start, end))
 	{
-		printf2("[%s]: Errors occurred. Please visit http://aghl.ru/forum/ for support.\n", Plugin_info.logtag);
+		WPNMOD_LOG("Errors occurred. Please visit http://aghl.ru/forum/ for support.\n");
 		return 0;
 	}
 
-	printf2("[%s]: Done.\n", Plugin_info.logtag);
-
-	printf2("\n   Weapon Mod version %s Copyright (c) 2012 - 2014 AGHL.RU Team.\n"
-		"   Weapon Mod comes with ABSOLUTELY NO WARRANTY; for details type `wpnmod gpl'.\n", Plugin_info.version);
-	printf2("   This is free software and you are welcome to redistribute it under \n"
-		"   certain conditions; type `wpnmod gpl' for details.\n  \n");
-
+	WPNMOD_LOG("Done.\n");
 	return 1;
 }
 
@@ -107,11 +109,11 @@ void World_Precache(void)
 
 	if (ParseSection(g_ConfigFilepath, "[block]", (void*)OnParseBlockedItems, -1) && (int)g_BlockedItems.size())
 	{
-		printf2("[%s]:  Blocked default items:\n", Plugin_info.logtag);
+		WPNMOD_LOG(" Blocked default items:\n");
 
 		for (int i = 0; i < (int)g_BlockedItems.size(); i++)
 		{
-			printf2("[%s]:   \"%s\"\n", Plugin_info.logtag, g_BlockedItems[i]->classname);
+			WPNMOD_LOG("  \"%s\"\n", g_BlockedItems[i]->classname);
 		}
 	}
 }

@@ -42,10 +42,13 @@
 
 #include "wpnmod_vtable.h"
 #include "wpnmod_pvdata.h"
+#include "wpnmod_log.h"
 
 
 #define PS_STOPPED		4
 #define UD_FINDPLUGIN	3
+
+#define WPNMOD_LOG (g_log.Log)
 
 
 #ifdef __linux__
@@ -185,6 +188,8 @@ typedef struct
 	int			count;
 
 } StartAmmo;
+
+extern CLog g_log;
 
 extern AMX_NATIVE_INFO Natives[];
 

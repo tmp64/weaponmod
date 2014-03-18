@@ -99,11 +99,11 @@ bool Parse_ClearMultiDamage(size_t start, size_t end)
 
 	if (!pAdress)
 	{
-		printf2("[%s]:   Error: \"%s\" not found\n", Plugin_info.logtag, funcname);
+		WPNMOD_LOG("   Error: \"%s\" not found\n", funcname);
 		return false;
 	}
 
-	printf2("[%s]:   Found \"%s\" at %p\n", Plugin_info.logtag, funcname, pAdress);
+	WPNMOD_LOG("   Found \"%s\" at %p\n", funcname, pAdress);
 
 #else
 
@@ -115,7 +115,7 @@ bool Parse_ClearMultiDamage(size_t start, size_t end)
 
 	if (!pAdress)
 	{
-		printf2("[%s]:   Error: \"%s\" not found [0]\n", Plugin_info.logtag, funcname);
+		WPNMOD_LOG("   Error: \"%s\" not found [0]\n", funcname);
 		return false;
 	}
 
@@ -151,11 +151,11 @@ bool Parse_ApplyMultiDamage(size_t start, size_t end)
 
 	if (!pAdress)
 	{
-		printf2("[%s]:   Error: \"%s\" not found\n", Plugin_info.logtag, funcname);
+		WPNMOD_LOG("   Error: \"%s\" not found\n", funcname);
 		return false;
 	}
 
-	printf2("[%s]:   Found \"%s\" at %p\n", Plugin_info.logtag, funcname, pAdress);
+	WPNMOD_LOG("   Found \"%s\" at %p\n", funcname, pAdress);
 
 #else
 
@@ -167,7 +167,7 @@ bool Parse_ApplyMultiDamage(size_t start, size_t end)
 
 	if (!pAdress)
 	{
-		printf2("[%s]:   Error: \"%s\" not found [0]\n", Plugin_info.logtag, funcname);
+		WPNMOD_LOG("   Error: \"%s\" not found [0]\n", funcname);
 		return false;
 	}
 
@@ -203,11 +203,11 @@ bool Parse_PrecacheOtherWeapon(size_t start, size_t end)
 
 	if (!pAdress)
 	{
-		printf2("[%s]:   Error: \"%s\" not found\n", Plugin_info.logtag, funcname);
+		WPNMOD_LOG("   Error: \"%s\" not found\n", funcname);
 		return false;
 	}
 
-	printf2("[%s]:   Found \"%s\" at %p\n", Plugin_info.logtag, funcname, pAdress);
+	WPNMOD_LOG("   Found \"%s\" at %p\n", funcname, pAdress);
 
 #else
 
@@ -229,7 +229,7 @@ bool Parse_PrecacheOtherWeapon(size_t start, size_t end)
 	
 	if (!CreateFunctionHook(&g_dllFuncs[Func_PrecacheOtherWeapon]))
 	{
-		printf2("[%s]:   Error: failed to hook \"%s\"\n", Plugin_info.logtag, funcname);
+		WPNMOD_LOG("   Error: failed to hook \"%s\"\n", funcname);
 		return false;
 	}
 
@@ -256,11 +256,11 @@ bool Parse_GetAmmoIndex(size_t start, size_t end)
 
 	if (!pAdress)
 	{
-		printf2("[%s]:   Error: \"%s\" not found\n", Plugin_info.logtag, funcname);
+		WPNMOD_LOG("[%s]:    Error: \"%s\" not found\n", funcname);
 		return false;
 	}
 
-	printf2("[%s]:   Found \"%s\" at %p\n", Plugin_info.logtag, funcname, pAdress);
+	WPNMOD_LOG("[%s]:    Found \"%s\" at %p\n", funcname, pAdress);
 
 #else
 
@@ -301,11 +301,11 @@ bool Parse_GiveNamedItem(size_t start, size_t end)
 
 	if (!pAdress)
 	{
-		printf2("[%s]:   Error: \"%s\" not found\n", Plugin_info.logtag, funcname);
+		WPNMOD_LOG("   Error: \"%s\" not found\n", funcname);
 		return false;
 	}
 
-	printf2("[%s]:   Found \"%s\" at %p\n", Plugin_info.logtag, funcname, pAdress);
+	WPNMOD_LOG("   Found \"%s\" at %p\n", funcname, pAdress);
 
 #else
 
@@ -327,7 +327,7 @@ bool Parse_GiveNamedItem(size_t start, size_t end)
 
 	if (!CreateFunctionHook(&g_dllFuncs[Func_GiveNamedItem]))
 	{
-		printf2("[%s]:   Error: failed to hook \"%s\"\n", Plugin_info.logtag, funcname);
+		WPNMOD_LOG("   Error: failed to hook \"%s\"\n", funcname);
 		return false;
 	}
 
@@ -354,11 +354,11 @@ bool Parse_SetAnimation(size_t start, size_t end)
 
 	if (!pAdress)
 	{
-		printf2("[%s]:   Error: \"%s\" not found\n", Plugin_info.logtag, funcname);
+		WPNMOD_LOG("   Error: \"%s\" not found\n", funcname);
 		return false;
 	}
 
-	printf2("[%s]:   Found \"%s\" at %p\n", Plugin_info.logtag, funcname, pAdress);
+	WPNMOD_LOG("   Found \"%s\" at %p\n", funcname, pAdress);
 
 #else
 
@@ -393,12 +393,12 @@ bool Parse_SetAnimation(size_t start, size_t end)
 
 	if (!count)
 	{
-		printf2("[%s]:   Error: \"%s\" not found [0]\n", Plugin_info.logtag, funcname);
+		WPNMOD_LOG("   Error: \"%s\" not found [0]\n", funcname);
 		return false;
 	}
 	else if (count > 1)
 	{
-		printf2("[%s]:   Error: %d candidates found for \"%s\"\n", Plugin_info.logtag, count, funcname);
+		WPNMOD_LOG("   Error: %d candidates found for \"%s\"\n", count, funcname);
 		return false;
 	}
 
@@ -435,19 +435,19 @@ size_t ParseFunc(size_t start, size_t end, char* funcname, unsigned char* patter
 
 	if (!count)
 	{
-		printf2("[%s]:   Error: \"%s\" not found\n", Plugin_info.logtag, funcname);
+		WPNMOD_LOG("   Error: \"%s\" not found\n", funcname);
 		return false;
 	}
 	else if (count > 1)
 	{
-		printf2("[%s]:   Error: %d candidates found for \"%s\"\n", Plugin_info.logtag, count, funcname);
+		WPNMOD_LOG("   Error: %d candidates found for \"%s\"\n", count, funcname);
 		return false;
 	}
 
 	pAdress += bytes;
 	pAdress = *(size_t*)pAdress + pAdress + 4;
 
-	printf2("[%s]:   Found \"%s\" at %p\n", Plugin_info.logtag, funcname, pAdress);
+	WPNMOD_LOG("   Found \"%s\" at %p\n", funcname, pAdress);
 
 	return pAdress;
 }
@@ -477,19 +477,19 @@ size_t ParseFunc(size_t start, size_t end, char* funcname, char* string, unsigne
 
 	if (!count)
 	{
-		printf2("[%s]:   Error: \"%s\" not found\n", Plugin_info.logtag, funcname);
+		WPNMOD_LOG("   Error: \"%s\" not found\n", funcname);
 		return false;
 	}
 	else if (count > 1)
 	{
-		printf2("[%s]:   Error: %d candidates found for \"%s\"\n", Plugin_info.logtag, count, funcname);
+		WPNMOD_LOG("   Error: %d candidates found for \"%s\"\n", count, funcname);
 		return false;
 	}
 
 	pAdress += bytes;
 	pAdress = *(size_t*)pAdress + pAdress + 4;
 
-	printf2("[%s]:   Found \"%s\" at %p\n", Plugin_info.logtag, funcname, pAdress);
+	WPNMOD_LOG("   Found \"%s\" at %p\n", funcname, pAdress);
 
 	return pAdress;
 }
@@ -518,7 +518,7 @@ void EnableShieldHitboxTracing()
 
 	if (!FindModuleByAddr((void*)g_engfuncs.pfnAlertMessage, &hEngine))
 	{
-		printf2("[%s]: Failed to locate engine, shield hitbox tracing not active.\n", Plugin_info.logtag);
+		WPNMOD_LOG("Failed to locate engine, shield hitbox tracing not active.\n");
 		return;
 	}
 
@@ -545,7 +545,7 @@ void EnableShieldHitboxTracing()
 
 	if (!pAdress)
 	{
-		printf2("[%s]: Failed to enable shield hitbox tracing.\n", Plugin_info.logtag);
+		WPNMOD_LOG("Failed to enable shield hitbox tracing.\n");
 	}
 	else
 	{
@@ -555,7 +555,7 @@ void EnableShieldHitboxTracing()
 #else
 		*(int*)*(size_t*)(pAdress) = 1;
 #endif
-		printf2("[%s]: Shield hitbox tracing enabled at %p\n", Plugin_info.logtag, pAdress);
+		WPNMOD_LOG("Shield hitbox tracing enabled at %p\n", pAdress);
 	}
 }
 
@@ -571,14 +571,14 @@ void EnableWeaponboxModels(void)
 	if (iAmxxScript != -1)
 	{
 		((CPlugin*)MF_GetScriptAmx(iAmxxScript)->userdata[UD_FINDPLUGIN])->status = PS_STOPPED;
-		printf2("[%s]: Warning: amxx plugin \"%s\" is stopped.\n", Plugin_info.logtag, plugin_amxx);
+		WPNMOD_LOG("Warning: amxx plugin \"%s\" is stopped.\n", plugin_amxx);
 	}
 
 	//
 	// Check for running meta plugin, unload if exists.
 	//
 
-#ifdef _WIN32
+#ifdef WIN32
 	char* plugin_meta = "wpnbox_models_mm.dll";
 #else
 	char* plugin_meta = "wpnbox_models_mm_i386.so";
@@ -589,7 +589,7 @@ void EnableWeaponboxModels(void)
 	if (pMetaPlugin)
 	{
 		UNLOAD_PLUGIN_BY_HANDLE(PLID, pMetaPlugin, PT_NEVER, PNL_PLG_FORCED);
-		printf2("[%s]: Warning: meta plugin \"%s\" is unloaded.\n", Plugin_info.logtag, plugin_meta);
+		WPNMOD_LOG("Warning: meta plugin \"%s\" is unloaded.\n", plugin_meta);
 	}
 
 	//
@@ -637,12 +637,12 @@ void EnableWeaponboxModels(void)
 
 	if (!count)
 	{
-		printf2("[%s]: Warning: \"%s\" not found [0]\n", Plugin_info.logtag, funcname);
+		WPNMOD_LOG("Warning: \"%s\" not found [0]\n", funcname);
 		return;
 	}
 	else if (count > 1)
 	{
-		printf2("[%s]: Warning: %d candidates found for \"%s\"\n", Plugin_info.logtag, count, funcname);
+		WPNMOD_LOG("Warning: %d candidates found for \"%s\"\n", count, funcname);
 		return;
 	}
 
@@ -670,14 +670,14 @@ void EnableWeaponboxModels(void)
 
 	if (count != 3)
 	{
-		printf2("[%s]: Warning: \"%s\" not found [1] (count %d)\n", Plugin_info.logtag, funcname, count);
+		WPNMOD_LOG("Warning: \"%s\" not found [1] (count %d)\n", funcname, count);
 		return;
 	}
 
 	pAdress += 1;
 	pAdress = *(size_t*)pAdress + pAdress + 4;
 
-	printf2("[%s]: Found \"%s\" at %p\n", Plugin_info.logtag, funcname, pAdress);
+	WPNMOD_LOG("Found \"%s\" at %p\n", funcname, pAdress);
 #endif
 }
 

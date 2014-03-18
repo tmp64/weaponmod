@@ -49,7 +49,7 @@
 #define SF_EXPLOSION_NOEFFECTS	( ~(1 << SF_EXPLOSION_NODEBRIS) ) // don't make any effects
 
 
-#ifdef _WIN32
+#ifdef WIN32
 	extern void __fastcall Grenade_ThinkSmoke(void *pPrivate);
 	extern void __fastcall Grenade_TumbleThink(void *pPrivate);
 	extern void __fastcall Grenade_ThinkBeforeContact(void *pPrivate);

@@ -210,7 +210,7 @@ void Grenade_Explode(edict_t* pGrenade, int bitsDamageType)
 	pGrenade->v.flags |= FL_KILLME;
 }
 
-#ifdef _WIN32
+#ifdef WIN32
 void __fastcall Grenade_BounceTouch(void *pPrivate, int i, void *pPrivate2)
 #else
 void Grenade_BounceTouch(void *pPrivate, void *pPrivate2)
@@ -278,7 +278,7 @@ void Grenade_BounceTouch(void *pPrivate, void *pPrivate2)
 	}
 }
 
-#ifdef _WIN32
+#ifdef WIN32
 void __fastcall Grenade_ThinkBeforeContact(void *pPrivate)
 #else
 void Grenade_ThinkBeforeContact(void *pPrivate)
@@ -306,7 +306,7 @@ void Grenade_ThinkBeforeContact(void *pPrivate)
 }
 
 
-#ifdef _WIN32
+#ifdef WIN32
 void __fastcall Grenade_TumbleThink(void *pPrivate)
 #else
 void Grenade_TumbleThink(void *pPrivate)
@@ -339,7 +339,7 @@ void Grenade_TumbleThink(void *pPrivate)
 	}	
 }
 
-#ifdef _WIN32
+#ifdef WIN32
 void __fastcall Grenade_ExplodeTouch(void *pPrivate, int i, void *pPrivate2)
 #else
 void Grenade_ExplodeTouch(void *pPrivate, void *pPrivate2)
@@ -355,7 +355,7 @@ void Grenade_ExplodeTouch(void *pPrivate, void *pPrivate2)
 	Grenade_Explode(pGrenade, DMG_BLAST);
 }
 
-#ifdef _WIN32
+#ifdef WIN32
 void __fastcall Grenade_ThinkSmoke(void *pPrivate)
 #else
 void Grenade_ThinkSmoke(void *pPrivate)

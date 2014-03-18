@@ -31,75 +31,39 @@
  *
  */
 
-#ifndef _LIBFUNC_H
-#define _LIBFUNC_H
+#ifndef _WPNMOD_LOG_H
+#define _WPNMOD_LOG_H
 
-#include <extdll.h>
-#include <meta_api.h>
+#include <time.h>
 
-#if defined WIN32
-	#define NOGDI
-
-	#include <psapi.h>
+#ifndef WIN32
+	#define PATH_SEP_CHAR		'/'
+	#define ALT_SEP_CHAR		'\\'
 #else
-	#include <dlfcn.h>
-	#include <sys/types.h>
-	#include <sys/stat.h>
-	#include <sys/mman.h>
-	#include <unistd.h>
+	#include <io.h>
 
-	#define	PAGE_SIZE 4096
-	#define Align(addr) (void*)((long)addr & ~(PAGE_SIZE-1))
-	
-	typedef unsigned long DWORD;
-	typedef unsigned short WORD;
-	typedef unsigned int UNINT32;
+	#define PATH_SEP_CHAR		'\\'
+	#define ALT_SEP_CHAR		'/'
+
+	#define	vsnprintf	_vsnprintf
 #endif
 
+#include "amxxmodule.h"
+#include "CString.h"
 
-struct module
+class CLog
 {
-	void*	base;
-	size_t	size;
-	void*	handler;
+private:
+	String m_LogDir;
+
+public:
+	CLog();
+
+	void	Init	(void);
+	void	Log		(const char *fmt, ...);
 };
 
-struct signature
-{
-	const char*		text;
-	const char*		mask;
-	size_t			size;
-};
+extern	void	printf2				(const char* fmt, ...);
+extern	char*	build_pathname_r	(char *buffer, size_t maxlen, char *fmt, ...);
 
-struct function
-{
-	const char*		name;
-
-	module*			lib;
-	signature		sig;
-	
-	void*			address;
-	void*			handler;
-
-	unsigned char	patch[5];
-	unsigned char	origin[5];
-
-	int				done;
-};
-
-bool	SetHook					(function *func);
-bool	UnsetHook				(function *func);
-bool	AllowWriteToMemory		(void *address);
-
-void*	FindFunction			(function *func);
-void*	FindFunction			(module *lib, signature sig);
-void*	FindFunction			(module *lib, const char *name);
-size_t	FindFunction			(module *lib, const unsigned char *pattern, const char *mask);
-
-size_t	FindAdressInDLL			(size_t start, size_t end, unsigned char *pattern, char *mask);
-size_t	FindStringInDLL			(size_t start, size_t end, const char *string);
-
-int		FindModuleByAddr		(void *addr, module *lib);
-int		CreateFunctionHook		(function *func);
-
-#endif // _LIBFUNC_H
+#endif // _WPNMOD_LOG_H

@@ -40,6 +40,9 @@
     <ClCompile Include="..\wpnmod_version.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\wpnmod_log.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\sdk\moduleconfig.h">
@@ -82,6 +85,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\wpnmod_version.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\wpnmod_log.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

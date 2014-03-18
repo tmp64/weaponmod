@@ -34,6 +34,7 @@
 #include "wpnmod_config.h"
 #include "wpnmod_utils.h"
 
+CLog g_log;
 
 char g_ConfigFilepath[1024];
 
@@ -67,32 +68,32 @@ SUBMOD CheckSubMod(const char* game)
 {
 	if (!stricmp(game, "ag"))
 	{
-		printf2("[%s]: Adrenaline Gamer detected.\n", Plugin_info.logtag);
+		WPNMOD_LOG("Adrenaline Gamer detected.\n");
 		return SUBMOD_AG;
 	}
 	else if (!stricmp(game, "gearbox"))
 	{
-		printf2("[%s]: Opposing Force detected.\n", Plugin_info.logtag);
+		WPNMOD_LOG("Opposing Force detected.\n");
 		return SUBMOD_GEARBOX;
 	}
 	else if (!stricmp(game, "valve"))
 	{
 		if (CVAR_GET_POINTER("sv_ag_version"))
 		{
-			printf2("[%s]: Adrenaline Gamer Mini detected.\n", Plugin_info.logtag);
+			WPNMOD_LOG("Adrenaline Gamer Mini detected.\n");
 			return SUBMOD_MINIAG;
 		}
 		else if (CVAR_GET_POINTER("aghl.ru"))
 		{
-			printf2("[%s]: Bugfixed and improved HL release detected.\n", Plugin_info.logtag);
+			WPNMOD_LOG("Bugfixed and improved HL release detected.\n");
 			return SUBMOD_AGHLRU;
 		}
 
-		printf2("[%s]: Half-Life assumed.\n", Plugin_info.logtag);
+		WPNMOD_LOG("Half-Life assumed.\n");
 		return SUBMOD_VALVE;
 	}
 
-	printf2("[%s]: Unknown mod detected (\"%s\").\n", Plugin_info.logtag, MF_GetModname());
+	WPNMOD_LOG("Unknown mod detected (\"%s\").\n", MF_GetModname());
 	return SUBMOD_UNKNOWN;
 }
 
@@ -140,7 +141,7 @@ void AutoSlotDetection(int iWeaponID, int iSlot, int iPosition)
 					WeaponInfoArray[iWeaponID].ItemData.iSlot = i;
 					WeaponInfoArray[iWeaponID].ItemData.iPosition = k;
 
-					printf2("[%s]: Warning: \"%s\" is moved to slot %d-%d.\n", Plugin_info.logtag, GetWeapon_pszName(iWeaponID), i + 1, k + 1);
+					WPNMOD_LOG("Warning: \"%s\" is moved to slot %d-%d.\n", GetWeapon_pszName(iWeaponID), i + 1, k + 1);
 
 					bFound = true;
 					break;
@@ -151,7 +152,7 @@ void AutoSlotDetection(int iWeaponID, int iSlot, int iPosition)
 		if (!bFound)
 		{
 			WeaponInfoArray[iWeaponID].ItemData.iPosition = MAX_WEAPONS;
-			printf2("[WEAPONMOD] No free slot for \"%s\" in HUD!\n", GetWeapon_pszName(iWeaponID));
+			WPNMOD_LOG("Warning: No free slot for \"%s\" in HUD!\n", GetWeapon_pszName(iWeaponID));
 		}
 	}
 }

@@ -37,7 +37,7 @@
 #include <meta_api.h>
 
 
-#if defined _WIN32
+#if defined WIN32
 int FindModuleByAddr (void *addr, module *lib)
 {
 	MEMORY_BASIC_INFORMATION mem;
@@ -284,7 +284,7 @@ int CreateFunctionHook(function *func)
 
 bool AllowWriteToMemory(void *address)
 {
-#if defined _WIN32
+#if defined WIN32
 	DWORD OldProtection, NewProtection = PAGE_EXECUTE_READWRITE;
 	if (VirtualProtect(address, 5, NewProtection, &OldProtection))
 #else

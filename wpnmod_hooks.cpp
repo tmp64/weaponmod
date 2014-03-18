@@ -68,7 +68,7 @@ VirtualHookData	g_RpgAddAmmo_Hook		= VHOOK("ammo_rpgclip",		VO_AddAmmo,				AmmoB
 VirtualHookData g_PlayerSpawn_Hook		= VHOOK("player",			VO_Spawn,				Player_Spawn);
 VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	Player_PostThink);
 
-#ifdef _WIN32
+#ifdef WIN32
 	int __fastcall Weapon_GetItemInfo(void* pvItem, DUMMY, ItemInfo* p)
 #else
 	int Weapon_GetItemInfo(void* pvItem, ItemInfo* p)
@@ -123,7 +123,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 }
 
 
-#ifdef _WIN32
+#ifdef WIN32
 	BOOL __fastcall Weapon_CanDeploy(void* pvItem)
 #else
 	BOOL Weapon_CanDeploy(void* pvItem)
@@ -163,7 +163,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 }
 
 
-#ifdef _WIN32
+#ifdef WIN32
 	BOOL __fastcall Weapon_Deploy(void* pvItem)
 #else
 	BOOL Weapon_Deploy(void* pvItem)
@@ -212,7 +212,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 }
 
 
-#ifdef _WIN32
+#ifdef WIN32
 	void __fastcall Weapon_ItemPostFrame(void* pvItem)
 #else
 	void Weapon_ItemPostFrame(void* pvItem)
@@ -409,7 +409,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 }
 
 
-#ifdef _WIN32
+#ifdef WIN32
 	BOOL __fastcall Weapon_IsUseable(void *pvItem)
 #else
 	BOOL Weapon_IsUseable(void *pvItem)
@@ -449,7 +449,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 }
 
 
-#ifdef _WIN32
+#ifdef WIN32
 	BOOL __fastcall Weapon_CanHolster(void* pvItem)
 #else
 	BOOL Weapon_CanHolster(void* pvItem)
@@ -489,7 +489,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 }
 
 
-#ifdef _WIN32
+#ifdef WIN32
 	void __fastcall Weapon_Holster(void* pvItem, DUMMY, int skiplocal)
 #else
 	void Weapon_Holster(void* pvItem, int skiplocal)
@@ -536,7 +536,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 }
 
 
-#ifdef _WIN32
+#ifdef WIN32
 	int __fastcall Weapon_AddToPlayer(void* pvItem, DUMMY, void* pvPlayer)
 #else
 	int Weapon_AddToPlayer(void* pvItem, void* pvPlayer)
@@ -610,7 +610,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 }
 
 
-#ifdef _WIN32
+#ifdef WIN32
 	int __fastcall Weapon_ItemSlot(void* pvItem)
 #else
 	int Weapon_ItemSlot(void* pvItem)
@@ -640,7 +640,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 }
 
 
-#ifdef _WIN32
+#ifdef WIN32
 	void* __fastcall Weapon_Respawn(void* pvItem)
 #else
 	void* Weapon_Respawn(void* pvItem)
@@ -685,7 +685,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 }
 
 
-#ifdef _WIN32
+#ifdef WIN32
 	BOOL __fastcall AmmoBox_AddAmmo(void* pvAmmo, DUMMY, void* pvOther)
 #else
 	BOOL AmmoBox_AddAmmo(void* pvAmmo, void* pvOther)
@@ -734,7 +734,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 }
 
 
-#ifdef _WIN32
+#ifdef WIN32
 	int __fastcall Item_Block(void* pvItem, int DUMMY, void* pvOther)
 #else
 	int Item_Block(void* pvItem, void* pvOther)
@@ -751,7 +751,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 }
 
 
-#ifdef _WIN32
+#ifdef WIN32
 	void __fastcall Equipment_Think(void* pvEntity)
 #else
 	void Equipment_Think(void* pvEntity)
@@ -774,7 +774,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 }
 
 
-#ifdef _WIN32
+#ifdef WIN32
 	void __fastcall Player_PostThink(void* pvPlayer)
 #else
 	void Player_PostThink(void* pvPlayer)
@@ -831,7 +831,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 }
 
 
-#ifdef _WIN32
+#ifdef WIN32
 	void __fastcall Player_Spawn(void* pvPlayer)
 #else
 	void Player_Spawn(void* pvPlayer)
@@ -877,7 +877,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 }
 
 
-#ifdef _WIN32
+#ifdef WIN32
 	void __fastcall Global_Think(void* pvEntity)
 #else
 	void Global_Think(void* pvEntity)
@@ -928,7 +928,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 }
 
 
-#ifdef _WIN32
+#ifdef WIN32
 	void __fastcall Global_Touch(void* pvEntity, int DUMMY, void* pvOther)
 #else
 	void Global_Touch(void* pvEntity, void* pvOther)
@@ -997,7 +997,7 @@ void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 }
 
 
-#ifdef _WIN32
+#ifdef WIN32
 	void __fastcall GiveNamedItem_HookHandler(void *pvPlayer, int DUMMY, const char *szName)
 #else
 	void GiveNamedItem_HookHandler(void *pvPlayer, const char *szName)
