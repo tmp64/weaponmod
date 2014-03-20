@@ -596,7 +596,22 @@ void EnableWeaponboxModels(void)
 	// Let's find adress of "CWeaponBox::PackWeapon" in game dll.
 	//
 
+	char* funcname = "CWeaponBox::PackWeapon";
+
 #ifdef __linux__
+
+	size_t pAdress	= (size_t)FindFunction(&g_GameDllModule, "PackWeapon__10CWeaponBoxP15CBasePlayerItem");
+
+	if (!pAdress)
+	{
+		pAdress	= (size_t)FindFunction(&g_GameDllModule, "_ZN10CWeaponBox10PackWeaponEP15CBasePlayerItem");
+	}
+
+	if (!pAdress)
+	{
+		WPNMOD_LOG("Error: \"%s\" not found\n", funcname);
+		return;
+	}
 
 #else
 
@@ -605,8 +620,6 @@ void EnableWeaponboxModels(void)
 	size_t pAdress = NULL;
 	size_t pCurrent = NULL;
 	size_t pCandidate = NULL;
-
-	char* funcname = "CWeaponBox::PackWeapon";
 
 	size_t start = (size_t)g_GameDllModule.base;
 	size_t end = (size_t)g_GameDllModule.base + (size_t)g_GameDllModule.size;
