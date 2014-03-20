@@ -48,6 +48,9 @@
 	#define	vsnprintf	_vsnprintf
 #endif
 
+#define WPNMOD_LOG		(g_log.Log)
+#define WPNMOD_LOG_ONLY	(g_log.LogOnly)
+
 #include "amxxmodule.h"
 #include "CString.h"
 
@@ -59,9 +62,14 @@ private:
 public:
 	CLog();
 
-	void	Init	(void);
-	void	Log		(const char *fmt, ...);
+	bool	m_bPrint;
+
+	void	Init		(void);
+	void	Log			(const char *fmt, ...);
+	void	LogOnly		(const char *fmt, ...);
 };
+
+extern CLog g_log;
 
 extern	void	printf2				(const char* fmt, ...);
 extern	char*	build_pathname_r	(char *buffer, size_t maxlen, char *fmt, ...);

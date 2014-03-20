@@ -47,14 +47,12 @@ int AmxxCheckGame(const char* game)
 int WpnMod_Init(void)
 {
 	g_log.Init();
-
 	WPNMOD_LOG("Start.\n");
 #ifdef __linux__
 	WPNMOD_LOG(" Version %s Linux\n", Plugin_info.version);
 #else
 	WPNMOD_LOG(" Version %s Windows\n", Plugin_info.version);
 #endif
-
 	if (!FindModuleByAddr((void*)MDLL_FUNC->pfnGetGameDescription(), &g_GameDllModule))
 	{
 		WPNMOD_LOG("  Failed to locate %s\n", GET_GAME_INFO(PLID, GINFO_DLL_FILENAME));
@@ -107,13 +105,15 @@ void World_Precache(void)
 	cvar_sv_cheats = CVAR_GET_POINTER("sv_cheats");
 	cvar_mp_weaponstay = CVAR_GET_POINTER("mp_weaponstay");
 
+	WPNMOD_LOG_ONLY("-------- Mapchange to %s --------\n", STRING(gpGlobals->mapname));
+
 	if (ParseSection(g_ConfigFilepath, "[block]", (void*)OnParseBlockedItems, -1) && (int)g_BlockedItems.size())
 	{
-		WPNMOD_LOG(" Blocked default items:\n");
+		WPNMOD_LOG("Blocked default items:\n");
 
 		for (int i = 0; i < (int)g_BlockedItems.size(); i++)
 		{
-			WPNMOD_LOG("  \"%s\"\n", g_BlockedItems[i]->classname);
+			WPNMOD_LOG(" \"%s\"\n", g_BlockedItems[i]->classname);
 		}
 	}
 }
@@ -172,11 +172,15 @@ void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 		}
 	}
 
+	EnableShieldHitboxTracing();
+
+	if (ParseSection(g_ConfigFilepath, "[weaponbox]", (void*)OnParseWeaponbox, ':'))
+	{
+		EnableWeaponboxModels();
+	}
+
 	SetHookVirtual(&g_PlayerSpawn_Hook);
 	SetHookVirtual(&g_PlayerPostThink_Hook);
-
-	EnableWeaponboxModels();
-	EnableShieldHitboxTracing();
 
 	RETURN_META(MRES_IGNORED);
 }
@@ -226,9 +230,18 @@ void ServerDeactivate()
 		UnsetHookVirtual(&g_CrowbarHooks[i]);
 	}
 
+	if (g_funcPackWeapon.done)
+	{
+		UnsetHook(&g_funcPackWeapon);
+	}
+
+	g_funcPackWeapon.address = NULL;
+
 	UnsetHookVirtual(&g_RpgAddAmmo_Hook);
 	UnsetHookVirtual(&g_PlayerSpawn_Hook);
 	UnsetHookVirtual(&g_PlayerPostThink_Hook);
+
+	g_iWpnBoxLifeTime = 120;
 
 	RETURN_META(MRES_IGNORED);
 }

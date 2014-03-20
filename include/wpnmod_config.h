@@ -48,9 +48,6 @@
 #define PS_STOPPED		4
 #define UD_FINDPLUGIN	3
 
-#define WPNMOD_LOG (g_log.Log)
-
-
 #ifdef __linux__
 	#define stricmp	strcasecmp
 #endif
@@ -167,6 +164,7 @@ typedef struct
 	String		title;
 	String		author;
 	String		version;
+	String		worldModel;
 
 	e_WpnType	iType;
 	ItemInfo	ItemData;
@@ -188,8 +186,6 @@ typedef struct
 	int			count;
 
 } StartAmmo;
-
-extern CLog g_log;
 
 extern AMX_NATIVE_INFO Natives[];
 

@@ -34,8 +34,6 @@
 #include "wpnmod_config.h"
 #include "wpnmod_utils.h"
 
-CLog g_log;
-
 char g_ConfigFilepath[1024];
 
 edict_t* g_EquipEnt			= NULL;
@@ -99,11 +97,11 @@ SUBMOD CheckSubMod(const char* game)
 
 void SetConfigFile()
 {
-	MF_BuildPathnameR(g_ConfigFilepath, sizeof(g_ConfigFilepath) - 1, "%s/weaponmod/weaponmod-%s.ini", MF_GetLocalInfo("amxx_configsdir", "addons/amxmodx/configs"), STRING(gpGlobals->mapname));
+	build_pathname_r(g_ConfigFilepath, sizeof(g_ConfigFilepath) - 1, "%s/weaponmod/weaponmod-%s.ini", LOCALINFO((char*)"amxx_configsdir"), STRING(gpGlobals->mapname));
 	
 	if (!FileExists(g_ConfigFilepath))
 	{
-		MF_BuildPathnameR(g_ConfigFilepath, sizeof(g_ConfigFilepath) - 1, "%s/weaponmod/weaponmod.ini", MF_GetLocalInfo("amxx_configsdir", "addons/amxmodx/configs"));
+		build_pathname_r(g_ConfigFilepath, sizeof(g_ConfigFilepath) - 1, "%s/weaponmod/weaponmod.ini", LOCALINFO((char*)"amxx_configsdir"));
 	}
 }
 

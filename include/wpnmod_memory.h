@@ -49,6 +49,9 @@
 
 #endif
 
+void	EnableWeaponboxModels		(void);
+void	EnableShieldHitboxTracing	(void);
+
 bool	FindFuncsInDll				(size_t start, size_t end);
 bool	Parse_ClearMultiDamage		(size_t start, size_t end);
 bool	Parse_ApplyMultiDamage		(size_t start, size_t end);
@@ -56,8 +59,5 @@ bool	Parse_PrecacheOtherWeapon	(size_t start, size_t end);
 bool	Parse_GetAmmoIndex			(size_t start, size_t end);
 bool	Parse_GiveNamedItem			(size_t start, size_t end);
 bool	Parse_SetAnimation			(size_t start, size_t end);
-
-void	EnableWeaponboxModels		(void);
-void	EnableShieldHitboxTracing	(void);
 
 #endif // _WPNMOD_MEMORY_H

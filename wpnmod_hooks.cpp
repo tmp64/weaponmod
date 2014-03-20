@@ -36,7 +36,8 @@
 #include "wpnmod_hooks.h"
 #include "entity_state.h"
 
-EntData* g_Ents = NULL;
+
+module g_GameDllModule = { NULL, NULL, NULL };
 
 function g_dllFuncs[Func_End] =
 {
@@ -48,7 +49,7 @@ function g_dllFuncs[Func_End] =
 	HOOK(GiveNamedItem_HookHandler)
 };
 
-module g_GameDllModule = { NULL, NULL, NULL };
+function g_funcPackWeapon = HOOK(PackWeapon_HookHandler);
 
 VirtualHookData g_CrowbarHooks[CrowbarHook_End] = 
 {
@@ -64,9 +65,16 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 	VHOOK_CROWBAR(IsUseable)
 };
 
+EntData* g_Ents = NULL;
+
 VirtualHookData	g_RpgAddAmmo_Hook		= VHOOK("ammo_rpgclip",		VO_AddAmmo,				AmmoBox_AddAmmo);
 VirtualHookData g_PlayerSpawn_Hook		= VHOOK("player",			VO_Spawn,				Player_Spawn);
 VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	Player_PostThink);
+
+bool	g_bWpnBoxModels			= false;
+int		g_iWpnBoxLifeTime		= 120;
+int		g_iWpnBoxRenderColor	= 0;
+
 
 #ifdef WIN32
 	int __fastcall Weapon_GetItemInfo(void* pvItem, DUMMY, ItemInfo* p)
@@ -769,7 +777,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 	if (MF_IsPlayerValid(iPlayer) && MF_IsPlayerAlive(iPlayer))
 	{
 		MDLL_Touch(g_EquipEnt, INDEXENT2(iPlayer));
-		pEntity->v.flags |= FL_KILLME;
+		REMOVE_ENTITY(pEntity);
 	}
 }
 
@@ -1013,6 +1021,124 @@ void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 		GIVE_NAMED_ITEM(pvPlayer, szName);
 		SetHook(&g_dllFuncs[Func_GiveNamedItem]);
 	}
+}
+
+
+#ifdef WIN32
+	int __fastcall PackWeapon_HookHandler(void* pvWpnBox, int DUMMY, void* pvWeapon)
+#else
+	int PackWeapon_HookHandler(void* pvWpnBox, void* pvWeapon)
+#endif
+{
+	int iResult = 0;
+
+	if (UnsetHook(&g_funcPackWeapon))
+	{
+		iResult = WEAPONBOX_PACK_WEAPON(pvWpnBox, pvWeapon);
+		SetHook(&g_funcPackWeapon);
+	}
+
+	if (!iResult)
+	{
+		return 0;
+	}
+
+	edict_t* pWeaponBox = PrivateToEdict(pvWpnBox);
+	edict_t* pWeaponEnt = PrivateToEdict(pvWeapon);
+
+	if (!IsValidPev(pWeaponBox) || !IsValidPev(pWeaponEnt))
+	{
+		return iResult;
+	}
+
+#ifdef WIN32
+
+	void* pKillThinkAdress = (void*)FindFunction(&g_GameDllModule, "?Kill@CWeaponBox@@QAEXXZ");
+
+#else
+
+	void* pKillThinkAdress = (void*)FindFunction(&g_GameDllModule, "Kill__10CWeaponBox");
+
+	if (!pKillThinkAdress)
+	{
+		pKillThinkAdress = (void*)FindFunction(&g_GameDllModule, "_ZN10CWeaponBox4KillEv");
+	}
+
+#endif
+
+	if (pKillThinkAdress)
+	{
+		Dll_SetThink(pWeaponBox, pKillThinkAdress);
+		pWeaponBox->v.nextthink = gpGlobals->time + g_iWpnBoxLifeTime;
+	}
+
+	if (g_iWpnBoxRenderColor)
+	{
+		pWeaponBox->v.renderfx = kRenderFxGlowShell;
+		pWeaponBox->v.rendermode = kRenderNormal;
+		pWeaponBox->v.renderamt = 16.0;
+
+		if (g_iWpnBoxRenderColor == 255255255)
+		{
+			pWeaponBox->v.rendercolor = Vector(RANDOM_LONG(0, 255), RANDOM_LONG(0, 255), RANDOM_LONG(0, 255));
+		}
+		else
+		{
+			Vector vecColor;
+			int iColor = g_iWpnBoxRenderColor;
+
+			vecColor.x = iColor / 1000000;
+			iColor %= 1000000;
+			vecColor.y = iColor / 1000;
+			vecColor.z = iColor % 1000;
+
+			pWeaponBox->v.rendercolor = vecColor;
+		}
+	}
+
+	int iId = GetPrivateInt(pWeaponEnt, pvData_iId);
+
+	if (g_bWpnBoxModels && WeaponInfoArray[iId].worldModel.empty())
+	{
+		edict_t* pTempEntity = NULL;
+
+		if (WeaponInfoArray[iId].iType == Wpn_Default)
+		{
+			pTempEntity = CREATE_NAMED_ENTITY(pWeaponEnt->v.classname);
+		}
+		else
+		{
+			pTempEntity = Weapon_Spawn(STRING(pWeaponEnt->v.classname), Vector(0, 0, 0), Vector(0, 0, 0));
+		}
+
+		if (!IsValidPev(pTempEntity))
+		{
+			return iResult;
+		}
+
+		if (WeaponInfoArray[iId].iType == Wpn_Default)
+		{
+			MDLL_Spawn(pTempEntity);
+		}
+
+		WeaponInfoArray[iId].worldModel.assign(STRING(pTempEntity->v.model));
+		REMOVE_ENTITY(pTempEntity);
+	}
+
+	if (g_bWpnBoxModels && !WeaponInfoArray[iId].worldModel.empty())
+	{
+		#define WEAPON_TRIPMINE 13
+
+		SET_MODEL(pWeaponBox, WeaponInfoArray[iId].worldModel.c_str());
+
+		if (iId == WEAPON_TRIPMINE && WeaponInfoArray[iId].iType == Wpn_Default)
+		{
+			pWeaponBox->v.body = 3;
+			pWeaponBox->v.sequence = 8;
+		}
+	}
+
+	return 1;
 }
 
 

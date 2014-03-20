@@ -112,6 +112,22 @@ bool ParseSection(char* filePath, const char* section, void* handler, int separa
 	g_StartAmmo.push_back(p);
 }
 
+void OnParseWeaponbox(String key, String value)
+{
+	if (!strcmp(key.c_str(), "setmodel"))
+	{
+		g_bWpnBoxModels = atoi(value.c_str()) > 0 ? true : false;
+	}
+	else if (!strcmp(key.c_str(), "rendercolor"))
+	{
+		g_iWpnBoxRenderColor = atoi(value.c_str());
+	}
+	else if (!strcmp(key.c_str(), "lifetime"))
+	{
+		g_iWpnBoxLifeTime = atoi(value.c_str());
+	}
+}
+
 void OnParseBlockedItems(String dummy, String BlockedItem)
 {
 	VirtualHookData *p = new VirtualHookData;
@@ -197,7 +213,7 @@ void ParseSpawnPoints()
 {		
 	char filepath[1024];
 
-	MF_BuildPathnameR(filepath, sizeof(filepath) - 1, "%s/weaponmod/spawnpoints/%s.ini", MF_GetLocalInfo("amxx_configsdir", "addons/amxmodx/configs"), STRING(gpGlobals->mapname));
+	build_pathname_r(filepath, sizeof(filepath) - 1, "%s/weaponmod/spawnpoints/%s.ini", LOCALINFO((char*)"amxx_configsdir"), STRING(gpGlobals->mapname));
 	FILE *stream = fopen(filepath, "r");
 
 	if (stream)
@@ -246,7 +262,7 @@ void ParseSpawnPoints()
 void ParseBSP()
 {
 	char filepath[1024];
-	MF_BuildPathnameR(filepath, sizeof(filepath) - 1, "maps/%s.bsp", STRING(gpGlobals->mapname));
+	build_pathname_r(filepath, sizeof(filepath) - 1, "maps/%s.bsp", STRING(gpGlobals->mapname));
 
 	FILE *fp = fopen(filepath, "rb");
 	

@@ -2071,7 +2071,7 @@ plugin_info_t Plugin_info = {
 		MODULE_URL,
 		MODULE_LOGTAG,
 		PT_ANYTIME,
-		PT_ANYTIME
+		PT_NEVER
 };
 
 /*

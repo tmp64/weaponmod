@@ -1609,7 +1609,7 @@ AMXX_NATIVE(wpnmod_precache_model_sequences)
 {
 	char modelpath[1024];
 
-	MF_BuildPathnameR(modelpath, sizeof(modelpath) - 1, "%s", MF_GetAmxString(amx, params[1], 0, NULL));
+	build_pathname_r(modelpath, sizeof(modelpath) - 1, "%s", MF_GetAmxString(amx, params[1], 0, NULL));
 
 	FILE *fp = fopen(modelpath, "rb");
 

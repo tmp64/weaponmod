@@ -40,6 +40,7 @@
 extern	void	ParseBSP				(void);
 extern	void	ParseSpawnPoints		(void);
 
+extern	void	OnParseWeaponbox		(String key, String value);
 extern	void	OnParseStartAmmos		(String item, String count);
 extern	void	OnParseStartEquipments	(String item, String count);
 extern	void	OnParseBlockedItems		(String dummy, String BlockedItem);

@@ -61,6 +61,10 @@ extern EntData* g_Ents;
 
 #endif
 
+extern bool	g_bWpnBoxModels;
+extern int	g_iWpnBoxLifeTime;
+extern int	g_iWpnBoxRenderColor;
+
 //
 // FUNCTIONS
 //
@@ -83,6 +87,8 @@ extern EntData* g_Ents;
 	};
 
 	extern module	g_GameDllModule;
+
+	extern function	g_funcPackWeapon;
 	extern function	g_dllFuncs[Func_End];
 
 	typedef int		(*FuncGetAmmoIndex)			(const char*);
@@ -122,9 +128,11 @@ extern EntData* g_Ents;
 
 #ifdef WIN32
 
+	typedef int		(__fastcall	*FuncPackWeapon)			(void*, DUMMY, void*);
 	typedef void	(__fastcall	*FuncGiveNamedItem)			(void*, DUMMY, const char*);
 	typedef void	(__fastcall *FuncSetAnimation)			(void*, DUMMY, int);
 
+	int		__fastcall	PackWeapon_HookHandler				(void* pvWpnBox, int DUMMY, void* pvWeapon);
 	void	__fastcall	GiveNamedItem_HookHandler			(void* pvPlayer, int DUMMY, const char* szName);
 	
 	// void CBasePlayer::GiveNamedItem(const char *pszName)
@@ -132,6 +140,13 @@ extern EntData* g_Ents;
 		inline void GIVE_NAMED_ITEM(void* pvPlayer, const char* szClassname)
 		{
 			reinterpret_cast<FuncGiveNamedItem>(g_dllFuncs[Func_GiveNamedItem].address)(pvPlayer, DUMMY_VAL, szClassname);
+		}
+
+	// BOOL CWeaponBox::PackWeapon(CBasePlayerItem *pWeapon)
+	//
+		inline int WEAPONBOX_PACK_WEAPON(void* pvWpnBox, void* pvWeapon)
+		{
+			return reinterpret_cast<FuncPackWeapon>(g_funcPackWeapon.address)(pvWpnBox, DUMMY_VAL, pvWeapon);
 		}
 
 	// void SetAnimation(PLAYER_ANIM playerAnim);
@@ -143,9 +158,11 @@ extern EntData* g_Ents;
 
 #else
 
+	typedef int		(*FuncPackWeapon)			(void*, void*);
 	typedef void	(*FuncGiveNamedItem)		(void*, const char *);
 	typedef void	(*FuncSetAnimation)			(void*, int);
 
+	int		PackWeapon_HookHandler				(void *pvWpnBox, void *pvWeapon)
 	void	GiveNamedItem_HookHandler			(void* pvPlayer, const char *szName);
 	
 	// void CBasePlayer::GiveNamedItem(const char *pszName)
@@ -153,6 +170,13 @@ extern EntData* g_Ents;
 		inline void GIVE_NAMED_ITEM(void* pvPlayer, const char *szClassname)
 		{
 			reinterpret_cast<FuncGiveNamedItem>(g_dllFuncs[Func_GiveNamedItem].address)(pvPlayer, szClassname);
+		}
+
+	// BOOL CWeaponBox::PackWeapon(CBasePlayerItem *pWeapon)
+	//
+		inline int WEAPONBOX_PACK_WEAPON(void* pvWpnBox, void* pvWeapon)
+		{
+			return reinterpret_cast<FuncPackWeapon>(g_funcPackWeapon.address)(pvWpnBox,  pvWeapon);
 		}
 
 	// void SetAnimation(PLAYER_ANIM playerAnim);

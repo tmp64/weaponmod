@@ -33,9 +33,11 @@
 
 #include "wpnmod_log.h"
 
+CLog g_log;
 
 CLog::CLog()
 {
+	m_bPrint = true;
 	m_LogDir.clear();
 }
 
@@ -50,6 +52,8 @@ void CLog::Init()
 #else
 	mkdir(build_pathname_r(file, sizeof(file)-1, "%s", m_LogDir.c_str()));
 #endif
+
+	this->LogOnly("-------- Server start (%s/%s)--------\n", CVAR_GET_POINTER("sv_version")->string, GET_GAME_INFO(PLID, GINFO_NAME));
 }
 
 void CLog::Log(const char *fmt, ...)
@@ -79,7 +83,24 @@ void CLog::Log(const char *fmt, ...)
 		fclose(pF);
 	}
 
-	printf2("[%s]: %s", Plugin_info.logtag, msg);
+	if (m_bPrint)
+	{
+		printf2("[%s]: %s", Plugin_info.logtag, msg);
+	}
+}
+
+void CLog::LogOnly(const char *fmt, ...)
+{
+	static char msg[3072];
+
+	va_list arglst;
+	va_start(arglst, fmt);
+	vsnprintf(msg, 3071, fmt, arglst);
+	va_end(arglst);
+
+	m_bPrint = false;
+	this->Log(msg);
+	m_bPrint = true;
 }
 
 char *build_pathname_r(char *buffer, size_t maxlen, char *fmt, ...)

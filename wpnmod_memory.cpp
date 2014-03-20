@@ -496,7 +496,7 @@ size_t ParseFunc(size_t start, size_t end, char* funcname, char* string, unsigne
 
 #endif
 
-void EnableShieldHitboxTracing()
+void EnableShieldHitboxTracing(void)
 {
 	bool bShieldRegistered = false;
 
@@ -566,12 +566,12 @@ void EnableWeaponboxModels(void)
 	//
 
 	char* plugin_amxx = "weaponbox_models.amxx";
-	int iAmxxScript = MF_FindScriptByName(MF_BuildPathname("%s/%s", MF_GetLocalInfo("amxx_pluginsdir", "addons/amxmodx/plugins"), plugin_amxx));
+	int iAmxxScript = MF_FindScriptByName(MF_BuildPathname("%s/%s", LOCALINFO((char*)"amxx_pluginsdir"), plugin_amxx));
 
 	if (iAmxxScript != -1)
 	{
 		((CPlugin*)MF_GetScriptAmx(iAmxxScript)->userdata[UD_FINDPLUGIN])->status = PS_STOPPED;
-		WPNMOD_LOG("Warning: amxx plugin \"%s\" is stopped.\n", plugin_amxx);
+		WPNMOD_LOG("Warning: amxx plugin \"%s\" stopped.\n", plugin_amxx);
 	}
 
 	//
@@ -589,11 +589,11 @@ void EnableWeaponboxModels(void)
 	if (pMetaPlugin)
 	{
 		UNLOAD_PLUGIN_BY_HANDLE(PLID, pMetaPlugin, PT_NEVER, PNL_PLG_FORCED);
-		WPNMOD_LOG("Warning: meta plugin \"%s\" is unloaded.\n", plugin_meta);
+		WPNMOD_LOG("Warning: meta plugin \"%s\" unloaded.\n", plugin_meta);
 	}
 
 	//
-	// Let's find "CWeaponBox::PackWeapon" function in game dll.
+	// Let's find adress of "CWeaponBox::PackWeapon" in game dll.
 	//
 
 #ifdef __linux__
@@ -637,14 +637,16 @@ void EnableWeaponboxModels(void)
 
 	if (!count)
 	{
-		WPNMOD_LOG("Warning: \"%s\" not found [0]\n", funcname);
+		WPNMOD_LOG("Error: \"%s\" not found [0]\n", funcname);
 		return;
 	}
 	else if (count > 1)
 	{
-		WPNMOD_LOG("Warning: %d candidates found for \"%s\"\n", count, funcname);
+		WPNMOD_LOG("Error: %d candidates found for \"%s\"\n", count, funcname);
 		return;
 	}
+
+	count = 0;
 
 	//
 	// E8 4A A3 FA FF		call	?Create@CBaseEntity@@SAPAV1@PADABVVector@@1PAUedict_s@@@Z
@@ -652,31 +654,39 @@ void EnableWeaponboxModels(void)
 	// E8 11 DF 02 00		call	?PackWeapon@CWeaponBox@@QAEHPAVCBasePlayerItem@@@Z
 	//
 
-	count = 0;
-
-	char			mask2[]		= "x";
-	unsigned char	pattern2[]	= "\xE8";
+	unsigned char opcode[] = "\xE8";
 
 	end = pAdress + 300;
-	pCurrent = FindAdressInDLL(pAdress, end, pattern2, mask2);
+	pCurrent = FindAdressInDLL(pAdress, end, opcode, "x");
 
 	// Find third call.
 	while (pCurrent && count != 3)
 	{
 		count++;
 		pAdress = pCurrent;
-		pCurrent = FindAdressInDLL(pCurrent + 1, end, pattern2, mask2);
+		pCurrent = FindAdressInDLL(pCurrent + 1, end, opcode, "x");
 	}
 
 	if (count != 3)
 	{
-		WPNMOD_LOG("Warning: \"%s\" not found [1] (count %d)\n", funcname, count);
+		WPNMOD_LOG("Error: \"%s\" not found [1] (count %d)\n", funcname, count);
 		return;
 	}
 
 	pAdress += 1;
 	pAdress = *(size_t*)pAdress + pAdress + 4;
-	WPNMOD_LOG("Found \"%s\" at %p\n", funcname, pAdress);
 #endif
+
+	WPNMOD_LOG_ONLY("Found \"%s\" at %p\n", funcname, pAdress);
+
+	g_funcPackWeapon.address = (void*)pAdress;
+
+	if (!CreateFunctionHook(&g_funcPackWeapon))
+	{
+		WPNMOD_LOG("Error: failed to hook \"%s\"\n", funcname);
+		return;
+	}
+
+	SetHook(&g_funcPackWeapon);
 }
 
