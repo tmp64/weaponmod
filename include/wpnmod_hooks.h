@@ -162,7 +162,7 @@ extern int	g_iWpnBoxRenderColor;
 	typedef void	(*FuncGiveNamedItem)		(void*, const char *);
 	typedef void	(*FuncSetAnimation)			(void*, int);
 
-	int		PackWeapon_HookHandler				(void *pvWpnBox, void *pvWeapon)
+	int		PackWeapon_HookHandler				(void *pvWpnBox, void *pvWeapon);
 	void	GiveNamedItem_HookHandler			(void* pvPlayer, const char *szName);
 	
 	// void CBasePlayer::GiveNamedItem(const char *pszName)
