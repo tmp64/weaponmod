@@ -42,8 +42,11 @@ void *g_pParseDllFuncs[] =
 	(void*)&Parse_GetAmmoIndex,
 	(void*)&Parse_GiveNamedItem,
 	(void*)&Parse_SetAnimation,
+	(void*)&Parse_SubRemove,
 	NULL,
 };
+
+void* g_pAdress_SubRemove = NULL;
 
 #ifdef __linux__
 	bool g_bNewGCC = false;
@@ -415,6 +418,41 @@ bool Parse_SetAnimation(size_t start, size_t end)
 	return true;
 }
 
+//
+// void CBaseEntity::SUB_Remove(void)
+//
+
+bool Parse_SubRemove(size_t start, size_t end)
+{
+	char funcname[] = "CBaseEntity::SUB_Remove";
+
+#ifdef WIN32
+
+	void* pAdress = (void*)FindFunction(&g_GameDllModule, "?SUB_Remove@CBaseEntity@@QAEXXZ");
+
+#else
+
+	void* pAdress = (void*)FindFunction(&g_GameDllModule, "SUB_Remove__11CBaseEntity");
+
+	if (!pAdress)
+	{
+		pAdress = (void*)FindFunction(&g_GameDllModule, "_ZN11CBaseEntity10SUB_RemoveEv");
+	}
+
+#endif
+
+	if (!pAdress)
+	{
+		WPNMOD_LOG("   Error: \"%s\" not found\n", funcname);
+		return false;
+	}
+
+	g_pAdress_SubRemove = pAdress;
+
+	WPNMOD_LOG("   Found \"%s\" at %p\n", funcname, pAdress);
+	return true;
+}
+
 #ifdef WIN32
 
 size_t ParseFunc(size_t start, size_t end, char* funcname, unsigned char* pattern, char* mask, size_t bytes)
@@ -600,11 +638,11 @@ void EnableWeaponboxModels(void)
 
 #ifdef __linux__
 
-	size_t pAdress	= (size_t)FindFunction(&g_GameDllModule, "PackWeapon__10CWeaponBoxP15CBasePlayerItem");
+	size_t pAdress = (size_t)FindFunction(&g_GameDllModule, "PackWeapon__10CWeaponBoxP15CBasePlayerItem");
 
 	if (!pAdress)
 	{
-		pAdress	= (size_t)FindFunction(&g_GameDllModule, "_ZN10CWeaponBox10PackWeaponEP15CBasePlayerItem");
+		pAdress = (size_t)FindFunction(&g_GameDllModule, "_ZN10CWeaponBox10PackWeaponEP15CBasePlayerItem");
 	}
 
 	if (!pAdress)
@@ -639,7 +677,7 @@ void EnableWeaponboxModels(void)
 	{
 		*(size_t*)(pattern + 2) = (size_t)pCurrent;
 
-		if ((pCandidate = FindAdressInDLL(start, end, pattern, mask)) != NULL)
+		if ((pCandidate = FindAdressInDLL(start, end, pattern, mask)))
 		{
 			count++;
 			pAdress = pCandidate;
@@ -688,9 +726,8 @@ void EnableWeaponboxModels(void)
 
 	pAdress += 1;
 	pAdress = *(size_t*)pAdress + pAdress + 4;
-#endif
 
-	WPNMOD_LOG_ONLY("Found \"%s\" at %p\n", funcname, pAdress);
+#endif
 
 	g_funcPackWeapon.address = (void*)pAdress;
 
@@ -700,6 +737,7 @@ void EnableWeaponboxModels(void)
 		return;
 	}
 
+	WPNMOD_LOG_ONLY("Function \"%s\" successfully hooked at %p\n", funcname, pAdress);
 	SetHook(&g_funcPackWeapon);
 }
 

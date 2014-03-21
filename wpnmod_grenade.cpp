@@ -207,7 +207,8 @@ void Grenade_Explode(edict_t* pGrenade, int bitsDamageType)
 
 	pGrenade->v.velocity = Vector(0, 0, 0);
 	pGrenade->v.effects |= EF_NODRAW;
-	pGrenade->v.flags |= FL_KILLME;
+
+	UTIL_RemoveEntity(pGrenade);
 }
 
 #ifdef WIN32
@@ -293,7 +294,7 @@ void Grenade_ThinkBeforeContact(void *pPrivate)
 
 	if (!Entity_IsInWorld(pGrenade))
 	{
-		pGrenade->v.flags |= FL_KILLME;
+		UTIL_RemoveEntity(pGrenade);
 		return;
 	}
 
@@ -321,7 +322,7 @@ void Grenade_TumbleThink(void *pPrivate)
 
 	if (!Entity_IsInWorld(pGrenade))
 	{
-		pGrenade->v.flags |= FL_KILLME;
+		UTIL_RemoveEntity(pGrenade);
 		return;
 	}
 
@@ -385,5 +386,5 @@ void Grenade_ThinkSmoke(void *pPrivate)
 		MESSAGE_END();
 	}
 
-	pEntity->v.flags |= FL_KILLME;
+	UTIL_RemoveEntity(pEntity);
 }

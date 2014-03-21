@@ -564,7 +564,7 @@ int		g_iWpnBoxRenderColor	= 0;
 	{
 		if (!stricmp(STRING(pWeapon->v.classname), "weapon_crowbar"))
 		{
-			pWeapon->v.flags |= FL_KILLME;
+			UTIL_RemoveEntity(pWeapon);
 			return 0;
 		}
 
@@ -674,7 +674,7 @@ int		g_iWpnBoxRenderColor	= 0;
 	{
 		float flNextRespawn;
 
-		if (cvar_mp_weaponstay->value && !(GetWeapon_Flags(iId) & ITEM_FLAG_LIMITINWORLD))
+		if (cvar_mp_weaponstay && cvar_mp_weaponstay->value && !(GetWeapon_Flags(iId) & ITEM_FLAG_LIMITINWORLD))
 		{
 			flNextRespawn = 0;
 		}
@@ -713,7 +713,7 @@ int		g_iWpnBoxRenderColor	= 0;
 		{
 			if (!stricmp(g_BlockedItems[k]->classname, "ammo_rpgclip"))
 			{
-				pAmmobox->v.flags |= FL_KILLME;
+				UTIL_RemoveEntity(pAmmobox);
 				return FALSE;
 			}
 		}
@@ -752,7 +752,7 @@ int		g_iWpnBoxRenderColor	= 0;
 
 	if (IsValidPev(pWeapon))
 	{
-		pWeapon->v.flags |= FL_KILLME;
+		UTIL_RemoveEntity(pWeapon);
 	}
 
 	return FALSE;
@@ -777,7 +777,7 @@ int		g_iWpnBoxRenderColor	= 0;
 	if (MF_IsPlayerValid(iPlayer) && MF_IsPlayerAlive(iPlayer))
 	{
 		MDLL_Touch(g_EquipEnt, INDEXENT2(iPlayer));
-		REMOVE_ENTITY(pEntity);
+		UTIL_RemoveEntity(pEntity);
 	}
 }
 
@@ -794,7 +794,7 @@ int		g_iWpnBoxRenderColor	= 0;
 	if (IsValidPev(pPlayer) && pPlayer->v.movetype != MOVETYPE_NOCLIP && pPlayer->v.deadflag == DEAD_NO && pPlayer->v.health > 0)
 	{
 		// Check for cheat impulse command.
-		if (pPlayer->v.impulse == 101 && cvar_sv_cheats->value)
+		if (pPlayer->v.impulse == 101 && cvar_sv_cheats && cvar_sv_cheats->value)
 		{
 			for (int k = 1; k <= g_iWeaponsCount; k++)
 			{
@@ -979,7 +979,7 @@ void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 			if (!stricmp(g_BlockedItems[i]->classname, szClassname))
 			{
 				MDLL_Spawn(pEntity);
-				REMOVE_ENTITY(pEntity);
+				UTIL_RemoveEntity(pEntity);
 				return;
 			}
 		}
@@ -992,7 +992,7 @@ void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 
 		g_pCurrentSlots[pII.iSlot][pII.iPosition] = 1;
 
-		REMOVE_ENTITY(pEntity);
+		UTIL_RemoveEntity(pEntity);
 
 		g_iWeaponsCount++;
 	}
@@ -1122,7 +1122,7 @@ void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 		}
 
 		WeaponInfoArray[iId].worldModel.assign(STRING(pTempEntity->v.model));
-		REMOVE_ENTITY(pTempEntity);
+		UTIL_RemoveEntity(pTempEntity);
 	}
 
 	if (g_bWpnBoxModels && !WeaponInfoArray[iId].worldModel.empty())

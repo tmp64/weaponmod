@@ -49,6 +49,8 @@
 
 #endif
 
+extern void* g_pAdress_SubRemove;
+
 void	EnableWeaponboxModels		(void);
 void	EnableShieldHitboxTracing	(void);
 
@@ -59,5 +61,6 @@ bool	Parse_PrecacheOtherWeapon	(size_t start, size_t end);
 bool	Parse_GetAmmoIndex			(size_t start, size_t end);
 bool	Parse_GiveNamedItem			(size_t start, size_t end);
 bool	Parse_SetAnimation			(size_t start, size_t end);
+bool	Parse_SubRemove				(size_t start, size_t end);
 
 #endif // _WPNMOD_MEMORY_H

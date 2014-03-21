@@ -174,7 +174,7 @@ void OnParseStartEquipments(String item, String count)
 
 		while (!FNullEnt(pFind))
 		{
-			pFind->v.flags |= FL_KILLME;
+			UTIL_RemoveEntity(pFind);
 			pFind = FIND_ENTITY_BY_CLASSNAME(pFind, equip_classname);
 		}
 

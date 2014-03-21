@@ -102,8 +102,6 @@ void Vtable_Init(void)
 			SetVTableOffsetBase(0x6C);
 		}
 #endif 
-		// More slots in OP4.
-		g_iMaxWeaponSlots = 7;
 
 		// Override vtable offsets.
 		GameVirtualOffsets[VO_DamageDecal].iValue		= 29;

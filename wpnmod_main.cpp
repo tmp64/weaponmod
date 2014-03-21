@@ -86,6 +86,12 @@ void Game_Init(void)
 		pvData_Init();
 		Vtable_Init();
 
+		if (g_GameMod == SUBMOD_GEARBOX)
+		{
+			// More slots in OP4.
+			g_iMaxWeaponSlots = 7;
+		}
+
 		g_Ents = new EntData[gpGlobals->maxEntities];
 		g_pCurrentSlots = new int* [g_iMaxWeaponSlots];
 
@@ -100,6 +106,11 @@ void Game_Init(void)
 
 void World_Precache(void)
 {
+	if (g_bWorldSpawned)
+	{
+		return;
+	}
+
 	SetConfigFile();
 
 	cvar_sv_cheats = CVAR_GET_POINTER("sv_cheats");
@@ -109,13 +120,15 @@ void World_Precache(void)
 
 	if (ParseSection(g_ConfigFilepath, "[block]", (void*)OnParseBlockedItems, -1) && (int)g_BlockedItems.size())
 	{
-		WPNMOD_LOG("Blocked default items:\n");
+		WPNMOD_LOG_ONLY("Blocked default items:\n");
 
 		for (int i = 0; i < (int)g_BlockedItems.size(); i++)
 		{
-			WPNMOD_LOG(" \"%s\"\n", g_BlockedItems[i]->classname);
+			WPNMOD_LOG_ONLY(" \"%s\"\n", g_BlockedItems[i]->classname);
 		}
 	}
+
+	g_bWorldSpawned = true;
 }
 
 void OnAmxxAttach(void)
@@ -167,7 +180,7 @@ void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 
 		while (!FNullEnt(pFind))
 		{
-			pFind->v.flags |= FL_KILLME;
+			UTIL_RemoveEntity(pFind);
 			pFind = FIND_ENTITY_BY_CLASSNAME(pFind, g_BlockedItems[i]->classname);
 		}
 	}
@@ -274,13 +287,8 @@ int FN_DecalIndex_Post(const char *name)
 
 int DispatchSpawn(edict_t *pent)
 {
-	if (!g_bWorldSpawned)
-	{
-		g_bWorldSpawned = true;
-
-		Game_Init();
-		World_Precache();
-	}
+	Game_Init();
+	World_Precache();
 
 	RETURN_META_VALUE(MRES_IGNORED, 0);
 }
@@ -306,7 +314,7 @@ void ClientCommand(edict_t *pEntity)
 		SelectItem(pEntity, cmd);
 		RETURN_META(MRES_SUPERCEDE);
 	}
-	else if (!_stricmp(cmd, "give") && cvar_sv_cheats->value)
+	else if (!_stricmp(cmd, "give") && cvar_sv_cheats && cvar_sv_cheats->value)
 	{
 		const char* item = CMD_ARGV(1);
 

@@ -37,9 +37,8 @@
 char g_ConfigFilepath[1024];
 
 edict_t* g_EquipEnt			= NULL;
-
-cvar_t *cvar_sv_cheats		= NULL;
-cvar_t *cvar_mp_weaponstay	= NULL;
+cvar_t* cvar_sv_cheats		= NULL;
+cvar_t* cvar_mp_weaponstay	= NULL;
 
 CVector <DecalList*>		g_Decals;
 CVector <StartAmmo*>		g_StartAmmo;
@@ -66,32 +65,32 @@ SUBMOD CheckSubMod(const char* game)
 {
 	if (!stricmp(game, "ag"))
 	{
-		WPNMOD_LOG("Adrenaline Gamer detected.\n");
+		WPNMOD_LOG_ONLY("Adrenaline Gamer detected.\n");
 		return SUBMOD_AG;
 	}
 	else if (!stricmp(game, "gearbox"))
 	{
-		WPNMOD_LOG("Opposing Force detected.\n");
+		WPNMOD_LOG_ONLY("Opposing Force detected.\n");
 		return SUBMOD_GEARBOX;
 	}
 	else if (!stricmp(game, "valve"))
 	{
 		if (CVAR_GET_POINTER("sv_ag_version"))
 		{
-			WPNMOD_LOG("Adrenaline Gamer Mini detected.\n");
+			WPNMOD_LOG_ONLY("Adrenaline Gamer Mini detected.\n");
 			return SUBMOD_MINIAG;
 		}
 		else if (CVAR_GET_POINTER("aghl.ru"))
 		{
-			WPNMOD_LOG("Bugfixed and improved HL release detected.\n");
+			WPNMOD_LOG_ONLY("Bugfixed and improved HL release detected.\n");
 			return SUBMOD_AGHLRU;
 		}
 
-		WPNMOD_LOG("Half-Life assumed.\n");
+		WPNMOD_LOG_ONLY("Half-Life assumed.\n");
 		return SUBMOD_VALVE;
 	}
 
-	WPNMOD_LOG("Unknown mod detected (\"%s\").\n", MF_GetModname());
+	WPNMOD_LOG("Warning: game mod unrecognized (\"%s\").\n", MF_GetModname());
 	return SUBMOD_UNKNOWN;
 }
 

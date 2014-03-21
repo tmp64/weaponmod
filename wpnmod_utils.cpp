@@ -33,6 +33,7 @@
 
 #include "wpnmod_hooks.h"
 #include "wpnmod_utils.h"
+#include "wpnmod_memory.h"
 
 
 int GetAmmoInventory(edict_t* pPlayer, int iAmmoIndex)
@@ -234,11 +235,11 @@ void GiveNamedItem(edict_t* pPlayer, const char* szName)
 	if (IsValidPev(pItem))
 	{
 		pItem->v.spawnflags |= SF_NORESPAWN;
-		MDLL_Touch(pItem, (edict_t *)pPlayer);
+		MDLL_Touch(pItem, pPlayer);
 
 		if (pItem->v.modelindex)
 		{
-			REMOVE_ENTITY(pItem);
+			UTIL_RemoveEntity(pItem);
 		}
 	}
 }
@@ -254,6 +255,12 @@ bool Entity_IsInWorld(edict_t* pEntity)
 	if (pEntity->v.origin.z <= -4096) return false;
 
 	return true;
+}
+
+void UTIL_RemoveEntity(edict_t* pEntity)
+{
+	Dll_SetThink(pEntity, g_pAdress_SubRemove);
+	pEntity->v.nextthink = gpGlobals->time;
 }
 
 Vector UTIL_VecToAngles(const Vector &vec)

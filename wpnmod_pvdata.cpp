@@ -247,3 +247,4 @@ void Dll_SetThink(edict_t* pEntity, void* funcAddress)
 
 #endif
 }
+
