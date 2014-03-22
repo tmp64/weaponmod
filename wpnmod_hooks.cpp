@@ -38,7 +38,7 @@
 
 
 
-function g_funcPackWeapon = HOOK_FUNC_DLL(PackWeapon_HookHandler);
+
 
 VirtualHookData g_CrowbarHooks[CrowbarHook_End] = 
 {
@@ -59,10 +59,6 @@ EntData* g_Ents = NULL;
 VirtualHookData	g_RpgAddAmmo_Hook		= VHOOK("ammo_rpgclip",		VO_AddAmmo,				AmmoBox_AddAmmo);
 VirtualHookData g_PlayerSpawn_Hook		= VHOOK("player",			VO_Spawn,				Player_Spawn);
 VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	Player_PostThink);
-
-bool	g_bWpnBoxModels			= false;
-int		g_iWpnBoxLifeTime		= 120;
-int		g_iWpnBoxRenderColor	= 0;
 
 
 #ifdef WIN32
@@ -756,7 +752,7 @@ int		g_iWpnBoxRenderColor	= 0;
 {
 	edict_t* pEntity = PrivateToEdict(pvEntity);
 
-	if (!IsValidPev(pEntity) || !IsValidPev(g_EquipEnt))
+	if (!IsValidPev(pEntity) || !IsValidPev(g_Config.m_pEquipEnt))
 	{
 		return;
 	}
@@ -765,7 +761,7 @@ int		g_iWpnBoxRenderColor	= 0;
 
 	if (MF_IsPlayerValid(iPlayer) && MF_IsPlayerAlive(iPlayer))
 	{
-		MDLL_Touch(g_EquipEnt, INDEXENT2(iPlayer));
+		MDLL_Touch(g_Config.m_pEquipEnt, INDEXENT2(iPlayer));
 		UTIL_RemoveEntity(pEntity);
 	}
 }
@@ -843,7 +839,7 @@ int		g_iWpnBoxRenderColor	= 0;
 		return;
 	}
 
-	if (IsValidPev(g_EquipEnt))
+	if (IsValidPev(g_Config.m_pEquipEnt))
 	{
 		edict_t* pTaskEnt = CREATE_NAMED_ENTITY(MAKE_STRING("info_target"));
 
@@ -979,7 +975,7 @@ void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 		WeaponInfoArray[pII.iId].ItemData = pII;
 		WeaponInfoArray[pII.iId].iType = Wpn_Default;
 
-		g_pCurrentSlots[pII.iSlot][pII.iPosition] = 1;
+		g_Config.m_pCurrentSlots[pII.iSlot][pII.iPosition] = 1;
 
 		UTIL_RemoveEntity(pEntity);
 
@@ -1021,10 +1017,10 @@ void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 {
 	int iResult = 0;
 
-	if (UnsetHook(&g_funcPackWeapon))
+	if (UnsetHook(&g_fh_funcPackWeapon))
 	{
 		iResult = WEAPONBOX_PACK_WEAPON(pvWpnBox, pvWeapon);
-		SetHook(&g_funcPackWeapon);
+		SetHook(&g_fh_funcPackWeapon);
 	}
 
 	if (!iResult)
@@ -1043,23 +1039,23 @@ void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 	if (g_Memory.m_pWpnBoxKillThink)
 	{
 		Dll_SetThink(pWeaponBox, g_Memory.m_pWpnBoxKillThink);
-		pWeaponBox->v.nextthink = gpGlobals->time + g_iWpnBoxLifeTime;
+		pWeaponBox->v.nextthink = gpGlobals->time + g_Config.m_iWpnBoxLifeTime;
 	}
 
-	if (g_iWpnBoxRenderColor)
+	if (g_Config.m_iWpnBoxRenderColor)
 	{
 		pWeaponBox->v.renderfx = kRenderFxGlowShell;
 		pWeaponBox->v.rendermode = kRenderNormal;
 		pWeaponBox->v.renderamt = 16.0;
 
-		if (g_iWpnBoxRenderColor == 255255255)
+		if (g_Config.m_iWpnBoxRenderColor == 255255255)
 		{
 			pWeaponBox->v.rendercolor = Vector(RANDOM_LONG(0, 255), RANDOM_LONG(0, 255), RANDOM_LONG(0, 255));
 		}
 		else
 		{
 			Vector vecColor;
-			int iColor = g_iWpnBoxRenderColor;
+			int iColor = g_Config.m_iWpnBoxRenderColor;
 
 			vecColor.x = iColor / 1000000;
 			iColor %= 1000000;
@@ -1072,7 +1068,7 @@ void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 
 	int iId = GetPrivateInt(pWeaponEnt, pvData_iId);
 
-	if (g_bWpnBoxModels && WeaponInfoArray[iId].worldModel.empty())
+	if (g_Config.m_bWpnBoxModels && WeaponInfoArray[iId].worldModel.empty())
 	{
 		edict_t* pTempEntity = NULL;
 
@@ -1099,7 +1095,7 @@ void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 		UTIL_RemoveEntity(pTempEntity);
 	}
 
-	if (g_bWpnBoxModels && !WeaponInfoArray[iId].worldModel.empty())
+	if (g_Config.m_bWpnBoxModels && !WeaponInfoArray[iId].worldModel.empty())
 	{
 		#define WEAPON_TRIPMINE 13
 

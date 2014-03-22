@@ -37,6 +37,7 @@
 CMemory g_Memory;
 
 function g_fh_GiveNamedItem = HOOK_FUNC_DLL(GiveNamedItem_HookHandler);
+function g_fh_funcPackWeapon = HOOK_FUNC_DLL(PackWeapon_HookHandler);
 function g_fh_PrecacheOtherWeapon = HOOK_FUNC_DLL(PrecacheOtherWeapon_HookHandler);
 
 CMemory::CMemory()
@@ -55,7 +56,7 @@ bool CMemory::Init(void)
 {
 	if (!FindModuleByAddr((void*)g_engfuncs.pfnAlertMessage, &m_EngineModule))
 	{
-		WPNMOD_LOG("  Failed to locate game engine!\n");
+		WPNMOD_LOG("  Failed to locate game engine!\n"); // But how? o_O
 		return false;
 	}
 
@@ -82,13 +83,13 @@ bool CMemory::Init(void)
 
 	if (!m_bSuccess)
 	{
-		Unset_Hooks();
+		UnsetHooks();
 	}
 
 	return m_bSuccess;
 }
 
-void CMemory::Unset_Hooks(void)
+void CMemory::UnsetHooks(void)
 {
 	if (g_fh_GiveNamedItem.done)
 	{
@@ -99,83 +100,6 @@ void CMemory::Unset_Hooks(void)
 	{
 		UnsetHook(&g_fh_PrecacheOtherWeapon);
 	}
-}
-
-size_t CMemory::ParseFunc(size_t start, size_t end, char* funcname, unsigned char* pattern, char* mask, size_t bytes)
-{
-	int count = 0;
-
-	size_t pAdress = NULL;
-	size_t pCurrent = NULL;
-
-	pCurrent = FindAdressInDLL(start, end, pattern, mask);
-
-	while (pCurrent)
-	{
-		count++;
-		pAdress = pCurrent;
-		pCurrent = FindAdressInDLL(pCurrent + 1, end, pattern, mask);
-	}
-
-	if (!count)
-	{
-		WPNMOD_LOG("   Error: \"%s\" not found\n", funcname);
-		return false;
-	}
-	else if (count > 1)
-	{
-		WPNMOD_LOG("   Error: %d candidates found for \"%s\"\n", count, funcname);
-		return false;
-	}
-
-	pAdress += bytes;
-	pAdress = *(size_t*)pAdress + pAdress + 4;
-
-	WPNMOD_LOG("   Found \"%s\" at %p\n", funcname, pAdress);
-
-	return pAdress;
-}
-
-size_t CMemory::ParseFunc(size_t start, size_t end, char* funcname, char* string, unsigned char* pattern, char* mask, size_t bytes)
-{
-	int count = 0;
-
-	size_t pAdress = NULL;
-	size_t pCurrent = NULL;
-	size_t pCandidate = NULL;
-	
-	pCurrent = FindStringInDLL(start, end, string);
-
-	while (pCurrent)
-	{
-		*(size_t*)(pattern + 1) = (size_t)pCurrent;
-
-		if ((pCandidate = FindAdressInDLL(start, end, pattern, mask)))
-		{
-			count++;
-			pAdress = pCandidate;
-		}
-
-		pCurrent = FindStringInDLL(pCurrent + 1, end, string);
-	}
-
-	if (!count)
-	{
-		WPNMOD_LOG("   Error: \"%s\" not found\n", funcname);
-		return false;
-	}
-	else if (count > 1)
-	{
-		WPNMOD_LOG("   Error: %d candidates found for \"%s\"\n", count, funcname);
-		return false;
-	}
-
-	pAdress += bytes;
-	pAdress = *(size_t*)pAdress + pAdress + 4;
-
-	WPNMOD_LOG("   Found \"%s\" at %p\n", funcname, pAdress);
-
-	return pAdress;
 }
 
 void CMemory::Parse_ClearMultiDamage(void)
@@ -195,7 +119,7 @@ void CMemory::Parse_ClearMultiDamage(void)
 	if (!pAdress)
 	{
 		WPNMOD_LOG("   Error: \"%s\" not found\n", funcname);
-		m_bIsNewGCC = false;
+		m_bSuccess = false;
 		return;
 	}
 
@@ -205,9 +129,9 @@ void CMemory::Parse_ClearMultiDamage(void)
 
 	size_t pAdress = (size_t)FindFunction(&m_GameDllModule, "?SuperBounceTouch@CSqueakGrenade@@AAEXPAVCBaseEntity@@@Z");
 
-	char mask[] = "x?????x?????x";
-	unsigned char pattern[] = "\x3B\x00\x00\x00\x00\x00\x0F\x00\x00\x00\x00\x00\xE8";
-	size_t BytesOffset = 13;
+	char			mask[]			= "x?????x?????x";
+	unsigned char	pattern[]		= "\x3B\x00\x00\x00\x00\x00\x0F\x00\x00\x00\x00\x00\xE8";
+	size_t			BytesOffset		= 13;
 
 	if (!pAdress)
 	{
@@ -593,16 +517,6 @@ void CMemory::EnableShieldHitboxTracing(void)
 	}
 }
 
-
-
-
-
-
-
-
-
-
-
 void CMemory::EnableWeaponboxModels(void)
 {
 	//
@@ -655,6 +569,13 @@ void CMemory::EnableWeaponboxModels(void)
 	{
 		WPNMOD_LOG("Error: \"%s\" not found\n", funcname);
 		return;
+	}
+
+	m_pWpnBoxKillThink = (void*)FindFunction(&m_GameDllModule, "Kill__10CWeaponBox");
+
+	if (!m_pWpnBoxKillThink)
+	{
+		m_pWpnBoxKillThink = (void*)FindFunction(&m_GameDllModule, "_ZN10CWeaponBox4KillEv");
 	}
 
 #else
@@ -730,20 +651,7 @@ void CMemory::EnableWeaponboxModels(void)
 	pAdress += 1;
 	pAdress = *(size_t*)pAdress + pAdress + 4;
 
-#endif
-
-#ifdef WIN32
-
 	m_pWpnBoxKillThink = (void*)FindFunction(&m_GameDllModule, "?Kill@CWeaponBox@@QAEXXZ");
-
-#else
-
-	m_pWpnBoxKillThink = (void*)FindFunction(&m_GameDllModule, "Kill__10CWeaponBox");
-
-	if (!m_pWpnBoxKillThink)
-	{
-		m_pWpnBoxKillThink = (void*)FindFunction(&m_GameDllModule, "_ZN10CWeaponBox4KillEv");
-	}
 
 #endif
 
@@ -753,15 +661,92 @@ void CMemory::EnableWeaponboxModels(void)
 		return;
 	}
 
-	g_funcPackWeapon.address = (void*)pAdress;
+	g_fh_funcPackWeapon.address = (void*)pAdress;
 
-	if (!CreateFunctionHook(&g_funcPackWeapon))
+	if (!CreateFunctionHook(&g_fh_funcPackWeapon))
 	{
 		WPNMOD_LOG("Error: failed to hook \"%s\"\n", funcname);
 		return;
 	}
 
 	WPNMOD_LOG_ONLY("Function \"%s\" successfully hooked at %p\n", funcname, pAdress);
-	SetHook(&g_funcPackWeapon);
+	SetHook(&g_fh_funcPackWeapon);
+}
+
+size_t CMemory::ParseFunc(size_t start, size_t end, char* funcname, unsigned char* pattern, char* mask, size_t bytes)
+{
+	int count = 0;
+
+	size_t pAdress = NULL;
+	size_t pCurrent = NULL;
+
+	pCurrent = FindAdressInDLL(start, end, pattern, mask);
+
+	while (pCurrent)
+	{
+		count++;
+		pAdress = pCurrent;
+		pCurrent = FindAdressInDLL(pCurrent + 1, end, pattern, mask);
+	}
+
+	if (!count)
+	{
+		WPNMOD_LOG("   Error: \"%s\" not found\n", funcname);
+		return false;
+	}
+	else if (count > 1)
+	{
+		WPNMOD_LOG("   Error: %d candidates found for \"%s\"\n", count, funcname);
+		return false;
+	}
+
+	pAdress += bytes;
+	pAdress = *(size_t*)pAdress + pAdress + 4;
+
+	WPNMOD_LOG("   Found \"%s\" at %p\n", funcname, pAdress);
+
+	return pAdress;
+}
+
+size_t CMemory::ParseFunc(size_t start, size_t end, char* funcname, char* string, unsigned char* pattern, char* mask, size_t bytes)
+{
+	int count = 0;
+
+	size_t pAdress = NULL;
+	size_t pCurrent = NULL;
+	size_t pCandidate = NULL;
+	
+	pCurrent = FindStringInDLL(start, end, string);
+
+	while (pCurrent)
+	{
+		*(size_t*)(pattern + 1) = (size_t)pCurrent;
+
+		if ((pCandidate = FindAdressInDLL(start, end, pattern, mask)))
+		{
+			count++;
+			pAdress = pCandidate;
+		}
+
+		pCurrent = FindStringInDLL(pCurrent + 1, end, string);
+	}
+
+	if (!count)
+	{
+		WPNMOD_LOG("   Error: \"%s\" not found\n", funcname);
+		return false;
+	}
+	else if (count > 1)
+	{
+		WPNMOD_LOG("   Error: %d candidates found for \"%s\"\n", count, funcname);
+		return false;
+	}
+
+	pAdress += bytes;
+	pAdress = *(size_t*)pAdress + pAdress + 4;
+
+	WPNMOD_LOG("   Found \"%s\" at %p\n", funcname, pAdress);
+
+	return pAdress;
 }
 

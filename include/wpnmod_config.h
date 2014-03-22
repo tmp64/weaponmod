@@ -45,6 +45,64 @@
 #include "wpnmod_log.h"
 
 
+typedef enum
+{
+	SUBMOD_UNKNOWN = 0,
+
+	SUBMOD_AG,
+	SUBMOD_VALVE,
+	SUBMOD_GEARBOX,
+
+	SUBMOD_AGHLRU,
+	SUBMOD_MINIAG,
+} SUBMOD;
+
+class CConfig
+{
+private:
+	bool	m_bInited;
+	bool	m_bWorldSpawned;
+	char	m_cfgpath[1024];
+
+public:
+	CConfig();
+
+	int**	m_pCurrentSlots;
+	int		m_iMaxWeaponSlots;
+	int		m_iMaxWeaponPositions;
+
+	bool	m_bWpnBoxModels;
+	int		m_iWpnBoxLifeTime;
+	int		m_iWpnBoxRenderColor;
+
+	edict_t*	m_pEquipEnt;
+
+	void	InitGameMod			(void);
+	void	WorldPrecache		(void);
+	void	SetConfigFile		(void);
+	char*	GetConfigFile		(void)		{ return &m_cfgpath[0]; };
+
+	//SUBMOD GetSubMod(void);
+	SUBMOD	CheckSubMod			(const char* game);
+
+	void	ServerActivate		(void);
+	void	ServerShutDown		(void);
+	void	ServerDeactivate	(void);
+	void	ManageEquipment		(void);
+	void	AutoSlotDetection	(int iWeaponID, int iSlot, int iPosition);
+};
+
+extern CConfig g_Config;
+
+
+
+
+
+
+
+
+
+
 #define PS_STOPPED		4
 #define UD_FINDPLUGIN	3
 
@@ -60,17 +118,6 @@
 #define ITEM_FLAG_LIMITINWORLD				8
 #define ITEM_FLAG_EXHAUSTIBLE				16
 
-typedef enum
-{
-	SUBMOD_UNKNOWN = 0,
-
-	SUBMOD_AG,
-	SUBMOD_VALVE,
-	SUBMOD_GEARBOX,
-
-	SUBMOD_AGHLRU,
-	SUBMOD_MINIAG,
-} SUBMOD;
 
 enum e_AmmoFwds
 {
@@ -127,16 +174,6 @@ public:
 	int status;
 };
 
-typedef enum
-{
-	PLAYER_IDLE,
-	PLAYER_WALK,
-	PLAYER_JUMP,
-	PLAYER_SUPERJUMP,
-	PLAYER_DIE,
-	PLAYER_ATTACK1,
-} PLAYER_ANIM;
-
 typedef struct
 {
 	int		iSlot;
@@ -189,15 +226,10 @@ typedef struct
 
 extern AMX_NATIVE_INFO Natives[];
 
-extern edict_t*	g_EquipEnt;
-extern int**	g_pCurrentSlots;
 
 extern int g_iWeaponsCount;
 extern int g_iWeaponInitID;
 extern int g_iAmmoBoxIndex;
-
-extern int g_iMaxWeaponSlots;
-extern int g_iMaxWeaponPositions;
 
 extern cvar_t *cvar_sv_cheats;
 extern cvar_t *cvar_mp_weaponstay;
@@ -214,15 +246,10 @@ extern SUBMOD g_GameMod;
 extern WeaponData	WeaponInfoArray	[MAX_WEAPONS];
 extern AmmoBoxData	AmmoBoxInfoArray[MAX_WEAPONS];
 
-extern char	g_ConfigFilepath[1024];
-
-extern void		SetConfigFile	(void);
 extern void		WpnModCommand	(void);
-extern SUBMOD	CheckSubMod		(const char* game);
 
 extern	edict_t*		Ammo_Spawn			(const char* szName, Vector vecOrigin, Vector vecAngles);
 extern	edict_t*		Weapon_Spawn		(const char* szName, Vector vecOrigin, Vector vecAngles);
-extern	void			AutoSlotDetection	(int iWeaponID, int iSlot, int iPosition);
 
 inline int			GetWeapon_Slot(const int iId)			{ return WeaponInfoArray[iId].ItemData.iSlot; }
 inline int			GetWeapon_ItemPosition(const int iId)	{ return WeaponInfoArray[iId].ItemData.iPosition; }

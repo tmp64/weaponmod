@@ -219,7 +219,7 @@ AMXX_NATIVE(wpnmod_register_weapon)
 			WeaponInfoArray[i].author = plugin->author;
 			WeaponInfoArray[i].version = plugin->version;
 
-			AutoSlotDetection(i, params[2] - 1, params[3] - 1);
+			g_Config.AutoSlotDetection(i, params[2] - 1, params[3] - 1);
 
 			if (!g_bCrowbarHooked)
 			{

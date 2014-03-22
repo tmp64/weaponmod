@@ -36,7 +36,6 @@
 #include "wpnmod_hooks.h"
 
 
-bool g_bWorldSpawned = false;
 
 int AmxxCheckGame(const char* game)
 {
@@ -61,62 +60,6 @@ int WpnMod_Init(void)
 	return 1;
 }
 
-void Game_Init(void)
-{
-	static bool bInitOnce = false;
-
-	if (!bInitOnce)
-	{
-		g_GameMod = CheckSubMod(MF_GetModname());
-
-		pvData_Init();
-		Vtable_Init();
-
-		if (g_GameMod == SUBMOD_GEARBOX)
-		{
-			// More slots in OP4.
-			g_iMaxWeaponSlots = 7;
-		}
-
-		g_Ents = new EntData[gpGlobals->maxEntities];
-		g_pCurrentSlots = new int* [g_iMaxWeaponSlots];
-
-		for (int i = 0; i < g_iMaxWeaponSlots; ++i)
-		{
-			memset((g_pCurrentSlots[i] = new int [g_iMaxWeaponPositions]), 0, sizeof(int) * g_iMaxWeaponPositions);
-		}
-
-		bInitOnce = true;
-	}
-}
-
-void World_Precache(void)
-{
-	if (g_bWorldSpawned)
-	{
-		return;
-	}
-
-	SetConfigFile();
-
-	cvar_sv_cheats = CVAR_GET_POINTER("sv_cheats");
-	cvar_mp_weaponstay = CVAR_GET_POINTER("mp_weaponstay");
-
-	WPNMOD_LOG_ONLY("-------- Mapchange to %s --------\n", STRING(gpGlobals->mapname));
-
-	if (ParseSection(g_ConfigFilepath, "[block]", (void*)OnParseBlockedItems, -1) && (int)g_BlockedItems.size())
-	{
-		WPNMOD_LOG_ONLY("Blocked default items:\n");
-
-		for (int i = 0; i < (int)g_BlockedItems.size(); i++)
-		{
-			WPNMOD_LOG_ONLY(" \"%s\"\n", g_BlockedItems[i]->classname);
-		}
-	}
-
-	g_bWorldSpawned = true;
-}
-
 void OnAmxxAttach(void)
 {
 	cvar_t version = 
@@ -133,54 +76,31 @@ void OnAmxxAttach(void)
 
 void OnAmxxDetach(void)
 {
-	g_Memory.Unset_Hooks();
+	g_Memory.UnsetHooks();
+	g_Config.ServerShutDown();
+}
 
-	for (int i = 0; i < g_iMaxWeaponSlots; ++i)
-	{
-		delete [] g_pCurrentSlots[i];
-	}
+int DispatchSpawn(edict_t *pent)
+{
+	g_Config.InitGameMod();
+	g_Config.WorldPrecache();
 
-	delete [] g_Ents;
-	delete [] g_pCurrentSlots;
+	RETURN_META_VALUE(MRES_IGNORED, 0);
 }
 
 void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 {
-	ParseBSP();
-	ParseSpawnPoints();
-
-	// Parse default equipments and ammo.
-	ParseSection(g_ConfigFilepath, "[ammo]", (void*)OnParseStartAmmos, ':');
-	ParseSection(g_ConfigFilepath, "[equipment]", (void*)OnParseStartEquipments	, ':');
-
-	// Remove blocked items from map.
-	for (int i = 0; i < (int)g_BlockedItems.size(); i++)
-	{
-		edict_t *pFind = FIND_ENTITY_BY_CLASSNAME(NULL, g_BlockedItems[i]->classname);
-
-		while (!FNullEnt(pFind))
-		{
-			UTIL_RemoveEntity(pFind);
-			pFind = FIND_ENTITY_BY_CLASSNAME(pFind, g_BlockedItems[i]->classname);
-		}
-	}
-
-	g_Memory.EnableShieldHitboxTracing();
-
-	if (ParseSection(g_ConfigFilepath, "[weaponbox]", (void*)OnParseWeaponbox, ':'))
-	{
-		g_Memory.EnableWeaponboxModels();
-	}
-
-	SetHookVirtual(&g_PlayerSpawn_Hook);
-	SetHookVirtual(&g_PlayerPostThink_Hook);
-
+	g_Config.ServerActivate();
 	RETURN_META(MRES_IGNORED);
 }
 
 void ServerDeactivate()
 {
-	g_EquipEnt = 0;
+	g_Config.ServerDeactivate();
+
+
+
+
 
 	g_iWeaponsCount = 0;
 	g_iWeaponInitID = 0;
@@ -189,10 +109,6 @@ void ServerDeactivate()
 	memset(WeaponInfoArray, 0, sizeof(WeaponInfoArray));
 	memset(AmmoBoxInfoArray, 0, sizeof(AmmoBoxInfoArray));
 
-	for (int i = 0; i < g_iMaxWeaponSlots; ++i)
-	{
-		memset(g_pCurrentSlots[i], 0, sizeof(int) * g_iMaxWeaponPositions);
-	}
 
 	for (int i = 0; i < (int)g_Decals.size(); i++)
 	{
@@ -214,27 +130,8 @@ void ServerDeactivate()
 	g_StartAmmo.clear();
 	g_BlockedItems.clear();
 
-	g_bWorldSpawned = false;
 	g_bCrowbarHooked = false;
 	g_bAmmoBoxHooked = false;
-
-	for (int i = 0; i < CrowbarHook_End; i++)
-	{
-		UnsetHookVirtual(&g_CrowbarHooks[i]);
-	}
-
-	if (g_funcPackWeapon.done)
-	{
-		UnsetHook(&g_funcPackWeapon);
-	}
-
-	g_funcPackWeapon.address = NULL;
-
-	UnsetHookVirtual(&g_RpgAddAmmo_Hook);
-	UnsetHookVirtual(&g_PlayerSpawn_Hook);
-	UnsetHookVirtual(&g_PlayerPostThink_Hook);
-
-	g_iWpnBoxLifeTime = 120;
 
 	RETURN_META(MRES_IGNORED);
 }
@@ -261,14 +158,6 @@ int FN_DecalIndex_Post(const char *name)
 	p->index = META_RESULT_ORIG_RET(int);
 
 	g_Decals.push_back(p);
-
-	RETURN_META_VALUE(MRES_IGNORED, 0);
-}
-
-int DispatchSpawn(edict_t *pent)
-{
-	Game_Init();
-	World_Precache();
 
 	RETURN_META_VALUE(MRES_IGNORED, 0);
 }

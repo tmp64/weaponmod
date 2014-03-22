@@ -34,34 +34,168 @@
 #include "wpnmod_config.h"
 #include "wpnmod_utils.h"
 
-char g_ConfigFilepath[1024];
 
-edict_t* g_EquipEnt			= NULL;
-cvar_t* cvar_sv_cheats		= NULL;
-cvar_t* cvar_mp_weaponstay	= NULL;
 
-CVector <DecalList*>		g_Decals;
-CVector <StartAmmo*>		g_StartAmmo;
-CVector <VirtualHookData*>	g_BlockedItems;
 
-int g_iWeaponsCount			= 0;
-int g_iWeaponInitID			= 0;
-int g_iAmmoBoxIndex			= 0;
+#include "wpnmod_hooks.h"
+#include "wpnmod_parse.h"
 
-int g_iMaxWeaponSlots		= 5;
-int g_iMaxWeaponPositions	= 5;
 
-bool g_bCrowbarHooked	= false;
-bool g_bAmmoBoxHooked	= false;
+CConfig g_Config;
 
-SUBMOD g_GameMod;
+CConfig::CConfig()
+{
+	m_bInited = false;
+	m_bWorldSpawned = false;
 
-WeaponData	WeaponInfoArray	[MAX_WEAPONS];
-AmmoBoxData AmmoBoxInfoArray[MAX_WEAPONS];
+	m_pCurrentSlots = NULL;
+	m_iMaxWeaponSlots = 5;
+	m_iMaxWeaponPositions = 5;
 
-int** g_pCurrentSlots = NULL;
+	m_bWpnBoxModels = false;
+	m_iWpnBoxLifeTime = 120;
+	m_iWpnBoxRenderColor = NULL;
 
-SUBMOD CheckSubMod(const char* game)
+	m_pEquipEnt = NULL;
+};
+
+void CConfig::InitGameMod(void)
+{
+	if (!m_bInited)
+	{
+		g_GameMod = g_Config.CheckSubMod(MF_GetModname());
+
+		pvData_Init();
+		Vtable_Init();
+
+		if (g_GameMod == SUBMOD_GEARBOX)
+		{
+			// More slots in OP4.
+			m_iMaxWeaponSlots = 7;
+		}
+
+		g_Ents = new EntData[gpGlobals->maxEntities];
+		m_pCurrentSlots = new int* [m_iMaxWeaponSlots];
+
+		for (int i = 0; i < m_iMaxWeaponSlots; ++i)
+		{
+			memset((m_pCurrentSlots[i] = new int [m_iMaxWeaponPositions]), 0, sizeof(int) * m_iMaxWeaponPositions);
+		}
+
+		m_bInited = true;
+	}
+}
+
+void CConfig::WorldPrecache(void)
+{
+	if (m_bWorldSpawned)
+	{
+		return;
+	}
+
+	SetConfigFile();
+
+	cvar_sv_cheats = CVAR_GET_POINTER("sv_cheats");
+	cvar_mp_weaponstay = CVAR_GET_POINTER("mp_weaponstay");
+
+	WPNMOD_LOG_ONLY("-------- Mapchange to %s --------\n", STRING(gpGlobals->mapname));
+
+	if (ParseSection(GetConfigFile(), "[block]", (void*)OnParseBlockedItems, -1) && (int)g_BlockedItems.size())
+	{
+		WPNMOD_LOG("Blocked default items:\n");
+
+		for (int i = 0; i < (int)g_BlockedItems.size(); i++)
+		{
+			WPNMOD_LOG(" \"%s\"\n", g_BlockedItems[i]->classname);
+		}
+	}
+
+	m_bWorldSpawned = true;
+}
+
+void CConfig::ServerActivate(void)
+{
+	ParseBSP();
+	ParseSpawnPoints();
+
+	// Parse default equipments and ammo.
+	ParseSection(GetConfigFile(), "[ammo]", (void*)OnParseStartAmmos, ':');
+	ParseSection(GetConfigFile(), "[equipment]", (void*)OnParseStartEquipments	, ':');
+
+	// Remove blocked items from map.
+	for (int i = 0; i < (int)g_BlockedItems.size(); i++)
+	{
+		edict_t *pFind = FIND_ENTITY_BY_CLASSNAME(NULL, g_BlockedItems[i]->classname);
+
+		while (!FNullEnt(pFind))
+		{
+			UTIL_RemoveEntity(pFind);
+			pFind = FIND_ENTITY_BY_CLASSNAME(pFind, g_BlockedItems[i]->classname);
+		}
+	}
+
+	g_Memory.EnableShieldHitboxTracing();
+
+	if (ParseSection(GetConfigFile(), "[weaponbox]", (void*)OnParseWeaponbox, ':'))
+	{
+		g_Memory.EnableWeaponboxModels();
+	}
+
+	SetHookVirtual(&g_PlayerSpawn_Hook);
+	SetHookVirtual(&g_PlayerPostThink_Hook);
+}
+
+void CConfig::ServerDeactivate(void)
+{
+	m_bWorldSpawned = false;
+
+	for (int i = 0; i < m_iMaxWeaponSlots; ++i)
+	{
+		memset(m_pCurrentSlots[i], 0, sizeof(int) * m_iMaxWeaponPositions);
+	}
+
+	for (int i = 0; i < CrowbarHook_End; i++)
+	{
+		UnsetHookVirtual(&g_CrowbarHooks[i]);
+	}
+
+	if (g_fh_funcPackWeapon.done)
+	{
+		UnsetHook(&g_fh_funcPackWeapon);
+	}
+
+	m_pEquipEnt = NULL;
+	g_fh_funcPackWeapon.address = NULL;
+
+	UnsetHookVirtual(&g_RpgAddAmmo_Hook);
+	UnsetHookVirtual(&g_PlayerSpawn_Hook);
+	UnsetHookVirtual(&g_PlayerPostThink_Hook);
+
+	m_iWpnBoxLifeTime = 120;
+}
+
+void CConfig::ServerShutDown(void)
+{
+	for (int i = 0; i < m_iMaxWeaponSlots; ++i)
+	{
+		delete [] m_pCurrentSlots[i];
+	}
+	
+	delete [] g_Ents;
+	delete [] m_pCurrentSlots;
+}
+
+void CConfig::SetConfigFile(void)
+{
+	build_pathname_r(m_cfgpath, sizeof(m_cfgpath) - 1, "%s/weaponmod/weaponmod-%s.ini", LOCALINFO((char*)"amxx_configsdir"), STRING(gpGlobals->mapname));
+	
+	if (!FileExists(m_cfgpath))
+	{
+		build_pathname_r(m_cfgpath, sizeof(m_cfgpath) - 1, "%s/weaponmod/weaponmod.ini", LOCALINFO((char*)"amxx_configsdir"));
+	}
+}
+
+SUBMOD CConfig::CheckSubMod(const char* game)
 {
 	if (!stricmp(game, "ag"))
 	{
@@ -94,31 +228,21 @@ SUBMOD CheckSubMod(const char* game)
 	return SUBMOD_UNKNOWN;
 }
 
-void SetConfigFile()
+void CConfig::AutoSlotDetection(int iWeaponID, int iSlot, int iPosition)
 {
-	build_pathname_r(g_ConfigFilepath, sizeof(g_ConfigFilepath) - 1, "%s/weaponmod/weaponmod-%s.ini", LOCALINFO((char*)"amxx_configsdir"), STRING(gpGlobals->mapname));
-	
-	if (!FileExists(g_ConfigFilepath))
+	if (iSlot >= m_iMaxWeaponSlots || iSlot < 0)
 	{
-		build_pathname_r(g_ConfigFilepath, sizeof(g_ConfigFilepath) - 1, "%s/weaponmod/weaponmod.ini", LOCALINFO((char*)"amxx_configsdir"));
-	}
-}
-
-void AutoSlotDetection(int iWeaponID, int iSlot, int iPosition)
-{
-	if (iSlot >= g_iMaxWeaponSlots || iSlot < 0)
-	{
-		iSlot = g_iMaxWeaponSlots - 1;
+		iSlot = m_iMaxWeaponSlots - 1;
 	}
 
-	if (iPosition >= g_iMaxWeaponPositions || iPosition < 0)
+	if (iPosition >= m_iMaxWeaponPositions || iPosition < 0)
 	{
-		iPosition = g_iMaxWeaponPositions - 1;
+		iPosition = m_iMaxWeaponPositions - 1;
 	}
 
-	if (!g_pCurrentSlots[iSlot][iPosition])
+	if (!m_pCurrentSlots[iSlot][iPosition])
 	{
-		g_pCurrentSlots[iSlot][iPosition] = iWeaponID;
+		m_pCurrentSlots[iSlot][iPosition] = iWeaponID;
 
 		WeaponInfoArray[iWeaponID].ItemData.iSlot = iSlot;
 		WeaponInfoArray[iWeaponID].ItemData.iPosition = iPosition;
@@ -127,13 +251,13 @@ void AutoSlotDetection(int iWeaponID, int iSlot, int iPosition)
 	{
 		bool bFound = false;
 
-		for (int k, i = 0; i < g_iMaxWeaponSlots && !bFound; i++)
+		for (int k, i = 0; i < m_iMaxWeaponSlots && !bFound; i++)
 		{
-			for (k = 0; k < g_iMaxWeaponPositions; k++)
+			for (k = 0; k < m_iMaxWeaponPositions; k++)
 			{
-				if (!g_pCurrentSlots[i][k])
+				if (!m_pCurrentSlots[i][k])
 				{
-					g_pCurrentSlots[i][k] = iWeaponID;
+					m_pCurrentSlots[i][k] = iWeaponID;
 
 					WeaponInfoArray[iWeaponID].ItemData.iSlot = i;
 					WeaponInfoArray[iWeaponID].ItemData.iPosition = k;
@@ -153,6 +277,66 @@ void AutoSlotDetection(int iWeaponID, int iSlot, int iPosition)
 		}
 	}
 }
+
+void CConfig::ManageEquipment(void)
+{
+	const char* equip_classname = "game_player_equip";
+	edict_t* pFind = FIND_ENTITY_BY_CLASSNAME(NULL, equip_classname);
+
+	while (!FNullEnt(pFind))
+	{
+		UTIL_RemoveEntity(pFind);
+		pFind = FIND_ENTITY_BY_CLASSNAME(pFind, equip_classname);
+	}
+
+	pFind = CREATE_NAMED_ENTITY(MAKE_STRING(equip_classname));
+
+	if (IsValidPev(pFind))
+	{
+		MDLL_Spawn(pFind);
+
+		pFind = CREATE_NAMED_ENTITY(MAKE_STRING(equip_classname));
+
+		if (IsValidPev(pFind))
+		{
+			m_pEquipEnt = pFind;
+			m_pEquipEnt->v.classname = MAKE_STRING("weaponmod_equipment");
+				
+			MDLL_Spawn(m_pEquipEnt);
+		}
+	}
+}
+
+
+
+
+
+
+
+
+cvar_t* cvar_sv_cheats		= NULL;
+cvar_t* cvar_mp_weaponstay	= NULL;
+
+CVector <DecalList*>		g_Decals;
+CVector <StartAmmo*>		g_StartAmmo;
+CVector <VirtualHookData*>	g_BlockedItems;
+
+int g_iWeaponsCount			= 0;
+int g_iWeaponInitID			= 0;
+int g_iAmmoBoxIndex			= 0;
+
+bool g_bCrowbarHooked	= false;
+bool g_bAmmoBoxHooked	= false;
+
+SUBMOD g_GameMod;
+
+WeaponData	WeaponInfoArray	[MAX_WEAPONS];
+AmmoBoxData AmmoBoxInfoArray[MAX_WEAPONS];
+
+
+
+
+
 
 edict_t* Weapon_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles)
 {

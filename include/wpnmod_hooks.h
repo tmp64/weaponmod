@@ -62,15 +62,9 @@ extern EntData* g_Ents;
 
 #endif
 
-extern bool	g_bWpnBoxModels;
-extern int	g_iWpnBoxLifeTime;
-extern int	g_iWpnBoxRenderColor;
-
 //
 // FUNCTIONS
 //
-
-	extern function	g_funcPackWeapon;
 
 	typedef int		(*FuncGetAmmoIndex)			(const char*);
 	typedef void	(*FuncClearMultiDamage)		(void);
@@ -127,7 +121,7 @@ extern int	g_iWpnBoxRenderColor;
 	//
 		inline int WEAPONBOX_PACK_WEAPON(void* pvWpnBox, void* pvWeapon)
 		{
-			return reinterpret_cast<FuncPackWeapon>(g_funcPackWeapon.address)(pvWpnBox, DUMMY_VAL, pvWeapon);
+			return reinterpret_cast<FuncPackWeapon>(g_fh_funcPackWeapon.address)(pvWpnBox, DUMMY_VAL, pvWeapon);
 		}
 
 	// void SetAnimation(PLAYER_ANIM playerAnim);
@@ -157,7 +151,7 @@ extern int	g_iWpnBoxRenderColor;
 	//
 		inline int WEAPONBOX_PACK_WEAPON(void* pvWpnBox, void* pvWeapon)
 		{
-			return reinterpret_cast<FuncPackWeapon>(g_funcPackWeapon.address)(pvWpnBox,  pvWeapon);
+			return reinterpret_cast<FuncPackWeapon>(g_fh_funcPackWeapon.address)(pvWpnBox,  pvWeapon);
 		}
 
 	// void SetAnimation(PLAYER_ANIM playerAnim);

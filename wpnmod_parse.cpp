@@ -116,15 +116,15 @@ void OnParseWeaponbox(String key, String value)
 {
 	if (!strcmp(key.c_str(), "setmodel"))
 	{
-		g_bWpnBoxModels = atoi(value.c_str()) > 0 ? true : false;
+		g_Config.m_bWpnBoxModels = atoi(value.c_str()) > 0 ? true : false;
 	}
 	else if (!strcmp(key.c_str(), "rendercolor"))
 	{
-		g_iWpnBoxRenderColor = atoi(value.c_str());
+		g_Config.m_iWpnBoxRenderColor = atoi(value.c_str());
 	}
 	else if (!strcmp(key.c_str(), "lifetime"))
 	{
-		g_iWpnBoxLifeTime = atoi(value.c_str());
+		g_Config.m_iWpnBoxLifeTime = atoi(value.c_str());
 	}
 }
 
@@ -167,45 +167,21 @@ void OnParseBlockedItems(String dummy, String BlockedItem)
 
 void OnParseStartEquipments(String item, String count)
 {
-	if (!g_EquipEnt)
+	if (!g_Config.m_pEquipEnt)
 	{
-		const char* equip_classname = "game_player_equip";
-		edict_t* pFind = FIND_ENTITY_BY_CLASSNAME(NULL, equip_classname);
-
-		while (!FNullEnt(pFind))
-		{
-			UTIL_RemoveEntity(pFind);
-			pFind = FIND_ENTITY_BY_CLASSNAME(pFind, equip_classname);
-		}
-
-		pFind = CREATE_NAMED_ENTITY(MAKE_STRING(equip_classname));
-
-		if (IsValidPev(pFind))
-		{
-			MDLL_Spawn(pFind);
-
-			pFind = CREATE_NAMED_ENTITY(MAKE_STRING(equip_classname));
-
-			if (IsValidPev(pFind))
-			{
-				g_EquipEnt = pFind;
-				g_EquipEnt->v.classname = MAKE_STRING("weaponmod_equipment");
-				
-				MDLL_Spawn(g_EquipEnt);
-			}
-		}
+		g_Config.ManageEquipment();
 	}
 
-	if (g_EquipEnt)
+	if (g_Config.m_pEquipEnt)
 	{
 		KeyValueData kvd;
 
-		kvd.szClassName = (char*)STRING(g_EquipEnt->v.classname);
+		kvd.szClassName = (char*)STRING(g_Config.m_pEquipEnt->v.classname);
 		kvd.szKeyName = (char*)item.c_str();
 		kvd.szValue = (char*)count.c_str();
 		kvd.fHandled = 0;
 
-		MDLL_KeyValue(g_EquipEnt, &kvd);
+		MDLL_KeyValue(g_Config.m_pEquipEnt, &kvd);
 	}
 }
 

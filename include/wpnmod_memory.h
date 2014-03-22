@@ -72,43 +72,32 @@ public:
 	void* m_pPlayerSetAnimation;
 
 	bool Init(void);
-	void Unset_Hooks(void);
+	void UnsetHooks(void);
 
+	void Parse_SubRemove(void);
+	void Parse_GetAmmoIndex(void);
+	void Parse_SetAnimation(void);
+	void Parse_GiveNamedItem(void);
 	void Parse_ClearMultiDamage(void);
 	void Parse_ApplyMultiDamage(void);
 	void Parse_PrecacheOtherWeapon(void);
-	void Parse_GetAmmoIndex(void);
-	void Parse_GiveNamedItem(void);
-	void Parse_SetAnimation(void);
-	void Parse_SubRemove(void);
 
 	void EnableWeaponboxModels(void);
 	void EnableShieldHitboxTracing(void);
+
+	bool IsNewGCC(void) { return m_bIsNewGCC; };
 
 	module* GetModule_Dll(void) { return &m_GameDllModule; };
 	module* GetModule_Engine(void) { return &m_EngineModule; };
 
 	size_t ParseFunc(size_t start, size_t end, char* funcname, unsigned char* pattern, char* mask, size_t bytes);
 	size_t ParseFunc(size_t start, size_t end, char* funcname, char* string, unsigned char* pattern, char* mask, size_t bytes);
-
-	bool IsNewGCC(void) { return m_bIsNewGCC; };
 };
 
 extern CMemory g_Memory;
 
 extern function g_fh_GiveNamedItem;
+extern function g_fh_funcPackWeapon;
 extern function g_fh_PrecacheOtherWeapon;
-
-
-
-
-
-
-
-
-
-
-
-
 
 #endif // _WPNMOD_MEMORY_H

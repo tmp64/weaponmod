@@ -114,7 +114,7 @@ void SelectItem(edict_t* pPlayer, const char* pstr)
 
 	edict_t *pCheck = NULL;
 
-	for (int i = 0 ; i <= g_iMaxWeaponSlots ; i++)
+	for (int i = 0 ; i <= g_Config.m_iMaxWeaponSlots; i++)
 	{
 		pCheck = GetPrivateCbase(pPlayer, pvData_rgpPlayerItems, i);
 
@@ -148,7 +148,7 @@ bool GetNextBestWeapon(edict_t* pPlayer, edict_t* pCurrentWeapon)
 		return false;
 	}
 
-	for (int i = 0 ; i <= g_iMaxWeaponSlots ; i++)
+	for (int i = 0 ; i <= g_Config.m_iMaxWeaponSlots ; i++)
 	{
 		pCheck = GetPrivateCbase(pPlayer, pvData_rgpPlayerItems, i);
 
