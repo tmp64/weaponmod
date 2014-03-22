@@ -59,6 +59,7 @@ private:
 	module	m_GameDllModule;
 
 	bool	m_bSuccess;
+	bool	m_bIsNewGCC;
 
 public:
 	CMemory();
@@ -71,6 +72,7 @@ public:
 	void* m_pPlayerSetAnimation;
 
 	bool Init(void);
+	void Unset_Hooks(void);
 
 	void Parse_ClearMultiDamage(void);
 	void Parse_ApplyMultiDamage(void);
@@ -83,13 +85,13 @@ public:
 	void EnableWeaponboxModels(void);
 	void EnableShieldHitboxTracing(void);
 
-	void Unset_Hooks(void);
-
 	module* GetModule_Dll(void) { return &m_GameDllModule; };
 	module* GetModule_Engine(void) { return &m_EngineModule; };
 
 	size_t ParseFunc(size_t start, size_t end, char* funcname, unsigned char* pattern, char* mask, size_t bytes);
 	size_t ParseFunc(size_t start, size_t end, char* funcname, char* string, unsigned char* pattern, char* mask, size_t bytes);
+
+	bool IsNewGCC(void) { return m_bIsNewGCC; };
 };
 
 extern CMemory g_Memory;
@@ -106,17 +108,6 @@ extern function g_fh_PrecacheOtherWeapon;
 
 
 
-
-
-
-
-
-
-
-
-#ifdef __linux__
-	extern bool g_bNewGCC;
-#endif
 
 
 

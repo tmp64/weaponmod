@@ -96,7 +96,7 @@ GameOffset GamePvDatasOffsets[pvData_End] =
 void pvData_Init(void)
 {
 #ifdef __linux__
-	if (g_bNewGCC)
+	if (g_Memory.IsNewGCC())
 	{
 		for (int i = pvData_ammo_9mm; i < pvData_pPlayer; i++)
 		{
@@ -216,7 +216,7 @@ void Dll_SetTouch(edict_t* pEntity, void* funcAddress)
 {
 #ifdef __linux__
 
-	if (!g_bNewGCC)
+	if (!g_Memory.IsNewGCC())
 	{
 		*((long*)pEntity->pvPrivateData + GET_PVDATA_OFFSET(pvData_pfnTouch)) = funcAddress == NULL ? NULL : 0xFFFF0000;
 	}
@@ -234,7 +234,7 @@ void Dll_SetThink(edict_t* pEntity, void* funcAddress)
 {
 #ifdef __linux__
 
-	if (!g_bNewGCC)
+	if (!g_Memory.IsNewGCC())
 	{
 		*((long*)pEntity->pvPrivateData + GET_PVDATA_OFFSET(pvData_pfnThink) - 1) = funcAddress == NULL ? NULL : 0xFFFF0000;
 	}

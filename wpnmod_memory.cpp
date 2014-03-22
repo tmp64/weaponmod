@@ -34,11 +34,6 @@
 #include "wpnmod_memory.h"
 #include "wpnmod_hooks.h"
 
-
-#ifdef __linux__
-	bool g_bNewGCC = false;
-#endif
-
 CMemory g_Memory;
 
 function g_fh_GiveNamedItem = HOOK_FUNC_DLL(GiveNamedItem_HookHandler);
@@ -46,6 +41,8 @@ function g_fh_PrecacheOtherWeapon = HOOK_FUNC_DLL(PrecacheOtherWeapon_HookHandle
 
 CMemory::CMemory()
 {
+	m_bIsNewGCC = false;
+
 	m_pSubRemove = NULL;
 	m_pWpnBoxKillThink = NULL;
 	m_pGetAmmoIndex = NULL;
@@ -191,14 +188,14 @@ void CMemory::Parse_ClearMultiDamage(void)
 
 	if (!pAdress)
 	{
-		g_bNewGCC = true;
+		m_bIsNewGCC = true;
 		pAdress	= (size_t)FindFunction(&m_GameDllModule, "_Z16ClearMultiDamagev");
 	}
 
 	if (!pAdress)
 	{
 		WPNMOD_LOG("   Error: \"%s\" not found\n", funcname);
-		m_bSuccess = false;
+		m_bIsNewGCC = false;
 		return;
 	}
 
