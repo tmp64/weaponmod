@@ -37,9 +37,6 @@
 #include "entity_state.h"
 
 
-
-
-
 VirtualHookData g_CrowbarHooks[CrowbarHook_End] = 
 {
 	VHOOK_CROWBAR(Respawn),

@@ -85,6 +85,10 @@ bool CMemory::Init(void)
 	{
 		UnsetHooks();
 	}
+	else
+	{
+		WPNMOD_LOG(" Memory initialization ended.\n");
+	}
 
 	return m_bSuccess;
 }
@@ -123,7 +127,7 @@ void CMemory::Parse_ClearMultiDamage(void)
 		return;
 	}
 
-	WPNMOD_LOG("   Found \"%s\" at %p\n", funcname, pAdress);
+	WPNMOD_LOG_ONLY("   Found \"%s\" at %p\n", funcname, pAdress);
 
 #else
 
@@ -173,7 +177,7 @@ void CMemory::Parse_ApplyMultiDamage(void)
 		return;
 	}
 
-	WPNMOD_LOG("   Found \"%s\" at %p\n", funcname, pAdress);
+	WPNMOD_LOG_ONLY("   Found \"%s\" at %p\n", funcname, pAdress);
 
 #else
 
@@ -223,7 +227,7 @@ void CMemory::Parse_PrecacheOtherWeapon(void)
 		return;
 	}
 
-	WPNMOD_LOG("   Found \"%s\" at %p\n", funcname, pAdress);
+	WPNMOD_LOG_ONLY("   Found \"%s\" at %p\n", funcname, pAdress);
 
 #else
 
@@ -274,7 +278,7 @@ void CMemory::Parse_GetAmmoIndex(void)
 		return;
 	}
 
-	WPNMOD_LOG("   Found \"%s\" at %p\n", funcname, pAdress);
+	WPNMOD_LOG_ONLY("   Found \"%s\" at %p\n", funcname, pAdress);
 
 #else
 
@@ -316,7 +320,7 @@ void CMemory::Parse_GiveNamedItem(void)
 		return;
 	}
 
-	WPNMOD_LOG("   Found \"%s\" at %p\n", funcname, pAdress);
+	WPNMOD_LOG_ONLY("   Found \"%s\" at %p\n", funcname, pAdress);
 
 #else
 
@@ -367,7 +371,7 @@ void CMemory::Parse_SetAnimation(void)
 		return;
 	}
 
-	WPNMOD_LOG("   Found \"%s\" at %p\n", funcname, pAdress);
+	WPNMOD_LOG_ONLY("   Found \"%s\" at %p\n", funcname, pAdress);
 
 #else
 
@@ -454,7 +458,7 @@ void CMemory::Parse_SubRemove(void)
 
 	m_pSubRemove= pAdress;
 
-	WPNMOD_LOG("   Found \"%s\" at %p\n", funcname, pAdress);
+	WPNMOD_LOG_ONLY("   Found \"%s\" at %p\n", funcname, pAdress);
 }
 
 void CMemory::EnableShieldHitboxTracing(void)
@@ -703,7 +707,7 @@ size_t CMemory::ParseFunc(size_t start, size_t end, char* funcname, unsigned cha
 	pAdress += bytes;
 	pAdress = *(size_t*)pAdress + pAdress + 4;
 
-	WPNMOD_LOG("   Found \"%s\" at %p\n", funcname, pAdress);
+	WPNMOD_LOG_ONLY("   Found \"%s\" at %p\n", funcname, pAdress);
 
 	return pAdress;
 }
@@ -745,7 +749,7 @@ size_t CMemory::ParseFunc(size_t start, size_t end, char* funcname, char* string
 	pAdress += bytes;
 	pAdress = *(size_t*)pAdress + pAdress + 4;
 
-	WPNMOD_LOG("   Found \"%s\" at %p\n", funcname, pAdress);
+	WPNMOD_LOG_ONLY("   Found \"%s\" at %p\n", funcname, pAdress);
 
 	return pAdress;
 }

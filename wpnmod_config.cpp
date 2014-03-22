@@ -121,11 +121,11 @@ void CConfig::WorldPrecache(void)
 
 	if (ParseSection(GetConfigFile(), "[block]", (void*)OnParseBlockedItems, -1) && (int)m_pBlockedItemsList.size())
 	{
-		WPNMOD_LOG("Blocked default items:\n");
+		WPNMOD_LOG_ONLY("Blocked default items:\n");
 
 		for (int i = 0; i < (int)m_pBlockedItemsList.size(); i++)
 		{
-			WPNMOD_LOG(" \"%s\"\n", m_pBlockedItemsList[i]->classname);
+			WPNMOD_LOG_ONLY(" \"%s\"\n", m_pBlockedItemsList[i]->classname);
 		}
 	}
 
