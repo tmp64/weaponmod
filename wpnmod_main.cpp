@@ -47,25 +47,14 @@ int AmxxCheckGame(const char* game)
 int WpnMod_Init(void)
 {
 	g_log.Init();
+
 	WPNMOD_LOG("Start.\n");
-#ifdef __linux__
-	WPNMOD_LOG(" Version %s Linux\n", Plugin_info.version);
-#else
-	WPNMOD_LOG(" Version %s Windows\n", Plugin_info.version);
-#endif
-	if (!FindModuleByAddr((void*)MDLL_FUNC->pfnGetGameDescription(), &g_GameDllModule))
-	{
-		WPNMOD_LOG("  Failed to locate %s\n", GET_GAME_INFO(PLID, GINFO_DLL_FILENAME));
-		WPNMOD_LOG("Errors occurred. Please visit http://aghl.ru/forum/ for support.\n");
-		return 0;
-	}
+	WPNMOD_LOG(" Version %s %s\n", Plugin_info.version, SERVER_OS);
 
-	WPNMOD_LOG("  Found %s at %p\n", GET_GAME_INFO(PLID, GINFO_DLL_FILENAME), g_GameDllModule.base);
+	// KILL ME SOON
+	FindModuleByAddr((void*)MDLL_FUNC->pfnGetGameDescription(), &g_GameDllModule);
 
-	size_t start = (size_t)g_GameDllModule.base;
-	size_t end = (size_t)g_GameDllModule.base + (size_t)g_GameDllModule.size;
-
-	if (!FindFuncsInDll(start, end))
+	if (!g_Memory.FindFuncsInDll())
 	{
 		WPNMOD_LOG("Errors occurred. Please visit http://aghl.ru/forum/ for support.\n");
 		return 0;

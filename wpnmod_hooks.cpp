@@ -34,6 +34,7 @@
 #include "wpnmod_parse.h"
 #include "wpnmod_utils.h"
 #include "wpnmod_hooks.h"
+#include "wpnmod_memory.h"
 #include "entity_state.h"
 
 
@@ -1051,24 +1052,9 @@ void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 		return iResult;
 	}
 
-#ifdef WIN32
-
-	void* pKillThinkAdress = (void*)FindFunction(&g_GameDllModule, "?Kill@CWeaponBox@@QAEXXZ");
-
-#else
-
-	void* pKillThinkAdress = (void*)FindFunction(&g_GameDllModule, "Kill__10CWeaponBox");
-
-	if (!pKillThinkAdress)
+	if (g_pAdress_WpnBoxKillThink)
 	{
-		pKillThinkAdress = (void*)FindFunction(&g_GameDllModule, "_ZN10CWeaponBox4KillEv");
-	}
-
-#endif
-
-	if (pKillThinkAdress)
-	{
-		Dll_SetThink(pWeaponBox, pKillThinkAdress);
+		Dll_SetThink(pWeaponBox, g_pAdress_WpnBoxKillThink);
 		pWeaponBox->v.nextthink = gpGlobals->time + g_iWpnBoxLifeTime;
 	}
 

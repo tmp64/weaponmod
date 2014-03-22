@@ -34,41 +34,42 @@
 #include "wpnmod_memory.h"
 
 
-void *g_pParseDllFuncs[] =
-{
-	(void*)&Parse_ClearMultiDamage,
-	(void*)&Parse_ApplyMultiDamage,
-	(void*)&Parse_PrecacheOtherWeapon,
-	(void*)&Parse_GetAmmoIndex,
-	(void*)&Parse_GiveNamedItem,
-	(void*)&Parse_SetAnimation,
-	(void*)&Parse_SubRemove,
-	NULL,
-};
-
-void* g_pAdress_SubRemove = NULL;
-
 #ifdef __linux__
 	bool g_bNewGCC = false;
 #endif
 
-bool FindFuncsInDll(size_t start, size_t end)
+CMemory g_Memory;
+
+CMemory::CMemory()
 {
-	bool bSuccess = true;
+	m_pSubRemove = NULL;
+	m_WpnBoxKillThink = NULL;
+}
 
-	void **func = g_pParseDllFuncs;
-
-	while (*func != NULL)
+bool CMemory::FindFuncsInDll(void)
+{
+	if (!FindModuleByAddr((void*)MDLL_FUNC->pfnGetGameDescription(), &m_GameDllModule))
 	{
-		if (!reinterpret_cast<bool (*)(size_t, size_t)>(*func)(start, end))
-		{
-			bSuccess = false;
-		}
-
-		func++;
+		WPNMOD_LOG("  Failed to locate %s\n", GET_GAME_INFO(PLID, GINFO_DLL_FILENAME));
+		return false;
 	}
 
-	if (!bSuccess)
+	WPNMOD_LOG("  Found %s at %p\n", GET_GAME_INFO(PLID, GINFO_DLL_FILENAME), g_GameDllModule.base);
+
+	m_start = (size_t)g_GameDllModule.base;
+	m_end = (size_t)g_GameDllModule.base + (size_t)g_GameDllModule.size;
+
+	m_bSuccess = true;
+
+	Parse_ClearMultiDamage();
+	Parse_ApplyMultiDamage();
+	Parse_PrecacheOtherWeapon();
+	Parse_GetAmmoIndex();
+	Parse_GiveNamedItem();
+	Parse_SetAnimation();
+	Parse_SubRemove();
+
+	if (!m_bSuccess)
 	{
 		for (int i = 0; i < Func_End; i++)
 		{
@@ -79,383 +80,10 @@ bool FindFuncsInDll(size_t start, size_t end)
 		}
 	}
 
-	return bSuccess;
+	return m_bSuccess;
 }
 
-// 
-// void ClearMultiDamage(void)
-//
-
-bool Parse_ClearMultiDamage(size_t start, size_t end)
-{
-	char funcname[] = "ClearMultiDamage";
-
-#ifdef __linux__
-
-	size_t pAdress	= (size_t)FindFunction(&g_GameDllModule, "ClearMultiDamage__Fv");
-
-	if (!pAdress)
-	{
-		g_bNewGCC = true;
-		pAdress	= (size_t)FindFunction(&g_GameDllModule, "_Z16ClearMultiDamagev");
-	}
-
-	if (!pAdress)
-	{
-		WPNMOD_LOG("   Error: \"%s\" not found\n", funcname);
-		return false;
-	}
-
-	WPNMOD_LOG("   Found \"%s\" at %p\n", funcname, pAdress);
-
-#else
-
-	size_t pAdress	= (size_t)FindFunction(&g_GameDllModule, "?SuperBounceTouch@CSqueakGrenade@@AAEXPAVCBaseEntity@@@Z");
-
-	char				mask[]				= "x?????x?????x";
-	unsigned char		pattern[]			= "\x3B\x00\x00\x00\x00\x00\x0F\x00\x00\x00\x00\x00\xE8";
-	size_t				BytesOffset			= 13;
-
-	if (!pAdress)
-	{
-		WPNMOD_LOG("   Error: \"%s\" not found [0]\n", funcname);
-		return false;
-	}
-
-	pAdress = ParseFunc(pAdress, pAdress + 300, funcname, pattern, mask, BytesOffset);
-
-	if (!pAdress)
-	{
-		return false;
-	}
-
-#endif
-
-	g_dllFuncs[Func_ClearMultiDamage].address = (void*)pAdress;
-	return true;
-}
-
-// 
-// void ApplyMultiDamage(entvars_t *pevInflictor, entvars_t *pevAttacker)
-//
-
-bool Parse_ApplyMultiDamage(size_t start, size_t end)
-{
-	char funcname[] = "ApplyMultiDamage";
-
-#ifdef __linux__
-
-	size_t pAdress	= (size_t)FindFunction(&g_GameDllModule, "ApplyMultiDamage__FP9entvars_sT0");
-
-	if (!pAdress)
-	{
-		pAdress	= (size_t)FindFunction(&g_GameDllModule, "_Z16ApplyMultiDamageP9entvars_sS0_");
-	}
-
-	if (!pAdress)
-	{
-		WPNMOD_LOG("   Error: \"%s\" not found\n", funcname);
-		return false;
-	}
-
-	WPNMOD_LOG("   Found \"%s\" at %p\n", funcname, pAdress);
-
-#else
-
-	size_t pAdress	= (size_t)FindFunction(&g_GameDllModule, "?SuperBounceTouch@CSqueakGrenade@@AAEXPAVCBaseEntity@@@Z");
-
-	char				mask[]				= "xxx????x";
-	unsigned char		pattern[]			= "\x50\x50\xE8\x00\x00\x00\x00\x8B";
-	size_t				BytesOffset			= 3;
-
-	if (!pAdress)
-	{
-		WPNMOD_LOG("   Error: \"%s\" not found [0]\n", funcname);
-		return false;
-	}
-
-	pAdress = ParseFunc(pAdress, pAdress + 700, funcname, pattern, mask, BytesOffset);
-	
-	if (!pAdress)
-	{
-		return false;
-	}
-
-#endif
-
-	g_dllFuncs[Func_ApplyMultiDamage].address = (void*)pAdress;
-	return true;
-}
-
-// 
-// void UTIL_PrecacheOtherWeapon(const char *szClassname)
-//
-
-bool Parse_PrecacheOtherWeapon(size_t start, size_t end)
-{
-	char funcname[] = "UTIL_PrecacheOtherWeapon";
-
-#ifdef __linux__
-
-	size_t pAdress	= (size_t)FindFunction(&g_GameDllModule, "UTIL_PrecacheOtherWeapon__FPCc");
-
-	if (!pAdress)
-	{
-		pAdress	= (size_t)FindFunction(&g_GameDllModule, "_Z24UTIL_PrecacheOtherWeaponPKc");
-	}
-
-	if (!pAdress)
-	{
-		WPNMOD_LOG("   Error: \"%s\" not found\n", funcname);
-		return false;
-	}
-
-	WPNMOD_LOG("   Found \"%s\" at %p\n", funcname, pAdress);
-
-#else
-
-	char			string[]			= "weapon_rpg";
-	char			mask[]				= "xxxxxx";
-	unsigned char	pattern[]			= "\x68\x00\x00\x00\x00\xE8";
-	size_t			BytesOffset			= 6;
-
-	size_t pAdress = ParseFunc(start, end, funcname, string, pattern, mask, BytesOffset);
-
-	if (!pAdress)
-	{
-		return false;
-	}
-
-#endif
-
-	g_dllFuncs[Func_PrecacheOtherWeapon].address = (void*)pAdress;
-	
-	if (!CreateFunctionHook(&g_dllFuncs[Func_PrecacheOtherWeapon]))
-	{
-		WPNMOD_LOG("   Error: failed to hook \"%s\"\n", funcname);
-		return false;
-	}
-
-	SetHook(&g_dllFuncs[Func_PrecacheOtherWeapon]);
-	return true;
-}
-
-// 
-// int CBasePlayer::GetAmmoIndex(const char *psz)
-//
-
-bool Parse_GetAmmoIndex(size_t start, size_t end)
-{
-	char funcname[] = "CBasePlayer::GetAmmoIndex";
-
-#ifdef __linux__
-
-	size_t pAdress	= (size_t)FindFunction(&g_GameDllModule, "GetAmmoIndex__11CBasePlayerPCc");
-
-	if (!pAdress)
-	{
-		pAdress	= (size_t)FindFunction(&g_GameDllModule, "_ZN11CBasePlayer12GetAmmoIndexEPKc");
-	}
-
-	if (!pAdress)
-	{
-		WPNMOD_LOG("   Error: \"%s\" not found\n", funcname);
-		return false;
-	}
-
-	WPNMOD_LOG("   Found \"%s\" at %p\n", funcname, pAdress);
-
-#else
-
-	char			string[]			= "357";
-	char			mask[]				= "xxxxxxx?x";
-	unsigned char	pattern[]			= "\x68\x00\x00\x00\x00\x89\x46\x00\xE8";
-	size_t			BytesOffset			= 9;
-
-	size_t pAdress = ParseFunc(start, end, funcname, string, pattern, mask, BytesOffset);
-
-	if (!pAdress)
-	{
-		return false;
-	}
-
-#endif
-
-	g_dllFuncs[Func_GetAmmoIndex].address = (void*)pAdress;
-	return true;
-}
-
-// 
-// void CBasePlayer::GiveNamedItem(const char *pszName)
-//
-
-bool Parse_GiveNamedItem(size_t start, size_t end)
-{
-	char funcname[] = "CBasePlayer::GiveNamedItem";
-
-#ifdef __linux__
-
-	size_t pAdress	= (size_t)FindFunction(&g_GameDllModule, "GiveNamedItem__11CBasePlayerPCc");
-
-	if (!pAdress)
-	{
-		pAdress	= (size_t)FindFunction(&g_GameDllModule, "_ZN11CBasePlayer13GiveNamedItemEPKc");
-	}
-
-	if (!pAdress)
-	{
-		WPNMOD_LOG("   Error: \"%s\" not found\n", funcname);
-		return false;
-	}
-
-	WPNMOD_LOG("   Found \"%s\" at %p\n", funcname, pAdress);
-
-#else
-
-	char			string[]		= "weapon_crowbar";
-	char			mask[]			= "xxxxxx?x";
-	unsigned char	pattern[]		= "\x68\x00\x00\x00\x00\x8B\x00\xE8";
-	size_t			BytesOffset		= 8;
-
-	size_t pAdress = ParseFunc(start, end, funcname, string, pattern, mask, BytesOffset);
-
-	if (!pAdress)
-	{
-		return false;
-	}
-
-#endif
-
-	g_dllFuncs[Func_GiveNamedItem].address = (void*)pAdress;
-
-	if (!CreateFunctionHook(&g_dllFuncs[Func_GiveNamedItem]))
-	{
-		WPNMOD_LOG("   Error: failed to hook \"%s\"\n", funcname);
-		return false;
-	}
-
-	SetHook(&g_dllFuncs[Func_GiveNamedItem]);
-	return true;
-}
-
-// 
-// void CBasePlayer::SetAnimation(PLAYER_ANIM playerAnim)
-//
-
-bool Parse_SetAnimation(size_t start, size_t end)
-{
-	char funcname[] = "CBasePlayer::SetAnimation";
-
-#ifdef __linux__
-
-	size_t pAdress	= (size_t)FindFunction(&g_GameDllModule, "SetAnimation__11CBasePlayer11PLAYER_ANIM");
-
-	if (!pAdress)
-	{
-		pAdress	= (size_t)FindFunction(&g_GameDllModule, "_ZN11CBasePlayer12SetAnimationE11PLAYER_ANIM");
-	}
-
-	if (!pAdress)
-	{
-		WPNMOD_LOG("   Error: \"%s\" not found\n", funcname);
-		return false;
-	}
-
-	WPNMOD_LOG("   Found \"%s\" at %p\n", funcname, pAdress);
-
-#else
-
-	char			string[]		= "models/v_satchel_radio.mdl";
-	char			mask[]			= "xxxxx";
-	unsigned char	pattern[]		= "\xB9\x00\x00\x00\x00";
-
-	char			mask2[]			= "xx?xxx";
-	unsigned char	pattern2[]		= "\x8B\x4E\x00\x6A\x05\xE8";
-	size_t			BytesOffset		= 6;
-
-	int count = 0;
-
-	size_t pAdress = NULL;
-	size_t pCurrent = NULL;
-	size_t pCandidate = NULL;
-
-	pCurrent = FindStringInDLL(start, end, string);
-
-	while (pCurrent)
-	{
-		*(size_t*)(pattern + 1) = (size_t)pCurrent;
-
-		if ((pCandidate = FindAdressInDLL(start, end, pattern, mask)) != NULL)
-		{
-			count++;
-			pAdress = pCandidate;
-		}
-
-		pCurrent = FindStringInDLL(pCurrent + 1, end, string);
-	}
-
-	if (!count)
-	{
-		WPNMOD_LOG("   Error: \"%s\" not found [0]\n", funcname);
-		return false;
-	}
-	else if (count > 1)
-	{
-		WPNMOD_LOG("   Error: %d candidates found for \"%s\"\n", count, funcname);
-		return false;
-	}
-
-	pAdress = ParseFunc(pAdress, pAdress + 150, funcname, pattern2, mask2, BytesOffset);
-	
-	if (!pAdress)
-	{
-		return false;
-	}
-
-#endif
-
-	g_dllFuncs[Func_PlayerSetAnimation].address = (void*)pAdress;
-	return true;
-}
-
-//
-// void CBaseEntity::SUB_Remove(void)
-//
-
-bool Parse_SubRemove(size_t start, size_t end)
-{
-	char funcname[] = "CBaseEntity::SUB_Remove";
-
-#ifdef WIN32
-
-	void* pAdress = (void*)FindFunction(&g_GameDllModule, "?SUB_Remove@CBaseEntity@@QAEXXZ");
-
-#else
-
-	void* pAdress = (void*)FindFunction(&g_GameDllModule, "SUB_Remove__11CBaseEntity");
-
-	if (!pAdress)
-	{
-		pAdress = (void*)FindFunction(&g_GameDllModule, "_ZN11CBaseEntity10SUB_RemoveEv");
-	}
-
-#endif
-
-	if (!pAdress)
-	{
-		WPNMOD_LOG("   Error: \"%s\" not found\n", funcname);
-		return false;
-	}
-
-	g_pAdress_SubRemove = pAdress;
-
-	WPNMOD_LOG("   Found \"%s\" at %p\n", funcname, pAdress);
-	return true;
-}
-
-#ifdef WIN32
-
-size_t ParseFunc(size_t start, size_t end, char* funcname, unsigned char* pattern, char* mask, size_t bytes)
+size_t CMemory::ParseFunc(size_t start, size_t end, char* funcname, unsigned char* pattern, char* mask, size_t bytes)
 {
 	int count = 0;
 
@@ -490,7 +118,7 @@ size_t ParseFunc(size_t start, size_t end, char* funcname, unsigned char* patter
 	return pAdress;
 }
 
-size_t ParseFunc(size_t start, size_t end, char* funcname, char* string, unsigned char* pattern, char* mask, size_t bytes)
+size_t CMemory::ParseFunc(size_t start, size_t end, char* funcname, char* string, unsigned char* pattern, char* mask, size_t bytes)
 {
 	int count = 0;
 
@@ -532,7 +160,371 @@ size_t ParseFunc(size_t start, size_t end, char* funcname, char* string, unsigne
 	return pAdress;
 }
 
+void CMemory::Parse_ClearMultiDamage(void)
+{
+	char funcname[] = "ClearMultiDamage";
+
+#ifdef __linux__
+
+	size_t pAdress	= (size_t)FindFunction(&m_GameDllModule, "ClearMultiDamage__Fv");
+
+	if (!pAdress)
+	{
+		g_bNewGCC = true;
+		pAdress	= (size_t)FindFunction(&m_GameDllModule, "_Z16ClearMultiDamagev");
+	}
+
+	if (!pAdress)
+	{
+		WPNMOD_LOG("   Error: \"%s\" not found\n", funcname);
+		m_bSuccess = false;
+		return;
+	}
+
+	WPNMOD_LOG("   Found \"%s\" at %p\n", funcname, pAdress);
+
+#else
+
+	size_t pAdress = (size_t)FindFunction(&m_GameDllModule, "?SuperBounceTouch@CSqueakGrenade@@AAEXPAVCBaseEntity@@@Z");
+
+	char mask[] = "x?????x?????x";
+	unsigned char pattern[] = "\x3B\x00\x00\x00\x00\x00\x0F\x00\x00\x00\x00\x00\xE8";
+	size_t BytesOffset = 13;
+
+	if (!pAdress)
+	{
+		WPNMOD_LOG("   Error: \"%s\" not found [0]\n", funcname);
+		m_bSuccess = false;
+		return;
+	}
+
+	pAdress = ParseFunc(pAdress, pAdress + 300, funcname, pattern, mask, BytesOffset);
+
+	if (!pAdress)
+	{
+		m_bSuccess = false;
+		return;
+	}
+
 #endif
+
+	g_dllFuncs[Func_ClearMultiDamage].address = (void*)pAdress;
+}
+
+void CMemory::Parse_ApplyMultiDamage(void)
+{
+	char funcname[] = "ApplyMultiDamage";
+
+#ifdef __linux__
+
+	size_t pAdress	= (size_t)FindFunction(&m_GameDllModule, "ApplyMultiDamage__FP9entvars_sT0");
+
+	if (!pAdress)
+	{
+		pAdress	= (size_t)FindFunction(&m_GameDllModule, "_Z16ApplyMultiDamageP9entvars_sS0_");
+	}
+
+	if (!pAdress)
+	{
+		WPNMOD_LOG("   Error: \"%s\" not found\n", funcname);
+		m_bSuccess = false;
+		return;
+	}
+
+	WPNMOD_LOG("   Found \"%s\" at %p\n", funcname, pAdress);
+
+#else
+
+	size_t pAdress	= (size_t)FindFunction(&m_GameDllModule, "?SuperBounceTouch@CSqueakGrenade@@AAEXPAVCBaseEntity@@@Z");
+
+	char				mask[]				= "xxx????x";
+	unsigned char		pattern[]			= "\x50\x50\xE8\x00\x00\x00\x00\x8B";
+	size_t				BytesOffset			= 3;
+
+	if (!pAdress)
+	{
+		WPNMOD_LOG("   Error: \"%s\" not found [0]\n", funcname);
+		m_bSuccess = false;
+		return;
+	}
+
+	pAdress = ParseFunc(pAdress, pAdress + 700, funcname, pattern, mask, BytesOffset);
+	
+	if (!pAdress)
+	{
+		m_bSuccess = false;
+		return;
+	}
+
+#endif
+
+	g_dllFuncs[Func_ApplyMultiDamage].address = (void*)pAdress;
+}
+
+void CMemory::Parse_PrecacheOtherWeapon(void)
+{
+	char funcname[] = "UTIL_PrecacheOtherWeapon";
+
+#ifdef __linux__
+
+	size_t pAdress	= (size_t)FindFunction(&m_GameDllModule, "UTIL_PrecacheOtherWeapon__FPCc");
+
+	if (!pAdress)
+	{
+		pAdress	= (size_t)FindFunction(&m_GameDllModule, "_Z24UTIL_PrecacheOtherWeaponPKc");
+	}
+
+	if (!pAdress)
+	{
+		WPNMOD_LOG("   Error: \"%s\" not found\n", funcname);
+		m_bSuccess = false;
+		return;
+	}
+
+	WPNMOD_LOG("   Found \"%s\" at %p\n", funcname, pAdress);
+
+#else
+
+	char			string[]			= "weapon_rpg";
+	char			mask[]				= "xxxxxx";
+	unsigned char	pattern[]			= "\x68\x00\x00\x00\x00\xE8";
+	size_t			BytesOffset			= 6;
+
+	size_t pAdress = ParseFunc(m_start, m_end, funcname, string, pattern, mask, BytesOffset);
+
+	if (!pAdress)
+	{
+		m_bSuccess = false;
+		return;
+	}
+
+#endif
+
+	g_dllFuncs[Func_PrecacheOtherWeapon].address = (void*)pAdress;
+
+	if (!CreateFunctionHook(&g_dllFuncs[Func_PrecacheOtherWeapon]))
+	{
+		WPNMOD_LOG("   Error: failed to hook \"%s\"\n", funcname);
+		m_bSuccess = false;
+		return;
+	}
+
+	SetHook(&g_dllFuncs[Func_PrecacheOtherWeapon]);
+}
+
+void CMemory::Parse_GetAmmoIndex(void)
+{
+	char funcname[] = "CBasePlayer::GetAmmoIndex";
+
+#ifdef __linux__
+
+	size_t pAdress = (size_t)FindFunction(&m_GameDllModule, "GetAmmoIndex__11CBasePlayerPCc");
+
+	if (!pAdress)
+	{
+		pAdress = (size_t)FindFunction(&m_GameDllModule, "_ZN11CBasePlayer12GetAmmoIndexEPKc");
+	}
+
+	if (!pAdress)
+	{
+		WPNMOD_LOG("   Error: \"%s\" not found\n", funcname);
+		m_bSuccess = false;
+		return;
+	}
+
+	WPNMOD_LOG("   Found \"%s\" at %p\n", funcname, pAdress);
+
+#else
+
+	char			string[]			= "357";
+	char			mask[]				= "xxxxxxx?x";
+	unsigned char	pattern[]			= "\x68\x00\x00\x00\x00\x89\x46\x00\xE8";
+	size_t			BytesOffset			= 9;
+
+	size_t pAdress = ParseFunc(m_start, m_end, funcname, string, pattern, mask, BytesOffset);
+
+	if (!pAdress)
+	{
+		m_bSuccess = false;
+		return;
+	}
+
+#endif
+
+	g_dllFuncs[Func_GetAmmoIndex].address = (void*)pAdress;
+}
+
+void CMemory::Parse_GiveNamedItem(void)
+{
+	char funcname[] = "CBasePlayer::GiveNamedItem";
+
+#ifdef __linux__
+
+	size_t pAdress	= (size_t)FindFunction(&m_GameDllModule, "GiveNamedItem__11CBasePlayerPCc");
+
+	if (!pAdress)
+	{
+		pAdress	= (size_t)FindFunction(&m_GameDllModule, "_ZN11CBasePlayer13GiveNamedItemEPKc");
+	}
+
+	if (!pAdress)
+	{
+		WPNMOD_LOG("   Error: \"%s\" not found\n", funcname);
+		m_bSuccess = false;
+		return;
+	}
+
+	WPNMOD_LOG("   Found \"%s\" at %p\n", funcname, pAdress);
+
+#else
+
+	char			string[]		= "weapon_crowbar";
+	char			mask[]			= "xxxxxx?x";
+	unsigned char	pattern[]		= "\x68\x00\x00\x00\x00\x8B\x00\xE8";
+	size_t			BytesOffset		= 8;
+
+	size_t pAdress = ParseFunc(m_start, m_end, funcname, string, pattern, mask, BytesOffset);
+
+	if (!pAdress)
+	{
+		m_bSuccess = false;
+		return;
+	}
+
+#endif
+
+	g_dllFuncs[Func_GiveNamedItem].address = (void*)pAdress;
+
+	if (!CreateFunctionHook(&g_dllFuncs[Func_GiveNamedItem]))
+	{
+		WPNMOD_LOG("   Error: failed to hook \"%s\"\n", funcname);
+		m_bSuccess = false;
+		return;
+	}
+
+	SetHook(&g_dllFuncs[Func_GiveNamedItem]);
+}
+
+void CMemory::Parse_SetAnimation(void)
+{
+	char funcname[] = "CBasePlayer::SetAnimation";
+
+#ifdef __linux__
+
+	size_t pAdress	= (size_t)FindFunction(&m_GameDllModule, "SetAnimation__11CBasePlayer11PLAYER_ANIM");
+
+	if (!pAdress)
+	{
+		pAdress	= (size_t)FindFunction(&m_GameDllModule, "_ZN11CBasePlayer12SetAnimationE11PLAYER_ANIM");
+	}
+
+	if (!pAdress)
+	{
+		WPNMOD_LOG("   Error: \"%s\" not found\n", funcname);
+		m_bSuccess = false;
+		return;
+	}
+
+	WPNMOD_LOG("   Found \"%s\" at %p\n", funcname, pAdress);
+
+#else
+
+	char			string[]		= "models/v_satchel_radio.mdl";
+	char			mask[]			= "xxxxx";
+	unsigned char	pattern[]		= "\xB9\x00\x00\x00\x00";
+
+	char			mask2[]			= "xx?xxx";
+	unsigned char	pattern2[]		= "\x8B\x4E\x00\x6A\x05\xE8";
+	size_t			BytesOffset		= 6;
+
+	int count = 0;
+
+	size_t pAdress = NULL;
+	size_t pCurrent = NULL;
+	size_t pCandidate = NULL;
+
+	pCurrent = FindStringInDLL(m_start, m_end, string);
+
+	while (pCurrent)
+	{
+		*(size_t*)(pattern + 1) = (size_t)pCurrent;
+
+		if ((pCandidate = FindAdressInDLL(m_start, m_end, pattern, mask)) != NULL)
+		{
+			count++;
+			pAdress = pCandidate;
+		}
+
+		pCurrent = FindStringInDLL(pCurrent + 1, m_end, string);
+	}
+
+	if (!count)
+	{
+		WPNMOD_LOG("   Error: \"%s\" not found [0]\n", funcname);
+		m_bSuccess = false;
+		return;
+	}
+	else if (count > 1)
+	{
+		WPNMOD_LOG("   Error: %d candidates found for \"%s\"\n", count, funcname);
+		m_bSuccess = false;
+		return;
+	}
+
+	pAdress = ParseFunc(pAdress, pAdress + 150, funcname, pattern2, mask2, BytesOffset);
+	
+	if (!pAdress)
+	{
+		m_bSuccess = false;
+		return;
+	}
+
+#endif
+
+	g_dllFuncs[Func_PlayerSetAnimation].address = (void*)pAdress;
+}
+
+void CMemory::Parse_SubRemove(void)
+{
+	char funcname[] = "CBaseEntity::SUB_Remove";
+
+#ifdef WIN32
+
+	void* pAdress = (void*)FindFunction(&m_GameDllModule, "?SUB_Remove@CBaseEntity@@QAEXXZ");
+
+#else
+
+	void* pAdress = (void*)FindFunction(&m_GameDllModule, "SUB_Remove__11CBaseEntity");
+
+	if (!pAdress)
+	{
+		pAdress = (void*)FindFunction(&m_GameDllModule, "_ZN11CBaseEntity10SUB_RemoveEv");
+	}
+
+#endif
+
+	if (!pAdress)
+	{
+		WPNMOD_LOG("   Error: \"%s\" not found\n", funcname);
+		m_bSuccess = false;
+		return;
+	}
+
+	g_pAdress_SubRemove = pAdress;
+
+	WPNMOD_LOG("   Found \"%s\" at %p\n", funcname, pAdress);
+}
+
+
+
+
+
+
+
+
+void* g_pAdress_SubRemove		= NULL;
+void* g_pAdress_WpnBoxKillThink	= NULL;
+
 
 void EnableShieldHitboxTracing(void)
 {
@@ -728,6 +720,27 @@ void EnableWeaponboxModels(void)
 	pAdress = *(size_t*)pAdress + pAdress + 4;
 
 #endif
+
+#ifdef WIN32
+
+	g_pAdress_WpnBoxKillThink = (void*)FindFunction(&g_GameDllModule, "?Kill@CWeaponBox@@QAEXXZ");
+
+#else
+
+	g_pAdress_WpnBoxKillThink = (void*)FindFunction(&g_GameDllModule, "Kill__10CWeaponBox");
+
+	if (!g_pAdress_WpnBoxKillThink)
+	{
+		g_pAdress_WpnBoxKillThink = (void*)FindFunction(&g_GameDllModule, "_ZN10CWeaponBox4KillEv");
+	}
+
+#endif
+
+	if (!g_pAdress_WpnBoxKillThink)
+	{
+		WPNMOD_LOG("Error: \"%s\" not found [2]\n", funcname);
+		return;
+	}
 
 	g_funcPackWeapon.address = (void*)pAdress;
 

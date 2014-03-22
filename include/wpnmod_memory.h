@@ -38,29 +38,70 @@
 #include "wpnmod_hooker.h"
 #include "wpnmod_hooks.h"
 
+
 #ifdef __linux__
-
-	extern bool g_bNewGCC;
-
+	#define SERVER_OS "Linux"
 #else
+	#define SERVER_OS "Windows"
+#endif
+
+
+class CMemory
+{
+private:
+	size_t	m_start;
+	size_t	m_end;
+	module	m_GameDllModule;
+	bool	m_bSuccess;
+
+public:
+	CMemory();
+
+	bool FindFuncsInDll(void);
+
+	void Parse_ClearMultiDamage(void);
+	void Parse_ApplyMultiDamage(void);
+	void Parse_PrecacheOtherWeapon(void);
+	void Parse_GetAmmoIndex(void);
+	void Parse_GiveNamedItem(void);
+	void Parse_SetAnimation(void);
+	void Parse_SubRemove(void);
 
 	size_t ParseFunc(size_t start, size_t end, char* funcname, unsigned char* pattern, char* mask, size_t bytes);
 	size_t ParseFunc(size_t start, size_t end, char* funcname, char* string, unsigned char* pattern, char* mask, size_t bytes);
 
+	void* m_pSubRemove;
+	void* m_WpnBoxKillThink;
+};
+
+extern CMemory g_Memory;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#ifdef __linux__
+	extern bool g_bNewGCC;
 #endif
 
 extern void* g_pAdress_SubRemove;
+extern void* g_pAdress_WpnBoxKillThink;
 
 void	EnableWeaponboxModels		(void);
 void	EnableShieldHitboxTracing	(void);
 
-bool	FindFuncsInDll				(size_t start, size_t end);
-bool	Parse_ClearMultiDamage		(size_t start, size_t end);
-bool	Parse_ApplyMultiDamage		(size_t start, size_t end);
-bool	Parse_PrecacheOtherWeapon	(size_t start, size_t end);
-bool	Parse_GetAmmoIndex			(size_t start, size_t end);
-bool	Parse_GiveNamedItem			(size_t start, size_t end);
-bool	Parse_SetAnimation			(size_t start, size_t end);
-bool	Parse_SubRemove				(size_t start, size_t end);
 
 #endif // _WPNMOD_MEMORY_H
