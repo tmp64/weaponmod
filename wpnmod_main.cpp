@@ -33,7 +33,7 @@
 
 #include "wpnmod_config.h"
 #include "wpnmod_parse.h"
-#include "wpnmod_memory.h"
+#include "wpnmod_hooks.h"
 
 
 bool g_bWorldSpawned = false;
@@ -51,10 +51,7 @@ int WpnMod_Init(void)
 	WPNMOD_LOG("Start.\n");
 	WPNMOD_LOG(" Version %s %s\n", Plugin_info.version, SERVER_OS);
 
-	// KILL ME SOON
-	FindModuleByAddr((void*)MDLL_FUNC->pfnGetGameDescription(), &g_GameDllModule);
-
-	if (!g_Memory.FindFuncsInDll())
+	if (!g_Memory.Init())
 	{
 		WPNMOD_LOG("Errors occurred. Please visit http://aghl.ru/forum/ for support.\n");
 		return 0;
@@ -136,13 +133,7 @@ void OnAmxxAttach(void)
 
 void OnAmxxDetach(void)
 {
-	for (int i = 0; i < Func_End; i++)
-	{
-		if (g_dllFuncs[i].done)
-		{
-			UnsetHook(&g_dllFuncs[i]);
-		}
-	}
+	g_Memory.Unset_Hooks();
 
 	for (int i = 0; i < g_iMaxWeaponSlots; ++i)
 	{
@@ -174,11 +165,11 @@ void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 		}
 	}
 
-	EnableShieldHitboxTracing();
+	g_Memory.EnableShieldHitboxTracing();
 
 	if (ParseSection(g_ConfigFilepath, "[weaponbox]", (void*)OnParseWeaponbox, ':'))
 	{
-		EnableWeaponboxModels();
+		g_Memory.EnableWeaponboxModels();
 	}
 
 	SetHookVirtual(&g_PlayerSpawn_Hook);

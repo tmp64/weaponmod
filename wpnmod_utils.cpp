@@ -259,7 +259,7 @@ bool Entity_IsInWorld(edict_t* pEntity)
 
 void UTIL_RemoveEntity(edict_t* pEntity)
 {
-	Dll_SetThink(pEntity, g_pAdress_SubRemove);
+	Dll_SetThink(pEntity, g_Memory.m_pSubRemove);
 	pEntity->v.nextthink = gpGlobals->time;
 }
 

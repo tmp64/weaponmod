@@ -32,6 +32,7 @@
  */
 
 #include "wpnmod_memory.h"
+#include "wpnmod_hooks.h"
 
 
 #ifdef __linux__
@@ -40,24 +41,37 @@
 
 CMemory g_Memory;
 
+function g_fh_GiveNamedItem = HOOK_FUNC_DLL(GiveNamedItem_HookHandler);
+function g_fh_PrecacheOtherWeapon = HOOK_FUNC_DLL(PrecacheOtherWeapon_HookHandler);
+
 CMemory::CMemory()
 {
 	m_pSubRemove = NULL;
-	m_WpnBoxKillThink = NULL;
+	m_pWpnBoxKillThink = NULL;
+	m_pGetAmmoIndex = NULL;
+	m_pClearMultiDamage = NULL;
+	m_pApplyMultiDamage = NULL;
+	m_pPlayerSetAnimation = NULL;
 }
 
-bool CMemory::FindFuncsInDll(void)
+bool CMemory::Init(void)
 {
+	if (!FindModuleByAddr((void*)g_engfuncs.pfnAlertMessage, &m_EngineModule))
+	{
+		WPNMOD_LOG("  Failed to locate game engine!\n");
+		return false;
+	}
+
 	if (!FindModuleByAddr((void*)MDLL_FUNC->pfnGetGameDescription(), &m_GameDllModule))
 	{
 		WPNMOD_LOG("  Failed to locate %s\n", GET_GAME_INFO(PLID, GINFO_DLL_FILENAME));
 		return false;
 	}
 
-	WPNMOD_LOG("  Found %s at %p\n", GET_GAME_INFO(PLID, GINFO_DLL_FILENAME), g_GameDllModule.base);
+	WPNMOD_LOG("  Found %s at %p\n", GET_GAME_INFO(PLID, GINFO_DLL_FILENAME), m_GameDllModule.base);
 
-	m_start = (size_t)g_GameDllModule.base;
-	m_end = (size_t)g_GameDllModule.base + (size_t)g_GameDllModule.size;
+	m_start = (size_t)m_GameDllModule.base;
+	m_end = (size_t)m_GameDllModule.base + (size_t)m_GameDllModule.size;
 
 	m_bSuccess = true;
 
@@ -71,16 +85,23 @@ bool CMemory::FindFuncsInDll(void)
 
 	if (!m_bSuccess)
 	{
-		for (int i = 0; i < Func_End; i++)
-		{
-			if (g_dllFuncs[i].done)
-			{
-				UnsetHook(&g_dllFuncs[i]);
-			}
-		}
+		Unset_Hooks();
 	}
 
 	return m_bSuccess;
+}
+
+void CMemory::Unset_Hooks(void)
+{
+	if (g_fh_GiveNamedItem.done)
+	{
+		UnsetHook(&g_fh_GiveNamedItem);
+	}
+
+	if (g_fh_PrecacheOtherWeapon.done)
+	{
+		UnsetHook(&g_fh_PrecacheOtherWeapon);
+	}
 }
 
 size_t CMemory::ParseFunc(size_t start, size_t end, char* funcname, unsigned char* pattern, char* mask, size_t bytes)
@@ -208,7 +229,7 @@ void CMemory::Parse_ClearMultiDamage(void)
 
 #endif
 
-	g_dllFuncs[Func_ClearMultiDamage].address = (void*)pAdress;
+	m_pClearMultiDamage = (void*)pAdress;
 }
 
 void CMemory::Parse_ApplyMultiDamage(void)
@@ -258,7 +279,7 @@ void CMemory::Parse_ApplyMultiDamage(void)
 
 #endif
 
-	g_dllFuncs[Func_ApplyMultiDamage].address = (void*)pAdress;
+	m_pApplyMultiDamage = (void*)pAdress;
 }
 
 void CMemory::Parse_PrecacheOtherWeapon(void)
@@ -300,16 +321,16 @@ void CMemory::Parse_PrecacheOtherWeapon(void)
 
 #endif
 
-	g_dllFuncs[Func_PrecacheOtherWeapon].address = (void*)pAdress;
+	g_fh_PrecacheOtherWeapon.address = (void*)pAdress;
 
-	if (!CreateFunctionHook(&g_dllFuncs[Func_PrecacheOtherWeapon]))
+	if (!CreateFunctionHook(&g_fh_PrecacheOtherWeapon))
 	{
 		WPNMOD_LOG("   Error: failed to hook \"%s\"\n", funcname);
 		m_bSuccess = false;
 		return;
 	}
 
-	SetHook(&g_dllFuncs[Func_PrecacheOtherWeapon]);
+	SetHook(&g_fh_PrecacheOtherWeapon);
 }
 
 void CMemory::Parse_GetAmmoIndex(void)
@@ -351,7 +372,7 @@ void CMemory::Parse_GetAmmoIndex(void)
 
 #endif
 
-	g_dllFuncs[Func_GetAmmoIndex].address = (void*)pAdress;
+	m_pGetAmmoIndex = (void*)pAdress;
 }
 
 void CMemory::Parse_GiveNamedItem(void)
@@ -393,16 +414,16 @@ void CMemory::Parse_GiveNamedItem(void)
 
 #endif
 
-	g_dllFuncs[Func_GiveNamedItem].address = (void*)pAdress;
+	g_fh_GiveNamedItem.address = (void*)pAdress;
 
-	if (!CreateFunctionHook(&g_dllFuncs[Func_GiveNamedItem]))
+	if (!CreateFunctionHook(&g_fh_GiveNamedItem))
 	{
 		WPNMOD_LOG("   Error: failed to hook \"%s\"\n", funcname);
 		m_bSuccess = false;
 		return;
 	}
 
-	SetHook(&g_dllFuncs[Func_GiveNamedItem]);
+	SetHook(&g_fh_GiveNamedItem);
 }
 
 void CMemory::Parse_SetAnimation(void)
@@ -481,7 +502,7 @@ void CMemory::Parse_SetAnimation(void)
 
 #endif
 
-	g_dllFuncs[Func_PlayerSetAnimation].address = (void*)pAdress;
+	m_pPlayerSetAnimation = (void*)pAdress;
 }
 
 void CMemory::Parse_SubRemove(void)
@@ -510,23 +531,12 @@ void CMemory::Parse_SubRemove(void)
 		return;
 	}
 
-	g_pAdress_SubRemove = pAdress;
+	m_pSubRemove= pAdress;
 
 	WPNMOD_LOG("   Found \"%s\" at %p\n", funcname, pAdress);
 }
 
-
-
-
-
-
-
-
-void* g_pAdress_SubRemove		= NULL;
-void* g_pAdress_WpnBoxKillThink	= NULL;
-
-
-void EnableShieldHitboxTracing(void)
+void CMemory::EnableShieldHitboxTracing(void)
 {
 	bool bShieldRegistered = false;
 
@@ -544,17 +554,9 @@ void EnableShieldHitboxTracing(void)
 		return;
 	}
 
-	module hEngine = { NULL, NULL, NULL };
-
-	if (!FindModuleByAddr((void*)g_engfuncs.pfnAlertMessage, &hEngine))
-	{
-		WPNMOD_LOG("Failed to locate engine, shield hitbox tracing not active.\n");
-		return;
-	}
-
 #ifdef __linux__
 
-	void* pAdress = FindFunction(&hEngine, "g_bIsCStrike");
+	void* pAdress = FindFunction(&m_EngineModule, "g_bIsCStrike");
 
 #else
 
@@ -564,7 +566,7 @@ void EnableShieldHitboxTracing(void)
 		"xx????x????xxx?x", 16
 	};
 
-	size_t pAdress = (size_t)FindFunction(&hEngine, sig);
+	size_t pAdress = (size_t)FindFunction(&m_EngineModule, sig);
 
 	if (pAdress)
 	{
@@ -575,21 +577,36 @@ void EnableShieldHitboxTracing(void)
 
 	if (!pAdress)
 	{
-		WPNMOD_LOG("Failed to enable shield hitbox tracing.\n");
+		WPNMOD_LOG("Warning: failed to enable hitbox tracing for \"weapon_shield\".\n");
 	}
 	else
 	{
+
 #ifdef __linux__
 
 		*(int*)pAdress = 1;
+
 #else
+
 		*(int*)*(size_t*)(pAdress) = 1;
+
 #endif
-		WPNMOD_LOG("Shield hitbox tracing enabled at %p\n", pAdress);
+
+		WPNMOD_LOG_ONLY("Shield hitbox tracing enabled at %p\n", pAdress);
 	}
 }
 
-void EnableWeaponboxModels(void)
+
+
+
+
+
+
+
+
+
+
+void CMemory::EnableWeaponboxModels(void)
 {
 	//
 	// Check for running amxx plugin, stop if exists.
@@ -630,11 +647,11 @@ void EnableWeaponboxModels(void)
 
 #ifdef __linux__
 
-	size_t pAdress = (size_t)FindFunction(&g_GameDllModule, "PackWeapon__10CWeaponBoxP15CBasePlayerItem");
+	size_t pAdress = (size_t)FindFunction(&m_GameDllModule, "PackWeapon__10CWeaponBoxP15CBasePlayerItem");
 
 	if (!pAdress)
 	{
-		pAdress = (size_t)FindFunction(&g_GameDllModule, "_ZN10CWeaponBox10PackWeaponEP15CBasePlayerItem");
+		pAdress = (size_t)FindFunction(&m_GameDllModule, "_ZN10CWeaponBox10PackWeaponEP15CBasePlayerItem");
 	}
 
 	if (!pAdress)
@@ -651,9 +668,6 @@ void EnableWeaponboxModels(void)
 	size_t pCurrent = NULL;
 	size_t pCandidate = NULL;
 
-	size_t start = (size_t)g_GameDllModule.base;
-	size_t end = (size_t)g_GameDllModule.base + (size_t)g_GameDllModule.size;
-
 	//
 	// 50					push eax
 	// 68 EC 65 0C 10		push offset aWeaponbox_0 ; "weaponbox"
@@ -663,19 +677,19 @@ void EnableWeaponboxModels(void)
 	char			mask[]			= "xxxxxx";
 	unsigned char	pattern[]		= "\x50\x68\x00\x00\x00\x00";
 
-	pCurrent = FindStringInDLL(start, end, string);
+	pCurrent = FindStringInDLL(m_start, m_end, string);
 
 	while (pCurrent)
 	{
 		*(size_t*)(pattern + 2) = (size_t)pCurrent;
 
-		if ((pCandidate = FindAdressInDLL(start, end, pattern, mask)))
+		if ((pCandidate = FindAdressInDLL(m_start, m_end, pattern, mask)))
 		{
 			count++;
 			pAdress = pCandidate;
 		}
 
-		pCurrent = FindStringInDLL(pCurrent + 1, end, string);
+		pCurrent = FindStringInDLL(pCurrent + 1, m_end, string);
 	}
 
 	if (!count)
@@ -697,9 +711,9 @@ void EnableWeaponboxModels(void)
 	// E8 11 DF 02 00		call	?PackWeapon@CWeaponBox@@QAEHPAVCBasePlayerItem@@@Z
 	//
 
+	size_t end = pAdress + 300;
 	unsigned char opcode[] = "\xE8";
 
-	end = pAdress + 300;
 	pCurrent = FindAdressInDLL(pAdress, end, opcode, "x");
 
 	// Find third call.
@@ -723,20 +737,20 @@ void EnableWeaponboxModels(void)
 
 #ifdef WIN32
 
-	g_pAdress_WpnBoxKillThink = (void*)FindFunction(&g_GameDllModule, "?Kill@CWeaponBox@@QAEXXZ");
+	m_pWpnBoxKillThink = (void*)FindFunction(&m_GameDllModule, "?Kill@CWeaponBox@@QAEXXZ");
 
 #else
 
-	g_pAdress_WpnBoxKillThink = (void*)FindFunction(&g_GameDllModule, "Kill__10CWeaponBox");
+	m_pWpnBoxKillThink = (void*)FindFunction(&m_GameDllModule, "Kill__10CWeaponBox");
 
-	if (!g_pAdress_WpnBoxKillThink)
+	if (!m_pWpnBoxKillThink)
 	{
-		g_pAdress_WpnBoxKillThink = (void*)FindFunction(&g_GameDllModule, "_ZN10CWeaponBox4KillEv");
+		m_pWpnBoxKillThink = (void*)FindFunction(&m_GameDllModule, "_ZN10CWeaponBox4KillEv");
 	}
 
 #endif
 
-	if (!g_pAdress_WpnBoxKillThink)
+	if (!m_pWpnBoxKillThink)
 	{
 		WPNMOD_LOG("Error: \"%s\" not found [2]\n", funcname);
 		return;

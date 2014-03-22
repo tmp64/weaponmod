@@ -34,8 +34,9 @@
 #ifndef _HOOKS_H
 #define _HOOKS_H
 
-#include "wpnmod_config.h"
 #include "wpnmod_hooker.h"
+#include "wpnmod_memory.h"
+#include "wpnmod_config.h"
 #include "wpnmod_utils.h"
 #include "wpnmod_vtable.h"
 
@@ -69,27 +70,7 @@ extern int	g_iWpnBoxRenderColor;
 // FUNCTIONS
 //
 
-	#define HOOK(call)														\
-	{																		\
-		"", &g_GameDllModule, {"", "", 0}, NULL, (void*)call, {}, {}, 0,	\
-	}																		\
-
-	enum LibFunctions
-	{
-		Func_GetAmmoIndex,
-		Func_ClearMultiDamage,
-		Func_ApplyMultiDamage,
-		Func_PlayerSetAnimation,
-		Func_PrecacheOtherWeapon,
-		Func_GiveNamedItem,
-
-		Func_End
-	};
-
-	extern module	g_GameDllModule;
-
 	extern function	g_funcPackWeapon;
-	extern function	g_dllFuncs[Func_End];
 
 	typedef int		(*FuncGetAmmoIndex)			(const char*);
 	typedef void	(*FuncClearMultiDamage)		(void);
@@ -102,28 +83,28 @@ extern int	g_iWpnBoxRenderColor;
 	//
 		inline int GET_AMMO_INDEX(const char* ammoName)
 		{
-			return reinterpret_cast<FuncGetAmmoIndex>(g_dllFuncs[Func_GetAmmoIndex].address)(ammoName);
+			return reinterpret_cast<FuncGetAmmoIndex>(g_Memory.m_pGetAmmoIndex)(ammoName);
 		}
 
 	// void ClearMultiDamage(void)
 	//
 		inline void CLEAR_MULTI_DAMAGE(void)
 		{
-			reinterpret_cast<FuncClearMultiDamage>(g_dllFuncs[Func_ClearMultiDamage].address)();
+			reinterpret_cast<FuncClearMultiDamage>(g_Memory.m_pClearMultiDamage)();
 		}
 
 	// void ApplyMultiDamage(entvars_t *pevInflictor, entvars_t *pevAttacker)
 	//
 		inline void APPLY_MULTI_DAMAGE(edict_t* pentInflictor, edict_t* pentAttacker)
 		{
-			reinterpret_cast<FuncApplyMultiDamage>(g_dllFuncs[Func_ApplyMultiDamage].address)(VARS(pentInflictor), VARS(pentAttacker));
+			reinterpret_cast<FuncApplyMultiDamage>(g_Memory.m_pApplyMultiDamage)(VARS(pentInflictor), VARS(pentAttacker));
 		}
 
 	// void UTIL_PrecacheOtherWeapon(const char *szClassname)
 	//
 		inline void PRECACHE_OTHER_WEAPON(const char* szClassname)
 		{
-			reinterpret_cast<FuncPrecacheOtherWeapon>(g_dllFuncs[Func_PrecacheOtherWeapon].address)(szClassname);
+			reinterpret_cast<FuncPrecacheOtherWeapon>(g_fh_PrecacheOtherWeapon.address)(szClassname);
 		}
 
 #ifdef WIN32
@@ -139,7 +120,7 @@ extern int	g_iWpnBoxRenderColor;
 	//
 		inline void GIVE_NAMED_ITEM(void* pvPlayer, const char* szClassname)
 		{
-			reinterpret_cast<FuncGiveNamedItem>(g_dllFuncs[Func_GiveNamedItem].address)(pvPlayer, DUMMY_VAL, szClassname);
+			reinterpret_cast<FuncGiveNamedItem>(g_fh_GiveNamedItem.address)(pvPlayer, DUMMY_VAL, szClassname);
 		}
 
 	// BOOL CWeaponBox::PackWeapon(CBasePlayerItem *pWeapon)
@@ -153,7 +134,7 @@ extern int	g_iWpnBoxRenderColor;
 	//
 		inline void SET_ANIMATION(edict_t* pentPlayer, int animation)
 		{
-			reinterpret_cast<FuncSetAnimation>(g_dllFuncs[Func_PlayerSetAnimation].address)(pentPlayer->pvPrivateData, DUMMY_VAL, animation);
+			reinterpret_cast<FuncSetAnimation>(g_Memory.m_pPlayerSetAnimation)(pentPlayer->pvPrivateData, DUMMY_VAL, animation);
 		}
 
 #else
@@ -169,7 +150,7 @@ extern int	g_iWpnBoxRenderColor;
 	//
 		inline void GIVE_NAMED_ITEM(void* pvPlayer, const char *szClassname)
 		{
-			reinterpret_cast<FuncGiveNamedItem>(g_dllFuncs[Func_GiveNamedItem].address)(pvPlayer, szClassname);
+			reinterpret_cast<FuncGiveNamedItem>(g_fh_GiveNamedItem.address)(pvPlayer, szClassname);
 		}
 
 	// BOOL CWeaponBox::PackWeapon(CBasePlayerItem *pWeapon)
@@ -183,7 +164,7 @@ extern int	g_iWpnBoxRenderColor;
 	//
 		inline void SET_ANIMATION(edict_t* pentPlayer, int animation)
 		{
-			reinterpret_cast<FuncSetAnimation>(g_dllFuncs[Func_PlayerSetAnimation].address)(pentPlayer->pvPrivateData, animation);
+			reinterpret_cast<FuncSetAnimation>(g_Memory.m_pPlayerSetAnimation)(pentPlayer->pvPrivateData, animation);
 		}
 
 #endif

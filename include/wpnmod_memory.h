@@ -36,7 +36,6 @@
 
 #include "amxxmodule.h"
 #include "wpnmod_hooker.h"
-#include "wpnmod_hooks.h"
 
 
 #ifdef __linux__
@@ -45,19 +44,33 @@
 	#define SERVER_OS "Windows"
 #endif
 
+#define HOOK_FUNC_DLL(call)														\
+{																				\
+	"", g_Memory.GetModule_Dll(), {"", "", 0}, NULL, (void*)call, {}, {}, 0,	\
+}																				\
 
 class CMemory
 {
 private:
 	size_t	m_start;
 	size_t	m_end;
+
+	module	m_EngineModule;
 	module	m_GameDllModule;
+
 	bool	m_bSuccess;
 
 public:
 	CMemory();
 
-	bool FindFuncsInDll(void);
+	void* m_pSubRemove;
+	void* m_pGetAmmoIndex;
+	void* m_pWpnBoxKillThink;
+	void* m_pClearMultiDamage;
+	void* m_pApplyMultiDamage;
+	void* m_pPlayerSetAnimation;
+
+	bool Init(void);
 
 	void Parse_ClearMultiDamage(void);
 	void Parse_ApplyMultiDamage(void);
@@ -67,14 +80,22 @@ public:
 	void Parse_SetAnimation(void);
 	void Parse_SubRemove(void);
 
+	void EnableWeaponboxModels(void);
+	void EnableShieldHitboxTracing(void);
+
+	void Unset_Hooks(void);
+
+	module* GetModule_Dll(void) { return &m_GameDllModule; };
+	module* GetModule_Engine(void) { return &m_EngineModule; };
+
 	size_t ParseFunc(size_t start, size_t end, char* funcname, unsigned char* pattern, char* mask, size_t bytes);
 	size_t ParseFunc(size_t start, size_t end, char* funcname, char* string, unsigned char* pattern, char* mask, size_t bytes);
-
-	void* m_pSubRemove;
-	void* m_WpnBoxKillThink;
 };
 
 extern CMemory g_Memory;
+
+extern function g_fh_GiveNamedItem;
+extern function g_fh_PrecacheOtherWeapon;
 
 
 
@@ -97,11 +118,6 @@ extern CMemory g_Memory;
 	extern bool g_bNewGCC;
 #endif
 
-extern void* g_pAdress_SubRemove;
-extern void* g_pAdress_WpnBoxKillThink;
-
-void	EnableWeaponboxModels		(void);
-void	EnableShieldHitboxTracing	(void);
 
 
 #endif // _WPNMOD_MEMORY_H

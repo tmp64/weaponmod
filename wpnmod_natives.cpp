@@ -233,10 +233,10 @@ AMXX_NATIVE(wpnmod_register_weapon)
 
 			g_iWeaponInitID = i;
 
-			if (UnsetHook(&g_dllFuncs[Func_PrecacheOtherWeapon]))
+			if (UnsetHook(&g_fh_PrecacheOtherWeapon))
 			{
 				PRECACHE_OTHER_WEAPON("weapon_crowbar");
-				SetHook(&g_dllFuncs[Func_PrecacheOtherWeapon]);
+				SetHook(&g_fh_PrecacheOtherWeapon);
 			}
 
 			return i;

@@ -34,23 +34,11 @@
 #include "wpnmod_parse.h"
 #include "wpnmod_utils.h"
 #include "wpnmod_hooks.h"
-#include "wpnmod_memory.h"
 #include "entity_state.h"
 
 
-module g_GameDllModule = { NULL, NULL, NULL };
 
-function g_dllFuncs[Func_End] =
-{
-	HOOK(NULL),		// GetAmmoIndex
-	HOOK(NULL),		// ClearMultiDamage
-	HOOK(NULL),		// ApplyMultiDamage
-	HOOK(NULL),		// PlayerSetAnimation
-	HOOK(PrecacheOtherWeapon_HookHandler),
-	HOOK(GiveNamedItem_HookHandler)
-};
-
-function g_funcPackWeapon = HOOK(PackWeapon_HookHandler);
+function g_funcPackWeapon = HOOK_FUNC_DLL(PackWeapon_HookHandler);
 
 VirtualHookData g_CrowbarHooks[CrowbarHook_End] = 
 {
@@ -998,10 +986,10 @@ void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 		g_iWeaponsCount++;
 	}
 
-	if (UnsetHook(&g_dllFuncs[Func_PrecacheOtherWeapon]))
+	if (UnsetHook(&g_fh_PrecacheOtherWeapon))
 	{
 		PRECACHE_OTHER_WEAPON(szClassname);
-		SetHook(&g_dllFuncs[Func_PrecacheOtherWeapon]);
+		SetHook(&g_fh_PrecacheOtherWeapon);
 	}
 }
 
@@ -1017,10 +1005,10 @@ void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 		GiveNamedItem(PrivateToEdict(pvPlayer), szName);
 	}
 
-	if (UnsetHook(&g_dllFuncs[Func_GiveNamedItem]))
+	if (UnsetHook(&g_fh_GiveNamedItem))
 	{
 		GIVE_NAMED_ITEM(pvPlayer, szName);
-		SetHook(&g_dllFuncs[Func_GiveNamedItem]);
+		SetHook(&g_fh_GiveNamedItem);
 	}
 }
 
@@ -1052,9 +1040,9 @@ void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 		return iResult;
 	}
 
-	if (g_pAdress_WpnBoxKillThink)
+	if (g_Memory.m_pWpnBoxKillThink)
 	{
-		Dll_SetThink(pWeaponBox, g_pAdress_WpnBoxKillThink);
+		Dll_SetThink(pWeaponBox, g_Memory.m_pWpnBoxKillThink);
 		pWeaponBox->v.nextthink = gpGlobals->time + g_iWpnBoxLifeTime;
 	}
 
