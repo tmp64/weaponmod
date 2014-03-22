@@ -44,68 +44,6 @@
 #include "wpnmod_pvdata.h"
 #include "wpnmod_log.h"
 
-
-typedef enum
-{
-	SUBMOD_UNKNOWN = 0,
-
-	SUBMOD_AG,
-	SUBMOD_VALVE,
-	SUBMOD_GEARBOX,
-
-	SUBMOD_AGHLRU,
-	SUBMOD_MINIAG,
-} SUBMOD;
-
-class CConfig
-{
-private:
-	bool	m_bInited;
-	bool	m_bWorldSpawned;
-	char	m_cfgpath[1024];
-
-public:
-	CConfig();
-
-	int**	m_pCurrentSlots;
-	int		m_iMaxWeaponSlots;
-	int		m_iMaxWeaponPositions;
-
-	bool	m_bWpnBoxModels;
-	int		m_iWpnBoxLifeTime;
-	int		m_iWpnBoxRenderColor;
-
-	edict_t*	m_pEquipEnt;
-
-	void	InitGameMod			(void);
-	void	WorldPrecache		(void);
-	void	SetConfigFile		(void);
-	char*	GetConfigFile		(void)		{ return &m_cfgpath[0]; };
-
-	//SUBMOD GetSubMod(void);
-	SUBMOD	CheckSubMod			(const char* game);
-
-	void	ServerActivate		(void);
-	void	ServerShutDown		(void);
-	void	ServerDeactivate	(void);
-	void	ManageEquipment		(void);
-	void	AutoSlotDetection	(int iWeaponID, int iSlot, int iPosition);
-};
-
-extern CConfig g_Config;
-
-
-
-
-
-
-
-
-
-
-#define PS_STOPPED		4
-#define UD_FINDPLUGIN	3
-
 #ifdef __linux__
 	#define stricmp	strcasecmp
 #endif
@@ -118,6 +56,17 @@ extern CConfig g_Config;
 #define ITEM_FLAG_LIMITINWORLD				8
 #define ITEM_FLAG_EXHAUSTIBLE				16
 
+typedef enum
+{
+	SUBMOD_UNKNOWN = 0,
+
+	SUBMOD_AG,
+	SUBMOD_VALVE,
+	SUBMOD_GEARBOX,
+
+	SUBMOD_AGHLRU,
+	SUBMOD_MINIAG,
+} SUBMOD;
 
 enum e_AmmoFwds
 {
@@ -155,24 +104,17 @@ enum e_WpnType
 	Wpn_End
 };
 
-class CPlugin
+typedef struct 
 {
-public:
-	AMX amx;
-	void* code;
+	const char*	name;
+	int			index;
+} DecalList;
 
-	String	name;
-	String	version;
-	String	title;
-	String	author;
-	String	errorMsg;
-
-	int dummy_1;
-	int dummy_2;
-	int dummy_3;
-	int dummy_4;
-	int status;
-};
+typedef struct
+{
+	const char*	ammoname;
+	int count;
+} StartAmmo;
 
 typedef struct
 {
@@ -193,7 +135,6 @@ typedef struct
 {
 	String	classname;
 	int		iForward[Fwd_Ammo_End];
-
 } AmmoBoxData;
 
 typedef struct
@@ -202,54 +143,76 @@ typedef struct
 	String		author;
 	String		version;
 	String		worldModel;
-
 	e_WpnType	iType;
 	ItemInfo	ItemData;
-
 	int			iForward[Fwd_Wpn_End];
-
 } WeaponData;
 
-typedef struct 
+class CConfig
 {
-	const char*	name;
-	int			index;
+private:
+	bool	m_bInited;
+	bool	m_bWorldSpawned;
+	char	m_cfgpath[1024];
+	SUBMOD	m_GameMod;
 
-} DecalList;
+public:
+	CConfig();
 
-typedef struct
-{
-	const char*	ammoname;
-	int			count;
+	int** m_pCurrentSlots;
+	int m_iMaxWeaponSlots;
+	int m_iMaxWeaponPositions;
 
-} StartAmmo;
+	bool m_bWpnBoxModels;
+	int m_iWpnBoxLifeTime;
+	int m_iWpnBoxRenderColor;
 
-extern AMX_NATIVE_INFO Natives[];
+	bool m_bCrowbarHooked;
+	bool m_bAmmoBoxHooked;
 
+	edict_t* m_pEquipEnt;
+
+	CVector <DecalList*> m_pDecalList;
+	CVector <StartAmmo*> m_pStartAmmoList;
+	CVector <VirtualHookData*>	m_pBlockedItemsList;
+
+	void	InitGameMod			(void);
+	void	WorldPrecache		(void);
+	void	SetConfigFile		(void);
+	char*	GetConfigFile		(void) { return &m_cfgpath[0]; };
+
+	SUBMOD	GetSubMod			(void) { return m_GameMod; };
+	SUBMOD	CheckSubMod			(const char* game);
+
+	void	ServerActivate		(void);
+	void	ServerShutDown		(void);
+	void	ServerDeactivate	(void);
+	void	ManageEquipment		(void);
+	void	AutoSlotDetection	(int iWeaponID, int iSlot, int iPosition);
+
+	void	DecalPushList		(const char *name);
+	bool	IsItemBlocked		(const char *name);
+
+	static void ServerCommand	(void);
+	static bool ClientCommand	(edict_t *pEntity);
+};
+
+extern CConfig g_Config;
 
 extern int g_iWeaponsCount;
 extern int g_iWeaponInitID;
 extern int g_iAmmoBoxIndex;
 
+extern WeaponData WeaponInfoArray[MAX_WEAPONS];
+extern AmmoBoxData AmmoBoxInfoArray[MAX_WEAPONS];
+
 extern cvar_t *cvar_sv_cheats;
 extern cvar_t *cvar_mp_weaponstay;
 
-extern CVector <DecalList*>			g_Decals;
-extern CVector <StartAmmo*>			g_StartAmmo;
-extern CVector <VirtualHookData*>	g_BlockedItems;
+extern AMX_NATIVE_INFO Natives[];
 
-extern bool g_bAmmoBoxHooked;
-extern bool g_bCrowbarHooked;
-
-extern SUBMOD g_GameMod;
-
-extern WeaponData	WeaponInfoArray	[MAX_WEAPONS];
-extern AmmoBoxData	AmmoBoxInfoArray[MAX_WEAPONS];
-
-extern void		WpnModCommand	(void);
-
-extern	edict_t*		Ammo_Spawn			(const char* szName, Vector vecOrigin, Vector vecAngles);
-extern	edict_t*		Weapon_Spawn		(const char* szName, Vector vecOrigin, Vector vecAngles);
+extern	edict_t* Ammo_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles);
+extern	edict_t* Weapon_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles);
 
 inline int			GetWeapon_Slot(const int iId)			{ return WeaponInfoArray[iId].ItemData.iSlot; }
 inline int			GetWeapon_ItemPosition(const int iId)	{ return WeaponInfoArray[iId].ItemData.iPosition; }
@@ -261,5 +224,29 @@ inline const char*	GetWeapon_pszName(const int iId)		{ return WeaponInfoArray[iI
 inline int			GetWeapon_MaxClip(const int iId)		{ return WeaponInfoArray[iId].ItemData.iMaxClip; }
 inline int			GetWeapon_Weight(const int iId)			{ return WeaponInfoArray[iId].ItemData.iWeight; }
 inline int			GetWeapon_Flags(const int iId)			{ return WeaponInfoArray[iId].ItemData.iFlags; }
+
+//
+// CPlugin.h AMXX
+//
+
+#define PS_STOPPED		4
+#define UD_FINDPLUGIN	3
+
+class CPlugin
+{
+public:
+	AMX amx;
+	void* code;
+
+	String	name;
+	String	version;
+	String	title;
+	String	author;
+	String	errorMsg;
+
+	char padding[0x10]; // + 16
+
+	int status;
+};
 
 #endif // _CONFIG_H

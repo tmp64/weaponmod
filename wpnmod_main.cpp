@@ -42,6 +42,11 @@ int AmxxCheckGame(const char* game)
 	return !stricmp(game, "cstrike") || !stricmp(game, "czero") ? AMXX_GAME_BAD : AMXX_GAME_OK;
 }
 
+void OnAmxxAttach(void)
+{
+	MF_AddNatives(Natives);
+}
+
 // Called by Meta_Attach.
 int WpnMod_Init(void)
 {
@@ -58,26 +63,6 @@ int WpnMod_Init(void)
 
 	WPNMOD_LOG("Done.\n");
 	return 1;
-}
-
-void OnAmxxAttach(void)
-{
-	cvar_t version = 
-	{
-		"hl_wpnmod_version",
-		Plugin_info.version,
-		FCVAR_SERVER
-	};
-
-	MF_AddNatives(Natives);
-	REG_SVR_COMMAND("wpnmod", WpnModCommand);
-	CVAR_REGISTER(&version);
-}
-
-void OnAmxxDetach(void)
-{
-	g_Memory.UnsetHooks();
-	g_Config.ServerShutDown();
 }
 
 int DispatchSpawn(edict_t *pent)
@@ -97,41 +82,27 @@ void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 void ServerDeactivate()
 {
 	g_Config.ServerDeactivate();
+	RETURN_META(MRES_IGNORED);
+}
 
+void OnAmxxDetach(void)
+{
+	g_Memory.UnsetHooks();
+	g_Config.ServerShutDown();
+}
 
+int FN_DecalIndex_Post(const char *name)
+{
+	g_Config.DecalPushList(name);
+	RETURN_META_VALUE(MRES_IGNORED, 0);
+}
 
-
-
-	g_iWeaponsCount = 0;
-	g_iWeaponInitID = 0;
-	g_iAmmoBoxIndex = 0;
-
-	memset(WeaponInfoArray, 0, sizeof(WeaponInfoArray));
-	memset(AmmoBoxInfoArray, 0, sizeof(AmmoBoxInfoArray));
-
-
-	for (int i = 0; i < (int)g_Decals.size(); i++)
+void ClientCommand(edict_t *pEntity)
+{
+	if (CConfig::ClientCommand(pEntity))
 	{
-		delete g_Decals[i];
+		RETURN_META(MRES_SUPERCEDE);
 	}
-
-	for (int i = 0; i < (int)g_StartAmmo.size(); i++)
-	{
-		delete g_StartAmmo[i];
-	}
-
-	for (int i = 0; i < (int)g_BlockedItems.size(); i++)
-	{
-		UnsetHookVirtual(g_BlockedItems[i]);
-		delete g_BlockedItems[i];
-	}
-
-	g_Decals.clear();
-	g_StartAmmo.clear();
-	g_BlockedItems.clear();
-
-	g_bCrowbarHooked = false;
-	g_bAmmoBoxHooked = false;
 
 	RETURN_META(MRES_IGNORED);
 }
@@ -150,188 +121,3 @@ void FN_OnFreeEntPrivateData(edict_t *pEnt)
 	RETURN_META(MRES_IGNORED);
 }
 
-int FN_DecalIndex_Post(const char *name)
-{
-	DecalList *p = new DecalList;
-
-	p->name = STRING(ALLOC_STRING(name));
-	p->index = META_RESULT_ORIG_RET(int);
-
-	g_Decals.push_back(p);
-
-	RETURN_META_VALUE(MRES_IGNORED, 0);
-}
-
-void ClientCommand(edict_t *pEntity)
-{
-	static const char* cmd = NULL;
-
-	cmd = CMD_ARGV(0);
-
-	if (!cmd || !MF_IsPlayerIngame(ENTINDEX(pEntity)))
-	{
-		RETURN_META(MRES_IGNORED);
-	}
-
-	if (!strcmp(cmd, "lastinv"))
-	{
-		SelectLastItem(pEntity);
-		RETURN_META(MRES_SUPERCEDE);
-	}
-	else if (strstr(cmd, "weapon_"))
-	{
-		SelectItem(pEntity, cmd);
-		RETURN_META(MRES_SUPERCEDE);
-	}
-	else if (!_stricmp(cmd, "give") && cvar_sv_cheats && cvar_sv_cheats->value)
-	{
-		const char* item = CMD_ARGV(1);
-
-		if (item)
-		{
-			GiveNamedItem(pEntity, item);
-		}
-	}
-	else if (!_stricmp(cmd, "wpnmod"))
-	{
-		int i = 0;
-		int ammo = 0;
-		int weapons = 0;
-
-		static char buf[1024];
-		size_t len = 0;
-
-		sprintf(buf, "\n%s %s\n", Plugin_info.name, Plugin_info.version);
-		CLIENT_PRINT(pEntity, print_console, buf);
-		len = sprintf(buf, "Author: \n         KORD_12.7 (AGHL.RU Dev Team)\n");
-		len += sprintf(&buf[len], "Credits: \n         AMXX Dev team, Arkshine, 6a6kin, GordonFreeman, Koshak, Lev, noo00oob\n");
-		len += sprintf(&buf[len], "Compiled: %s\nURL: http://www.aghl.ru/ - Russian Half-Life and Adrenaline Gamer Community.\n\n", __DATE__ ", " __TIME__);
-		CLIENT_PRINT(pEntity, print_console, buf);
-
-		CLIENT_PRINT(pEntity, print_console, "Currently loaded weapons:\n");
-
-		for (i = 1; i <= g_iWeaponsCount; i++)
-		{
-			if (WeaponInfoArray[i].iType == Wpn_Custom)
-			{
-				sprintf(buf, " [%2d] %-23.22s\n", ++weapons, GetWeapon_pszName(i));
-				CLIENT_PRINT(pEntity, print_console, buf);
-			}
-		}
-
-		CLIENT_PRINT(pEntity, print_console, "\nCurrently loaded ammo:\n");
-
-		for (i = 1; i <= g_iAmmoBoxIndex; i++)
-		{
-			sprintf(buf, " [%2d] %-23.22s\n", ++ammo, AmmoBoxInfoArray[i].classname.c_str());
-			CLIENT_PRINT(pEntity, print_console, buf);
-		}
-
-		CLIENT_PRINT(pEntity, print_console, "\nTotal:\n");
-		sprintf(buf, "%4d items (%d weapons, %d ammo).\n\n", weapons + ammo, weapons, ammo);
-		CLIENT_PRINT(pEntity, print_console, buf);
-
-		RETURN_META(MRES_SUPERCEDE);
-	}
-
-	RETURN_META(MRES_IGNORED);
-}
-
-void WpnModCommand(void)
-{
-	const char *cmd = CMD_ARGV(1);
-
-	if (!strcmp(cmd, "credits"))
-	{
-		printf2("Credits:\n\tAMXX Dev team, 6a6kin, GordonFreeman, Koshak, Lev, noo00oob.\n");
-	}
-	else  if (!strcmp(cmd, "version")) 
-	{
-		printf2("%s %s (%s)\n", Plugin_info.name, Plugin_info.version, Plugin_info.url);
-		printf2("Author:\n\tKORD_12.7 (AGHL.RU Dev Team)\n");
-		printf2("Compiled: %s\n", __DATE__ ", " __TIME__);
-
-	}
-	else if (!strcmp(cmd, "edicts"))
-	{
-		for (int i = 0; i < gpGlobals->maxEntities; i++)
-		{
-			if (IsValidPev(INDEXENT2(i)))
-			{
-				printf2("\t*Edict %d (%s)\n", i, STRING(INDEXENT2(i)->v.classname));
-			}
-		}
-	}
-	else if (!strcmp(cmd, "items"))
-	{
-		int i = 0;
-		int items = 0;
-		int weapons = 0;
-		int ammo = 0;
-
-		printf2("\nCurrently loaded weapons:\n");
-
-		for (i = 1; i <= g_iWeaponsCount; i++)
-		{
-			if (WeaponInfoArray[i].iType == Wpn_Custom)
-			{
-				items++;
-				printf2(" [%2d] %-23.22s\n", ++weapons, GetWeapon_pszName(i));
-			}
-		}
-
-		printf2("\nCurrently loaded ammo:\n");
-
-		for (i = 1; i <= g_iAmmoBoxIndex; i++)
-		{
-			items++;
-			printf2(" [%2d] %-23.22s\n", ++ammo, AmmoBoxInfoArray[i].classname.c_str());
-		}
-
-		printf2("\nTotal:\n");
-		printf2("%4d items (%d weapons, %d ammo).\n\n", items, weapons, ammo);
-	}
-	else if (!strcmp(cmd, "gpl"))
-	{
-		printf2("Half-Life Weapon Mod\n");
-		printf2("\n");
-		printf2(" by the AGHL.RU Dev Team\n");
-		printf2("\n");
-		printf2("\n");
-		printf2("  This program is free software; you can redistribute it and/or modify it\n");
-		printf2("  under the terms of the GNU General Public License as published by the\n");
-		printf2("  Free Software Foundation; either version 2 of the License, or (at\n");
-		printf2("  your option) any later version.\n");
-		printf2("\n");
-		printf2("  This program is distributed in the hope that it will be useful, but\n");
-		printf2("  WITHOUT ANY WARRANTY; without even the implied warranty of\n");
-		printf2("  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU\n");
-		printf2("  General Public License for more details.\n");
-		printf2("\n");
-		printf2("  You should have received a copy of the GNU General Public License\n");
-		printf2("  along with this program; if not, write to the Free Software Foundation,\n");
-		printf2("  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA\n");
-		printf2("\n");
-		printf2("  In addition, as a special exception, the author gives permission to\n");
-		printf2("  link the code of this program with the Half-Life Game Engine (\"HL\n");
-		printf2("  Engine\") and Modified Game Libraries (\"MODs\") developed by Valve,\n");
-		printf2("  L.L.C (\"Valve\"). You must obey the GNU General Public License in all\n");
-		printf2("  respects for all of the code used other than the HL Engine and MODs\n");
-		printf2("  from Valve. If you modify this file, you may extend this exception\n");
-		printf2("  to your version of the file, but you are not obligated to do so. If\n");
-		printf2("  you do not wish to do so, delete this exception statement from your\n");
-		printf2("  version.\n");
-		printf2("\n");
-	}
-	else
-	{
-		// Unknown command
-		printf2("\nUsage: wpnmod < command > [ argument ]\n");
-		printf2("Commands:\n");
-		printf2("   %-10s - %s\n", "version", "displays version information.");
-		printf2("   %-10s - %s\n", "credits", "displays credits information.");
-		printf2("   %-10s - %s\n", "items", "displays information about registered weapons and ammo.");
-		printf2("   %-10s - %s\n", "gpl", "print the license.");
-		printf2("\n");
-	}
-}

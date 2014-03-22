@@ -82,7 +82,7 @@ void Vtable_Init(void)
 
 	// Bugfixed and improved HL release.
 	// Or usual Half-Life.
-	if (g_GameMod == SUBMOD_AGHLRU || g_GameMod == SUBMOD_VALVE)
+	if (g_Config.GetSubMod() == SUBMOD_AGHLRU || g_Config.GetSubMod() == SUBMOD_VALVE)
 	{
 #ifdef __linux__
 		if (!g_Memory.IsNewGCC())
@@ -93,7 +93,7 @@ void Vtable_Init(void)
 #endif 
 	}
 	// Opposing Force.
-	else if (g_GameMod == SUBMOD_GEARBOX)
+	else if (g_Config.GetSubMod() == SUBMOD_GEARBOX)
 	{
 #ifdef __linux__
 		if (!g_Memory.IsNewGCC())
@@ -118,7 +118,7 @@ void Vtable_Init(void)
 		GameVirtualOffsets[VO_IsUseable].iValue			= 85;
 		GameVirtualOffsets[VO_Player_PostThink].iValue	= 130;
 	}
-	else if (g_GameMod == SUBMOD_AG || g_GameMod == SUBMOD_MINIAG)
+	else if (g_Config.GetSubMod() == SUBMOD_AG || g_Config.GetSubMod() == SUBMOD_MINIAG)
 	{
 #ifdef __linux__
 		SetVTableOffsetPev(0);

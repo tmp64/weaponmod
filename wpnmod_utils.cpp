@@ -365,12 +365,12 @@ void UTIL_DecalGunshot(TraceResult* pTrace)
 	{
 		int decalNumber = GET_DAMAGE_DECAL(pTrace->pHit);
 
-		if (decalNumber < 0 || decalNumber > (int)g_Decals.size())
+		if (decalNumber < 0 || decalNumber > (int)g_Config.m_pDecalList.size())
 		{
 			return;
 		}
 
-		int index = g_Decals[decalNumber]->index;
+		int index = g_Config.m_pDecalList[decalNumber]->index;
 
 		if (index < 0 || pTrace->flFraction == 1.0)
 		{

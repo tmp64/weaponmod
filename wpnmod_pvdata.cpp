@@ -105,7 +105,7 @@ void pvData_Init(void)
 	}
 #endif 
 	// Adrenaline Gamer and Adrenaline Gamer mini.
-	if (g_GameMod == SUBMOD_AG || g_GameMod == SUBMOD_MINIAG)
+	if (g_Config.GetSubMod() == SUBMOD_AG || g_Config.GetSubMod() == SUBMOD_MINIAG)
 	{
 		for (int i = pvData_iWeaponVolume; i < pvData_End; i++)
 		{
@@ -113,7 +113,7 @@ void pvData_Init(void)
 		}
 	}
 	// Opposing Force.
-	else if (g_GameMod == SUBMOD_GEARBOX)
+	else if (g_Config.GetSubMod() == SUBMOD_GEARBOX)
 	{
 		// Override pvdata offsets.
 		GamePvDatasOffsets[pvData_pfnThink].iValue = 5;

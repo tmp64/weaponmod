@@ -109,7 +109,7 @@ bool ParseSection(char* filePath, const char* section, void* handler, int separa
 	p->ammoname = STRING(ALLOC_STRING(item.c_str()));
 	p->count = max(min(atoi(count.c_str()), 254), 0);
 
-	g_StartAmmo.push_back(p);
+	g_Config.m_pStartAmmoList.push_back(p);
 }
 
 void OnParseWeaponbox(String key, String value)
@@ -139,7 +139,7 @@ void OnParseBlockedItems(String dummy, String BlockedItem)
 
 	if (!stricmp(BlockedItem.c_str(), "weapon_crowbar") || !stricmp(BlockedItem.c_str(), "ammo_rpgclip"))
 	{
-		g_BlockedItems.push_back(p);
+		g_Config.m_pBlockedItemsList.push_back(p);
 		return;
 	}
 
@@ -161,7 +161,7 @@ void OnParseBlockedItems(String dummy, String BlockedItem)
 	}
 	else
 	{
-		g_BlockedItems.push_back(p);
+		g_Config.m_pBlockedItemsList.push_back(p);
 	}
 }
 

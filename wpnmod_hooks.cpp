@@ -573,7 +573,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 			}
 		}
 
-		if (g_GameMod != SUBMOD_AGHLRU)
+		if (g_Config.GetSubMod() != SUBMOD_AGHLRU)
 		{
 			static int msgWeapPickup = 0;
 			if (msgWeapPickup || (msgWeapPickup = REG_USER_MSG( "WeapPickup", 1 )))		
@@ -694,13 +694,10 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 
 	if (!stricmp(STRING(pAmmobox->v.classname), "ammo_rpgclip"))
 	{
-		for (int k = 0; k < (int)g_BlockedItems.size(); k++)
+		if (g_Config.IsItemBlocked("ammo_rpgclip"))
 		{
-			if (!stricmp(g_BlockedItems[k]->classname, "ammo_rpgclip"))
-			{
-				UTIL_RemoveEntity(pAmmobox);
-				return FALSE;
-			}
+			UTIL_RemoveEntity(pAmmobox);
+			return FALSE;
 		}
 
 		return ADD_AMMO(pvAmmo, pvOther);
@@ -855,13 +852,13 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 
 	int iAmmoIndex;
 
-	for (int i = 0; i < (int)g_StartAmmo.size(); i++)
+	for (int i = 0; i < (int)g_Config.m_pStartAmmoList.size(); i++)
 	{
-		iAmmoIndex = GET_AMMO_INDEX(g_StartAmmo[i]->ammoname);
+		iAmmoIndex = GET_AMMO_INDEX(g_Config.m_pStartAmmoList[i]->ammoname);
 
 		if (iAmmoIndex != -1)
 		{
-			SetAmmoInventory(pPlayer, iAmmoIndex, g_StartAmmo[i]->count);
+			SetAmmoInventory(pPlayer, iAmmoIndex, g_Config.m_pStartAmmoList[i]->count);
 		}
 	}
 
@@ -959,14 +956,11 @@ void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 	
 	if (IsValidPev(pEntity))
 	{
-		for (int i = 0; i < (int)g_BlockedItems.size(); i++)
+		if (g_Config.IsItemBlocked(szClassname))
 		{
-			if (!stricmp(g_BlockedItems[i]->classname, szClassname))
-			{
-				MDLL_Spawn(pEntity);
-				UTIL_RemoveEntity(pEntity);
-				return;
-			}
+			MDLL_Spawn(pEntity);
+			UTIL_RemoveEntity(pEntity);
+			return;
 		}
 
 		ItemInfo pII;

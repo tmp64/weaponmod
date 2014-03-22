@@ -158,7 +158,6 @@ int NativesPvDataOffsets[Offset_End] =
 };
 
 
-
 /**
  * Register new weapon in module.
  *
@@ -221,9 +220,9 @@ AMXX_NATIVE(wpnmod_register_weapon)
 
 			g_Config.AutoSlotDetection(i, params[2] - 1, params[3] - 1);
 
-			if (!g_bCrowbarHooked)
+			if (!g_Config.m_bCrowbarHooked)
 			{
-				g_bCrowbarHooked = true;
+				g_Config.m_bCrowbarHooked = true;
 
 				for (int k = 0; k < CrowbarHook_End; k++)
 				{
@@ -1218,9 +1217,9 @@ AMXX_NATIVE(wpnmod_register_ammobox)
 		return -1;
 	}
 
-	if (!g_bAmmoBoxHooked)
+	if (!g_Config.m_bAmmoBoxHooked)
 	{
-		g_bAmmoBoxHooked = true;
+		g_Config.m_bAmmoBoxHooked = true;
 		SetHookVirtual(&g_RpgAddAmmo_Hook);
 	}
 
@@ -1330,12 +1329,12 @@ AMXX_NATIVE(wpnmod_get_damage_decal)
 
 	int decalNumber = GET_DAMAGE_DECAL(INDEXENT2(params[1]));
 
-	if (decalNumber < 0 || decalNumber > (int)g_Decals.size())
+	if (decalNumber < 0 || decalNumber > (int)g_Config.m_pDecalList.size())
 	{
 		return -1;
 	}
 
-	return g_Decals[decalNumber]->index;
+	return g_Config.m_pDecalList[decalNumber]->index;
 }
 
 /**
