@@ -363,6 +363,7 @@ void UTIL_DecalGunshot(TraceResult* pTrace)
 
 	if (pTrace->pHit->v.solid == SOLID_BSP || pTrace->pHit->v.movetype == MOVETYPE_PUSHSTEP )
 	{
+		
 		int decalNumber = GET_DAMAGE_DECAL(pTrace->pHit);
 
 		if (decalNumber < 0 || decalNumber > (int)g_Config.m_pDecalList.size())
@@ -376,7 +377,7 @@ void UTIL_DecalGunshot(TraceResult* pTrace)
 		{
 			return;
 		}
-
+		
 		MESSAGE_BEGIN(MSG_PAS, SVC_TEMPENTITY, pTrace->vecEndPos);
 		WRITE_BYTE(TE_GUNSHOTDECAL);
 		WRITE_COORD(pTrace->vecEndPos.x );
@@ -384,6 +385,20 @@ void UTIL_DecalGunshot(TraceResult* pTrace)
 		WRITE_COORD(pTrace->vecEndPos.z );
 		WRITE_SHORT((short)ENTINDEX(pTrace->pHit));
 		WRITE_BYTE(index);
+		MESSAGE_END();
+
+		MESSAGE_BEGIN(MSG_PAS, SVC_TEMPENTITY, pTrace->vecEndPos);
+		WRITE_BYTE(TE_STREAK_SPLASH);
+		WRITE_COORD(pTrace->vecEndPos.x );
+		WRITE_COORD(pTrace->vecEndPos.y );
+		WRITE_COORD(pTrace->vecEndPos.z );
+		WRITE_COORD(pTrace->vecPlaneNormal.x );
+		WRITE_COORD(pTrace->vecPlaneNormal.y );
+		WRITE_COORD(pTrace->vecPlaneNormal.z );
+		WRITE_BYTE(30);
+		WRITE_SHORT(RANDOM_LONG(15, 30));
+		WRITE_SHORT(RANDOM_LONG(4, 10));
+		WRITE_SHORT(75);
 		MESSAGE_END();
 	}
 }
@@ -583,7 +598,7 @@ float TEXTURETYPE_PlaySound(TraceResult* ptr,  Vector vecSrc, Vector vecEnd)
 		cnt = 3;
 		break;
 	case CHAR_TEX_FLESH:
-		fvol = 1.0;	fvolbar = 0.2;
+		fvol = 1.0; fvolbar = 0.2;
 		rgsz[0] = "weapons/bullet_hit1.wav";
 		rgsz[1] = "weapons/bullet_hit2.wav";
 		fattn = 1.0;
@@ -597,6 +612,8 @@ float TEXTURETYPE_PlaySound(TraceResult* ptr,  Vector vecSrc, Vector vecEnd)
 	return fvolbar;
 }
 
+
+//int iPenetration, float flRangeModifier, int iPenetrationPower, float flPenetrationDistance
 void FireBulletsPlayer(edict_t* pPlayer, edict_t* pAttacker, int iShotsCount, Vector vecSpread, float flDistance, float flDamage, int bitsDamageType, int iTracerFreq)
 {
 	float x, y, z;

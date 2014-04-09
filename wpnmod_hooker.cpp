@@ -102,7 +102,7 @@ long getBaseLen(void *baseAddress)
 					);
 
 					if(!value)
-					{		
+					{
 						break;
 					}
 					else

@@ -121,9 +121,9 @@ inline void SetPrivateInt(edict_t* pEntity, int iOffset, int iValue)
 	*((int*)pEntity->pvPrivateData + GET_PVDATA_OFFSET(iOffset)) = iValue;
 }
 
-inline void SetPrivateInt(edict_t* pEntity, int iOffset,int iValue, int iExtraRealOffse)
+inline void SetPrivateInt(edict_t* pEntity, int iOffset,int iValue, int iExtraRealOffset)
 {
-	*((int*)pEntity->pvPrivateData + GET_PVDATA_OFFSET(iOffset) + iExtraRealOffse) = iValue;
+	*((int*)pEntity->pvPrivateData + GET_PVDATA_OFFSET(iOffset) + iExtraRealOffset) = iValue;
 }
 
 inline void SetPrivateFloat(edict_t* pEntity, int iOffset, float flValue)

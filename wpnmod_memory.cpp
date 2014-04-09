@@ -461,13 +461,108 @@ void CMemory::Parse_SubRemove(void)
 	WPNMOD_LOG_ONLY("   Found \"%s\" at %p\n", funcname, pAdress);
 }
 
+void CMemory::Parse_GameRules(void)
+{
+#ifdef __linux__
+
+	void* pAdress = FindFunction(&m_GameDllModule, "g_pGameRules");
+
+	WPNMOD_LOG("   Found \"g_pGameRules\" at %p\n", pAdress);
+
+	#define ObjectVTableOffsetBase	0x0
+	#define GET_VTABLE_OBJECT(e) (*((void***)(((char*)e) + ObjectVTableOffsetBase)))
+
+	typedef const char* (*FuncGetGameDescription) (void*);
+	const char* GameDescription = reinterpret_cast<FuncGetGameDescription>(GET_VTABLE_OBJECT(pAdress)[12])(pAdress);
+
+	printf2(" *GameDescription is \"%s\"\n", GameDescription);
+
+#else
+
+
+	char* funcname = "g_pGameRules";
+
+	int count = 0;
+
+	size_t pAdress = NULL;
+	size_t pCurrent = NULL;
+	size_t pCandidate = NULL;
+
+	char			string[]		= "items/smallmedkit1.wav";
+	char			mask[]			= "xxxxxx";
+	unsigned char	pattern[]		= "\x68\x00\x00\x00\x00\x6A";
+
+	pCurrent = FindStringInDLL(m_start, m_end, string);
+
+	while (pCurrent)
+	{
+		*(size_t*)(pattern + 1) = (size_t)pCurrent;
+
+		if ((pCandidate = FindAdressInDLL(m_start, m_end, pattern, mask)))
+		{
+			count++;
+			pAdress = pCandidate;
+		}
+
+		pCurrent = FindStringInDLL(pCurrent + 1, m_end, string);
+	}
+
+	if (!count)
+	{
+		WPNMOD_LOG("Error: \"%s\" not found [0]\n", funcname);
+		return;
+	}
+	else if (count > 1)
+	{
+		WPNMOD_LOG("Error: %d candidates found for \"%s\"\n", count, funcname);
+		return;
+	}
+
+	count = 0;
+
+	size_t end = pAdress + 30;
+	unsigned char opcode[] = "\x8B\x0D";
+
+	pCurrent = FindAdressInDLL(pAdress, end, opcode, "xx");
+
+	// Find first mov.
+	while (pCurrent && count != 1)
+	{
+		count++;
+		pAdress = pCurrent;
+		pCurrent = FindAdressInDLL(pCurrent + 1, end, opcode, "xx");
+	}
+
+	if (count != 1)
+	{
+		WPNMOD_LOG("Error: \"%s\" not found [1] (count %d)\n", funcname, count);
+		return;
+	}
+
+	pAdress += 2;
+
+	void* pGameRules = (void*) **((size_t **)pAdress);
+
+	WPNMOD_LOG("   Found \"%s\" at %p %p\n", funcname, pAdress, pGameRules);
+
+
+	#define ObjectVTableOffsetBase	0x0
+	#define GET_VTABLE_OBJECT(e) (*((void***)(((char*)e) + ObjectVTableOffsetBase)))
+
+	typedef const char* (__fastcall *FuncGetGameDescription) (void*, DUMMY);
+	const char* GameDescription = reinterpret_cast<FuncGetGameDescription>(GET_VTABLE_OBJECT(pGameRules)[10])(pGameRules, DUMMY_VAL);
+
+	printf2(" *GameDescription is \"%s\"\n", GameDescription);
+#endif
+}
+
 void CMemory::EnableShieldHitboxTracing(void)
 {
 	bool bShieldRegistered = false;
 
 	for (int i = 1; i <= g_iWeaponsCount; i++)
 	{
-		if (WeaponInfoArray[i].iType == Wpn_Custom && !stricmp(GetWeapon_pszName(i), "weapon_shield"))
+		if (WeaponInfoArray[i].iType == Wpn_Custom && !stricmp(GetWeapon_pszName(i), "weapon_rpg7"))
 		{
 			bShieldRegistered = true;
 			break;

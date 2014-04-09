@@ -789,6 +789,8 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 
 	PLAYER_POST_THINK(pvPlayer);
 
+	pPlayer->v.impulse = 0;
+
 	/*
 	edict_t* pActiveItem = GetPrivateCbase(pPlayer, pvData_pActiveItem);
 	

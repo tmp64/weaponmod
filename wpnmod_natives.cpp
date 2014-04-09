@@ -158,739 +158,27 @@ int NativesPvDataOffsets[Offset_End] =
 };
 
 
-/**
- * Register new weapon in module.
- *
- * @param szName		The weapon name.
- * @param iSlot			SlotID (1...5).
- * @param iPosition		NumberInSlot (1...5).
- * @param szAmmo1		Primary ammo type ("9mm", "uranium", "MY_AMMO" etc).
- * @param iMaxAmmo1		Max amount of primary ammo.
- * @param szAmmo2		Secondary ammo type.
- * @param iMaxAmmo2		Max amount of secondary ammo.
- * @param iMaxClip		Max amount of ammo in weapon's clip.
- * @param iFlags		Weapon's flags (see defines).
- * @param iWeight		This value used to determine this weapon's importance in autoselection.
- * 
- * @return				The ID of registerd weapon or 0 on failure. (integer)
- *
- * native wpnmod_register_weapon(const szName[], const iSlot, const iPosition, const szAmmo1[], const iMaxAmmo1, const szAmmo2[], const iMaxAmmo2, const iMaxClip, const iFlags, const iWeight);
-*/
-AMXX_NATIVE(wpnmod_register_weapon)
-{
-	const char *szWeaponName = MF_GetAmxString(amx, params[1], 0, NULL);
 
-	for (int i = 1; i < MAX_WEAPONS; i++)
-	{
-		if (WeaponInfoArray[i].iType != Wpn_None)
-		{
-			if (!stricmp(GetWeapon_pszName(i), szWeaponName))
-			{
-				MF_LogError(amx, AMX_ERR_NATIVE, "Weapon name is duplicated.");
-				return -1;
-			}
 
-			if (GetWeapon_pszAmmo1(i) && GET_AMMO_INDEX(GetWeapon_pszAmmo1(i)) >= MAX_AMMO_SLOTS 
-				|| GetWeapon_pszAmmo2(i) && GET_AMMO_INDEX(GetWeapon_pszAmmo2(i)) >= MAX_AMMO_SLOTS)
-			{
-				MF_LogError(amx, AMX_ERR_NATIVE, "Ammo limit reached.");
-				return -1;
-			}
-		}
-		else if (WeaponInfoArray[i].iType == Wpn_None)
-		{
-			g_iWeaponsCount++;
 
-			WeaponInfoArray[i].iType = Wpn_Custom;
 
-			WeaponInfoArray[i].ItemData.pszName = STRING(ALLOC_STRING(szWeaponName));
-			WeaponInfoArray[i].ItemData.pszAmmo1 = STRING(ALLOC_STRING(MF_GetAmxString(amx, params[4], 0, NULL)));
-			WeaponInfoArray[i].ItemData.iMaxAmmo1 = params[5];
-			WeaponInfoArray[i].ItemData.pszAmmo2 = STRING(ALLOC_STRING(MF_GetAmxString(amx, params[6], 0, NULL)));
-			WeaponInfoArray[i].ItemData.iMaxAmmo2 = params[7];
-			WeaponInfoArray[i].ItemData.iMaxClip = params[8];
-			WeaponInfoArray[i].ItemData.iFlags = params[9];
-			WeaponInfoArray[i].ItemData.iWeight = params[10];
 
-			CPlugin* plugin = (CPlugin*)amx->userdata[UD_FINDPLUGIN];
 
-			WeaponInfoArray[i].title = plugin->title;
-			WeaponInfoArray[i].author = plugin->author;
-			WeaponInfoArray[i].version = plugin->version;
 
-			g_Config.AutoSlotDetection(i, params[2] - 1, params[3] - 1);
 
-			if (!g_Config.m_bCrowbarHooked)
-			{
-				g_Config.m_bCrowbarHooked = true;
 
-				for (int k = 0; k < CrowbarHook_End; k++)
-				{
-					SetHookVirtual(&g_CrowbarHooks[k]);
-				}
-			}
 
-			g_iWeaponInitID = i;
 
-			if (UnsetHook(&g_fh_PrecacheOtherWeapon))
-			{
-				PRECACHE_OTHER_WEAPON("weapon_crowbar");
-				SetHook(&g_fh_PrecacheOtherWeapon);
-			}
 
-			return i;
-		}
-	}
 
-	MF_LogError(amx, AMX_ERR_NATIVE, "Weapon limit reached.");
-	return -1;
-}
 
-/**
- * Register weapon's forward.
- *
- * @param iWeaponID		The ID of registered weapon.
- * @param iForward		Forward type to register.
- * @param szCallBack	The forward to call.
- *
- * native wpnmod_register_weapon_forward(const iWeaponID, const e_Forwards: iForward, const szCallBack[]);
-*/
-AMXX_NATIVE(wpnmod_register_weapon_forward)
-{
-	int iId = params[1];
 
-	if (iId <= 0 || iId > g_iWeaponsCount || WeaponInfoArray[iId].iType != Wpn_Custom)
-	{
-		MF_LogError(amx, AMX_ERR_NATIVE, "Invalid weapon id provided (%d).", iId);
-		return 0;
-	}
 
-	int Fwd = params[2];
 
-	if (Fwd < 0 || Fwd >= Fwd_Wpn_End)
-	{
-		MF_LogError(amx, AMX_ERR_NATIVE, "Function out of bounds. Got: %d, Max: %d.", iId, Fwd_Wpn_End - 1);
-		return 0;
-	}
 
-	const char *funcname = MF_GetAmxString(amx, params[3], 0, NULL);
 
-	WeaponInfoArray[iId].iForward[Fwd] = MF_RegisterSPForwardByName
-	(
-		amx, 
-		funcname, 
-		FP_CELL, 
-		FP_CELL, 
-		FP_CELL, 
-		FP_CELL, 
-		FP_CELL, 
-		FP_DONE
-	);
 
-	if (WeaponInfoArray[iId].iForward[Fwd] == -1)
-	{
-		WeaponInfoArray[iId].iForward[Fwd] = 0;
-		MF_LogError(amx, AMX_ERR_NATIVE, "Function not found (%d, \"%s\").", Fwd, funcname);
-		return 0;
-	}
 
-	return 1;
-}
-
-/**
- * Returns any ItemInfo variable for weapon. Use the e_ItemInfo_* enum.
- *
- * @param iId			The ID of registered weapon or weapon entity Id.
- * @param iInfoType		ItemInfo type.
- *
- * @return				Weapon's ItemInfo variable.
- *
- * native wpnmod_get_weapon_info(const iId, const e_ItemInfo: iInfoType, any:...);
- */
-AMXX_NATIVE(wpnmod_get_weapon_info)
-{
-	enum e_ItemInfo
-	{
-		ItemInfo_isCustom = 0,
-		ItemInfo_iSlot,
-		ItemInfo_iPosition,
-		ItemInfo_iMaxAmmo1,
-		ItemInfo_iMaxAmmo2,
-		ItemInfo_iMaxClip,
-		ItemInfo_iId,
-		ItemInfo_iFlags,
-		ItemInfo_iWeight,
-		ItemInfo_szName,
-		ItemInfo_szAmmo1,
-		ItemInfo_szAmmo2,
-		ItemInfo_szTitle,
-		ItemInfo_szAuthor,
-		ItemInfo_szVersion
-	};
-
-	int iId = params[1];
-	int iSwitch = params[2];
-
-	edict_t* pItem = NULL;
-
-	if (iSwitch < ItemInfo_isCustom || iSwitch > ItemInfo_szVersion)
-	{
-		MF_LogError(amx, AMX_ERR_NATIVE, "Undefined e_ItemInfo index: %d", iSwitch);
-		return 0;
-	}
-
-	if (iId <= 0 || iId > gpGlobals->maxEntities)
-	{
-		MF_LogError(amx, AMX_ERR_NATIVE, "Invalid entity or weapon id provided (%d).", iId);
-		return 0;
-	}
-
-	pItem = INDEXENT2(iId);
-
-	if (IsValidPev(pItem) && strstr(STRING(pItem->v.classname), "weapon_"))
-	{
-		iId = GetPrivateInt(pItem, pvData_iId);
-	}
-
-	if (iId <= 0 || iId > g_iWeaponsCount)
-	{
-		MF_LogError(amx, AMX_ERR_NATIVE, "Invalid weapon id provided (%d).", iId);
-		return 0;
-	}
-
-	size_t paramnum = params[0] / sizeof(cell);
-
-	if (iSwitch >= ItemInfo_isCustom && iSwitch <= ItemInfo_iWeight && paramnum == 2)
-	{
-		switch (iSwitch)
-		{
-			case ItemInfo_isCustom:
-				return WeaponInfoArray[iId].iType != Wpn_Default;
-
-			case ItemInfo_iSlot:
-				return GetWeapon_Slot(iId);
-
-			case ItemInfo_iPosition:
-				return GetWeapon_ItemPosition(iId);
-
-			case ItemInfo_iMaxAmmo1:
-				return GetWeapon_MaxAmmo1(iId);
-
-			case ItemInfo_iMaxAmmo2:
-				return GetWeapon_MaxAmmo2(iId);
-
-			case ItemInfo_iMaxClip:
-				return GetWeapon_MaxClip(iId);
-
-			case ItemInfo_iId:
-				return iId;
-
-			case ItemInfo_iFlags:
-				return GetWeapon_Flags(iId);
-
-			case ItemInfo_iWeight:
-				return GetWeapon_Weight(iId);
-		}
-	}
-	else if (iSwitch >= ItemInfo_szName && iSwitch <= ItemInfo_szVersion && paramnum == 4)
-	{
-		const char* szReturnValue = NULL;
-
-		switch (iSwitch)
-		{
-			case ItemInfo_szName:
-				szReturnValue = GetWeapon_pszName(iId);
-				break;
-			case ItemInfo_szAmmo1:
-				szReturnValue = GetWeapon_pszAmmo1(iId);
-				break;
-			case ItemInfo_szAmmo2:
-				szReturnValue = GetWeapon_pszAmmo2(iId);
-				break;
-			case ItemInfo_szTitle:
-				szReturnValue = WeaponInfoArray[iId].title.c_str();
-				break;
-			case ItemInfo_szAuthor:
-				szReturnValue = WeaponInfoArray[iId].author.c_str();
-				break;
-			case ItemInfo_szVersion:
-				szReturnValue = WeaponInfoArray[iId].version.c_str();
-				break;
-		}	
-
-		if (!szReturnValue)
-		{
-			szReturnValue = "";
-		}
-
-		return MF_SetAmxString(amx, params[3], szReturnValue, params[4]);
-	}
-
-	MF_LogError(amx, AMX_ERR_NATIVE, "Unknown e_ItemInfo index or return combination %d", iSwitch);
-	return 0;
-}
-
-/**
- * Returns any AmmoInfo variable for ammobox. Use the e_AmmoInfo_* enum.
- *
- * @param iId			The ID of registered ammobox or ammobox entity Id.
- * @param iInfoType		e_AmmoInfo_* type.
- *
- * @return				Ammobox's AmmoInfo variable.
- *
- * native wpnmod_get_ammobox_info(const iId, const e_AmmoInfo: iInfoType, any:...);
- */
-AMXX_NATIVE(wpnmod_get_ammobox_info)
-{
-	enum e_AmmoInfo
-	{
-		AmmoInfo_szName
-	};
-
-	int iId = params[1];
-	int iSwitch = params[2];
-
-	edict_t* pAmmoBox = NULL;
-
-	if (iSwitch < AmmoInfo_szName || iSwitch > AmmoInfo_szName)
-	{
-		MF_LogError(amx, AMX_ERR_NATIVE, "Undefined e_AmmoInfo index: %d", iSwitch);
-		return 0;
-	}
-
-	if (iId <= 0 || iId > gpGlobals->maxEntities)
-	{
-		MF_LogError(amx, AMX_ERR_NATIVE, "Invalid entity or ammobox id provided (%d).", iId);
-		return 0;
-	}
-
-	pAmmoBox = INDEXENT2(iId);
-
-	if (IsValidPev(pAmmoBox) && strstr(STRING(pAmmoBox->v.classname), "ammo_"))
-	{
-		for (int i = 1; i <= g_iAmmoBoxIndex; i++)
-		{
-			if (!_stricmp(AmmoBoxInfoArray[i].classname.c_str(), STRING(pAmmoBox->v.classname)))
-			{
-				iId = i;
-				break;
-			}
-		}
-	}
-
-	if (iId <= 0 || iId > g_iAmmoBoxIndex)
-	{
-		MF_LogError(amx, AMX_ERR_NATIVE, "Invalid ammobox id provided (%d).", iId);
-		return 0;
-	}
-
-	size_t paramnum = params[0] / sizeof(cell);
-
-	if (iSwitch >= AmmoInfo_szName && iSwitch <= AmmoInfo_szName && paramnum == 4)
-	{
-		const char* szReturnValue = NULL;
-
-		switch (iSwitch)
-		{
-		case AmmoInfo_szName:
-			szReturnValue = AmmoBoxInfoArray[iId].classname.c_str();
-			break;
-		}	
-
-		if (!szReturnValue)
-		{
-			szReturnValue = "";
-		}
-
-		return MF_SetAmxString(amx, params[3], szReturnValue, params[4]);
-	}
-
-	MF_LogError(amx, AMX_ERR_NATIVE, "Unknown e_AmmoInfo index or return combination %d", iSwitch);
-	return 0;
-}
-
-/**
- * Gets number of registered weapons.
- *
- * @return		Number of registered weapons. (integer)
- *
- * native wpnmod_get_weapon_count();
-*/
-AMXX_NATIVE(wpnmod_get_weapon_count)
-{
-	return g_iWeaponsCount;
-}
-
-/**
- * Gets number of registered ammoboxes.
- *
- * @return		Number of registered ammoboxes. (integer)
- *
- * native wpnmod_get_ammobox_count();
-*/
-AMXX_NATIVE(wpnmod_get_ammobox_count)
-{
-	return g_iAmmoBoxIndex;
-}
-
-/**
- * Plays weapon's animation.
- *
- * @param iItem		Weapon's entity.
- * @param iAnim		Sequence number.
- *
- * native wpnmod_send_weapon_anim(const iItem, const iAnim);
-*/
-AMXX_NATIVE(wpnmod_send_weapon_anim)
-{
-	CHECK_ENTITY(params[1])
-
-	edict_t *pWeapon = INDEXENT2(params[1]);
-	edict_t *pPlayer = GetPrivateCbase(pWeapon, pvData_pPlayer);
-
-	if (!IsValidPev(pPlayer))
-	{
-		return 0;
-	}
-
-	SendWeaponAnim(pPlayer, pWeapon, params[2]);
-	return 1;
-}
-
-/**
- * Set the activity for player based on an event or current state.
- *
- * @param iPlayer		Player id.
- * @param iPlayerAnim	Animation (See PLAYER_ANIM constants).
- *
- * native wpnmod_set_player_anim(const iPlayer, const PLAYER_ANIM: iPlayerAnim);
-*/
-AMXX_NATIVE(wpnmod_set_player_anim)
-{
-	int iPlayer = params[1];
-	int iPlayerAnim = params[2];
-
-	CHECK_ENTITY(iPlayer)
-	SET_ANIMATION(INDEXENT2(iPlayer), iPlayerAnim);
-	return 1;
-}
-
-/**
- * Set animation extension for player.
- *
- * @param iPlayer		Player id.
- * @param szAnimExt[]	Animation extension prefix.
- *
- * native wpnmod_set_anim_ext(const iPlayer, const szAnimExt[]);
-*/
-AMXX_NATIVE(wpnmod_set_anim_ext)
-{
-	int iPlayer = params[1];
-
-	CHECK_ENTITY(iPlayer)
-	SetPrivateString(INDEXENT2(iPlayer), pvData_szAnimExtention, STRING(ALLOC_STRING(MF_GetAmxString(amx, params[2], 0, NULL))));
-	return 1;
-}
-
-/**
- * Get animation extension for player.
- *
- * @param iPlayer		Player id.
- * @param szDest[]		Buffer.
- * @param iMaxLen		Max buffer size.
- *
- * native wpnmod_get_anim_ext(const iPlayer, szDest[], iMaxLen);
- */
-AMXX_NATIVE(wpnmod_get_anim_ext)
-{
-	int iPlayer = params[1];
-
-	CHECK_ENTITY(iPlayer)
-
-	return MF_SetAmxString(amx, params[2], GetPrivateString(INDEXENT2(iPlayer), pvData_szAnimExtention), params[3]);
-}
-
-/**
-* Get player's ammo inventory.
- *
- * @param iPlayer		Player id.
- * @param szAmmoName	Ammo type. ("9mm", "uranium", "MY_AMMO" etc..)
- *
- * @return				Amount of given ammo. (integer)
- *
- * native wpnmod_get_player_ammo(const iPlayer, const szAmmoName[]);
-*/
-AMXX_NATIVE(wpnmod_get_player_ammo)
-{
-	int iPlayer = params[1];
-
-	CHECK_ENTITY(iPlayer)
-
-	int iAmmoIndex = GET_AMMO_INDEX(STRING(ALLOC_STRING(MF_GetAmxString(amx, params[2], 0, NULL))));
-
-	if (iAmmoIndex != -1)
-	{
-		return GetAmmoInventory(INDEXENT2(iPlayer), iAmmoIndex);
-	}
-
-	return -1;
-}
-
-/**
-* Set player's ammo inventory.
- *
- * @param iPlayer		Player id.
- * @param szAmmoName	Ammo type. ("9mm", "uranium", "MY_AMMO" etc..)
- * @param iAmount		Ammo amount.
- *
- * native wpnmod_set_player_ammo(const iPlayer, const szAmmoName[], const iAmount);
-*/
-AMXX_NATIVE(wpnmod_set_player_ammo)
-{
-	int iPlayer = params[1];
-
-	CHECK_ENTITY(iPlayer)
-
-	int iAmmoIndex = GET_AMMO_INDEX(STRING(ALLOC_STRING(MF_GetAmxString(amx, params[2], 0, NULL))));
-
-	if (iAmmoIndex != -1)
-	{
-		SetAmmoInventory(INDEXENT2(iPlayer), iAmmoIndex, params[3]);
-		return 1;
-	}
-
-	return 0;
-}
-
-/**
- * Sets an integer from private data.
- *
- * @param iEntity		Entity index.
- * @param iOffset		Offset (See e_Offsets constants).
- * @param iValue		Value.
- *
- * native wpnmod_set_offset_int(const iEntity, const e_Offsets: iOffset, const iValue);
-*/
-AMXX_NATIVE(wpnmod_set_offset_int)
-{
-	int iEntity = params[1];
-	int iOffset = params[2];
-	int iValue = params[3];
-
-	CHECK_ENTITY(iEntity)
-	CHECK_OFFSET(iOffset)
-
-	SetPrivateInt(INDEXENT2(iEntity), NativesPvDataOffsets[iOffset], iValue);
-	return 1;
-}
-
-/**
- * Returns an integer from private data.
- *
- * @param iEntity		Entity index.
- * @param iOffset		Offset (See e_Offsets constants).
- * 
- * @return				Value from private data. (integer)
- *
- * native wpnmod_get_offset_int(const iEntity, const e_Offsets: iOffset);
-*/
-AMXX_NATIVE(wpnmod_get_offset_int)
-{
-	int iEntity = params[1];
-	int iOffset = params[2];
-
-	CHECK_ENTITY(iEntity)
-	CHECK_OFFSET(iOffset)
-
-	return GetPrivateInt(INDEXENT2(iEntity), NativesPvDataOffsets[iOffset]);
-}
-
-/**
- * Sets a float from private data.
- *
- * @param iEntity		Entity index.
- * @param iOffset		Offset (See e_Offsets constants).
- * @param flValue		Value.
- *
- * native wpnmod_set_offset_float(const iEntity, const e_Offsets: iOffset, const Float: flValue);
-*/
-AMXX_NATIVE(wpnmod_set_offset_float)
-{
-	int iEntity = params[1];
-	int iOffset = params[2];
-
-	float flValue = amx_ctof(params[3]);
-
-	CHECK_ENTITY(iEntity)
-	CHECK_OFFSET(iOffset)
-
-	SetPrivateFloat(INDEXENT2(iEntity), NativesPvDataOffsets[iOffset], flValue);
-	return 1;
-}
-
-/**
- * Set the corresponding cbase field in private data with the index.
- *
- * @param iEntity			The entity to examine the private data.
- * @param iOffset			Offset (See e_CBase constants).
- * @param iValue			The index to store.
- * @param iExtraOffset		The extra offset.
- *
- * native wpnmod_set_offset_cbase(const iEntity, const e_CBase: iOffset, const iValue, const iExtraOffset = 0);
-*/
-AMXX_NATIVE(wpnmod_set_offset_cbase)
-{
-	CHECK_ENTITY(params[1])
-	CHECK_ENTITY(params[3])
-	CHECK_OFFSET_CBASE(params[2])
-
-	SetPrivateCbase(INDEXENT2(params[1]), NativesCBaseOffsets[params[2]], INDEXENT2(params[3]), params[4]);
-	return 1;
-}
-
-/**
- * Returns a float from private data.
- *
- * @param iEntity		Entity index.
- * @param iOffset		Offset (See e_Offsets constants).
- * 
- * @return				Value from private data. (float)
- *
- * native Float: wpnmod_get_offset_float(const iEntity, const e_Offsets: iOffset);
-*/
-AMXX_NATIVE(wpnmod_get_offset_float)
-{
-	int iEntity = params[1];
-	int iOffset = params[2];
-
-	CHECK_ENTITY(iEntity)
-	CHECK_OFFSET(iOffset)
-
-	return amx_ftoc(GetPrivateFloat(INDEXENT2(iEntity), NativesPvDataOffsets[iOffset]));
-}
-
-/**
- * This will return an index of the corresponding cbase field in private data.
- *
- * @param iEntity			The entity to examine the private data.
- * @param iOffset			Offset (See e_CBase constants).
- * @param iExtraOffset		The extra offset.
- *
- * @return					Value from private data. (integer)
- *
- * native wpnmod_get_offset_cbase(const iEntity, const e_CBase: iOffset, const iExtraOffset = 0);
-*/
-AMXX_NATIVE(wpnmod_get_offset_cbase)
-{
-	CHECK_ENTITY(params[1])
-	CHECK_OFFSET_CBASE(params[2])
-
-	edict_t* pEntity = GetPrivateCbase(INDEXENT2(params[1]), NativesCBaseOffsets[params[2]], params[3]);
-
-	if (IsValidPev(pEntity))
-	{
-		return ENTINDEX(pEntity);
-	}
-
-	return -1;
-}
-
-/**
- * Default deploy function.
- *
- * @param iItem				Weapon's entity index.
- * @param szViewModel		Weapon's view  model (V).
- * @param szWeaponModel		Weapon's player  model (P).
- * @param iAnim				Sequence number of deploy animation.
- * @param szAnimExt			Animation extension.
- *
- * native wpnmod_default_deploy(const iItem, const szViewModel[], const szWeaponModel[], const iAnim, const szAnimExt[]);
-*/
-AMXX_NATIVE(wpnmod_default_deploy)
-{
-	int iEntity = params[1];
-	int iAnim = params[4];
-
-	const char *szViewModel = STRING(ALLOC_STRING(MF_GetAmxString(amx, params[2], 0, NULL))); 
-	const char *szWeaponModel = STRING(ALLOC_STRING(MF_GetAmxString(amx, params[3], 0, NULL)));
-	const char *szAnimExt = STRING(ALLOC_STRING(MF_GetAmxString(amx, params[5], 0, NULL)));
-
-	CHECK_ENTITY(iEntity)
-
-	edict_t* pItem = INDEXENT2(iEntity);
-	edict_t* pPlayer = GetPrivateCbase(pItem, pvData_pPlayer);
-
-	if (!IsValidPev(pPlayer))
-	{
-		return 0;
-	}
-
-	if (!Weapon_CanDeploy(pItem->pvPrivateData))
-	{
-		return 0;
-	}
-
-	pPlayer->v.viewmodel = MAKE_STRING(szViewModel);
-	pPlayer->v.weaponmodel = MAKE_STRING(szWeaponModel);
-
-	SetPrivateString(pPlayer, pvData_szAnimExtention, szAnimExt);
-	SendWeaponAnim(pPlayer, pItem, iAnim);
-
-	SetPrivateFloat(pPlayer, pvData_flNextAttack, 0.5);
-	SetPrivateFloat(pItem, pvData_flTimeWeaponIdle, 1.0);
-
-	return 1;
-}
-
-/**
- * Default reload function.
- *
- * @param iItem				Weapon's entity index.
- * @param iClipSize			Maximum weapon's clip size.
- * @param iAnim				Sequence number of reload animation.
- * @param flDelay			Reload delay time.
- *
- * native wpnmod_default_reload(const iItem, const iClipSize, const iAnim, const Float: flDelay);
-*/
-AMXX_NATIVE(wpnmod_default_reload)
-{
-	int iEntity = params[1];
-	int iClipSize = params[2];
-	int iAnim = params[3];
-
-	float flDelay = amx_ctof(params[4]);
-
-	CHECK_ENTITY(iEntity)
-
-	edict_t* pItem = INDEXENT2(iEntity);
-	edict_t* pPlayer = GetPrivateCbase(pItem, pvData_pPlayer);
-
-	if (!IsValidPev(pPlayer))
-	{
-		return 0;
-	}
-
-	int iAmmo = GetAmmoInventory(pPlayer, PrimaryAmmoIndex(pItem));
-
-	if (!iAmmo)
-	{
-		return 0;
-	}
-
-	int j = min(iClipSize - GetPrivateInt(pItem, pvData_iClip), iAmmo);
-
-	if (!j)
-	{
-		return 0;
-	}
-
-	SetPrivateInt(pItem, pvData_fInReload, TRUE);
-	SetPrivateFloat(pPlayer, pvData_flNextAttack, flDelay);
-	SetPrivateFloat(pItem, pvData_flTimeWeaponIdle, flDelay);
-
-	SendWeaponAnim(pPlayer, pItem, iAnim);
-	return 1;
-}
 
 /**
  * Sets weapon's think function. Analogue of set_task native.
@@ -1108,183 +396,11 @@ AMXX_NATIVE(wpnmod_eject_brass)
 	return 1;
 }
 
-/**
- * Sets the weapon so that it can play empty sound again.
- *
- * @param iItem				Weapon's entity index.
- *
- * native wpnmod_reset_empty_sound(const iItem);
-*/
-AMXX_NATIVE(wpnmod_reset_empty_sound)
-{
-	int iEntity = params[1];
 
-	CHECK_ENTITY(iEntity)
-	SetPrivateInt(INDEXENT2(iEntity), pvData_iPlayEmptySound, TRUE);
-	return 1;
-}
 
-/**
- * Plays the weapon's empty sound.
- *
- * @param iItem				Weapon's entity index.
- *
- * native wpnmod_play_empty_sound(const iItem);
-*/
-AMXX_NATIVE(wpnmod_play_empty_sound)
-{
-	int iEntity = params[1];
-	CHECK_ENTITY(iEntity)
 
-	if (GetPrivateInt(INDEXENT2(iEntity), pvData_iPlayEmptySound))
-	{
-		edict_t* pPlayer = GetPrivateCbase(INDEXENT2(iEntity), pvData_pPlayer);
 
-		if (IsValidPev(pPlayer))
-		{
-			EMIT_SOUND_DYN2(pPlayer, CHAN_WEAPON, "weapons/357_cock1.wav", 0.8, ATTN_NORM, 0, PITCH_NORM);
-			SetPrivateInt(INDEXENT2(iEntity), pvData_iPlayEmptySound, FALSE);
-			
-			return 1;
-		}
-	}
 
-	return 0;
-}
-
-/**
- * Spawn an item by name.
- *
- * @param szName			Item's name.
- * @param vecOrigin			Origin were to spawn.
- * @param vecAngles			Angles.
- *
- * @return					Item entity index or -1 on failure. (integer)
- *
- * native wpnmod_create_item(const szName[], const Float: vecOrigin[3] = {0.0, 0.0, 0.0}, const Float: vecAngles[3] = {0.0, 0.0, 0.0});
-*/
-AMXX_NATIVE(wpnmod_create_item)
-{
-	char *itemname = MF_GetAmxString(amx, params[1], 0, NULL);
-
-	Vector vecOrigin;
-	cell *vOrigin = MF_GetAmxAddr(amx, params[2]);
-
-	vecOrigin.x = amx_ctof(vOrigin[0]);
-	vecOrigin.y = amx_ctof(vOrigin[1]);
-	vecOrigin.z = amx_ctof(vOrigin[2]);
-
-	Vector vecAngles;
-	cell *vAngles = MF_GetAmxAddr(amx, params[3]);
-
-	vecAngles.x = amx_ctof(vAngles[0]);
-	vecAngles.y = amx_ctof(vAngles[1]);
-	vecAngles.z = amx_ctof(vAngles[2]);
-
-	edict_t* iItem = Weapon_Spawn(itemname, vecOrigin, vecAngles);
-
-	if (IsValidPev(iItem))
-	{
-		return ENTINDEX(iItem);
-	}
-	else
-	{
-		edict_t* iItem = Ammo_Spawn(itemname, vecOrigin, vecAngles);
-
-		if (IsValidPev(iItem))
-		{
-			return ENTINDEX(iItem);
-		}
-	}
-
-	return -1;
-}
-
-/**
- * Register new ammobox in module.
- *
- * @param szName			The ammobox classname.
- * 
- * @return					The ID of registerd ammobox or -1 on failure. (integer)
- *
- * native wpnmod_register_ammobox(const szClassname[]);
- */
-AMXX_NATIVE(wpnmod_register_ammobox)
-{
-	if (g_iAmmoBoxIndex >= MAX_WEAPONS)
-	{
-		MF_LogError(amx, AMX_ERR_NATIVE, "Ammobox limit reached.");
-		return -1;
-	}
-
-	if (!g_Config.m_bAmmoBoxHooked)
-	{
-		g_Config.m_bAmmoBoxHooked = true;
-		SetHookVirtual(&g_RpgAddAmmo_Hook);
-	}
-
-	const char *szAmmoboxName = MF_GetAmxString(amx, params[1], 0, NULL);
-
-	for (int i = 1; i <= g_iAmmoBoxIndex; i++)
-	{
-		if (!_stricmp(AmmoBoxInfoArray[i].classname.c_str(), szAmmoboxName))
-		{
-			MF_LogError(amx, AMX_ERR_NATIVE, "Ammobox name is duplicated.");
-			return -1;
-		}
-	}
-
-	AmmoBoxInfoArray[++g_iAmmoBoxIndex].classname.assign(STRING(ALLOC_STRING(szAmmoboxName)));
-	return g_iAmmoBoxIndex;
-}
-
-/**
- * Register ammobox's forward.
- *
- * @param iAmmoboxID		The ID of registered ammobox.
- * @param iForward			Forward type to register.
- * @param szCallBack		The forward to call.
- *
- * native wpnmod_register_ammobox_forward(const iWeaponID, const e_AmmoFwds: iForward, const szCallBack[]);
- */
-AMXX_NATIVE(wpnmod_register_ammobox_forward)
-{
-	int iId = params[1];
-
-	if (iId <= 0 || iId > g_iAmmoBoxIndex)
-	{
-		MF_LogError(amx, AMX_ERR_NATIVE, "Invalid ammobox id provided (%d).", iId);
-		return 0;
-	}
-
-	int Fwd = params[2];
-
-	if (Fwd < 0 || Fwd >= Fwd_Ammo_End)
-	{
-		MF_LogError(amx, AMX_ERR_NATIVE, "Function out of bounds. Got: %d, Max: %d.", iId, Fwd_Ammo_End - 1);
-		return 0;
-	}
-
-	const char *funcname = MF_GetAmxString(amx, params[3], 0, NULL);
-
-	AmmoBoxInfoArray[iId].iForward[Fwd] = MF_RegisterSPForwardByName
-	(
-		amx, 
-		funcname, 
-		FP_CELL,
-		FP_CELL,
-		FP_DONE
-	);
-
-	if (AmmoBoxInfoArray[iId].iForward[Fwd] == -1)
-	{
-		AmmoBoxInfoArray[iId].iForward[Fwd] = 0;
-		MF_LogError(amx, AMX_ERR_NATIVE, "Function not found (%d, \"%s\").", Fwd, funcname);
-		return 0;
-	}
-
-	return 1;
-}
 
 /**
  * Resets the global multi damage accumulator.
@@ -1657,32 +773,1225 @@ AMXX_NATIVE(wpnmod_precache_model_sequences)
 }
 
 
+
+
+
+
+
+
+
+
+
+namespace DeprecatedNatives
+{
+	/**
+	 * Set animation extension for player.
+	 *
+	 * @param iPlayer		Player id.
+	 * @param szAnimExt[]	Animation extension prefix.
+	 *
+	 * native wpnmod_set_anim_ext(const iPlayer, const szAnimExt[]);
+	*/
+	AMXX_NATIVE(wpnmod_set_anim_ext)
+	{
+		int iPlayer = params[1];
+
+		CHECK_ENTITY(iPlayer)
+		SetPrivateString(INDEXENT2(iPlayer), pvData_szAnimExtention, STRING(ALLOC_STRING(MF_GetAmxString(amx, params[2], 0, NULL))));
+		return 1;
+	}
+
+	/**
+	 * Get animation extension for player.
+	 *
+	 * @param iPlayer		Player id.
+	 * @param szDest[]		Buffer.
+	 * @param iMaxLen		Max buffer size.
+	 *
+	 * native wpnmod_get_anim_ext(const iPlayer, szDest[], iMaxLen);
+	 */
+	AMXX_NATIVE(wpnmod_get_anim_ext)
+	{
+		int iPlayer = params[1];
+
+		CHECK_ENTITY(iPlayer)
+
+		return MF_SetAmxString(amx, params[2], GetPrivateString(INDEXENT2(iPlayer), pvData_szAnimExtention), params[3]);
+	}
+
+	/**
+	 * Sets an integer from private data.
+	 *
+	 * @param iEntity		Entity index.
+	 * @param iOffset		Offset (See e_Offsets constants).
+	 * @param iValue		Value.
+	 *
+	 * native wpnmod_set_offset_int(const iEntity, const e_Offsets: iOffset, const iValue);
+	*/
+	AMXX_NATIVE(wpnmod_set_offset_int)
+	{
+		int iEntity = params[1];
+		int iOffset = params[2];
+		int iValue = params[3];
+
+		CHECK_ENTITY(iEntity)
+		CHECK_OFFSET(iOffset)
+
+		SetPrivateInt(INDEXENT2(iEntity), NativesPvDataOffsets[iOffset], iValue);
+		return 1;
+	}
+
+	/**
+	 * Returns an integer from private data.
+	 *
+	 * @param iEntity		Entity index.
+	 * @param iOffset		Offset (See e_Offsets constants).
+	 * 
+	 * @return				Value from private data. (integer)
+	 *
+	 * native wpnmod_get_offset_int(const iEntity, const e_Offsets: iOffset);
+	*/
+	AMXX_NATIVE(wpnmod_get_offset_int)
+	{
+		int iEntity = params[1];
+		int iOffset = params[2];
+
+		CHECK_ENTITY(iEntity)
+		CHECK_OFFSET(iOffset)
+
+		return GetPrivateInt(INDEXENT2(iEntity), NativesPvDataOffsets[iOffset]);
+	}
+
+	/**
+	 * Sets a float from private data.
+	 *
+	 * @param iEntity		Entity index.
+	 * @param iOffset		Offset (See e_Offsets constants).
+	 * @param flValue		Value.
+	 *
+	 * native wpnmod_set_offset_float(const iEntity, const e_Offsets: iOffset, const Float: flValue);
+	*/
+	AMXX_NATIVE(wpnmod_set_offset_float)
+	{
+		int iEntity = params[1];
+		int iOffset = params[2];
+
+		float flValue = amx_ctof(params[3]);
+
+		CHECK_ENTITY(iEntity)
+		CHECK_OFFSET(iOffset)
+
+		SetPrivateFloat(INDEXENT2(iEntity), NativesPvDataOffsets[iOffset], flValue);
+		return 1;
+	}
+
+	/**
+	 * Set the corresponding cbase field in private data with the index.
+	 *
+	 * @param iEntity			The entity to examine the private data.
+	 * @param iOffset			Offset (See e_CBase constants).
+	 * @param iValue			The index to store.
+	 * @param iExtraOffset		The extra offset.
+	 *
+	 * native wpnmod_set_offset_cbase(const iEntity, const e_CBase: iOffset, const iValue, const iExtraOffset = 0);
+	*/
+	AMXX_NATIVE(wpnmod_set_offset_cbase)
+	{
+		CHECK_ENTITY(params[1])
+		CHECK_ENTITY(params[3])
+		CHECK_OFFSET_CBASE(params[2])
+
+		SetPrivateCbase(INDEXENT2(params[1]), NativesCBaseOffsets[params[2]], INDEXENT2(params[3]), params[4]);
+		return 1;
+	}
+
+	/**
+	 * Returns a float from private data.
+	 *
+	 * @param iEntity		Entity index.
+	 * @param iOffset		Offset (See e_Offsets constants).
+	 * 
+	 * @return				Value from private data. (float)
+	 *
+	 * native Float: wpnmod_get_offset_float(const iEntity, const e_Offsets: iOffset);
+	*/
+	AMXX_NATIVE(wpnmod_get_offset_float)
+	{
+		int iEntity = params[1];
+		int iOffset = params[2];
+
+		CHECK_ENTITY(iEntity)
+		CHECK_OFFSET(iOffset)
+
+		return amx_ftoc(GetPrivateFloat(INDEXENT2(iEntity), NativesPvDataOffsets[iOffset]));
+	}
+
+	/**
+	 * This will return an index of the corresponding cbase field in private data.
+	 *
+	 * @param iEntity			The entity to examine the private data.
+	 * @param iOffset			Offset (See e_CBase constants).
+	 * @param iExtraOffset		The extra offset.
+	 *
+	 * @return					Value from private data. (integer)
+	 *
+	 * native wpnmod_get_offset_cbase(const iEntity, const e_CBase: iOffset, const iExtraOffset = 0);
+	*/
+	AMXX_NATIVE(wpnmod_get_offset_cbase)
+	{
+		CHECK_ENTITY(params[1])
+		CHECK_OFFSET_CBASE(params[2])
+
+		edict_t* pEntity = GetPrivateCbase(INDEXENT2(params[1]), NativesCBaseOffsets[params[2]], params[3]);
+
+		if (IsValidPev(pEntity))
+		{
+			return ENTINDEX(pEntity);
+		}
+
+		return -1;
+	}
+}
+
+namespace NewNatives
+{
+	#define PV_START		PV_INT_iChargeReady
+	#define PV_END			PV_SZ_szAnimExtention
+
+	#define PV_START_INT	PV_INT_iChargeReady
+	#define PV_END_INT		PV_INT_iuser4
+
+	#define PV_START_FL		PV_FL_flStartThrow
+	#define PV_END_FL		PV_FL_fuser4
+
+	#define PV_START_ENT	PV_ENT_pPlayer
+	#define PV_END_ENT		PV_ENT_pLastItem
+
+	#define PV_START_SZ		PV_SZ_szAnimExtention
+	#define PV_END_SZ		PV_SZ_szAnimExtention
+
+	enum e_pvData
+	{
+		PV_INT_iChargeReady,
+		PV_INT_iInAttack,
+		PV_INT_iFireState,
+		PV_INT_iFireOnEmpty,
+		PV_INT_iInSpecialReload,
+		PV_INT_iPrimaryAmmoType,
+		PV_INT_iSecondaryAmmoType,
+		PV_INT_iClip,
+		PV_INT_iInReload,
+		PV_INT_iDefaultAmmo,
+		PV_INT_iWeaponVolume,
+		PV_INT_iWeaponFlash,
+		PV_INT_iLastHitGroup,
+		PV_INT_iFOV,
+		PV_INT_iuser1,
+		PV_INT_iuser2,
+		PV_INT_iuser3,
+		PV_INT_iuser4,
+
+		PV_FL_flStartThrow,
+		PV_FL_flReleaseThrow,
+		PV_FL_flPumpTime,
+		PV_FL_flNextPrimaryAttack,
+		PV_FL_flNextSecondaryAttack,
+		PV_FL_flTimeWeaponIdle,
+		PV_FL_flNextAttack,
+		PV_FL_fuser1,
+		PV_FL_fuser2,
+		PV_FL_fuser3,
+		PV_FL_fuser4,
+
+		PV_ENT_pPlayer,
+		PV_ENT_pNext,
+		PV_ENT_rgpPlayerItems,
+		PV_ENT_pActiveItem,
+		PV_ENT_pLastItem,
+
+		PV_SZ_szAnimExtention
+	};
+
+	int pvDataReference[PV_END + 1] =
+	{
+		pvData_chargeReady,
+		pvData_fInAttack,
+		pvData_fireState,
+		pvData_fFireOnEmpty,
+		pvData_fInSpecialReload,
+		pvData_iPrimaryAmmoType,
+		pvData_iSecondaryAmmoType,
+		pvData_iClip,
+		pvData_fInReload,
+		pvData_iDefaultAmmo,
+		pvData_iWeaponVolume,
+		pvData_iWeaponFlash,
+		pvData_LastHitGroup,
+		pvData_iFOV,
+		pvData_ammo_9mm,
+		pvData_ammo_357,
+		pvData_ammo_bolts,
+		pvData_ammo_buckshot,
+
+		pvData_flStartThrow,
+		pvData_flReleaseThrow,
+		pvData_flPumpTime,
+		pvData_flNextPrimaryAttack,
+		pvData_flNextSecondaryAttack,
+		pvData_flTimeWeaponIdle,
+		pvData_flNextAttack,
+		pvData_ammo_rockets,
+		pvData_ammo_uranium,
+		pvData_ammo_hornets,
+		pvData_ammo_argrens,
+
+		pvData_pPlayer,
+		pvData_pNext,
+		pvData_rgpPlayerItems,
+		pvData_pActiveItem,
+		pvData_pLastItem,
+
+		pvData_szAnimExtention
+	};
+
+	/**
+	 * Register new weapon in module.
+	 *
+	 * @param szName		The weapon name.
+	 * @param iSlot			SlotID (1...5).
+	 * @param iPosition		NumberInSlot (1...5).
+	 * @param szAmmo1		Primary ammo type ("9mm", "uranium", "MY_AMMO" etc).
+	 * @param iMaxAmmo1		Max amount of primary ammo.
+	 * @param szAmmo2		Secondary ammo type.
+	 * @param iMaxAmmo2		Max amount of secondary ammo.
+	 * @param iMaxClip		Max amount of ammo in weapon's clip.
+	 * @param iFlags		Weapon's flags (see defines).
+	 * @param iWeight		This value used to determine this weapon's importance in autoselection.
+	 * 
+	 * @return				The ID of registerd weapon or 0 on failure. (integer)
+	 *
+	 * native WpnMod_RegisterWeapon(const szName[], const iSlot, const iPosition, const szAmmo1[], const iMaxAmmo1, const szAmmo2[], const iMaxAmmo2, const iMaxClip, const iFlags, const iWeight);
+	*/
+	AMXX_NATIVE(WpnMod_RegisterWeapon)
+	{
+		const char *szWeaponName = MF_GetAmxString(amx, params[1], 0, NULL);
+
+		for (int i = 1; i < MAX_WEAPONS; i++)
+		{
+			if (WeaponInfoArray[i].iType != Wpn_None)
+			{
+				if (!stricmp(GetWeapon_pszName(i), szWeaponName))
+				{
+					MF_LogError(amx, AMX_ERR_NATIVE, "Weapon name is duplicated.");
+					return -1;
+				}
+
+				if (GetWeapon_pszAmmo1(i) && GET_AMMO_INDEX(GetWeapon_pszAmmo1(i)) >= MAX_AMMO_SLOTS 
+					|| GetWeapon_pszAmmo2(i) && GET_AMMO_INDEX(GetWeapon_pszAmmo2(i)) >= MAX_AMMO_SLOTS)
+				{
+					MF_LogError(amx, AMX_ERR_NATIVE, "Ammo limit reached.");
+					return -1;
+				}
+			}
+			else if (WeaponInfoArray[i].iType == Wpn_None)
+			{
+				g_iWeaponsCount++;
+
+				WeaponInfoArray[i].iType = Wpn_Custom;
+
+				WeaponInfoArray[i].ItemData.pszName = STRING(ALLOC_STRING(szWeaponName));
+				WeaponInfoArray[i].ItemData.pszAmmo1 = STRING(ALLOC_STRING(MF_GetAmxString(amx, params[4], 0, NULL)));
+				WeaponInfoArray[i].ItemData.iMaxAmmo1 = params[5];
+				WeaponInfoArray[i].ItemData.pszAmmo2 = STRING(ALLOC_STRING(MF_GetAmxString(amx, params[6], 0, NULL)));
+				WeaponInfoArray[i].ItemData.iMaxAmmo2 = params[7];
+				WeaponInfoArray[i].ItemData.iMaxClip = params[8];
+				WeaponInfoArray[i].ItemData.iFlags = params[9];
+				WeaponInfoArray[i].ItemData.iWeight = params[10];
+
+				CPlugin* plugin = (CPlugin*)amx->userdata[UD_FINDPLUGIN];
+
+				WeaponInfoArray[i].title = plugin->title;
+				WeaponInfoArray[i].author = plugin->author;
+				WeaponInfoArray[i].version = plugin->version;
+
+				g_Config.AutoSlotDetection(i, params[2] - 1, params[3] - 1);
+
+				if (!g_Config.m_bCrowbarHooked)
+				{
+					g_Config.m_bCrowbarHooked = true;
+
+					for (int k = 0; k < CrowbarHook_End; k++)
+					{
+						SetHookVirtual(&g_CrowbarHooks[k]);
+					}
+				}
+
+				g_iWeaponInitID = i;
+
+				if (UnsetHook(&g_fh_PrecacheOtherWeapon))
+				{
+					PRECACHE_OTHER_WEAPON("weapon_crowbar");
+					SetHook(&g_fh_PrecacheOtherWeapon);
+				}
+
+				return i;
+			}
+		}
+
+		MF_LogError(amx, AMX_ERR_NATIVE, "Weapon limit reached.");
+		return -1;
+	}
+
+	/**
+	 * Register weapon's forward.
+	 *
+	 * @param iWeaponID		The ID of registered weapon.
+	 * @param iForward		Forward type to register.
+	 * @param szCallBack	The forward to call.
+	 *
+	 * native WpnMod_RegisterWeaponForward(const iWeaponID, const e_Forwards: iForward, const szCallBack[]);
+	*/
+	AMXX_NATIVE(WpnMod_RegisterWeaponForward)
+	{
+		int iId = params[1];
+
+		if (iId <= 0 || iId > g_iWeaponsCount || WeaponInfoArray[iId].iType != Wpn_Custom)
+		{
+			MF_LogError(amx, AMX_ERR_NATIVE, "Invalid weapon id provided (%d).", iId);
+			return 0;
+		}
+
+		int Fwd = params[2];
+
+		if (Fwd < 0 || Fwd >= Fwd_Wpn_End)
+		{
+			MF_LogError(amx, AMX_ERR_NATIVE, "Function out of bounds. Got: %d, Max: %d.", iId, Fwd_Wpn_End - 1);
+			return 0;
+		}
+
+		const char *funcname = MF_GetAmxString(amx, params[3], 0, NULL);
+
+		WeaponInfoArray[iId].iForward[Fwd] = MF_RegisterSPForwardByName
+		(
+			amx, 
+			funcname, 
+			FP_CELL, 
+			FP_CELL, 
+			FP_CELL, 
+			FP_CELL, 
+			FP_CELL, 
+			FP_DONE
+		);
+
+		if (WeaponInfoArray[iId].iForward[Fwd] == -1)
+		{
+			WeaponInfoArray[iId].iForward[Fwd] = 0;
+			MF_LogError(amx, AMX_ERR_NATIVE, "Function not found (%d, \"%s\").", Fwd, funcname);
+			return 0;
+		}
+
+		return 1;
+	}
+
+	/**
+	 * Register new ammobox in module.
+	 *
+	 * @param szName			The ammobox classname.
+	 * 
+	 * @return					The ID of registerd ammobox or -1 on failure. (integer)
+	 *
+	 * native WpnMod_RegisterAmmo(const szClassname[]);
+	 */
+	AMXX_NATIVE(WpnMod_RegisterAmmo)
+	{
+		if (g_iAmmoBoxIndex >= MAX_WEAPONS)
+		{
+			MF_LogError(amx, AMX_ERR_NATIVE, "Ammobox limit reached.");
+			return -1;
+		}
+
+		if (!g_Config.m_bAmmoBoxHooked)
+		{
+			g_Config.m_bAmmoBoxHooked = true;
+			SetHookVirtual(&g_RpgAddAmmo_Hook);
+		}
+
+		const char *szAmmoboxName = MF_GetAmxString(amx, params[1], 0, NULL);
+
+		for (int i = 1; i <= g_iAmmoBoxIndex; i++)
+		{
+			if (!_stricmp(AmmoBoxInfoArray[i].classname.c_str(), szAmmoboxName))
+			{
+				MF_LogError(amx, AMX_ERR_NATIVE, "Ammobox name is duplicated.");
+				return -1;
+			}
+		}
+
+		AmmoBoxInfoArray[++g_iAmmoBoxIndex].classname.assign(STRING(ALLOC_STRING(szAmmoboxName)));
+		return g_iAmmoBoxIndex;
+	}
+
+	/**
+	 * Register ammobox's forward.
+	 *
+	 * @param iAmmoboxID		The ID of registered ammobox.
+	 * @param iForward			Forward type to register.
+	 * @param szCallBack		The forward to call.
+	 *
+	 * native WpnMod_RegisterAmmoForward(const iWeaponID, const e_AmmoFwds: iForward, const szCallBack[]);
+	 */
+	AMXX_NATIVE(WpnMod_RegisterAmmoForward)
+	{
+		int iId = params[1];
+
+		if (iId <= 0 || iId > g_iAmmoBoxIndex)
+		{
+			MF_LogError(amx, AMX_ERR_NATIVE, "Invalid ammobox id provided (%d).", iId);
+			return 0;
+		}
+
+		int Fwd = params[2];
+
+		if (Fwd < 0 || Fwd >= Fwd_Ammo_End)
+		{
+			MF_LogError(amx, AMX_ERR_NATIVE, "Function out of bounds. Got: %d, Max: %d.", iId, Fwd_Ammo_End - 1);
+			return 0;
+		}
+
+		const char *funcname = MF_GetAmxString(amx, params[3], 0, NULL);
+
+		AmmoBoxInfoArray[iId].iForward[Fwd] = MF_RegisterSPForwardByName
+		(
+			amx, 
+			funcname, 
+			FP_CELL,
+			FP_CELL,
+			FP_DONE
+		);
+
+		if (AmmoBoxInfoArray[iId].iForward[Fwd] == -1)
+		{
+			AmmoBoxInfoArray[iId].iForward[Fwd] = 0;
+			MF_LogError(amx, AMX_ERR_NATIVE, "Function not found (%d, \"%s\").", Fwd, funcname);
+			return 0;
+		}
+
+		return 1;
+	}
+
+	/**
+	 * Returns any ItemInfo variable for weapon. Use the e_ItemInfo_* enum.
+	 *
+	 * @param iId			The ID of registered weapon or weapon entity Id.
+	 * @param iInfoType		ItemInfo type.
+	 *
+	 * @return				Weapon's ItemInfo variable.
+	 *
+	 * native WpnMod_GetWeaponInfo(const iId, const e_ItemInfo: iInfoType, any:...);
+	 */
+	AMXX_NATIVE(WpnMod_GetWeaponInfo)
+	{
+		enum e_ItemInfo
+		{
+			ItemInfo_isCustom = 0,
+			ItemInfo_iSlot,
+			ItemInfo_iPosition,
+			ItemInfo_iMaxAmmo1,
+			ItemInfo_iMaxAmmo2,
+			ItemInfo_iMaxClip,
+			ItemInfo_iId,
+			ItemInfo_iFlags,
+			ItemInfo_iWeight,
+			ItemInfo_szName,
+			ItemInfo_szAmmo1,
+			ItemInfo_szAmmo2,
+			ItemInfo_szTitle,
+			ItemInfo_szAuthor,
+			ItemInfo_szVersion
+		};
+
+		int iId = params[1];
+		int iSwitch = params[2];
+
+		edict_t* pItem = NULL;
+
+		if (iSwitch < ItemInfo_isCustom || iSwitch > ItemInfo_szVersion)
+		{
+			MF_LogError(amx, AMX_ERR_NATIVE, "Undefined e_ItemInfo index: %d", iSwitch);
+			return 0;
+		}
+
+		if (iId <= 0 || iId > gpGlobals->maxEntities)
+		{
+			MF_LogError(amx, AMX_ERR_NATIVE, "Invalid entity or weapon id provided (%d).", iId);
+			return 0;
+		}
+
+		pItem = INDEXENT2(iId);
+
+		if (IsValidPev(pItem) && strstr(STRING(pItem->v.classname), "weapon_"))
+		{
+			iId = GetPrivateInt(pItem, pvData_iId);
+		}
+
+		if (iId <= 0 || iId > g_iWeaponsCount)
+		{
+			MF_LogError(amx, AMX_ERR_NATIVE, "Invalid weapon id provided (%d).", iId);
+			return 0;
+		}
+
+		size_t paramnum = params[0] / sizeof(cell);
+
+		if (iSwitch >= ItemInfo_isCustom && iSwitch <= ItemInfo_iWeight && paramnum == 2)
+		{
+			switch (iSwitch)
+			{
+				case ItemInfo_isCustom:
+					return WeaponInfoArray[iId].iType != Wpn_Default;
+
+				case ItemInfo_iSlot:
+					return GetWeapon_Slot(iId);
+
+				case ItemInfo_iPosition:
+					return GetWeapon_ItemPosition(iId);
+
+				case ItemInfo_iMaxAmmo1:
+					return GetWeapon_MaxAmmo1(iId);
+
+				case ItemInfo_iMaxAmmo2:
+					return GetWeapon_MaxAmmo2(iId);
+
+				case ItemInfo_iMaxClip:
+					return GetWeapon_MaxClip(iId);
+
+				case ItemInfo_iId:
+					return iId;
+
+				case ItemInfo_iFlags:
+					return GetWeapon_Flags(iId);
+
+				case ItemInfo_iWeight:
+					return GetWeapon_Weight(iId);
+			}
+		}
+		else if (iSwitch >= ItemInfo_szName && iSwitch <= ItemInfo_szVersion && paramnum == 4)
+		{
+			const char* szReturnValue = NULL;
+
+			switch (iSwitch)
+			{
+				case ItemInfo_szName:
+					szReturnValue = GetWeapon_pszName(iId);
+					break;
+				case ItemInfo_szAmmo1:
+					szReturnValue = GetWeapon_pszAmmo1(iId);
+					break;
+				case ItemInfo_szAmmo2:
+					szReturnValue = GetWeapon_pszAmmo2(iId);
+					break;
+				case ItemInfo_szTitle:
+					szReturnValue = WeaponInfoArray[iId].title.c_str();
+					break;
+				case ItemInfo_szAuthor:
+					szReturnValue = WeaponInfoArray[iId].author.c_str();
+					break;
+				case ItemInfo_szVersion:
+					szReturnValue = WeaponInfoArray[iId].version.c_str();
+					break;
+			}	
+
+			if (!szReturnValue)
+			{
+				szReturnValue = "";
+			}
+
+			return MF_SetAmxString(amx, params[3], szReturnValue, params[4]);
+		}
+
+		MF_LogError(amx, AMX_ERR_NATIVE, "Unknown e_ItemInfo index or return combination %d", iSwitch);
+		return 0;
+	}
+
+	/**
+	 * Returns any AmmoInfo variable for ammobox. Use the e_AmmoInfo_* enum.
+	 *
+	 * @param iId			The ID of registered ammobox or ammobox entity Id.
+	 * @param iInfoType		e_AmmoInfo_* type.
+	 *
+	 * @return				Ammobox's AmmoInfo variable.
+	 *
+	 * native WpnMod_GetAmmoBoxInfo(const iId, const e_AmmoInfo: iInfoType, any:...);
+	 */
+	AMXX_NATIVE(WpnMod_GetAmmoBoxInfo)
+	{
+		enum e_AmmoInfo
+		{
+			AmmoInfo_szName
+		};
+
+		int iId = params[1];
+		int iSwitch = params[2];
+
+		edict_t* pAmmoBox = NULL;
+
+		if (iSwitch < AmmoInfo_szName || iSwitch > AmmoInfo_szName)
+		{
+			MF_LogError(amx, AMX_ERR_NATIVE, "Undefined e_AmmoInfo index: %d", iSwitch);
+			return 0;
+		}
+
+		if (iId <= 0 || iId > gpGlobals->maxEntities)
+		{
+			MF_LogError(amx, AMX_ERR_NATIVE, "Invalid entity or ammobox id provided (%d).", iId);
+			return 0;
+		}
+
+		pAmmoBox = INDEXENT2(iId);
+
+		if (IsValidPev(pAmmoBox) && strstr(STRING(pAmmoBox->v.classname), "ammo_"))
+		{
+			for (int i = 1; i <= g_iAmmoBoxIndex; i++)
+			{
+				if (!_stricmp(AmmoBoxInfoArray[i].classname.c_str(), STRING(pAmmoBox->v.classname)))
+				{
+					iId = i;
+					break;
+				}
+			}
+		}
+
+		if (iId <= 0 || iId > g_iAmmoBoxIndex)
+		{
+			MF_LogError(amx, AMX_ERR_NATIVE, "Invalid ammobox id provided (%d).", iId);
+			return 0;
+		}
+
+		size_t paramnum = params[0] / sizeof(cell);
+
+		if (iSwitch >= AmmoInfo_szName && iSwitch <= AmmoInfo_szName && paramnum == 4)
+		{
+			const char* szReturnValue = NULL;
+
+			switch (iSwitch)
+			{
+			case AmmoInfo_szName:
+				szReturnValue = AmmoBoxInfoArray[iId].classname.c_str();
+				break;
+			}	
+
+			if (!szReturnValue)
+			{
+				szReturnValue = "";
+			}
+
+			return MF_SetAmxString(amx, params[3], szReturnValue, params[4]);
+		}
+
+		MF_LogError(amx, AMX_ERR_NATIVE, "Unknown e_AmmoInfo index or return combination %d", iSwitch);
+		return 0;
+	}
+
+	/**
+	 * Gets number of registered weapons.
+	 *
+	 * @return		Number of registered weapons. (integer)
+	 *
+	 * native WpnMod_GetWeaponNum();
+	*/
+	AMXX_NATIVE(WpnMod_GetWeaponNum)
+	{
+		return g_iWeaponsCount;
+	}
+
+	/**
+	 * Gets number of registered ammoboxes.
+	 *
+	 * @return		Number of registered ammoboxes. (integer)
+	 *
+	 * native WpnMod_GetAmmoBoxNum();
+	*/
+	AMXX_NATIVE(WpnMod_GetAmmoBoxNum)
+	{
+		return g_iAmmoBoxIndex;
+	}
+
+	/**
+	 * Spawn an item by name.
+	 *
+	 * @param szName			Item's name.
+	 * @param vecOrigin			Origin were to spawn.
+	 * @param vecAngles			Angles.
+	 *
+	 * @return					Item entity index or -1 on failure. (integer)
+	 *
+	 * native WpnMod_CreateItem(const szName[], const Float: vecOrigin[3] = {0.0, 0.0, 0.0}, const Float: vecAngles[3] = {0.0, 0.0, 0.0});
+	*/
+	AMXX_NATIVE(WpnMod_CreateItem)
+	{
+		char *itemname = MF_GetAmxString(amx, params[1], 0, NULL);
+
+		Vector vecOrigin;
+		cell *vOrigin = MF_GetAmxAddr(amx, params[2]);
+
+		vecOrigin.x = amx_ctof(vOrigin[0]);
+		vecOrigin.y = amx_ctof(vOrigin[1]);
+		vecOrigin.z = amx_ctof(vOrigin[2]);
+
+		Vector vecAngles;
+		cell *vAngles = MF_GetAmxAddr(amx, params[3]);
+
+		vecAngles.x = amx_ctof(vAngles[0]);
+		vecAngles.y = amx_ctof(vAngles[1]);
+		vecAngles.z = amx_ctof(vAngles[2]);
+
+		edict_t* iItem = Weapon_Spawn(itemname, vecOrigin, vecAngles);
+
+		if (IsValidPev(iItem))
+		{
+			return ENTINDEX(iItem);
+		}
+		else
+		{
+			edict_t* iItem = Ammo_Spawn(itemname, vecOrigin, vecAngles);
+
+			if (IsValidPev(iItem))
+			{
+				return ENTINDEX(iItem);
+			}
+		}
+
+		return -1;
+	}
+
+	/**
+	 * Default deploy function.
+	 *
+	 * @param iItem				Weapon's entity index.
+	 * @param szViewModel		Weapon's view  model (V).
+	 * @param szWeaponModel		Weapon's player  model (P).
+	 * @param iAnim				Sequence number of deploy animation.
+	 * @param szAnimExt			Animation extension.
+	 *
+	 * native WpnMod_DefaultDeploy(const iItem, const szViewModel[], const szWeaponModel[], const iAnim, const szAnimExt[]);
+	*/
+	AMXX_NATIVE(WpnMod_DefaultDeploy)
+	{
+		int iEntity = params[1];
+		int iAnim = params[4];
+
+		const char *szViewModel = STRING(ALLOC_STRING(MF_GetAmxString(amx, params[2], 0, NULL))); 
+		const char *szWeaponModel = STRING(ALLOC_STRING(MF_GetAmxString(amx, params[3], 0, NULL)));
+		const char *szAnimExt = STRING(ALLOC_STRING(MF_GetAmxString(amx, params[5], 0, NULL)));
+
+		CHECK_ENTITY(iEntity)
+
+		edict_t* pItem = INDEXENT2(iEntity);
+		edict_t* pPlayer = GetPrivateCbase(pItem, pvData_pPlayer);
+
+		if (!IsValidPev(pPlayer))
+		{
+			return 0;
+		}
+
+		if (!Weapon_CanDeploy(pItem->pvPrivateData))
+		{
+			return 0;
+		}
+
+		pPlayer->v.viewmodel = MAKE_STRING(szViewModel);
+		pPlayer->v.weaponmodel = MAKE_STRING(szWeaponModel);
+
+		SetPrivateString(pPlayer, pvData_szAnimExtention, szAnimExt);
+		SendWeaponAnim(pPlayer, pItem, iAnim);
+
+		SetPrivateFloat(pPlayer, pvData_flNextAttack, 0.5);
+		SetPrivateFloat(pItem, pvData_flTimeWeaponIdle, 1.0);
+
+		return 1;
+	}
+
+	/**
+	 * Default reload function.
+	 *
+	 * @param iItem				Weapon's entity index.
+	 * @param iClipSize			Maximum weapon's clip size.
+	 * @param iAnim				Sequence number of reload animation.
+	 * @param flDelay			Reload delay time.
+	 *
+	 * native WpnMod_DefaultReload(const iItem, const iClipSize, const iAnim, const Float: flDelay);
+	*/
+	AMXX_NATIVE(WpnMod_DefaultReload)
+	{
+		int iEntity = params[1];
+		int iClipSize = params[2];
+		int iAnim = params[3];
+
+		float flDelay = amx_ctof(params[4]);
+
+		CHECK_ENTITY(iEntity)
+
+		edict_t* pItem = INDEXENT2(iEntity);
+		edict_t* pPlayer = GetPrivateCbase(pItem, pvData_pPlayer);
+
+		if (!IsValidPev(pPlayer))
+		{
+			return 0;
+		}
+
+		int iAmmo = GetAmmoInventory(pPlayer, PrimaryAmmoIndex(pItem));
+
+		if (!iAmmo)
+		{
+			return 0;
+		}
+
+		int j = min(iClipSize - GetPrivateInt(pItem, pvData_iClip), iAmmo);
+
+		if (!j)
+		{
+			return 0;
+		}
+
+		SetPrivateInt(pItem, pvData_fInReload, TRUE);
+		SetPrivateFloat(pPlayer, pvData_flNextAttack, flDelay);
+		SetPrivateFloat(pItem, pvData_flTimeWeaponIdle, flDelay);
+
+		SendWeaponAnim(pPlayer, pItem, iAnim);
+		return 1;
+	}
+
+	/**
+	 * Sets the weapon so that it can play empty sound again.
+	 *
+	 * @param iItem				Weapon's entity index.
+	 *
+	 * native WpnMod_ResetEmptySound(const iItem);
+	*/
+	AMXX_NATIVE(WpnMod_ResetEmptySound)
+	{
+		int iEntity = params[1];
+
+		CHECK_ENTITY(iEntity)
+		SetPrivateInt(INDEXENT2(iEntity), pvData_iPlayEmptySound, TRUE);
+		return 1;
+	}
+
+	/**
+	 * Plays the weapon's empty sound.
+	 *
+	 * @param iItem				Weapon's entity index.
+	 *
+	 * native WpnMod_PlayEmptySound(const iItem);
+	*/
+	AMXX_NATIVE(WpnMod_PlayEmptySound)
+	{
+		int iEntity = params[1];
+		CHECK_ENTITY(iEntity)
+
+		if (GetPrivateInt(INDEXENT2(iEntity), pvData_iPlayEmptySound))
+		{
+			edict_t* pPlayer = GetPrivateCbase(INDEXENT2(iEntity), pvData_pPlayer);
+
+			if (IsValidPev(pPlayer))
+			{
+				EMIT_SOUND_DYN2(pPlayer, CHAN_WEAPON, "weapons/357_cock1.wav", 0.8, ATTN_NORM, 0, PITCH_NORM);
+				SetPrivateInt(INDEXENT2(iEntity), pvData_iPlayEmptySound, FALSE);
+			
+				return 1;
+			}
+		}
+
+		return 0;
+	}
+
+	/**
+	* Get player's ammo inventory.
+	 *
+	 * @param iPlayer		Player id.
+	 * @param szAmmoName	Ammo type. ("9mm", "uranium", "MY_AMMO" etc..)
+	 *
+	 * @return				Amount of given ammo. (integer)
+	 *
+	 * native WpnMod_GetPlayerAmmo(const iPlayer, const szAmmoName[]);
+	*/
+	AMXX_NATIVE(WpnMod_GetPlayerAmmo)
+	{
+		int iPlayer = params[1];
+
+		CHECK_ENTITY(iPlayer)
+
+		int iAmmoIndex = GET_AMMO_INDEX(STRING(ALLOC_STRING(MF_GetAmxString(amx, params[2], 0, NULL))));
+
+		if (iAmmoIndex != -1)
+		{
+			return GetAmmoInventory(INDEXENT2(iPlayer), iAmmoIndex);
+		}
+
+		return -1;
+	}
+
+	/**
+	* Set player's ammo inventory.
+	 *
+	 * @param iPlayer		Player id.
+	 * @param szAmmoName	Ammo type. ("9mm", "uranium", "MY_AMMO" etc..)
+	 * @param iAmount		Ammo amount.
+	 *
+	 * native WpnMod_SetPlayerAmmo(const iPlayer, const szAmmoName[], const iAmount);
+	*/
+	AMXX_NATIVE(WpnMod_SetPlayerAmmo)
+	{
+		int iPlayer = params[1];
+
+		CHECK_ENTITY(iPlayer)
+
+		int iAmmoIndex = GET_AMMO_INDEX(STRING(ALLOC_STRING(MF_GetAmxString(amx, params[2], 0, NULL))));
+
+		if (iAmmoIndex != -1)
+		{
+			SetAmmoInventory(INDEXENT2(iPlayer), iAmmoIndex, params[3]);
+			return 1;
+		}
+
+		return 0;
+	}
+
+	/**
+	 * Plays weapon's animation.
+	 *
+	 * @param iItem		Weapon's entity.
+	 * @param iAnim		Sequence number.
+	 *
+	 * native WpnMod_SendWeaponAnim(const iItem, const iAnim);
+	*/
+	AMXX_NATIVE(WpnMod_SendWeaponAnim)
+	{
+		CHECK_ENTITY(params[1])
+
+		edict_t *pWeapon = INDEXENT2(params[1]);
+		edict_t *pPlayer = GetPrivateCbase(pWeapon, pvData_pPlayer);
+
+		if (!IsValidPev(pPlayer))
+		{
+			return 0;
+		}
+
+		SendWeaponAnim(pPlayer, pWeapon, params[2]);
+		return 1;
+	}
+
+	/**
+	 * Set the activity for player based on an event or current state.
+	 *
+	 * @param iPlayer		Player id.
+	 * @param iPlayerAnim	Animation (See PLAYER_ANIM constants).
+	 *
+	 * native WpnMod_SetPlayerAnim(const iPlayer, const PLAYER_ANIM: iPlayerAnim);
+	*/
+	AMXX_NATIVE(WpnMod_SetPlayerAnim)
+	{
+		int iPlayer = params[1];
+		int iPlayerAnim = params[2];
+
+		CHECK_ENTITY(iPlayer)
+		SET_ANIMATION(INDEXENT2(iPlayer), iPlayerAnim);
+		return 1;
+	}
+
+	/**
+	 * Returns a value from entity's private data. Use the e_pvData_* enum.
+	 *
+	 * @param iEntity		Entity index.
+	 * @param iPvData		pvData type.
+	 *
+	 * @return				Entity's value from privaate data.
+	 *
+	 * native WpnMod_GetPrivateData(const iEntity, const e_pvData: iPvData, any:...);
+	*/
+	AMXX_NATIVE(WpnMod_GetPrivateData)
+	{
+		int iEntity = params[1];
+		int iSwitch = params[2];
+
+		CHECK_ENTITY(iEntity);
+
+		if (iSwitch < PV_START || iSwitch > PV_END)
+		{
+			MF_LogError(amx, AMX_ERR_NATIVE, "Undefined e_pvData index: %d", iSwitch);
+			return 0;
+		}
+
+		edict_t* pEntity = INDEXENT2(iEntity);
+		size_t paramnum = params[0] / sizeof(cell);
+
+		if (iSwitch >= PV_START_ENT && iSwitch <= PV_END_ENT)
+		{
+			if (paramnum > 1 && paramnum < 4)
+			{
+				int iExtra = 0;
+
+				if (paramnum == 3)
+				{
+					iExtra = params[3];
+				}
+
+				edict_t* pResult = GetPrivateCbase(pEntity, pvDataReference[iSwitch], iExtra);
+
+				if (IsValidPev(pResult))
+				{
+						return ENTINDEX(pResult);
+				}
+
+				return -1;
+			}
+		}
+		else if (paramnum == 2)
+		{
+			if (iSwitch >= PV_START_INT && iSwitch <= PV_END_INT)
+			{
+				return GetPrivateInt(pEntity, pvDataReference[iSwitch]);
+			}
+			else if (iSwitch >= PV_START_FL && iSwitch <= PV_END_FL)
+			{
+				return amx_ftoc(GetPrivateFloat(pEntity, pvDataReference[iSwitch]));
+			}
+		}
+		else if (paramnum == 4)
+		{
+			if (iSwitch >= PV_START_SZ && iSwitch <= PV_END_SZ)
+			{
+				const char* szReturnValue = NULL;
+
+				switch (iSwitch)
+				{
+					case PV_SZ_szAnimExtention:
+						szReturnValue = GetPrivateString(pEntity, pvData_szAnimExtention);
+						break;
+				}
+
+				if (!szReturnValue)
+				{
+					szReturnValue = "";
+				}
+
+				return MF_SetAmxString(amx, params[3], szReturnValue, params[4]);
+			}
+		}
+
+		MF_LogError(amx, AMX_ERR_NATIVE, "Unknown e_pvData index or return combination %d", iSwitch);
+		return 0;
+	}
+
+	/**
+	 * Sets a value to entity's private data. Use the e_pvData_* enum.
+	 *
+	 * @param iEntity		Entity index.
+	 * @param iPvData		pvData type.
+	 *
+	 * native WpnMod_SetPrivateData(const iEntity, const e_pvData: iPvData, any:...);
+	*/
+	AMXX_NATIVE(WpnMod_SetPrivateData)
+	{
+		int iEntity = params[1];
+		int iSwitch = params[2];
+
+		CHECK_ENTITY(iEntity);
+
+		if (iSwitch < PV_START || iSwitch > PV_END)
+		{
+			MF_LogError(amx, AMX_ERR_NATIVE, "Undefined e_pvData index: %d", iSwitch);
+			return 0;
+		}
+
+		int iExtra = 0;
+
+		edict_t* pEntity = INDEXENT2(iEntity);
+		size_t paramnum = params[0] / sizeof(cell);
+
+		if (iSwitch >= PV_START_ENT && iSwitch <= PV_END_ENT)
+		{
+			if (paramnum > 2 && paramnum < 5)
+			{
+				int iTarget = *MF_GetAmxAddr(amx,params[3]);
+
+				CHECK_ENTITY(iTarget)
+
+				if (paramnum == 4)
+				{
+					iExtra = *MF_GetAmxAddr(amx,params[4]);
+				}
+
+				SetPrivateCbase(pEntity, pvDataReference[iSwitch], INDEXENT2(iTarget), iExtra);
+				return 1;
+			}
+		}
+		else if (paramnum == 3)
+		{
+			if (iSwitch >= PV_START_INT && iSwitch <= PV_END_INT)
+			{
+				SetPrivateInt(pEntity, pvDataReference[iSwitch], *MF_GetAmxAddr(amx,params[3]), iExtra);
+				return 1;
+			}
+			else if (iSwitch >= PV_START_FL && iSwitch <= PV_END_FL)
+			{
+				SetPrivateFloat(pEntity, pvDataReference[iSwitch], amx_ctof(MF_GetAmxAddr(amx,params[3])[0]));
+				return 1;
+			}
+			else if (iSwitch >= PV_START_SZ && iSwitch <= PV_END_SZ)
+			{
+				switch (iSwitch)
+				{
+					case PV_SZ_szAnimExtention:
+						SetPrivateString(pEntity, pvData_szAnimExtention, STRING(ALLOC_STRING(MF_GetAmxString(amx, params[3], 0, NULL))));
+						return 1;
+				}
+			}
+		}
+
+		MF_LogError(amx, AMX_ERR_NATIVE, "Unknown e_pvData index or return combination %d", iSwitch);
+		return 0;
+	}
+}
+
 AMX_NATIVE_INFO Natives[] = 
 {
-	{ "wpnmod_register_weapon", wpnmod_register_weapon},
-	{ "wpnmod_register_weapon_forward", wpnmod_register_weapon_forward},
-	{ "wpnmod_register_ammobox", wpnmod_register_ammobox},
-	{ "wpnmod_register_ammobox_forward", wpnmod_register_ammobox_forward},
-	{ "wpnmod_get_weapon_info", wpnmod_get_weapon_info},
-	{ "wpnmod_get_ammobox_info", wpnmod_get_ammobox_info},
-	{ "wpnmod_get_weapon_count", wpnmod_get_weapon_count},
-	{ "wpnmod_get_ammobox_count", wpnmod_get_ammobox_count},
-	{ "wpnmod_send_weapon_anim", wpnmod_send_weapon_anim},
-	{ "wpnmod_set_player_anim", wpnmod_set_player_anim},
-	{ "wpnmod_set_anim_ext", wpnmod_set_anim_ext},
-	{ "wpnmod_get_anim_ext", wpnmod_get_anim_ext},
+	// Deprecated native names.
+	// Using them for backward compatibility.
+	{ "wpnmod_register_weapon",				NewNatives::WpnMod_RegisterWeapon				},
+	{ "wpnmod_register_weapon_forward",		NewNatives::WpnMod_RegisterWeaponForward		},
+	{ "wpnmod_register_ammobox",			NewNatives::WpnMod_RegisterAmmo					},
+	{ "wpnmod_register_ammobox_forward",	NewNatives::WpnMod_RegisterAmmoForward			},
+	{ "wpnmod_get_weapon_info",				NewNatives::WpnMod_GetWeaponInfo				},
+	{ "wpnmod_get_ammobox_info",			NewNatives::WpnMod_GetAmmoBoxInfo				},
+	{ "wpnmod_get_weapon_count",			NewNatives::WpnMod_GetWeaponNum					},
+	{ "wpnmod_get_ammobox_count",			NewNatives::WpnMod_GetAmmoBoxNum				},
+	{ "wpnmod_create_item",					NewNatives::WpnMod_CreateItem					},
+	{ "wpnmod_set_anim_ext",				DeprecatedNatives::wpnmod_set_anim_ext			},
+	{ "wpnmod_get_anim_ext",				DeprecatedNatives::wpnmod_get_anim_ext			},
+	{ "wpnmod_set_offset_int",				DeprecatedNatives::wpnmod_set_offset_int		},
+	{ "wpnmod_set_offset_float",			DeprecatedNatives::wpnmod_set_offset_float		},
+	{ "wpnmod_set_offset_cbase",			DeprecatedNatives::wpnmod_set_offset_cbase		},
+	{ "wpnmod_get_offset_int",				DeprecatedNatives::wpnmod_get_offset_int		},
+	{ "wpnmod_get_offset_float",			DeprecatedNatives::wpnmod_get_offset_float		},
+	{ "wpnmod_get_offset_cbase",			DeprecatedNatives::wpnmod_get_offset_cbase		},
+	{ "wpnmod_default_deploy",				NewNatives::WpnMod_DefaultDeploy				},
+	{ "wpnmod_default_reload",				NewNatives::WpnMod_DefaultReload				},
+	{ "wpnmod_reset_empty_sound",			NewNatives::WpnMod_ResetEmptySound				},
+	{ "wpnmod_play_empty_sound",			NewNatives::WpnMod_PlayEmptySound				},
+	{ "wpnmod_get_player_ammo",				NewNatives::WpnMod_GetPlayerAmmo				},
+	{ "wpnmod_set_player_ammo",				NewNatives::WpnMod_SetPlayerAmmo				},
+	{ "wpnmod_send_weapon_anim",			NewNatives::WpnMod_SendWeaponAnim				},
+	{ "wpnmod_set_player_anim",				NewNatives::WpnMod_SetPlayerAnim				},
+	
+	
+	
+	
+
+
+	
+	
 	{ "wpnmod_set_think", wpnmod_set_think},
 	{ "wpnmod_set_touch", wpnmod_set_touch},
-	{ "wpnmod_set_offset_int", wpnmod_set_offset_int},
-	{ "wpnmod_set_offset_float", wpnmod_set_offset_float},
-	{ "wpnmod_set_offset_cbase", wpnmod_set_offset_cbase},
-	{ "wpnmod_get_offset_int", wpnmod_get_offset_int},
-	{ "wpnmod_get_offset_float", wpnmod_get_offset_float},
-	{ "wpnmod_get_offset_cbase", wpnmod_get_offset_cbase},
-	{ "wpnmod_get_player_ammo", wpnmod_get_player_ammo},
-	{ "wpnmod_set_player_ammo", wpnmod_set_player_ammo},
-	{ "wpnmod_default_deploy", wpnmod_default_deploy},
-	{ "wpnmod_default_reload", wpnmod_default_reload},
 	{ "wpnmod_fire_bullets", wpnmod_fire_bullets},
 	{ "wpnmod_fire_contact_grenade", wpnmod_fire_contact_grenade},
 	{ "wpnmod_fire_timed_grenade", wpnmod_fire_timed_grenade},
@@ -1691,15 +2000,43 @@ AMX_NATIVE_INFO Natives[] =
 	{ "wpnmod_clear_multi_damage", wpnmod_clear_multi_damage},
 	{ "wpnmod_apply_multi_damage", wpnmod_apply_multi_damage},
 	{ "wpnmod_eject_brass", wpnmod_eject_brass},
-	{ "wpnmod_reset_empty_sound", wpnmod_reset_empty_sound},
-	{ "wpnmod_play_empty_sound", wpnmod_play_empty_sound},
-	{ "wpnmod_create_item", wpnmod_create_item},
 	{ "wpnmod_get_damage_decal", wpnmod_get_damage_decal},
 	{ "wpnmod_get_gun_position", wpnmod_get_gun_position},
 	{ "wpnmod_explode_entity", wpnmod_explode_entity},
 	{ "wpnmod_decal_trace", wpnmod_decal_trace},
 	{ "wpnmod_trace_texture", wpnmod_trace_texture},
+	
+
+
+
+
+	// Actual natives.
+	{ "WpnMod_RegisterWeapon",				NewNatives::WpnMod_RegisterWeapon				},
+	{ "WpnMod_RegisterWeaponForward",		NewNatives::WpnMod_RegisterWeaponForward		},
+	{ "WpnMod_RegisterAmmoBox",				NewNatives::WpnMod_RegisterAmmo					},
+	{ "WpnMod_RegisterAmmoBoxForward",		NewNatives::WpnMod_RegisterAmmoForward			},
+	{ "WpnMod_GetWeaponInfo",				NewNatives::WpnMod_GetWeaponInfo				},
+	{ "WpnMod_GetAmmoBoxInfo",				NewNatives::WpnMod_GetAmmoBoxInfo				},
+	{ "WpnMod_GetWeaponNum",				NewNatives::WpnMod_GetWeaponNum					},
+	{ "WpnMod_GetAmmoBoxNum",				NewNatives::WpnMod_GetAmmoBoxNum				},
+	{ "WpnMod_CreateItem",					NewNatives::WpnMod_CreateItem					},
+	{ "WpnMod_DefaultDeploy",				NewNatives::WpnMod_DefaultDeploy				},
+	{ "WpnMod_DefaultReload",				NewNatives::WpnMod_DefaultReload				},
+	{ "WpnMod_ResetEmptySound",				NewNatives::WpnMod_ResetEmptySound				},
+	{ "WpnMod_PlayEmptySound",				NewNatives::WpnMod_PlayEmptySound				},
+	{ "WpnMod_GetPlayerAmmo",				NewNatives::WpnMod_GetPlayerAmmo				},
+	{ "WpnMod_SetPlayerAmmo",				NewNatives::WpnMod_SetPlayerAmmo				},
+	{ "WpnMod_SendWeaponAnim",				NewNatives::WpnMod_SendWeaponAnim				},
+	{ "WpnMod_SetPlayerAnim",				NewNatives::WpnMod_SetPlayerAnim				},
+	
+	
+	
+	
+	{ "WpnMod_GetPrivateData",				NewNatives::WpnMod_GetPrivateData				},
+	{ "WpnMod_SetPrivateData",				NewNatives::WpnMod_SetPrivateData				},
+
 	// { "wpnmod_precache_model_sequences", wpnmod_precache_model_sequences},
+
 
 	{ NULL, NULL }
 };

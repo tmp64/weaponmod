@@ -76,6 +76,10 @@ int DispatchSpawn(edict_t *pent)
 void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 {
 	g_Config.ServerActivate();
+
+
+	g_Memory.Parse_GameRules();
+
 	RETURN_META(MRES_IGNORED);
 }
 

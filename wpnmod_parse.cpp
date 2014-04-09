@@ -131,7 +131,7 @@ void OnParseWeaponbox(String key, String value)
 void OnParseBlockedItems(String dummy, String BlockedItem)
 {
 	VirtualHookData *p = new VirtualHookData;
-	
+
 	p->done = false;
 	p->handler = NULL;
 	p->address = NULL;
@@ -151,7 +151,7 @@ void OnParseBlockedItems(String dummy, String BlockedItem)
 	{
 		p->offset = VO_AddAmmo;
 	}
-	
+
 	p->handler = (void*)Item_Block;
 	SetHookVirtual(p);
 
@@ -186,7 +186,7 @@ void OnParseStartEquipments(String item, String count)
 }
 
 void ParseSpawnPoints()
-{		
+{
 	char filepath[1024];
 
 	build_pathname_r(filepath, sizeof(filepath) - 1, "%s/weaponmod/spawnpoints/%s.ini", LOCALINFO((char*)"amxx_configsdir"), STRING(gpGlobals->mapname));

@@ -74,6 +74,7 @@ public:
 	bool Init(void);
 	void UnsetHooks(void);
 
+	void Parse_GameRules(void);
 	void Parse_SubRemove(void);
 	void Parse_GetAmmoIndex(void);
 	void Parse_SetAnimation(void);
