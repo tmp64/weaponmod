@@ -339,18 +339,18 @@ float UTIL_WaterLevel(const Vector &position, float minz, float maxz)
 
 void UTIL_EjectBrass(const Vector &vecOrigin, const Vector &vecVelocity, float rotation, int model, int soundtype)
 {
-	MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, vecOrigin );
-	WRITE_BYTE( TE_MODEL);
-	WRITE_COORD( vecOrigin.x);
-	WRITE_COORD( vecOrigin.y);
-	WRITE_COORD( vecOrigin.z);
-	WRITE_COORD( vecVelocity.x);
-	WRITE_COORD( vecVelocity.y);
-	WRITE_COORD( vecVelocity.z);
-	WRITE_ANGLE( rotation );
-	WRITE_SHORT( model );
-	WRITE_BYTE ( soundtype);
-	WRITE_BYTE ( 25 );// 2.5 seconds
+	MESSAGE_BEGIN(MSG_PVS, SVC_TEMPENTITY, vecOrigin);
+	WRITE_BYTE(TE_MODEL);
+	WRITE_COORD(vecOrigin.x);
+	WRITE_COORD(vecOrigin.y);
+	WRITE_COORD(vecOrigin.z);
+	WRITE_COORD(vecVelocity.x);
+	WRITE_COORD(vecVelocity.y);
+	WRITE_COORD(vecVelocity.z);
+	WRITE_ANGLE(rotation);
+	WRITE_SHORT(model);
+	WRITE_BYTE(soundtype);
+	WRITE_BYTE(25);// 2.5 seconds
 	MESSAGE_END();
 }
 
@@ -377,7 +377,7 @@ void UTIL_DecalGunshot(TraceResult* pTrace)
 		{
 			return;
 		}
-		
+
 		MESSAGE_BEGIN(MSG_PAS, SVC_TEMPENTITY, pTrace->vecEndPos);
 		WRITE_BYTE(TE_GUNSHOTDECAL);
 		WRITE_COORD(pTrace->vecEndPos.x );
@@ -472,7 +472,7 @@ TraceResult UTIL_GetGlobalTrace( )
 	tr.fInWater			= gpGlobals->trace_inwater;
 	tr.flFraction		= gpGlobals->trace_fraction;
 	tr.flPlaneDist		= gpGlobals->trace_plane_dist;
-	tr.pHit			= gpGlobals->trace_ent;
+	tr.pHit				= gpGlobals->trace_ent;
 	tr.vecEndPos		= gpGlobals->trace_endpos;
 	tr.vecPlaneNormal	= gpGlobals->trace_plane_normal;
 	tr.iHitgroup		= gpGlobals->trace_hitgroup;
@@ -656,14 +656,14 @@ void FireBulletsPlayer(edict_t* pPlayer, edict_t* pAttacker, int iShotsCount, Ve
 			// adjust tracer position for player
 			Vector vecTracerSrc = vecSrc + Vector (0 , 0 , -4) + gpGlobals->v_right * 2 + gpGlobals->v_forward * 16;
 
-			MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, vecTracerSrc );
-			WRITE_BYTE( TE_TRACER );
-			WRITE_COORD( vecTracerSrc.x );
-			WRITE_COORD( vecTracerSrc.y );
-			WRITE_COORD( vecTracerSrc.z );
-			WRITE_COORD( tr.vecEndPos.x );
-			WRITE_COORD( tr.vecEndPos.y );
-			WRITE_COORD( tr.vecEndPos.z );
+			MESSAGE_BEGIN(MSG_PAS, SVC_TEMPENTITY, vecTracerSrc);
+			WRITE_BYTE(TE_TRACER);
+			WRITE_COORD(vecTracerSrc.x);
+			WRITE_COORD(vecTracerSrc.y);
+			WRITE_COORD(vecTracerSrc.z);
+			WRITE_COORD(tr.vecEndPos.x);
+			WRITE_COORD(tr.vecEndPos.y);
+			WRITE_COORD(tr.vecEndPos.z);
 			MESSAGE_END();
 		}
 

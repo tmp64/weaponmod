@@ -83,7 +83,7 @@ void CConfig::InitGameMod(void)
 			m_iMaxWeaponSlots = 7;
 		}
 
-		g_Ents = new EntData[gpGlobals->maxEntities];
+		g_Ents = new EntData[gpGlobals->maxEntities + 1];
 		m_pCurrentSlots = new int* [m_iMaxWeaponSlots];
 
 		for (int i = 0; i < m_iMaxWeaponSlots; ++i)
