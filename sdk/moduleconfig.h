@@ -437,7 +437,7 @@
 // #define FN_CVarSetString_Post				CVarSetString_Post
 // #define FN_AlertMessage_Post					AlertMessage_Post
 // #define FN_EngineFprintf_Post				EngineFprintf_Post
-// #define FN_PvAllocEntPrivateData_Post		PvAllocEntPrivateData_Post
+#define FN_PvAllocEntPrivateData_Post		PvAllocEntPrivateData_Post
 // #define FN_PvEntPrivateData_Post				PvEntPrivateData_Post
 // #define FN_FreeEntPrivateData_Post			FreeEntPrivateData_Post
 // #define FN_SzFromIndex_Post					SzFromIndex_Post

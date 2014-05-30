@@ -41,15 +41,6 @@
 #include "wpnmod_vtable.h"
 
 
-typedef struct
-{
-	int iThink;
-	int iTouch;
-	int iExplode;
-} EntData;
-
-extern EntData* g_Ents;
-
 #ifdef WIN32
 
 	void __fastcall Global_Think	(void* pvEntity);

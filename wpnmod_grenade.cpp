@@ -31,7 +31,7 @@
  *
  */
 
-
+#include "wpnmod_entity.h"
 #include "wpnmod_grenade.h"
 
 
@@ -53,8 +53,6 @@ edict_t* Grenade_ShootContact(edict_t *pOwner, Vector vecStart, Vector vecVeloci
 		
 		pGrenade->v.nextthink = gpGlobals->time;
 		pGrenade->v.avelocity.x = RANDOM_FLOAT(-100, -500);
-
-		g_Ents[ENTINDEX(pGrenade)].iExplode = NULL;
 
 		SET_ORIGIN(pGrenade, vecStart);
 	}
@@ -84,8 +82,6 @@ edict_t* Grenade_ShootTimed(edict_t *pOwner, Vector vecStart, Vector vecVelocity
 
 		pGrenade->v.sequence = RANDOM_LONG( 3, 6 );
 		pGrenade->v.framerate = 1.0;
-
-		g_Ents[ENTINDEX(pGrenade)].iExplode = NULL;
 
 		SET_ORIGIN(pGrenade, vecStart);
 		SET_MODEL(pGrenade, "models/w_grenade.mdl");
@@ -198,12 +194,7 @@ void Grenade_Explode(edict_t* pGrenade, int bitsDamageType)
 		}
 	}
 
-	int iGrenade = ENTINDEX(pGrenade);
-
-	if (g_Ents[iGrenade].iExplode)
-	{
-		MF_ExecuteForward(g_Ents[iGrenade].iExplode, static_cast<cell>(ENTINDEX(pGrenade)), reinterpret_cast<cell>(&pTrace));
-	}
+	g_Entitys.ExecuteAmxxForward(pGrenade, g_Entitys.FORWARD_EXPLODE, pTrace);
 
 	pGrenade->v.velocity = Vector(0, 0, 0);
 	pGrenade->v.effects |= EF_NODRAW;

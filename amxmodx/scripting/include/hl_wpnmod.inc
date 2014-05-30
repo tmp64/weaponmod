@@ -48,7 +48,6 @@
 
 
 #include <hl_wpnmod_const>
-#include <hl_wpnmod_deprecated>
 #include <fakemeta>
 
 
@@ -129,7 +128,7 @@ native WpnMod_GetAmmoBoxInfo(const iId, const e_AmmoInfo: iInfoType, any:...);
  */
 native WpnMod_GetWeaponNum();
 
- /**
+/**
  * Gets number of registered ammoboxes.
  *
  * @return                 Number of registered ammoboxes. (integer)
@@ -188,7 +187,7 @@ native WpnMod_PlayEmptySound(const iItem);
  * @param iPlayer          Player id.
  * @param szAmmoName       Ammo type. ("9mm", "uranium", "MY_AMMO" etc..)
  *
- * @return				Amount of given ammo. (integer)
+ * @return                 Amount of given ammo. (integer)
 */
 native WpnMod_GetPlayerAmmo(const iPlayer, const szAmmoName[]);
 
@@ -217,190 +216,70 @@ native WpnMod_SendWeaponAnim(const iItem, const iAnim);
  */
 native WpnMod_SetPlayerAnim(const iPlayer, const PLAYER_ANIM: iPlayerAnim);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+/**
+ * Returns a value from entity's private data. Use the e_pvData_* enum.
+ *
+ * @param iEntity          Entity index.
+ * @param iPvData          pvData type.
+ *
+ * @return                 Entity's value from privaate data.
+ */
+native WpnMod_GetPrivateData(const iEntity, const e_pvData: iPvData, any:...);
 
 /**
- * Sets weapon's think function. Analogue of set_task native.
+ * Returns a float value from entity's private data. Use the e_pvData_* enum.
+ *
+ * @param iEntity          Entity index.
+ * @param iPvData          pvData type.
+ *
+ * @return                 Entity's value from privaate data. (float)
+ */
+#define WpnMod_GetPrivateData_f Float:WpnMod_GetPrivateData
+
+/**
+ * Sets a value to entity's private data. Use the e_pvData_* enum.
+ *
+ * @param iEntity           Entity index.
+ * @param iPvData           pvData type.
+*/
+native WpnMod_SetPrivateData(const iEntity, const e_pvData: iPvData, any:...);
+
+/**
+ * Sets entity's think callback. Analogue of set_task native.
  * 
  * Usage: 
- * 	wpnmod_set_think(iItem, "M249_CompleteReload");
- * 	set_pev(iItem, pev_nextthink, get_gametime() + 1.52);
+ * 	WpnMod_SetThink(iItem, "M249_CompleteReload", 1.52);
  *
- * @param iItem				Weapon's entity index.
- * @param szCallBack		The forward to call.
+ * @param iEntity           Entity's index.
+ * @param szCallBack        The forward to call.
+ * @param flNextThink       Time until next think.
  */
-native wpnmod_set_think(const iItem, const szCallBack[]);
+native WpnMod_SetThink(const iEntity, const szCallBack[], const Float: flNextThink = 0.0);
 
 /**
  * Sets entity's touch calback. 
  * 
- * @param iEntity			Entity index.
- * @param szCallBack		The forward to call.
+ * @param iEntity            Entity's index.
+ * @param szCallBack         The forward to call.
+ * @param szToucher          Specify toucher's classname.
  */
-native wpnmod_set_touch(const iEntity, const szCallBack[]);
-
-
-
-
-
-
-
-
-
+native WpnMod_SetTouch(const iEntity, const szCallBack[], const szToucher[] = "");
 
 /**
  * Fire bullets from player's weapon.
  *
- * @param iPlayer			Player index.
- * @param iAttacker			Attacker index (usualy it equal to previous param).
- * @param iShotsCount		Number of shots.
- * @param vecSpread			Spread.
- * @param flDistance		Max shot distance.
- * @param flDamage			Damage amount.
- * @param bitsDamageType	Damage type.
- * @param iTracerFreq		Tracer frequancy.
+ * @param iPlayer            Player index.
+ * @param iAttacker          Attacker index (usualy it equal to previous param).
+ * @param iShotsCount        Number of shots.
+ * @param vecSpread          Spread.
+ * @param flDistance         Max shot distance.
+ * @param flDamage           Damage amount.
+ * @param bitsDamageType     Damage type.
+ * @param iTracerFreq        Tracer frequancy.
  */
-native wpnmod_fire_bullets(const iPlayer, const iAttacker, const iShotsCount, const Float: vecSpread[3], const Float: flDistance, const Float: flDamage, const bitsDamageType, const iTracerFreq);
+native WpnMod_FireBullets(const iPlayer, const iAttacker, const iShotsCount, const Float: vecSpread[3], const Float: flDistance, const Float: flDamage, const bitsDamageType, const iTracerFreq);
 
-/**
- * Fire default contact grenade from player's weapon.
- *
- * @param iPlayer			Player index.
- * @param vecStart			Start position.
- * @param vecVelocity		Velocity.
- * @param szCallBack		The forward to call on explode.
- *
- * @return					Contact grenade index or -1 on failure. (integer)
+/** 
+ * Who put these backwards... (c)
  */
-native wpnmod_fire_contact_grenade(const iPlayer, const Float: vecStart[3], const Float: vecVelocity[3], const szCallBack[] = "");
-
-/**
- * Fire default timed grenade from player's weapon.
- *
- * @param iPlayer			Player index.
- * @param vecStart			Start position.
- * @param vecVelocity		Velocity.
- * @param flTime			Time before detonate.
- * @param szCallBack		The forward to call on explode.
- *
- * @return					Contact grenade index or -1 on failure. (integer)
- */
-native wpnmod_fire_timed_grenade(const iPlayer, const Float: vecStart[3], const Float: vecVelocity[3], const Float: flTime = 3.0, const szCallBack[] = "");
-
-/**
- * Make damage upon entities within a certain range.
- * 	Only damage ents that can clearly be seen by the explosion.
- *
- * @param vecSrc			Origin of explosion.
- * @param iInflictor		Entity which causes the damage impact.
- * @param iAttacker			Attacker index.
- * @param flDamage			Damage amount.
- * @param flRadius			Damage radius.
- * @param iClassIgnore		Class to ignore.
- * @param bitsDamageType	Damage type (DMG_BLAST and etc).
- */
-native wpnmod_radius_damage(const Float: vecSrc[3], const iInflictor, const iAttacker, const Float: flDamage, const Float: flRadius, const iClassIgnore, const bitsDamageType);
-
-/**
- * Same as wpnmod_radius_damage, but blocks 'ghost mines' and 'ghost nades'.
- *
- * @param vecSrc			Origin of explosion.
- * @param iInflictor		Entity which causes the damage impact.
- * @param iAttacker			Attacker index.
- * @param flDamage			Damage amount.
- * @param flRadius			Damage radius.
- * @param iClassIgnore		Class to ignore.
- * @param bitsDamageType	Damage type (DMG_BLAST and etc).
- */
-native wpnmod_radius_damage2(const Float: vecSrc[3], const iInflictor, const iAttacker, const Float: flDamage, const Float: flRadius, const iClassIgnore, const bitsDamageType);
-
-/**
- * Resets the global multi damage accumulator.
- */
- native wpnmod_clear_multi_damage();
-
- /**
- * Inflicts contents of global multi damage register on entity.
- *
- * @param iInflictor		Entity which causes the damage impact.
- * @param iAttacker			Attacker index.
- */
- native wpnmod_apply_multi_damage(const iInflictor, const iAttacker);
-
-/**
- * Eject a brass from player's weapon.
- *
- * @param iPlayer			Player index.
- * @param iShellModelIndex	Index of precached shell's model.
- * @param iSoundtype		Bounce sound type (see defines).
- * @param flForwardScale	Forward scale value.
- * @param flUpScale			Up scale value.
- * @param flRightScale		Right scale value.
- */
-native wpnmod_eject_brass(const iPlayer, const iShellModelIndex, const iSoundtype, const Float: flForwardScale, const Float: flUpScale, const Float: flRightScale);
-
-
-
-
-
-/**
- * Returns index of random damage decal for given entity.
- *
- * @param iEntity		Entity.
- *
- * @return				Index of damage decal. (integer)
- */
-native wpnmod_get_damage_decal(const iEntity);
-
-/**
- * Get player's gun position. Result will set in vecResult.
- *
- * @param iPlayer			Player index.
- * @param vecResult			Calculated gun position.
- * @param flForwardScale	Forward scale value.
- * @param flUpScale			Up scale value.
- * @param flRightScale		Right scale value.
- */
-native wpnmod_get_gun_position(const iPlayer, Float: vecResult[3], const Float: flForwardScale = 1.0, const Float: flRightScale = 1.0, const Float: flUpScale = 1.0);
-
-/**
- * Explode and then remove entity.
- *
- * @param iEntity			Entity index.
- * @param bitsDamageType	Damage type.
- * @param szCallBack		The forward to call on explode.
- */
-native wpnmod_explode_entity(const iEntity, const bitsDamageType = 0, const szCallBack[] = "");
-
-/**
- * Draw decal by index or name on trace end.
- *
- * @param iTrace			Trace handler.
- * @param iDecalIndex		Decal index.
- * @param szDecalName		Decal name.
- */
-native wpnmod_decal_trace(const iTrace, const iDecalIndex = -1, const szDecalName[] = "");
-
-/**
- * Detects the texture of an entity from a direction.
- *
- * @param iEntity			Entity index that we want to get the texture.
- * @param vecSrc			The point from where the trace starts.
- * @param vecEnd			The point where the trace ends.
- * @param szTextureName		Buffer to save the texture name.
- * @param iLen				Buffer's length.
- */
-native wpnmod_trace_texture(const iEntity, const Float: vecSrc[3], const Float: vecEnd[3], szTextureName[], const iLen);
+#include <hl_wpnmod_compat>

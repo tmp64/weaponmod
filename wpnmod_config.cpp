@@ -32,6 +32,7 @@
  */
 
 #include "wpnmod_config.h"
+#include "wpnmod_entity.h"
 #include "wpnmod_hooks.h"
 #include "wpnmod_parse.h"
 
@@ -83,7 +84,6 @@ void CConfig::InitGameMod(void)
 			m_iMaxWeaponSlots = 7;
 		}
 
-		g_Ents = new EntData[gpGlobals->maxEntities + 1];
 		m_pCurrentSlots = new int* [m_iMaxWeaponSlots];
 
 		for (int i = 0; i < m_iMaxWeaponSlots; ++i)
@@ -230,8 +230,7 @@ void CConfig::ServerShutDown(void)
 	{
 		delete [] m_pCurrentSlots[i];
 	}
-	
-	delete [] g_Ents;
+
 	delete [] m_pCurrentSlots;
 }
 
@@ -553,114 +552,3 @@ bool CConfig::ClientCommand(edict_t *pEntity)
 
 	return false;
 }
-
-edict_t* Weapon_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles)
-{
-	if (!szName)
-	{
-		return NULL;
-	}
-
-	int iId = 0;
-	
-	for (int i = 1; i <= g_iWeaponsCount; i++)
-	{
-		if (WeaponInfoArray[i].iType == Wpn_Custom && !_stricmp(GetWeapon_pszName(i), szName))
-		{
-			iId = i;
-			break;
-		}
-	}
-
-	if (!iId)
-	{
-		return NULL;
-	}
-
-	edict_t* pItem = CREATE_NAMED_ENTITY(MAKE_STRING("weapon_crowbar"));
-
-	if (IsValidPev(pItem))
-	{
-		MDLL_Spawn(pItem);
-		SET_ORIGIN(pItem, vecOrigin);
-
-		pItem->v.classname = MAKE_STRING(GetWeapon_pszName(iId));
-		pItem->v.angles = vecAngles;
-
-		SetPrivateInt(pItem, pvData_iId, iId);
-
-		if (GetWeapon_MaxClip(iId) != -1)
-		{
-			SetPrivateInt(pItem, pvData_iClip, 0);
-		}
-
-		if (WeaponInfoArray[iId].iForward[Fwd_Wpn_Spawn])
-		{
-			MF_ExecuteForward
-			(
-				WeaponInfoArray[iId].iForward[Fwd_Wpn_Spawn],
-
-				static_cast<cell>(ENTINDEX(pItem)), 
-				static_cast<cell>(0), 
-				static_cast<cell>(0), 
-				static_cast<cell>(0),
-				static_cast<cell>(0)
-			);
-		}	
-
-		return pItem;
-	}
-
-	return NULL;
-}
-
-edict_t* Ammo_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles)
-{
-	if (!szName)
-	{
-		return NULL;
-	}
-
-	int iId = 0;
-	
-	for (int i = 1; i <= g_iAmmoBoxIndex; i++)
-	{
-		if (!_stricmp(AmmoBoxInfoArray[i].classname.c_str(), szName))
-		{
-			iId = i;
-			break;
-		}
-	}
-
-	if (!iId)
-	{
-		return NULL;
-	}
-
-	edict_t* pAmmoBox = CREATE_NAMED_ENTITY(MAKE_STRING("ammo_rpgclip"));
-
-	if (IsValidPev(pAmmoBox))
-	{
-		MDLL_Spawn(pAmmoBox);
-		SET_ORIGIN(pAmmoBox, vecOrigin);
-
-		pAmmoBox->v.classname = MAKE_STRING(AmmoBoxInfoArray[iId].classname.c_str());
-		pAmmoBox->v.angles = vecAngles;
-
-		if (AmmoBoxInfoArray[iId].iForward[Fwd_Ammo_Spawn])
-		{
-			MF_ExecuteForward
-			(
-				AmmoBoxInfoArray[iId].iForward[Fwd_Ammo_Spawn],
-				static_cast<cell>(ENTINDEX(pAmmoBox)),
-				static_cast<cell>(0)
-			);
-		}
-
-		SET_SIZE(pAmmoBox, Vector(-16, -16, 0), Vector(16, 16, 16));
-		return pAmmoBox;
-	}
-
-	return NULL;
-}
-

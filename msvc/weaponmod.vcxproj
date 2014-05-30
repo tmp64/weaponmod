@@ -108,6 +108,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\sdk\amxxmodule.cpp" />
+    <ClCompile Include="..\wpnmod_entity.cpp" />
     <ClCompile Include="..\wpnmod_log.cpp" />
     <ClCompile Include="..\wpnmod_version.cpp" />
     <ClCompile Include="..\wpnmod_config.cpp" />
@@ -126,6 +127,7 @@
     <ClInclude Include="..\include\CString.h" />
     <ClInclude Include="..\include\CVector.h" />
     <ClInclude Include="..\include\wpnmod_config.h" />
+    <ClInclude Include="..\include\wpnmod_entity.h" />
     <ClInclude Include="..\include\wpnmod_grenade.h" />
     <ClInclude Include="..\include\wpnmod_hooker.h" />
     <ClInclude Include="..\include\wpnmod_hooks.h" />

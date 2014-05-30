@@ -32,9 +32,9 @@
  */
 
 #include "wpnmod_config.h"
+#include "wpnmod_entity.h"
 #include "wpnmod_parse.h"
 #include "wpnmod_hooks.h"
-
 
 
 int AmxxCheckGame(const char* game)
@@ -68,6 +68,7 @@ int WpnMod_Init(void)
 int DispatchSpawn(edict_t *pent)
 {
 	g_Config.InitGameMod();
+	g_Entitys.AllocEntities();
 	g_Config.WorldPrecache();
 
 	RETURN_META_VALUE(MRES_IGNORED, 0);
@@ -89,12 +90,25 @@ void OnAmxxDetach(void)
 {
 	g_Memory.UnsetHooks();
 	g_Config.ServerShutDown();
+	g_Entitys.FreeEntities();
 }
 
-int FN_DecalIndex_Post(const char *name)
+int DecalIndex_Post(const char *name)
 {
 	g_Config.DecalPushList(name);
 	RETURN_META_VALUE(MRES_IGNORED, 0);
+}
+
+void *PvAllocEntPrivateData_Post(edict_t *pEdict, int32 cb)
+{
+	g_Entitys.OnAllocEntPrivateData(pEdict);
+	RETURN_META_VALUE(MRES_IGNORED, 0);
+}
+
+void OnFreeEntPrivateData(edict_t *pEnt)
+{
+	g_Entitys.OnFreeEntPrivateData(pEnt);
+	RETURN_META(MRES_IGNORED);
 }
 
 void ClientCommand(edict_t *pEntity)
@@ -106,18 +120,3 @@ void ClientCommand(edict_t *pEntity)
 
 	RETURN_META(MRES_IGNORED);
 }
-
-void FN_OnFreeEntPrivateData(edict_t *pEnt)
-{
-	if (g_Ents != NULL && IsValidPev(pEnt))
-	{
-		int iEntity = ENTINDEX(pEnt);
-
-		g_Ents[iEntity].iThink = NULL;
-		g_Ents[iEntity].iTouch = NULL;
-		g_Ents[iEntity].iExplode = NULL;
-	}
-
-	RETURN_META(MRES_IGNORED);
-}
-

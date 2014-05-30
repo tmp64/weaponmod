@@ -31,6 +31,7 @@
  *
  */
 
+#include "wpnmod_entity.h"
 #include "wpnmod_parse.h"
 #include "wpnmod_utils.h"
 #include "wpnmod_hooks.h"
@@ -226,7 +227,6 @@ void ParseSpawnPoints()
 				{
 					ammoboxes++;
 				}
-
 			}
 		}
 
@@ -297,9 +297,9 @@ void ParseBSP()
 
 			if (!strcmp(token, "}"))
 			{
-				if (classname.size() && !Ammo_Spawn(classname.c_str(), vecOrigin, vecAngles))
+				if (classname.size())
 				{
-					Weapon_Spawn(classname.c_str(), vecOrigin, vecAngles);
+					Wpnmod_SpawnItem(classname.c_str(), vecOrigin, vecAngles);
 				}
 
 				classname.clear();

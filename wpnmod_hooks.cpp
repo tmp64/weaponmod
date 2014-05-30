@@ -31,6 +31,7 @@
  *
  */
 
+#include "wpnmod_entity.h"
 #include "wpnmod_parse.h"
 #include "wpnmod_utils.h"
 #include "wpnmod_hooks.h"
@@ -50,8 +51,6 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 	VHOOK_CROWBAR(ItemSlot),
 	VHOOK_CROWBAR(IsUseable)
 };
-
-EntData* g_Ents = NULL;
 
 VirtualHookData	g_RpgAddAmmo_Hook		= VHOOK("ammo_rpgclip",		VO_AddAmmo,				AmmoBox_AddAmmo);
 VirtualHookData g_PlayerSpawn_Hook		= VHOOK("player",			VO_Spawn,				Player_Spawn);
@@ -503,8 +502,8 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 	Dll_SetThink(pWeapon, NULL);
 	Dll_SetTouch(pWeapon, NULL);
 
-	g_Ents[ENTINDEX(pWeapon)].iThink = NULL;
-	g_Ents[ENTINDEX(pWeapon)].iTouch = NULL;
+	g_Entitys.SetAmxxForward(pWeapon, g_Entitys.FORWARD_THINK, NULL);
+	g_Entitys.SetAmxxForward(pWeapon, g_Entitys.FORWARD_TOUCH, NULL);
 
 	edict_t* pPlayer = GetPrivateCbase(pWeapon, pvData_pPlayer);
 
@@ -650,7 +649,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 		return RESPAWN(pvItem);
 	}
 	
-	edict_t* pItem = Weapon_Spawn(GetWeapon_pszName(iId), pWeapon->v.origin, pWeapon->v.angles);
+	edict_t* pItem = Wpnmod_SpawnItem(GetWeapon_pszName(iId), pWeapon->v.origin, pWeapon->v.angles);
 
 	if (IsValidPev(pItem))
 	{
@@ -876,43 +875,9 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 
 	pEntity = PrivateToEdict(pvEntity);
 
-	if (!IsValidPev(pEntity))
+	if (IsValidPev(pEntity))
 	{
-		return;
-	}
-
-	int iThinkForward = g_Ents[ENTINDEX(pEntity)].iThink;
-
-	if (iThinkForward)
-	{
-		if (!strstr(STRING(pEntity->v.classname), "weapon_"))
-		{
-			MF_ExecuteForward
-			(
-				iThinkForward,
-
-				static_cast<cell>(ENTINDEX(pEntity)), 
-				static_cast<cell>(-1), 
-				static_cast<cell>(-1), 
-				static_cast<cell>(-1),
-				static_cast<cell>(-1)
-			);
-		}
-		else
-		{
-			edict_t* pPlayer = GetPrivateCbase(pEntity, pvData_pPlayer);
-
-			MF_ExecuteForward
-			(
-				iThinkForward,
-
-				static_cast<cell>(ENTINDEX(pEntity)), 
-				static_cast<cell>(ENTINDEX(pPlayer)), 
-				static_cast<cell>(GetPrivateInt(pEntity, pvData_iClip)), 
-				static_cast<cell>(GetAmmoInventory(pPlayer, PrimaryAmmoIndex(pEntity))),
-				static_cast<cell>(GetAmmoInventory(pPlayer, SecondaryAmmoIndex(pEntity)))
-			);
-		}
+		g_Entitys.ExecuteAmxxForward(pEntity, g_Entitys.FORWARD_THINK);
 	}
 }
 
@@ -929,22 +894,9 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 	pEntity = PrivateToEdict(pvEntity);
 	pOther = PrivateToEdict(pvOther);
 
-	if (!IsValidPev(pEntity))
+	if (IsValidPev(pEntity))
 	{
-		return;
-	}
-
-	int iTouchForward = g_Ents[ENTINDEX(pEntity)].iTouch;
-
-	if (iTouchForward)
-	{
-		MF_ExecuteForward
-		(
-			iTouchForward,
-
-			static_cast<cell>(ENTINDEX(pEntity)), 
-			static_cast<cell>(ENTINDEX(pOther))
-		);
+		g_Entitys.ExecuteAmxxForward(pEntity, g_Entitys.FORWARD_TOUCH, pOther);
 	}
 }
 
@@ -1071,7 +1023,7 @@ void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 		}
 		else
 		{
-			pTempEntity = Weapon_Spawn(STRING(pWeaponEnt->v.classname), Vector(0, 0, 0), Vector(0, 0, 0));
+			pTempEntity = Wpnmod_SpawnItem(STRING(pWeaponEnt->v.classname), Vector(0, 0, 0), Vector(0, 0, 0));
 		}
 
 		if (!IsValidPev(pTempEntity))
@@ -1105,7 +1057,7 @@ void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 }
 
 
-void FN_UpdateClientData_Post(const struct edict_s *ent, int sendweapons, struct clientdata_s *cd)
+void UpdateClientData_Post(const struct edict_s *ent, int sendweapons, struct clientdata_s *cd)
 {
 	if (IsValidPev(ent))
 	{

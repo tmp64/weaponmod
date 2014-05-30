@@ -1694,7 +1694,7 @@ void FN_EngineFprintf_Post(FILE *pfile, char *szFmt, ...);
 #endif // FN_EngineFprintf_Post
 
 #ifdef FN_PvAllocEntPrivateData_Post
-void *FN_PvAllocEntPrivateData_Post(edict_t *pEdict, long cb);
+void *FN_PvAllocEntPrivateData_Post(edict_t *pEdict, int32 cb);
 #endif // FN_PvAllocEntPrivateData_Post
 
 #ifdef FN_PvEntPrivateData_Post

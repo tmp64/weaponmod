@@ -1,6 +1,6 @@
 /*
  * Half-Life Weapon Mod
- * Copyright (c) 2012 AGHL.RU Dev Team
+ * Copyright (c) 2012 - 2014 AGHL.RU Dev Team
  * 
  * http://aghl.ru/forum/ - Russian Half-Life and Adrenaline Gamer Community
  *
@@ -182,4 +182,46 @@ enum e_ItemInfo
 	ItemInfo_szVersion,
 
 	ItemInfo_End
+};
+
+enum e_pvData
+{
+	PV_INT_iChargeReady,
+	PV_INT_iInAttack,
+	PV_INT_iFireState,
+	PV_INT_iFireOnEmpty,
+	PV_INT_iInSpecialReload,
+	PV_INT_iPrimaryAmmoType,
+	PV_INT_iSecondaryAmmoType,
+	PV_INT_iClip,
+	PV_INT_iInReload,
+	PV_INT_iDefaultAmmo,
+	PV_INT_iWeaponVolume,
+	PV_INT_iWeaponFlash,
+	PV_INT_iLastHitGroup,
+	PV_INT_iFOV,
+	PV_INT_iuser1,
+	PV_INT_iuser2,
+	PV_INT_iuser3,
+	PV_INT_iuser4,
+
+	PV_FL_flStartThrow,
+	PV_FL_flReleaseThrow,
+	PV_FL_flPumpTime,
+	PV_FL_flNextPrimaryAttack,
+	PV_FL_flNextSecondaryAttack,
+	PV_FL_flTimeWeaponIdle,
+	PV_FL_flNextAttack,
+	PV_FL_fuser1,
+	PV_FL_fuser2,
+	PV_FL_fuser3,
+	PV_FL_fuser4,
+
+	PV_ENT_pPlayer,
+	PV_ENT_pNext,
+	PV_ENT_rgpPlayerItems,
+	PV_ENT_pActiveItem,
+	PV_ENT_pLastItem,
+
+	PV_SZ_szAnimExtention
 };

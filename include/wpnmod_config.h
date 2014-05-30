@@ -211,9 +211,6 @@ extern cvar_t *cvar_mp_weaponstay;
 
 extern AMX_NATIVE_INFO Natives[];
 
-extern	edict_t* Ammo_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles);
-extern	edict_t* Weapon_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles);
-
 inline int			GetWeapon_Slot(const int iId)			{ return WeaponInfoArray[iId].ItemData.iSlot; }
 inline int			GetWeapon_ItemPosition(const int iId)	{ return WeaponInfoArray[iId].ItemData.iPosition; }
 inline const char*	GetWeapon_pszAmmo1(const int iId)		{ return WeaponInfoArray[iId].ItemData.pszAmmo1; }

@@ -31,6 +31,7 @@
 *
 */
 
+#include "wpnmod_entity.h"
 #include "wpnmod_hooks.h"
 #include "wpnmod_utils.h"
 #include "wpnmod_memory.h"
@@ -225,12 +226,7 @@ void SendWeaponAnim(edict_t* pPlayer, edict_t* pWeapon, int iAnim)
 
 void GiveNamedItem(edict_t* pPlayer, const char* szName)
 {
-	edict_t *pItem = Weapon_Spawn(szName, pPlayer->v.origin, Vector (0, 0, 0));
-
-	if (pItem == NULL)
-	{
-		pItem = Ammo_Spawn(szName, pPlayer->v.origin, Vector (0, 0, 0));
-	}
+	edict_t *pItem = Wpnmod_SpawnItem(szName, pPlayer->v.origin, Vector(0, 0, 0));
 
 	if (IsValidPev(pItem))
 	{

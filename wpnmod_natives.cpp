@@ -31,6 +31,7 @@
  *
  */
 
+#include "wpnmod_entity.h"
 #include "wpnmod_grenade.h"
 #include "wpnmod_config.h"
 #include "wpnmod_utils.h"
@@ -61,101 +62,6 @@
 	}
 
 
-enum e_CBase
-{
-	// Weapon
-	CBase_pPlayer,
-	CBase_pNext,
-
-	// Player
-	CBase_rgpPlayerItems,
-	CBase_pActiveItem,
-	CBase_pLastItem,
-
-	CBase_End
-};
-
-enum e_Offsets
-{
-	// Weapon
-	Offset_flStartThrow,
-	Offset_flReleaseThrow,
-	Offset_iChargeReady,
-	Offset_iInAttack,
-	Offset_iFireState,
-	Offset_iFireOnEmpty,				// true when the gun is empty and the player is still holding down the attack key(s)
-	Offset_flPumpTime,
-	Offset_iInSpecialReload,			// Are we in the middle of a reload for the shotguns
-	Offset_flNextPrimaryAttack,			// soonest time ItemPostFrame will call PrimaryAttack
-	Offset_flNextSecondaryAttack,		// soonest time ItemPostFrame will call SecondaryAttack
-	Offset_flTimeWeaponIdle,			// soonest time ItemPostFrame will call WeaponIdle
-	Offset_iPrimaryAmmoType,			// "primary" ammo index into players m_rgAmmo[]
-	Offset_iSecondaryAmmoType,			// "secondary" ammo index into players m_rgAmmo[]
-	Offset_iClip,						// number of shots left in the primary weapon clip, -1 it not used
-	Offset_iInReload,					// are we in the middle of a reload;
-	Offset_iDefaultAmmo,				// how much ammo you get when you pick up this weapon as placed by a level designer.
-	
-	// Player
-	Offset_flNextAttack,				// cannot attack again until this time
-	Offset_iWeaponVolume,				// how loud the player's weapon is right now
-	Offset_iWeaponFlash,				// brightness of the weapon flash
-	Offset_iLastHitGroup,
-	Offset_iFOV,
-
-	// Custom (for weapon and "info_target" entities only)
-	Offset_iuser1,
-	Offset_iuser2,
-	Offset_iuser3,
-	Offset_iuser4,
-	Offset_fuser1,
-	Offset_fuser2,
-	Offset_fuser3,
-	Offset_fuser4,
-	
-	Offset_End
-};
-
-int NativesCBaseOffsets[CBase_End] =
-{
-	pvData_pPlayer,
-	pvData_pNext,
-	pvData_rgpPlayerItems,
-	pvData_pActiveItem,
-	pvData_pLastItem
-};
-
-int NativesPvDataOffsets[Offset_End] =
-{
-	pvData_flStartThrow,
-	pvData_flReleaseThrow,
-	pvData_chargeReady,
-	pvData_fInAttack,
-	pvData_fireState,
-	pvData_fFireOnEmpty,
-	pvData_flPumpTime,
-	pvData_fInSpecialReload,
-	pvData_flNextPrimaryAttack,
-	pvData_flNextSecondaryAttack,
-	pvData_flTimeWeaponIdle,
-	pvData_iPrimaryAmmoType,
-	pvData_iSecondaryAmmoType,
-	pvData_iClip,
-	pvData_fInReload,
-	pvData_iDefaultAmmo,
-	pvData_flNextAttack,
-	pvData_iWeaponVolume,
-	pvData_iWeaponFlash,
-	pvData_LastHitGroup,
-	pvData_iFOV,
-	pvData_ammo_9mm,
-	pvData_ammo_357,
-	pvData_ammo_bolts,
-	pvData_ammo_buckshot,
-	pvData_ammo_rockets,
-	pvData_ammo_uranium,
-	pvData_ammo_hornets,
-	pvData_ammo_argrens
-};
 
 
 
@@ -180,147 +86,12 @@ int NativesPvDataOffsets[Offset_End] =
 
 
 
-/**
- * Sets weapon's think function. Analogue of set_task native.
- * 
- * Usage: 
- * 	wpnmod_set_think(iItem, "M249_CompleteReload");
- * 	set_pev(iItem, pev_nextthink, get_gametime() + 1.52);
- *
- * @param iItem				Weapon's entity index.
- * @param szCallBack		The forward to call.
- *
- * native wpnmod_set_think(const iItem, const szCallBack[]);
-*/
-AMXX_NATIVE(wpnmod_set_think)
-{
-	int iEntity = params[1];
 
-	CHECK_ENTITY(iEntity)
 
-	char *funcname = MF_GetAmxString(amx, params[2], 0, NULL);
 
-	if (!strlen(funcname))
-	{
-		g_Ents[iEntity].iThink = NULL;
-		Dll_SetThink(INDEXENT2(iEntity), NULL);
-	}
-	else
-	{
-		int iForward = MF_RegisterSPForwardByName
-		(
-			amx, 
-			funcname, 
-			FP_CELL, 
-			FP_CELL, 
-			FP_CELL, 
-			FP_CELL, 
-			FP_CELL, 
-			FP_DONE
-		);
 
-		if (iForward == -1)
-		{
-			MF_LogError(amx, AMX_ERR_NATIVE, "Function not found (\"%s\").", funcname);
-			return 0;
-		}
 
-		g_Ents[iEntity].iThink  = iForward;
-		Dll_SetThink (INDEXENT2(iEntity), (void*)Global_Think );
-	}
 
-	return 1;
-}
-
-/**
- * Sets entity's touch function. 
- * 
- * @param iEntity			Entity index.
- * @param szCallBack		The forward to call.
- *
- * native wpnmod_set_touch(const iEntity, const szCallBack[]);
-*/
-AMXX_NATIVE(wpnmod_set_touch)
-{
-	int iEntity = params[1];
-
-	CHECK_ENTITY(iEntity)
-
-	char *funcname = MF_GetAmxString(amx, params[2], 0, NULL);
-
-	if (!strlen(funcname))
-	{
-		g_Ents[iEntity].iTouch = NULL;
-		Dll_SetTouch(INDEXENT2(iEntity), NULL);
-	}
-	else
-	{
-		int iForward = MF_RegisterSPForwardByName
-		(
-			amx, 
-			funcname, 
-			FP_CELL, 
-			FP_CELL, 
-			FP_DONE
-		);
-
-		if (iForward == -1)
-		{
-			MF_LogError(amx, AMX_ERR_NATIVE, "Function not found (\"%s\").", funcname);
-			return 0;
-		}
-
-		g_Ents[iEntity].iTouch = iForward;
-		Dll_SetTouch(INDEXENT2(iEntity), (void*)Global_Touch);
-	}
-
-	return 1;
-}
-
-/**
- * Fire bullets from player's weapon.
- *
- * @param iPlayer			Player index.
- * @param iAttacker			Attacker index (usualy it equal to previous param).
- * @param iShotsCount		Number of shots.
- * @param vecSpread			Spread.
- * @param flDistance		Max shot distance.
- * @param flDamage			Damage amount.
- * @param bitsDamageType	Damage type.
- * @param iTracerFreq		Tracer frequancy.
- *
- * native wpnmod_fire_bullets(const iPlayer, const iAttacker, const iShotsCount, const Float: vecSpread[3], const Float: flDistance, const Float: flDamage, const bitsDamageType, const iTracerFreq);
-*/
-AMXX_NATIVE(wpnmod_fire_bullets)
-{
-	int iPlayer = params[1];
-	int iAttacker = params[2];
-
-	CHECK_ENTITY(iPlayer)
-	CHECK_ENTITY(iAttacker)
-
-	Vector vecSpread;
-
-	cell *vSpread = MF_GetAmxAddr(amx, params[4]);
-
-	vecSpread.x = amx_ctof(vSpread[0]);
-	vecSpread.y = amx_ctof(vSpread[1]);
-	vecSpread.z = amx_ctof(vSpread[2]);
-
-	FireBulletsPlayer
-	(
-		INDEXENT2(iPlayer), 
-		INDEXENT2(iAttacker), 
-		params[3], 
-		vecSpread, 
-		amx_ctof(params[5]), 
-		amx_ctof(params[6]), 
-		params[7], 
-		params[8]
-	);
-
-	return 1;
-}
 
 /**
  * Same as wpnmod_radius_damage, but blocks 'ghost mines' and 'ghost nades'.
@@ -472,8 +243,6 @@ AMXX_NATIVE(wpnmod_fire_contact_grenade)
 	Vector vecStart;
 	Vector vecVelocity;
 
-	int iGrenadeIndex;
-
 	cell *vStart = MF_GetAmxAddr(amx, params[2]);
 	cell *vVelocity = MF_GetAmxAddr(amx, params[3]);
 
@@ -489,8 +258,6 @@ AMXX_NATIVE(wpnmod_fire_contact_grenade)
 
 	if (IsValidPev(pGrenade))
 	{
-		iGrenadeIndex = ENTINDEX(pGrenade);
-
 		char *funcname = MF_GetAmxString(amx, params[4], 0, NULL);
 
 		if (funcname)
@@ -504,10 +271,10 @@ AMXX_NATIVE(wpnmod_fire_contact_grenade)
 				FP_DONE
 			);
 
-			g_Ents[iGrenadeIndex].iExplode = iForward == -1 ? NULL : iForward;
+			g_Entitys.SetAmxxForward(pGrenade, g_Entitys.FORWARD_EXPLODE, iForward == -1 ? NULL : iForward);
 		}
 
-		return iGrenadeIndex;
+		return ENTINDEX(pGrenade);
 	}
 
 	return -1;
@@ -533,8 +300,6 @@ AMXX_NATIVE(wpnmod_fire_timed_grenade)
 	Vector vecStart;
 	Vector vecVelocity;
 
-	int iGrenadeIndex;
-
 	cell *vStart = MF_GetAmxAddr(amx, params[2]);
 	cell *vVelocity = MF_GetAmxAddr(amx, params[3]);
 
@@ -550,8 +315,6 @@ AMXX_NATIVE(wpnmod_fire_timed_grenade)
 
 	if (IsValidPev(pGrenade))
 	{
-		iGrenadeIndex = ENTINDEX(pGrenade);
-
 		char *funcname = MF_GetAmxString(amx, params[5], 0, NULL);
 
 		if (funcname)
@@ -565,7 +328,7 @@ AMXX_NATIVE(wpnmod_fire_timed_grenade)
 				FP_DONE
 			);
 
-			g_Ents[iGrenadeIndex].iExplode = iForward == -1 ? NULL : iForward;
+			g_Entitys.SetAmxxForward(pGrenade, g_Entitys.FORWARD_EXPLODE, iForward == -1 ? NULL : iForward);
 		}
 
 		return ENTINDEX(pGrenade);
@@ -633,7 +396,7 @@ AMXX_NATIVE(wpnmod_explode_entity)
 			FP_DONE
 		);
 
-		g_Ents[params[1]].iExplode = iForward == -1 ? NULL : iForward;
+		g_Entitys.SetAmxxForward(INDEXENT2(params[1]), g_Entitys.FORWARD_EXPLODE, iForward == -1 ? NULL : iForward);
 	}
 
 	Grenade_Explode(INDEXENT2(params[1]), params[2]);
@@ -784,6 +547,102 @@ AMXX_NATIVE(wpnmod_precache_model_sequences)
 
 namespace DeprecatedNatives
 {
+	enum e_CBase
+	{
+		// Weapon
+		CBase_pPlayer,
+		CBase_pNext,
+
+		// Player
+		CBase_rgpPlayerItems,
+		CBase_pActiveItem,
+		CBase_pLastItem,
+
+		CBase_End
+	};
+
+	enum e_Offsets
+	{
+		// Weapon
+		Offset_flStartThrow,
+		Offset_flReleaseThrow,
+		Offset_iChargeReady,
+		Offset_iInAttack,
+		Offset_iFireState,
+		Offset_iFireOnEmpty,				// true when the gun is empty and the player is still holding down the attack key(s)
+		Offset_flPumpTime,
+		Offset_iInSpecialReload,			// Are we in the middle of a reload for the shotguns
+		Offset_flNextPrimaryAttack,			// soonest time ItemPostFrame will call PrimaryAttack
+		Offset_flNextSecondaryAttack,		// soonest time ItemPostFrame will call SecondaryAttack
+		Offset_flTimeWeaponIdle,			// soonest time ItemPostFrame will call WeaponIdle
+		Offset_iPrimaryAmmoType,			// "primary" ammo index into players m_rgAmmo[]
+		Offset_iSecondaryAmmoType,			// "secondary" ammo index into players m_rgAmmo[]
+		Offset_iClip,						// number of shots left in the primary weapon clip, -1 it not used
+		Offset_iInReload,					// are we in the middle of a reload;
+		Offset_iDefaultAmmo,				// how much ammo you get when you pick up this weapon as placed by a level designer.
+
+		// Player
+		Offset_flNextAttack,				// cannot attack again until this time
+		Offset_iWeaponVolume,				// how loud the player's weapon is right now
+		Offset_iWeaponFlash,				// brightness of the weapon flash
+		Offset_iLastHitGroup,
+		Offset_iFOV,
+
+		// Custom (for weapon and "info_target" entities only)
+		Offset_iuser1,
+		Offset_iuser2,
+		Offset_iuser3,
+		Offset_iuser4,
+		Offset_fuser1,
+		Offset_fuser2,
+		Offset_fuser3,
+		Offset_fuser4,
+
+		Offset_End
+	};
+
+	int NativesCBaseOffsets[CBase_End] =
+	{
+		pvData_pPlayer,
+		pvData_pNext,
+		pvData_rgpPlayerItems,
+		pvData_pActiveItem,
+		pvData_pLastItem
+	};
+
+	int NativesPvDataOffsets[Offset_End] =
+	{
+		pvData_flStartThrow,
+		pvData_flReleaseThrow,
+		pvData_chargeReady,
+		pvData_fInAttack,
+		pvData_fireState,
+		pvData_fFireOnEmpty,
+		pvData_flPumpTime,
+		pvData_fInSpecialReload,
+		pvData_flNextPrimaryAttack,
+		pvData_flNextSecondaryAttack,
+		pvData_flTimeWeaponIdle,
+		pvData_iPrimaryAmmoType,
+		pvData_iSecondaryAmmoType,
+		pvData_iClip,
+		pvData_fInReload,
+		pvData_iDefaultAmmo,
+		pvData_flNextAttack,
+		pvData_iWeaponVolume,
+		pvData_iWeaponFlash,
+		pvData_LastHitGroup,
+		pvData_iFOV,
+		pvData_ammo_9mm,
+		pvData_ammo_357,
+		pvData_ammo_bolts,
+		pvData_ammo_buckshot,
+		pvData_ammo_rockets,
+		pvData_ammo_uranium,
+		pvData_ammo_hornets,
+		pvData_ammo_argrens
+	};
+
 	/**
 	 * Set animation extension for player.
 	 *
@@ -950,6 +809,96 @@ namespace DeprecatedNatives
 		}
 
 		return -1;
+	}
+
+	/**
+	* Sets weapon's think function. Analogue of set_task native.
+	*
+	* Usage:
+	* 	wpnmod_set_think(iItem, "M249_CompleteReload");
+	* 	set_pev(iItem, pev_nextthink, get_gametime() + 1.52);
+	*
+	* @param iItem				Weapon's entity index.
+	* @param szCallBack		The forward to call.
+	*
+	* native wpnmod_set_think(const iItem, const szCallBack[]);
+	*/
+	AMXX_NATIVE(wpnmod_set_think)
+	{
+		int iEntity = params[1];
+
+		CHECK_ENTITY(iEntity)
+
+		char *funcname = MF_GetAmxString(amx, params[2], 0, NULL);
+
+		if (!strlen(funcname))
+		{
+			Dll_SetThink(INDEXENT2(iEntity), NULL);
+			g_Entitys.SetAmxxForward(INDEXENT2(iEntity), g_Entitys.FORWARD_THINK, NULL);
+		}
+		else
+		{
+			int iForward = MF_RegisterSPForwardByName
+				(
+				amx,
+				funcname,
+				FP_CELL,
+				FP_CELL,
+				FP_CELL,
+				FP_CELL,
+				FP_CELL,
+				FP_DONE
+				);
+
+			if (iForward == -1)
+			{
+				MF_LogError(amx, AMX_ERR_NATIVE, "Function not found (\"%s\").", funcname);
+				return 0;
+			}
+
+			Dll_SetThink(INDEXENT2(iEntity), (void*)Global_Think);
+			g_Entitys.SetAmxxForward(INDEXENT2(iEntity), g_Entitys.FORWARD_THINK, iForward);
+		}
+
+		return 1;
+	}
+
+	/**
+	* Sets entity's touch function.
+	*
+	* @param iEntity			Entity index.
+	* @param szCallBack		The forward to call.
+	*
+	* native wpnmod_set_touch(const iEntity, const szCallBack[]);
+	*/
+	AMXX_NATIVE(wpnmod_set_touch)
+	{
+		int iEntity = params[1];
+
+		CHECK_ENTITY(iEntity)
+
+		char *funcname = MF_GetAmxString(amx, params[2], 0, NULL);
+
+		if (!strlen(funcname))
+		{
+			Dll_SetTouch(INDEXENT2(iEntity), NULL);
+			g_Entitys.SetAmxxForward(INDEXENT2(iEntity), g_Entitys.FORWARD_TOUCH, NULL);
+		}
+		else
+		{
+			int iForward = MF_RegisterSPForwardByName(amx, funcname, FP_CELL, FP_CELL, FP_DONE);
+
+			if (iForward == -1)
+			{
+				MF_LogError(amx, AMX_ERR_NATIVE, "Function not found (\"%s\").", funcname);
+				return 0;
+			}
+
+			Dll_SetTouch(INDEXENT2(iEntity), (void*)Global_Touch);
+			g_Entitys.SetAmxxForward(INDEXENT2(iEntity), g_Entitys.FORWARD_TOUCH, iForward);
+		}
+
+		return 1;
 	}
 }
 
@@ -1544,20 +1493,11 @@ namespace NewNatives
 		vecAngles.y = amx_ctof(vAngles[1]);
 		vecAngles.z = amx_ctof(vAngles[2]);
 
-		edict_t* iItem = Weapon_Spawn(itemname, vecOrigin, vecAngles);
+		edict_t* iItem = Wpnmod_SpawnItem(itemname, vecOrigin, vecAngles);
 
 		if (IsValidPev(iItem))
 		{
 			return ENTINDEX(iItem);
-		}
-		else
-		{
-			edict_t* iItem = Ammo_Spawn(itemname, vecOrigin, vecAngles);
-
-			if (IsValidPev(iItem))
-			{
-				return ENTINDEX(iItem);
-			}
 		}
 
 		return -1;
@@ -1951,6 +1891,95 @@ namespace NewNatives
 		MF_LogError(amx, AMX_ERR_NATIVE, "Unknown e_pvData index or return combination %d", iSwitch);
 		return 0;
 	}
+
+	/**
+	* Sets entity's think function. Analogue of set_task native.
+	*
+	* Usage:
+	* 	WpnMod_SetThink(iItem, "M249_CompleteReload", 1.52);
+	*
+	* @param iEntity           Weapon's entity index.
+	* @param szCallBack        The forward to call.
+	* @param flNextThink       Time until next think.
+	*
+	* native WpnMod_SetThink(const iEntity, const szCallBack[], const Float: flNextThink = 0.0);
+	*/
+	AMXX_NATIVE(WpnMod_SetThink)
+	{
+		DeprecatedNatives::wpnmod_set_think(amx, params);
+
+		float flNextThink = amx_ctof(params[3]);
+
+		if (flNextThink > 0.0)
+		{
+			INDEXENT2(params[1])->v.nextthink = gpGlobals->time + flNextThink;
+		}
+
+		return 1;
+	}
+
+	/**
+	* Sets entity's touch calback.
+	*
+	* @param iEntity            Entity index.
+	* @param szCallBack         The forward to call.
+	* @param szToucher          Specify toucher's classname.
+	*
+	* native WpnMod_SetTouch(const iEntity, const szCallBack[], const szToucher[] = "");
+	*/
+	AMXX_NATIVE(WpnMod_SetTouch)
+	{
+		DeprecatedNatives::wpnmod_set_touch(amx, params);
+
+		// TODO: implement classname filtration.
+
+		return 1;
+	}
+
+	/**
+	* Fire bullets from player's weapon.
+	*
+	* @param iPlayer			Player index.
+	* @param iAttacker			Attacker index (usualy it equal to previous param).
+	* @param iShotsCount		Number of shots.
+	* @param vecSpread			Spread.
+	* @param flDistance		Max shot distance.
+	* @param flDamage			Damage amount.
+	* @param bitsDamageType	Damage type.
+	* @param iTracerFreq		Tracer frequancy.
+	*
+	* native WpnMod_FireBullets(const iPlayer, const iAttacker, const iShotsCount, const Float: vecSpread[3], const Float: flDistance, const Float: flDamage, const bitsDamageType, const iTracerFreq);
+	*/
+	AMXX_NATIVE(WpnMod_FireBullets)
+	{
+		int iPlayer = params[1];
+		int iAttacker = params[2];
+
+		CHECK_ENTITY(iPlayer)
+			CHECK_ENTITY(iAttacker)
+
+			Vector vecSpread;
+
+		cell *vSpread = MF_GetAmxAddr(amx, params[4]);
+
+		vecSpread.x = amx_ctof(vSpread[0]);
+		vecSpread.y = amx_ctof(vSpread[1]);
+		vecSpread.z = amx_ctof(vSpread[2]);
+
+		FireBulletsPlayer
+			(
+			INDEXENT2(iPlayer),
+			INDEXENT2(iAttacker),
+			params[3],
+			vecSpread,
+			amx_ctof(params[5]),
+			amx_ctof(params[6]),
+			params[7],
+			params[8]
+			);
+
+		return 1;
+	}
 }
 
 AMX_NATIVE_INFO Natives[] = 
@@ -1982,17 +2011,16 @@ AMX_NATIVE_INFO Natives[] =
 	{ "wpnmod_set_player_ammo",				NewNatives::WpnMod_SetPlayerAmmo				},
 	{ "wpnmod_send_weapon_anim",			NewNatives::WpnMod_SendWeaponAnim				},
 	{ "wpnmod_set_player_anim",				NewNatives::WpnMod_SetPlayerAnim				},
-	
-	
-	
+	{ "wpnmod_set_think",					DeprecatedNatives::wpnmod_set_think				},
+	{ "wpnmod_set_touch",					DeprecatedNatives::wpnmod_set_touch				},
+	{ "wpnmod_fire_bullets",				NewNatives::WpnMod_FireBullets					},
 	
 
 
 	
 	
-	{ "wpnmod_set_think", wpnmod_set_think},
-	{ "wpnmod_set_touch", wpnmod_set_touch},
-	{ "wpnmod_fire_bullets", wpnmod_fire_bullets},
+	
+	
 	{ "wpnmod_fire_contact_grenade", wpnmod_fire_contact_grenade},
 	{ "wpnmod_fire_timed_grenade", wpnmod_fire_timed_grenade},
 	{ "wpnmod_radius_damage", wpnmod_radius_damage},
@@ -2028,12 +2056,12 @@ AMX_NATIVE_INFO Natives[] =
 	{ "WpnMod_SetPlayerAmmo",				NewNatives::WpnMod_SetPlayerAmmo				},
 	{ "WpnMod_SendWeaponAnim",				NewNatives::WpnMod_SendWeaponAnim				},
 	{ "WpnMod_SetPlayerAnim",				NewNatives::WpnMod_SetPlayerAnim				},
-	
-	
-	
-	
 	{ "WpnMod_GetPrivateData",				NewNatives::WpnMod_GetPrivateData				},
 	{ "WpnMod_SetPrivateData",				NewNatives::WpnMod_SetPrivateData				},
+	{ "WpnMod_SetThink",					NewNatives::WpnMod_SetThink						},
+	{ "WpnMod_SetTouch",					NewNatives::WpnMod_SetTouch						},
+	{ "WpnMod_FireBullets",					NewNatives::WpnMod_FireBullets					},
+
 
 	// { "wpnmod_precache_model_sequences", wpnmod_precache_model_sequences},
 
