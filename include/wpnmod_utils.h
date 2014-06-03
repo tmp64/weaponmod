@@ -69,6 +69,7 @@ inline int SecondaryAmmoIndex(edict_t *pEntity)
 }
 
 extern edict_t*	INDEXENT2			(int iEdictNum);
+extern edict_t* GiveNamedItem		(edict_t* pPlayer, const char* szName);
 
 extern	bool	SwitchWeapon		(edict_t* pPlayer, edict_t* pWeapon);
 extern	bool	Entity_IsInWorld	(edict_t* pEntity);
@@ -76,7 +77,6 @@ extern	bool	GetNextBestWeapon	(edict_t* pPlayer, edict_t* pCurrentWeapon);
 
 extern	void	SelectItem			(edict_t* pPlayer, const char* pstr);
 extern	void	RadiusDamage2		(Vector vecSrc, edict_t* pInflictor, edict_t* pAttacker, float flDamage, float flRadius, int iClassIgnore, int bitsDamageType);
-extern	void	GiveNamedItem		(edict_t* pPlayer, const char* szName);
 extern	void	SendWeaponAnim		(edict_t* pPlayer, edict_t* pWeapon, int iAnim);
 extern	void	SelectLastItem		(edict_t* pPlayer);
 extern	void	UTIL_EjectBrass		(const Vector &vecOrigin, const Vector &vecVelocity, float rotation, int model, int soundtype);

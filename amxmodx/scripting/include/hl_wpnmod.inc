@@ -147,6 +147,30 @@ native WpnMod_GetAmmoBoxNum();
 native WpnMod_CreateItem(const szClassName[], const Float: vecOrigin[3] = {0.0, 0.0, 0.0}, const Float: vecAngles[3] = {0.0, 0.0, 0.0});
 
 /**
+ * Gives a single item to player.
+ * 
+ * Usage:
+ *	// Giving a crowbar to player.
+ * 	WpnMod_GiveItem(iPlayer, "weapon_crowbar");
+ *
+ * @param iPlayer          Player index.
+ *
+ * @return                 Item entity index or -1 on failure. (integer)
+ */
+native WpnMod_GiveItem(const iPlayer, const szItemName[]);
+
+/**
+ * Gives a multiple items to player.
+ * 
+ * Usage:
+ *	// Giving one crowbar and two automatic rifles to player.
+ * 	WpnMod_GiveEquip(iPlayer, "weapon_crowbar", "weapon_9mmAR:2");
+ *
+ * @param iPlayer            Player index.
+ */
+native WpnMod_GiveEquip(const iPlayer, const any: ...);
+
+/**
  * Default deploy function.
  *
  * @param iItem            Weapon's entity index.
@@ -224,7 +248,7 @@ native WpnMod_SetPlayerAnim(const iPlayer, const PLAYER_ANIM: iPlayerAnim);
  *
  * @return                 Entity's value from privaate data.
  */
-native WpnMod_GetPrivateData(const iEntity, const e_pvData: iPvData, any:...);
+native WpnMod_GetPrivateData(const iEntity, const e_pvData: iPvData, any: ...);
 
 /**
  * Returns a float value from entity's private data. Use the e_pvData_* enum.
@@ -239,10 +263,10 @@ native WpnMod_GetPrivateData(const iEntity, const e_pvData: iPvData, any:...);
 /**
  * Sets a value to entity's private data. Use the e_pvData_* enum.
  *
- * @param iEntity           Entity index.
- * @param iPvData           pvData type.
+ * @param iEntity          Entity index.
+ * @param iPvData          pvData type.
 */
-native WpnMod_SetPrivateData(const iEntity, const e_pvData: iPvData, any:...);
+native WpnMod_SetPrivateData(const iEntity, const e_pvData: iPvData, const any: ...);
 
 /**
  * Sets entity's think callback. Analogue of set_task native.
@@ -250,32 +274,32 @@ native WpnMod_SetPrivateData(const iEntity, const e_pvData: iPvData, any:...);
  * Usage: 
  * 	WpnMod_SetThink(iItem, "M249_CompleteReload", 1.52);
  *
- * @param iEntity           Entity's index.
- * @param szCallBack        The forward to call.
- * @param flNextThink       Time until next think.
+ * @param iEntity          Entity's index.
+ * @param szCallBack       The forward to call.
+ * @param flNextThink      Time until next think.
  */
 native WpnMod_SetThink(const iEntity, const szCallBack[], const Float: flNextThink = 0.0);
 
 /**
  * Sets entity's touch calback. 
  * 
- * @param iEntity            Entity's index.
- * @param szCallBack         The forward to call.
- * @param szToucher          Specify toucher's classname.
+ * @param iEntity          Entity's index.
+ * @param szCallBack       The forward to call.
+ * @param szToucher        Specify toucher's classname.
  */
 native WpnMod_SetTouch(const iEntity, const szCallBack[], const szToucher[] = "");
 
 /**
  * Fire bullets from player's weapon.
  *
- * @param iPlayer            Player index.
- * @param iAttacker          Attacker index (usualy it equal to previous param).
- * @param iShotsCount        Number of shots.
- * @param vecSpread          Spread.
- * @param flDistance         Max shot distance.
- * @param flDamage           Damage amount.
- * @param bitsDamageType     Damage type.
- * @param iTracerFreq        Tracer frequancy.
+ * @param iPlayer          Player index.
+ * @param iAttacker        Attacker index (usualy it equal to previous param).
+ * @param iShotsCount      Number of shots.
+ * @param vecSpread        Spread.
+ * @param flDistance       Max shot distance.
+ * @param flDamage         Damage amount.
+ * @param bitsDamageType   Damage type.
+ * @param iTracerFreq      Tracer frequancy.
  */
 native WpnMod_FireBullets(const iPlayer, const iAttacker, const iShotsCount, const Float: vecSpread[3], const Float: flDistance, const Float: flDamage, const bitsDamageType, const iTracerFreq);
 

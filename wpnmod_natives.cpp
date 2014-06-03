@@ -36,6 +36,7 @@
 #include "wpnmod_config.h"
 #include "wpnmod_utils.h"
 #include "wpnmod_hooks.h"
+#include "wpnmod_parse.h"
 
 
 #define AMXX_NATIVE(x) static cell AMX_NATIVE_CALL x (AMX *amx, cell *params)
@@ -1967,7 +1968,7 @@ namespace NewNatives
 		vecSpread.z = amx_ctof(vSpread[2]);
 
 		FireBulletsPlayer
-			(
+		(
 			INDEXENT2(iPlayer),
 			INDEXENT2(iAttacker),
 			params[3],
@@ -1976,7 +1977,73 @@ namespace NewNatives
 			amx_ctof(params[6]),
 			params[7],
 			params[8]
-			);
+		);
+
+		return 1;
+	}
+
+	/**
+	* Gives a single item to player.
+	*
+	* Usage:
+	*	// Giving a crowbar to player.
+	* 	WpnMod_GiveItem(iPlayer, "weapon_crowbar");
+	*
+	* @param iPlayer          Player index.
+	* @return                 Item entity index or -1 on failure. (integer)
+	*
+	* native WpnMod_GiveItem(const iPlayer, const szItemName[]);
+	*/
+	AMXX_NATIVE(WpnMod_GiveItem)
+	{
+		CHECK_ENTITY(params[1])
+
+		edict_t* pItem = GiveNamedItem(INDEXENT2(params[1]), STRING(ALLOC_STRING(MF_GetAmxString(amx, params[2], 0, NULL))));
+
+		if (IsValidPev(pItem))
+		{
+			return ENTINDEX(pItem);
+		}
+
+		return -1;
+	}
+
+	/**
+	* Gives multiple items to player.
+	*
+	* Usage:
+	*	// giving one crowbar and two automatic rifles to player.
+	* 	WpnMod_GiveEquipment(iPlayer, "weapon_crowbar", "weapon_9mmAR:2");
+	*
+	* @param iPlayer            Player index.
+	*
+	* native WpnMod_GiveEquip(const iPlayer, const any: ...);
+	*/
+	AMXX_NATIVE(WpnMod_GiveEquip)
+	{
+		CHECK_ENTITY(params[1])
+
+		edict_t* pItem = NULL;
+		edict_t* pPlayer = INDEXENT2(params[1]);
+
+		String itemRead, itemName;
+		size_t paramnum = params[0] / sizeof(cell);
+
+		for (int itemCount, pos, i = 2; i <= (int)paramnum; i++)
+		{
+			itemRead.assign(STRING(ALLOC_STRING(MF_GetAmxString(amx, params[i], 0, NULL))));
+
+			pos = itemRead.find(':');
+
+			itemName = itemRead.substr(0, pos);
+			itemCount = (pos == -1) ? 1 : atoi(itemRead.substr(pos + 1).c_str());
+			itemName.trim();
+
+			for (int j = 0; j < itemCount; j++)
+			{
+				GiveNamedItem(pPlayer, itemName.c_str());
+			}
+		}
 
 		return 1;
 	}
@@ -2061,6 +2128,8 @@ AMX_NATIVE_INFO Natives[] =
 	{ "WpnMod_SetThink",					NewNatives::WpnMod_SetThink						},
 	{ "WpnMod_SetTouch",					NewNatives::WpnMod_SetTouch						},
 	{ "WpnMod_FireBullets",					NewNatives::WpnMod_FireBullets					},
+	{ "WpnMod_GiveItem",					NewNatives::WpnMod_GiveItem						},
+	{ "WpnMod_GiveEquip",					NewNatives::WpnMod_GiveEquip					},
 
 
 	// { "wpnmod_precache_model_sequences", wpnmod_precache_model_sequences},

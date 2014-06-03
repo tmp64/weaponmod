@@ -95,18 +95,10 @@
 #ifdef WIN32
 
 	typedef int		(__fastcall	*FuncPackWeapon)			(void*, DUMMY, void*);
-	typedef void	(__fastcall	*FuncGiveNamedItem)			(void*, DUMMY, const char*);
 	typedef void	(__fastcall *FuncSetAnimation)			(void*, DUMMY, int);
 
 	int		__fastcall	PackWeapon_HookHandler				(void* pvWpnBox, int DUMMY, void* pvWeapon);
 	void	__fastcall	GiveNamedItem_HookHandler			(void* pvPlayer, int DUMMY, const char* szName);
-	
-	// void CBasePlayer::GiveNamedItem(const char *pszName)
-	//
-		inline void GIVE_NAMED_ITEM(void* pvPlayer, const char* szClassname)
-		{
-			reinterpret_cast<FuncGiveNamedItem>(g_fh_GiveNamedItem.address)(pvPlayer, DUMMY_VAL, szClassname);
-		}
 
 	// BOOL CWeaponBox::PackWeapon(CBasePlayerItem *pWeapon)
 	//
@@ -125,18 +117,10 @@
 #else
 
 	typedef int		(*FuncPackWeapon)			(void*, void*);
-	typedef void	(*FuncGiveNamedItem)		(void*, const char *);
 	typedef void	(*FuncSetAnimation)			(void*, int);
 
 	int		PackWeapon_HookHandler				(void *pvWpnBox, void *pvWeapon);
 	void	GiveNamedItem_HookHandler			(void* pvPlayer, const char *szName);
-	
-	// void CBasePlayer::GiveNamedItem(const char *pszName)
-	//
-		inline void GIVE_NAMED_ITEM(void* pvPlayer, const char *szClassname)
-		{
-			reinterpret_cast<FuncGiveNamedItem>(g_fh_GiveNamedItem.address)(pvPlayer, szClassname);
-		}
 
 	// BOOL CWeaponBox::PackWeapon(CBasePlayerItem *pWeapon)
 	//

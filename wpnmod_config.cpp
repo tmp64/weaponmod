@@ -501,12 +501,8 @@ bool CConfig::ClientCommand(edict_t *pEntity)
 	}
 	else if (!_stricmp(cmd, "give") && cvar_sv_cheats && cvar_sv_cheats->value)
 	{
-		const char* item = CMD_ARGV(1);
-
-		if (item)
-		{
-			GiveNamedItem(pEntity, item);
-		}
+		GiveNamedItem(pEntity, CMD_ARGV(1));
+		return true;
 	}
 	else if (!_stricmp(cmd, "wpnmod"))
 	{

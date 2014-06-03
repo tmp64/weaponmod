@@ -224,13 +224,26 @@ void SendWeaponAnim(edict_t* pPlayer, edict_t* pWeapon, int iAnim)
 	}
 }
 
-void GiveNamedItem(edict_t* pPlayer, const char* szName)
+edict_t* GiveNamedItem(edict_t* pPlayer, const char* szName)
 {
+	bool bSpawn = false;
 	edict_t *pItem = Wpnmod_SpawnItem(szName, pPlayer->v.origin, Vector(0, 0, 0));
+
+	if (!IsValidPev(pItem))
+	{
+		bSpawn = true;
+		pItem = CREATE_NAMED_ENTITY(MAKE_STRING(STRING(ALLOC_STRING(szName))));
+	}
 
 	if (IsValidPev(pItem))
 	{
 		pItem->v.spawnflags |= SF_NORESPAWN;
+
+		if (bSpawn)
+		{
+			MDLL_Spawn(pItem);
+		}
+
 		MDLL_Touch(pItem, pPlayer);
 
 		if (pItem->v.modelindex)
@@ -238,6 +251,8 @@ void GiveNamedItem(edict_t* pPlayer, const char* szName)
 			UTIL_RemoveEntity(pItem);
 		}
 	}
+
+	return pItem;
 }
 
 bool Entity_IsInWorld(edict_t* pEntity)

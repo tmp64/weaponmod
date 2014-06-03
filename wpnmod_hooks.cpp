@@ -774,21 +774,33 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 		// Check for cheat impulse command.
 		if (pPlayer->v.impulse == 101 && cvar_sv_cheats && cvar_sv_cheats->value)
 		{
+			GiveNamedItem(pPlayer, "item_suit");
+			GiveNamedItem(pPlayer, "item_battery");
+			GiveNamedItem(pPlayer, "item_healthkit");
+
+			pPlayer->v.health = pPlayer->v.max_health;
+			pPlayer->v.armorvalue = pPlayer->v.max_health;
+
 			for (int k = 1; k <= g_iWeaponsCount; k++)
 			{
 				GiveNamedItem(pPlayer, GetWeapon_pszName(k));
+
+				if (GetWeapon_MaxAmmo1(k) != -1)
+				{
+					SetAmmoInventory(pPlayer, GET_AMMO_INDEX(GetWeapon_pszAmmo1(k)), GetWeapon_MaxAmmo1(k));
+				}
+
+				if (GetWeapon_MaxAmmo2(k) != -1)
+				{
+					SetAmmoInventory(pPlayer, GET_AMMO_INDEX(GetWeapon_pszAmmo2(k)), GetWeapon_MaxAmmo2(k));
+				}
 			}
 
-			for (int k = 1; k <= g_iAmmoBoxIndex; k++)
-			{
-				GiveNamedItem(pPlayer, AmmoBoxInfoArray[k].classname.c_str());
-			}
+			pPlayer->v.impulse = 0;
 		}
 	}
 
 	PLAYER_POST_THINK(pvPlayer);
-
-	pPlayer->v.impulse = 0;
 
 	/*
 	edict_t* pActiveItem = GetPrivateCbase(pPlayer, pvData_pActiveItem);
@@ -941,16 +953,7 @@ void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 	void GiveNamedItem_HookHandler(void *pvPlayer, const char *szName)
 #endif
 {
-	if (szName)
-	{
-		GiveNamedItem(PrivateToEdict(pvPlayer), szName);
-	}
-
-	if (UnsetHook(&g_fh_GiveNamedItem))
-	{
-		GIVE_NAMED_ITEM(pvPlayer, szName);
-		SetHook(&g_fh_GiveNamedItem);
-	}
+	GiveNamedItem(PrivateToEdict(pvPlayer), szName);
 }
 
 
