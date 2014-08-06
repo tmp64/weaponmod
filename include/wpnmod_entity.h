@@ -137,7 +137,7 @@ public:
 
 			for (int i = 0; i < (int)pFields.size(); i++)
 			{
-				if (!_strcmpi(pFields[i]->pKey, pKey))
+				if (!strcmp(pFields[i]->pKey, pKey))
 				{
 					return pFields[i]->pValue;
 				}
