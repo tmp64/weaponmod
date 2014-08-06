@@ -89,4 +89,9 @@ extern	int		SetAmmoInventory	(edict_t* pPlayer, int iAmmoIndex, int iAmount);
 
 extern	bool	FileExists			(const char *dir);
 
+
+#ifndef min
+#define min(a,b) (((a) < (b)) ? (a) : (b))
+#endif
+
 #endif // _UTILS_H
