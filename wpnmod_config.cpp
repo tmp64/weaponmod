@@ -94,7 +94,7 @@ void CConfig::InitGameMod(void)
 		cvar_t version = 
 		{
 			"hl_wpnmod_version",
-			Plugin_info.version,
+			(char *)Plugin_info.version,
 			FCVAR_SERVER
 		};
 
