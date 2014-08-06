@@ -68,7 +68,7 @@ private:
 		int m_iTouch;
 		int m_iExplode;
 
-		CVector <EntField*> m_pFields;
+		std::vector <EntField*> m_pFields;
 	};
 
 	bool m_bAlloced;
@@ -133,7 +133,7 @@ public:
 	{
 		if (IsEntityValid(pEdict))
 		{
-			CVector <EntField*> pFields = m_EntsData[ENTINDEX(pEdict)]->m_pFields;
+			std::vector <EntField*> pFields = m_EntsData[ENTINDEX(pEdict)]->m_pFields;
 
 			for (int i = 0; i < (int)pFields.size(); i++)
 			{

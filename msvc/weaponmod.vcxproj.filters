@@ -72,9 +72,6 @@
     <ClInclude Include="..\include\CString.h">
       <Filter>Module SDK\AMXX STL</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\CVector.h">
-      <Filter>Module SDK\AMXX STL</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\wpnmod_hooks.h">
       <Filter>Header Files</Filter>
     </ClInclude>

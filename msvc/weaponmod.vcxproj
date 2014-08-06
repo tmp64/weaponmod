@@ -125,7 +125,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\CString.h" />
-    <ClInclude Include="..\include\CVector.h" />
     <ClInclude Include="..\include\wpnmod_config.h" />
     <ClInclude Include="..\include\wpnmod_entity.h" />
     <ClInclude Include="..\include\wpnmod_grenade.h" />

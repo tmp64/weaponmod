@@ -37,7 +37,8 @@
 #include "amxxmodule.h"
 
 #include <string>
-#include "CVector.h"
+#include <vector>
+
 #include "cbase.h"
 
 #include "wpnmod_vtable.h"
@@ -143,6 +144,7 @@ typedef struct
 	std::string		author;
 	std::string		version;
 	std::string		worldModel;
+
 	e_WpnType	iType;
 	ItemInfo	ItemData;
 	int			iForward[Fwd_Wpn_End];
@@ -172,9 +174,9 @@ public:
 
 	edict_t* m_pEquipEnt;
 
-	CVector <DecalList*> m_pDecalList;
-	CVector <StartAmmo*> m_pStartAmmoList;
-	CVector <VirtualHookData*>	m_pBlockedItemsList;
+	std::vector <DecalList*> m_pDecalList;
+	std::vector <StartAmmo*> m_pStartAmmoList;
+	std::vector <VirtualHookData*>	m_pBlockedItemsList;
 
 	void	InitGameMod			(void);
 	void	WorldPrecache		(void);
