@@ -248,17 +248,7 @@ native WpnMod_SetPlayerAnim(const iPlayer, const PLAYER_ANIM: iPlayerAnim);
  *
  * @return                 Entity's value from privaate data.
  */
-native WpnMod_GetPrivateData(const iEntity, const e_pvData: iPvData, any: ...);
-
-/**
- * Returns a float value from entity's private data. Use the e_pvData_* enum.
- *
- * @param iEntity          Entity index.
- * @param iPvData          pvData type.
- *
- * @return                 Entity's value from privaate data. (float)
- */
-#define WpnMod_GetPrivateData_f Float:WpnMod_GetPrivateData
+native any: WpnMod_GetPrivateData(const iEntity, const e_pvData: iPvData, any: ...);
 
 /**
  * Sets a value to entity's private data. Use the e_pvData_* enum.
@@ -267,6 +257,13 @@ native WpnMod_GetPrivateData(const iEntity, const e_pvData: iPvData, any: ...);
  * @param iPvData          pvData type.
 */
 native WpnMod_SetPrivateData(const iEntity, const e_pvData: iPvData, const any: ...);
+
+
+
+
+native any: WpnMod_GetEntityField(const iEntity, const szField[], any:...);
+native WpnMod_SetEntityField(const iEntity, const szField[], const any:...);
+
 
 /**
  * Sets entity's think callback. Analogue of set_task native.

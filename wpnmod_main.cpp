@@ -35,7 +35,8 @@
 #include "wpnmod_entity.h"
 #include "wpnmod_parse.h"
 #include "wpnmod_hooks.h"
-
+//#include <string>
+//#include <map> 
 
 int AmxxCheckGame(const char* game)
 {
@@ -47,9 +48,22 @@ void OnAmxxAttach(void)
 	MF_AddNatives(Natives);
 }
 
+
+
+
 // Called by Meta_Attach.
 int WpnMod_Init(void)
 {
+	/*std::map< std::string, void*> fields;
+	fields["lol"] = "lol";
+	fields.clear();*/
+
+
+
+
+
+
+
 	g_log.Init();
 
 	WPNMOD_LOG("Start.\n");
@@ -120,3 +134,4 @@ void ClientCommand(edict_t *pEntity)
 
 	RETURN_META(MRES_IGNORED);
 }
+

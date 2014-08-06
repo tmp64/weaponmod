@@ -214,7 +214,7 @@ enum e_Offsets
  */
 #define	wpnmod_set_player_anim WpnMod_SetPlayerAnim
 
-stock e_pvData: __OffsetsCompat_CBase[] =
+stock const e_pvData: __OffsetsCompat_CBase[CBase_End] =
 {
 	PV_ENT_pPlayer,
 	PV_ENT_pNext,
@@ -223,7 +223,7 @@ stock e_pvData: __OffsetsCompat_CBase[] =
 	PV_ENT_pLastItem,
 };
 
-stock e_pvData: __OffsetsCompat[] =
+stock const e_pvData: __OffsetsCompat[Offset_End] =
 {
 	PV_FL_flStartThrow,
 	PV_FL_flReleaseThrow,
@@ -326,7 +326,7 @@ stock wpnmod_set_offset_float(const iEntity, const e_Offsets: iOffset, const Flo
  */
 stock Float: wpnmod_get_offset_float(const iEntity, const e_Offsets: iOffset)
 {
-	return WpnMod_GetPrivateData_f(iEntity, __OffsetsCompat[iOffset]);
+	return WpnMod_GetPrivateData(iEntity, __OffsetsCompat[iOffset]);
 }
 
 /**

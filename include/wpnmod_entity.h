@@ -48,12 +48,27 @@ class CEntityManager
 {
 private:
 
+	struct EntField
+	{
+		const char *pKey;
+		void *pValue;
+	};
+
 	class CEntity
 	{
 	public:
-		int iThink;
-		int iTouch;
-		int iExplode;
+		CEntity()
+		{
+			m_iThink = NULL;
+			m_iTouch = NULL;
+			m_iExplode = NULL;
+		}
+
+		int m_iThink;
+		int m_iTouch;
+		int m_iExplode;
+
+		CVector <EntField*> m_pFields;
 	};
 
 	bool m_bAlloced;
@@ -89,12 +104,47 @@ public:
 			delete m_EntsData[i];
 		}
 
-		delete[] m_EntsData;
+		delete [] m_EntsData;
 	}
 
 	bool IsEntityValid(edict_t *pEdict)
 	{
-		return m_EntsData != NULL && IsValidPev(pEdict);
+		return m_bAlloced && IsValidPev(pEdict);
+	}
+
+	bool EntitySetField(edict_t *pEdict, const char* pKey, void *pValue)
+	{
+		if (!IsEntityValid(pEdict))
+		{
+			return false;
+		}
+
+		EntField *p = new EntField;
+
+		p->pKey = pKey;
+		p->pValue = pValue;
+
+		m_EntsData[ENTINDEX(pEdict)]->m_pFields.push_back(p);
+
+		return true;
+	}
+
+	void *EntityGetField(edict_t *pEdict, const char* pKey)
+	{
+		if (IsEntityValid(pEdict))
+		{
+			CVector <EntField*> pFields = m_EntsData[ENTINDEX(pEdict)]->m_pFields;
+
+			for (int i = 0; i < (int)pFields.size(); i++)
+			{
+				if (!strcmpi(pFields[i]->pKey, pKey))
+				{
+					return pFields[i]->pValue;
+				}
+			}
+		}
+
+		return NULL;
 	}
 
 	void OnAllocEntPrivateData(edict_t *pEdict)
@@ -109,8 +159,25 @@ public:
 	{
 		if (IsEntityValid(pEdict))
 		{
-			delete m_EntsData[ENTINDEX(pEdict)];
-			m_EntsData[ENTINDEX(pEdict)] = NULL;
+			int iIndex = ENTINDEX(pEdict);
+
+			for (int i = 0; i < (int)m_EntsData[iIndex]->m_pFields.size(); i++)
+			{
+				if (strstr(m_EntsData[iIndex]->m_pFields[i]->pKey, "m_sz"))
+				{
+					delete [] m_EntsData[iIndex]->m_pFields[i]->pValue;
+				}
+				else
+				{
+					delete m_EntsData[iIndex]->m_pFields[i]->pValue;
+				}
+				
+				delete m_EntsData[iIndex]->m_pFields[i];
+			}
+
+			m_EntsData[iIndex]->m_pFields.clear();
+			delete m_EntsData[iIndex];
+			m_EntsData[iIndex] = NULL;
 		}
 	}
 
@@ -121,15 +188,15 @@ public:
 			switch (forwardType)
 			{
 			case FORWARD_THINK:
-				m_EntsData[ENTINDEX(pEdict)]->iThink = iForwardID;
+				m_EntsData[ENTINDEX(pEdict)]->m_iThink = iForwardID;
 				break;
 
 			case FORWARD_TOUCH:
-				m_EntsData[ENTINDEX(pEdict)]->iTouch = iForwardID;
+				m_EntsData[ENTINDEX(pEdict)]->m_iTouch = iForwardID;
 				break;
 
 			case FORWARD_EXPLODE:
-				m_EntsData[ENTINDEX(pEdict)]->iExplode = iForwardID;
+				m_EntsData[ENTINDEX(pEdict)]->m_iExplode = iForwardID;
 				break;
 			}
 		}
@@ -145,15 +212,14 @@ public:
 		switch (forwardType)
 		{
 		case FORWARD_TOUCH:
-
-			if (m_EntsData[ENTINDEX(pEdict)]->iTouch)
+			if (m_EntsData[ENTINDEX(pEdict)]->m_iTouch)
 			{
 				va_list p;
 				va_start(p, forwardType);
 
 				MF_ExecuteForward
 				(
-					m_EntsData[ENTINDEX(pEdict)]->iTouch,
+					m_EntsData[ENTINDEX(pEdict)]->m_iTouch,
 
 					static_cast<cell>(ENTINDEX(pEdict)),
 					static_cast<cell>(ENTINDEX(va_arg(p, edict_t*)))
@@ -164,15 +230,14 @@ public:
 			break;
 
 		case FORWARD_EXPLODE:
-
-			if (m_EntsData[ENTINDEX(pEdict)]->iExplode)
+			if (m_EntsData[ENTINDEX(pEdict)]->m_iExplode)
 			{
 				va_list p;
 				va_start(p, forwardType);
 
 				MF_ExecuteForward
 				(
-					m_EntsData[ENTINDEX(pEdict)]->iExplode,
+					m_EntsData[ENTINDEX(pEdict)]->m_iExplode,
 					
 					static_cast<cell>(ENTINDEX(pEdict)),
 					reinterpret_cast<cell>(&va_arg(p, TraceResult))
@@ -183,14 +248,13 @@ public:
 			break;
 
 		case FORWARD_THINK:
-
-			if (m_EntsData[ENTINDEX(pEdict)]->iThink)
+			if (m_EntsData[ENTINDEX(pEdict)]->m_iThink)
 			{
 				if (!strstr(STRING(pEdict->v.classname), "weapon_"))
 				{
 					MF_ExecuteForward
 					(
-						m_EntsData[ENTINDEX(pEdict)]->iThink,
+						m_EntsData[ENTINDEX(pEdict)]->m_iThink,
 
 						static_cast<cell>(ENTINDEX(pEdict)),
 						static_cast<cell>(-1),
@@ -205,7 +269,7 @@ public:
 
 					MF_ExecuteForward
 					(
-						m_EntsData[ENTINDEX(pEdict)]->iThink,
+						m_EntsData[ENTINDEX(pEdict)]->m_iThink,
 
 						static_cast<cell>(ENTINDEX(pEdict)),
 						static_cast<cell>(ENTINDEX(pPlayer)),

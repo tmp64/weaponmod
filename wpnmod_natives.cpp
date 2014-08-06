@@ -1894,6 +1894,72 @@ namespace NewNatives
 	}
 
 	/**
+	* native any: WpnMod_GetEntityField(const iEntity, const szField[], any:...);
+	*/
+	AMXX_NATIVE(WpnMod_GetEntityField)
+	{
+		int iEntity = params[1];
+
+		CHECK_ENTITY(iEntity);
+
+		edict_t* pEntity = INDEXENT2(iEntity);
+
+		const char* pKey = MF_GetAmxString(amx, params[2], 0, NULL);
+
+
+
+		printf("!!!!!!!!!!!!!!1 %s  %s\n", pKey, (char*)g_Entitys.EntityGetField(pEntity, pKey));
+
+
+		return 1;
+	}
+
+	/**
+	* native WpnMod_SetEntityField(const iEntity, const szField[], any:...);
+	*/
+	AMXX_NATIVE(WpnMod_SetEntityField)
+	{
+		int iEntity = params[1];
+
+		CHECK_ENTITY(iEntity);
+
+		edict_t* pEntity = INDEXENT2(iEntity);
+
+		const char* pKey = STRING(ALLOC_STRING(MF_GetAmxString(amx, params[2], 0, NULL)));
+		void *pValue = NULL;
+
+		if (strstr(pKey, "m_i"))
+		{
+			pValue = new int;
+			*(int*)pValue = *MF_GetAmxAddr(amx, params[3]);
+		}
+		else if (strstr(pKey, "m_fl"))
+		{
+			pValue = new double;
+			*(double*)pValue = amx_ctof(MF_GetAmxAddr(amx, params[3])[0]);
+		}
+		else if (strstr(pKey, "m_sz"))
+		{
+			int len = 0;
+			const char* pData = MF_GetAmxString(amx, params[3], 0, &len);
+
+			pValue = new char[len];
+			strcpy((char*)pValue, pData);
+		}
+		else if (strstr(pKey, "m_a"))
+		{
+
+		}
+		else
+		{
+			MF_LogError(amx, AMX_ERR_NATIVE, "Invalid field name provided: \"%s\"", pKey);
+			return 0;
+		}
+
+		return g_Entitys.EntitySetField(pEntity, pKey, pValue);
+	}
+
+	/**
 	* Sets entity's think function. Analogue of set_task native.
 	*
 	* Usage:
@@ -1907,16 +1973,19 @@ namespace NewNatives
 	*/
 	AMXX_NATIVE(WpnMod_SetThink)
 	{
-		DeprecatedNatives::wpnmod_set_think(amx, params);
-
-		float flNextThink = amx_ctof(params[3]);
-
-		if (flNextThink > 0.0)
+		if (DeprecatedNatives::wpnmod_set_think(amx, params))
 		{
-			INDEXENT2(params[1])->v.nextthink = gpGlobals->time + flNextThink;
+			float flNextThink = amx_ctof(params[3]);
+
+			if (flNextThink > 0.0)
+			{
+				INDEXENT2(params[1])->v.nextthink = gpGlobals->time + flNextThink;
+			}
+
+			return 1;
 		}
 
-		return 1;
+		return 0;
 	}
 
 	/**
@@ -1930,11 +1999,14 @@ namespace NewNatives
 	*/
 	AMXX_NATIVE(WpnMod_SetTouch)
 	{
-		DeprecatedNatives::wpnmod_set_touch(amx, params);
+		if (DeprecatedNatives::wpnmod_set_touch(amx, params))
+		{
+			return 1;
+		}
 
 		// TODO: implement classname filtration.
 
-		return 1;
+		return 0;
 	}
 
 	/**
@@ -1957,9 +2029,9 @@ namespace NewNatives
 		int iAttacker = params[2];
 
 		CHECK_ENTITY(iPlayer)
-			CHECK_ENTITY(iAttacker)
+		CHECK_ENTITY(iAttacker)
 
-			Vector vecSpread;
+		Vector vecSpread;
 
 		cell *vSpread = MF_GetAmxAddr(amx, params[4]);
 
@@ -2047,6 +2119,23 @@ namespace NewNatives
 
 		return 1;
 	}
+
+	// native WpnMod_VelocityByAim(const iPlayer, const flVelocity, Float: vecRetValue[3]);
+	AMXX_NATIVE(WpnMod_VelocityByAim)
+	{
+		CHECK_ENTITY(params[1])
+
+		edict_t* pPlayer = INDEXENT2(params[1]);
+		Vector vecRet = pPlayer->v.punchangle + pPlayer->v.velocity + gpGlobals->v_forward * amx_ctof(params[2]);
+
+		cell* cRet = MF_GetAmxAddr(amx, params[3]);
+
+		cRet[0] = amx_ftoc(vecRet.x);
+		cRet[1] = amx_ftoc(vecRet.y);
+		cRet[2] = amx_ftoc(vecRet.z);
+
+		return 1;
+	}
 }
 
 AMX_NATIVE_INFO Natives[] = 
@@ -2125,15 +2214,16 @@ AMX_NATIVE_INFO Natives[] =
 	{ "WpnMod_SetPlayerAnim",				NewNatives::WpnMod_SetPlayerAnim				},
 	{ "WpnMod_GetPrivateData",				NewNatives::WpnMod_GetPrivateData				},
 	{ "WpnMod_SetPrivateData",				NewNatives::WpnMod_SetPrivateData				},
+	{ "WpnMod_GetEntityField",				NewNatives::WpnMod_GetEntityField				},
+	{ "WpnMod_SetEntityField",				NewNatives::WpnMod_SetEntityField				},
 	{ "WpnMod_SetThink",					NewNatives::WpnMod_SetThink						},
 	{ "WpnMod_SetTouch",					NewNatives::WpnMod_SetTouch						},
 	{ "WpnMod_FireBullets",					NewNatives::WpnMod_FireBullets					},
 	{ "WpnMod_GiveItem",					NewNatives::WpnMod_GiveItem						},
 	{ "WpnMod_GiveEquip",					NewNatives::WpnMod_GiveEquip					},
-
+	{ "WpnMod_VelocityByAim",				NewNatives::WpnMod_VelocityByAim },
 
 	// { "wpnmod_precache_model_sequences", wpnmod_precache_model_sequences},
-
 
 	{ NULL, NULL }
 };
