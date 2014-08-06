@@ -48,12 +48,13 @@ bool ParseSection(char* filePath, const char* section, void* handler, int separa
 	{
 		int pos;
 		char buffer[512];
-		String lineRead;
+		std::string lineRead;
 
 		while (!feof(f) && fgets(buffer, sizeof(buffer) - 1, f))
 		{
 			lineRead = buffer;
-			lineRead.trim();
+			//lineRead.trim();
+			lineRead.erase(lineRead.find_last_not_of(" \n\r\t") + 1);
 
 			if (lineRead.size() && lineRead.at(0) != ';')
 			{
@@ -75,22 +76,24 @@ bool ParseSection(char* filePath, const char* section, void* handler, int separa
 					{
 						if (separator != -1 && (pos = lineRead.find(separator)) != -1)
 						{
-							String stringLeft	= lineRead.substr(0, pos);
-							String stringRight	= lineRead.substr(pos + 1);
+							std::string stringLeft = lineRead.substr(0, pos);
+							std::string stringRight = lineRead.substr(pos + 1);
 
 							if ((pos = stringRight.find(';')) != -1)
 							{
 								stringRight.erase(pos);
 							}
 
-							stringLeft.trim();
-							stringRight.trim();
+							//stringLeft.trim();
+							//stringRight.trim();
+							stringLeft.erase(stringLeft.find_last_not_of(" \n\r\t") + 1);
+							stringRight.erase(stringRight.find_last_not_of(" \n\r\t") + 1);
 
-							reinterpret_cast<void (*)(String, String)>(handler)(stringLeft, stringRight);
+							reinterpret_cast<void(*)(std::string, std::string)>(handler)(stringLeft, stringRight);
 						}
 						else
 						{
-							reinterpret_cast<void (*)(String, String)>(handler)(NULL, lineRead);
+							reinterpret_cast<void(*)(std::string, std::string)>(handler)(NULL, lineRead);
 						}
 					}
 				}
@@ -103,7 +106,7 @@ bool ParseSection(char* filePath, const char* section, void* handler, int separa
 	return result;
 }
 
- void OnParseStartAmmos(String item, String count)
+void OnParseStartAmmos(std::string item, std::string count)
 {
 	StartAmmo *p = new StartAmmo;
 
@@ -113,7 +116,7 @@ bool ParseSection(char* filePath, const char* section, void* handler, int separa
 	g_Config.m_pStartAmmoList.push_back(p);
 }
 
-void OnParseWeaponbox(String key, String value)
+void OnParseWeaponbox(std::string key, std::string value)
 {
 	if (!strcmp(key.c_str(), "setmodel"))
 	{
@@ -129,7 +132,7 @@ void OnParseWeaponbox(String key, String value)
 	}
 }
 
-void OnParseBlockedItems(String dummy, String BlockedItem)
+void OnParseBlockedItems(std::string dummy, std::string BlockedItem)
 {
 	VirtualHookData *p = new VirtualHookData;
 
@@ -166,7 +169,7 @@ void OnParseBlockedItems(String dummy, String BlockedItem)
 	}
 }
 
-void OnParseStartEquipments(String item, String count)
+void OnParseStartEquipments(std::string item, std::string count)
 {
 	if (!g_Config.m_pEquipEnt)
 	{
@@ -275,9 +278,10 @@ void ParseBSP()
 	char value[2048];
 	char token[2048];
 
-	String classname;
 	Vector vecOrigin;
 	Vector vecAngles;
+
+	std::string classname;
 
 	while ((data = COM_ParseFile(data, token)) != NULL)
 	{

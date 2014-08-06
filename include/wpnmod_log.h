@@ -52,12 +52,12 @@
 #define WPNMOD_LOG_ONLY	(g_log.LogOnly)
 
 #include "amxxmodule.h"
-#include "CString.h"
+#include <string>
 
 class CLog
 {
 private:
-	String m_LogDir;
+	std::string m_LogDir;
 
 public:
 	CLog();

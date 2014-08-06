@@ -36,7 +36,7 @@
 
 #include "amxxmodule.h"
 
-#include "CString.h"
+#include <string>
 #include "CVector.h"
 #include "cbase.h"
 
@@ -133,16 +133,16 @@ typedef struct
 
 typedef struct
 {
-	String	classname;
-	int		iForward[Fwd_Ammo_End];
+	std::string	classname;
+	int iForward[Fwd_Ammo_End];
 } AmmoBoxData;
 
 typedef struct
 {
-	String		title;
-	String		author;
-	String		version;
-	String		worldModel;
+	std::string		title;
+	std::string		author;
+	std::string		version;
+	std::string		worldModel;
 	e_WpnType	iType;
 	ItemInfo	ItemData;
 	int			iForward[Fwd_Wpn_End];
@@ -225,6 +225,8 @@ inline int			GetWeapon_Flags(const int iId)			{ return WeaponInfoArray[iId].Item
 //
 // CPlugin.h AMXX
 //
+
+#include "CString.h"
 
 #define PS_STOPPED		4
 #define UD_FINDPLUGIN	3

@@ -504,7 +504,7 @@ AMXX_NATIVE(wpnmod_precache_model_sequences)
 		fread(&iNumSeq, sizeof(int), 1, fp);
 		fread(&iSeqIndex, sizeof(int), 1, fp);
 
-		String sound;
+		std::string sound;
 
 		for (int k, i = 0; i < iNumSeq; i++)
 		{
@@ -1059,11 +1059,11 @@ namespace NewNatives
 				WeaponInfoArray[i].ItemData.iWeight = params[10];
 
 				CPlugin* plugin = (CPlugin*)amx->userdata[UD_FINDPLUGIN];
-
-				WeaponInfoArray[i].title = plugin->title;
-				WeaponInfoArray[i].author = plugin->author;
-				WeaponInfoArray[i].version = plugin->version;
-
+				
+				WeaponInfoArray[i].title.assign(plugin->title.c_str());
+				WeaponInfoArray[i].author.assign(plugin->author.c_str());
+				WeaponInfoArray[i].version.assign(plugin->version.c_str());
+				
 				g_Config.AutoSlotDetection(i, params[2] - 1, params[3] - 1);
 
 				if (!g_Config.m_bCrowbarHooked)
@@ -2098,7 +2098,7 @@ namespace NewNatives
 		edict_t* pItem = NULL;
 		edict_t* pPlayer = INDEXENT2(params[1]);
 
-		String itemRead, itemName;
+		std::string itemRead, itemName;
 		size_t paramnum = params[0] / sizeof(cell);
 
 		for (int itemCount, pos, i = 2; i <= (int)paramnum; i++)
@@ -2109,7 +2109,8 @@ namespace NewNatives
 
 			itemName = itemRead.substr(0, pos);
 			itemCount = (pos == -1) ? 1 : atoi(itemRead.substr(pos + 1).c_str());
-			itemName.trim();
+			//itemName.trim();
+			itemName.erase(itemName.find_last_not_of(" \n\r\t") + 1);
 
 			for (int j = 0; j < itemCount; j++)
 			{
