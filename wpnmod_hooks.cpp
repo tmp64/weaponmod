@@ -269,6 +269,10 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 
 	if (iInReload && flNextAttack <= gpGlobals->time)
 	{
+		#ifndef min
+		#define min(a,b)            (((a) < (b)) ? (a) : (b))
+		#endif
+
 		// complete the reload. 
 		int j = min(GetWeapon_MaxClip(iId) - iClip, iAmmoPrimary);	
 
