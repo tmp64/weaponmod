@@ -30,13 +30,14 @@
  *    version.
  *
  */
-
  
 #if defined _hl_wpnmod_const_included
 	#endinput
 #endif
 
 #define _hl_wpnmod_const_included
+
+#define WPNMOD_API_VERSION 2
 
 
 // Maximum available weapons

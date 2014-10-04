@@ -36,6 +36,7 @@
 
 #include "amxxmodule.h"
 
+#include <map>
 #include <string>
 #include <vector>
 

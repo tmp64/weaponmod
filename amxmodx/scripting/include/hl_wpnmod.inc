@@ -31,7 +31,6 @@
  *
  */
 
- 
 #if defined _hl_wpnmod_included
 	#endinput
 #endif
@@ -46,10 +45,9 @@
 	#pragma library weaponmod
 #endif
 
-
 #include <hl_wpnmod_const>
+#include <hl_wpnmod_compat>
 #include <fakemeta>
-
 
 #define SET_MODEL(%0,%1) engfunc(EngFunc_SetModel, %0, %1)
 #define PRECACHE_MODEL(%0) engfunc(EngFunc_PrecacheModel,%0)
@@ -258,12 +256,15 @@ native any: WpnMod_GetPrivateData(const iEntity, const e_pvData: iPvData, any: .
 */
 native WpnMod_SetPrivateData(const iEntity, const e_pvData: iPvData, const any: ...);
 
-
-
-
+/**
+ *
+*/
 native any: WpnMod_GetEntityField(const iEntity, const szField[], any:...);
-native WpnMod_SetEntityField(const iEntity, const szField[], const any:...);
 
+/**
+ *
+*/
+native WpnMod_SetEntityField(const iEntity, const szField[], const any:...);
 
 /**
  * Sets entity's think callback. Analogue of set_task native.
@@ -299,8 +300,3 @@ native WpnMod_SetTouch(const iEntity, const szCallBack[], const szToucher[] = ""
  * @param iTracerFreq      Tracer frequancy.
  */
 native WpnMod_FireBullets(const iPlayer, const iAttacker, const iShotsCount, const Float: vecSpread[3], const Float: flDistance, const Float: flDamage, const bitsDamageType, const iTracerFreq);
-
-/** 
- * Who put these backwards... (c)
- */
-#include <hl_wpnmod_compat>

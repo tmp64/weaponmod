@@ -1,17 +1,79 @@
-/**
- * Half-Life Weapon Mod Compatibility include
- * Copyright (c) 2012 - 2014 AGHL.RU Dev Team
- *
- *  These natives placed here only for backward compatibility. DON'T USE THEM!!!
+/** 
+ * Who put these backwards... (c)
  */
  
- 
+ /*
+ * Half-Life Weapon Mod
+ * Copyright (c) 2012 - 2014 AGHL.RU Dev Team
+ * 
+ * http://aghl.ru/forum/ - Russian Half-Life and Adrenaline Gamer Community
+ *
+ *
+ *    This program is free software; you can redistribute it and/or modify it
+ *    under the terms of the GNU General Public License as published by the
+ *    Free Software Foundation; either version 2 of the License, or (at
+ *    your option) any later version.
+ *
+ *    This program is distributed in the hope that it will be useful, but
+ *    WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *    General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program; if not, write to the Free Software Foundation,
+ *    Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ *    In addition, as a special exception, the author gives permission to
+ *    link the code of this program with the Half-Life Game Engine ("HL
+ *    Engine") and Modified Game Libraries ("MODs") developed by Valve,
+ *    L.L.C ("Valve").  You must obey the GNU General Public License in all
+ *    respects for all of the code used other than the HL Engine and MODs
+ *    from Valve.  If you modify this file, you may extend this exception
+ *    to your version of the file, but you are not obligated to do so.  If
+ *    you do not wish to do so, delete this exception statement from your
+ *    version.
+ *
+ */
+
 #if defined _hl_wpnmod_compat_included
 	#endinput
 #endif
 
 #define _hl_wpnmod_compat_included
 
+#define	wpnmod_register_weapon WpnMod_RegisterWeapon
+#define wpnmod_register_weapon_forward WpnMod_RegisterWeaponForward
+#define wpnmod_get_weapon_info WpnMod_GetWeaponInfo
+#define wpnmod_get_weapon_count WpnMod_GetWeaponNum
+#define wpnmod_register_ammobox WpnMod_RegisterAmmoBox
+#define wpnmod_register_ammobox_forward WpnMod_RegisterAmmoBoxForward
+#define wpnmod_get_ammobox_info WpnMod_GetAmmoBoxInfo
+#define wpnmod_get_ammobox_count WpnMod_GetAmmoBoxNum
+#define	wpnmod_create_item WpnMod_CreateItem
+#define	wpnmod_default_deploy WpnMod_DefaultDeploy
+#define	wpnmod_default_reload WpnMod_DefaultReload
+#define	wpnmod_reset_empty_sound WpnMod_ResetEmptySound
+#define	wpnmod_play_empty_sound WpnMod_PlayEmptySound
+#define	wpnmod_get_player_ammo WpnMod_GetPlayerAmmo
+#define	wpnmod_set_player_ammo WpnMod_SetPlayerAmmo
+#define	wpnmod_send_weapon_anim WpnMod_SendWeaponAnim
+#define	wpnmod_set_player_anim WpnMod_SetPlayerAnim
+#define wpnmod_set_think WpnMod_SetThink
+#define wpnmod_set_touch WpnMod_SetTouch
+#define wpnmod_fire_bullets WpnMod_FireBullets
+
+#define	wpnmod_set_anim_ext(%0,%1) WpnMod_SetPrivateData(%0, PV_SZ_szAnimExtention, %1)
+#define	wpnmod_get_anim_ext(%0,%1,%2) WpnMod_GetPrivateData(%0, PV_SZ_szAnimExtention, %1, %2)
+#define	wpnmod_set_offset_int(%0,%1,%2) WpnMod_SetPrivateData(%0, e_pvData: __OffsetsCompat[%1], %2)
+#define	wpnmod_get_offset_int(%0,%1) WpnMod_GetPrivateData(%0, e_pvData: __OffsetsCompat[%1])
+#define	wpnmod_set_offset_float(%0,%1,%2) WpnMod_SetPrivateData(%0, e_pvData: __OffsetsCompat[%1], %2)
+#define	wpnmod_get_offset_float(%0,%1) WpnMod_GetPrivateData(%0, e_pvData: __OffsetsCompat[%1])
+#define wpnmod_set_offset_cbase(%0,%1,%2) WpnMod_SetPrivateData(%0, e_pvData: __OffsetsCompat_CBase[%1], %2)
+#define wpnmod_get_offset_cbase _GET_CBASE_1:_GET_CBASE_0
+
+// Credits to Y_Less
+#define _GET_CBASE_0(%0,%1) _GET_CBASE_1:_GET_CBASE_0(%0,%1,0)
+#define _GET_CBASE_1:_GET_CBASE_0(%0,%1,%2) WpnMod_GetPrivateData(%0, e_pvData: __OffsetsCompat_CBase[%1], %2)
 
 enum e_CBase
 {
@@ -57,164 +119,7 @@ enum e_Offsets
 	Offset_End
 };
 
-/**
- * Register new weapon in module.
- *
- * @param szName           The weapon name.
- * @param iSlot            SlotID (1...5).
- * @param iPosition        NumberInSlot (1...5).
- * @param szAmmo1          Primary ammo type ("9mm", "uranium", "MY_AMMO" etc).
- * @param iMaxAmmo1        Max amount of primary ammo.
- * @param szAmmo2          Secondary ammo type.
- * @param iMaxAmmo2        Max amount of secondary ammo.
- * @param iMaxClip         Max amount of ammo in weapon's clip.
- * @param iFlags           Weapon's flags (see defines).
- * @param iWeight          This value used to determine this weapon's importance in autoselection.
- * 
- * @return                 The ID of registerd weapon or -1 on failure. (integer)
- */
-#define	wpnmod_register_weapon WpnMod_RegisterWeapon
-
-/**
- * Register weapon's forward.
- *
- * @param iWeaponID        The ID of registered weapon.
- * @param iForward         Forward type to register.
- * @param szCallBack       The forward to call.
- */
-#define wpnmod_register_weapon_forward WpnMod_RegisterWeaponForward
-
-/**
- * Returns any ItemInfo variable for weapon. Use the e_ItemInfo_* enum.
- *
- * @param iId              The ID of registered weapon or weapon entity Id.
- * @param iInfoType        ItemInfo type.
- *
- * @return                 Weapon's ItemInfo variable.
- */
-#define wpnmod_get_weapon_info WpnMod_GetWeaponInfo
-
-/**
- * Gets number of registered weapons.
- *
- * @return                 Number of registered weapons. (integer)
- */
-#define wpnmod_get_weapon_count WpnMod_GetWeaponNum
-
-/**
- * Register new ammobox in module.
- *
- * @param szName           The ammobox classname.
- * 
- * @return                 The ID of registerd ammobox or -1 on failure. (integer)
- */
-#define wpnmod_register_ammobox WpnMod_RegisterAmmoBox
-
-/**
- * Register ammobox's forward.
- *
- * @param iAmmoboxID       The ID of registered ammobox.
- * @param iForward         Forward type to register.
- * @param szCallBack       The forward to call.
- */
-#define wpnmod_register_ammobox_forward WpnMod_RegisterAmmoBoxForward
-
-/**
- * Gets number of registered weapons.
- *
- * @return                 Number of registered weapons. (integer)
- */
-#define wpnmod_get_ammobox_info WpnMod_GetAmmoBoxInfo
-
-/**
- * Gets number of registered ammoboxes.
- *
- * @return                 Number of registered ammoboxes. (integer)
- */
-#define wpnmod_get_ammobox_count WpnMod_GetAmmoBoxNum
-
-/**
- * Spawn an item by name.
- *
- * @param szClassName      Item's classname.
- * @param vecOrigin        Origin were to spawn.
- * @param vecAngles        Angles.
- *
- * @return                 Item entity index or -1 on failure. (integer)
- */
-#define	wpnmod_create_item WpnMod_CreateItem
-
-/**
- * Default deploy function.
- *
- * @param iItem            Weapon's entity index.
- * @param szViewModel      Weapon's view model (V).
- * @param szWeaponModel    Weapon's player model (P).
- * @param iAnim            Sequence number of deploy animation.
- * @param szAnimExt        Animation extension.
- */
-#define	wpnmod_default_deploy WpnMod_DefaultDeploy
-
-/**
- * Default reload function.
- *
- * @param iItem            Weapon's entity index.
- * @param iClipSize        Maximum weapon's clip size.
- * @param iAnim            Sequence number of reload animation.
- * @param flDelay          Reload delay time.
- */
-#define	wpnmod_default_reload WpnMod_DefaultReload
-
-/**
- * Sets the weapon so that it can play empty sound again.
- *
- * @param iItem            Weapon's entity index.
- */
-#define	wpnmod_reset_empty_sound WpnMod_ResetEmptySound
-
-/**
- * Plays the weapon's empty sound.
- *
- * @param iItem            Weapon's entity index.
- */
-#define	wpnmod_play_empty_sound WpnMod_PlayEmptySound
-
-/**
-* Get player's ammo inventory.
- *
- * @param iPlayer          Player id.
- * @param szAmmoName       Ammo type. ("9mm", "uranium", "MY_AMMO" etc..)
- *
- * @return                 Amount of given ammo. (integer)
-*/
-#define	wpnmod_get_player_ammo WpnMod_GetPlayerAmmo
-
-/**
-* Set player's ammo inventory.
- *
- * @param iPlayer          Player id.
- * @param szAmmoName       Ammo type. ("9mm", "uranium", "MY_AMMO" etc..)
- * @param iAmount          Ammo amount.
-*/
-#define	wpnmod_set_player_ammo WpnMod_SetPlayerAmmo
-
-/**
- * Plays weapon's animation.
- *
- * @param iItem            Weapon's entity index.
- * @param iAnim            Sequence number.
- */
-#define	wpnmod_send_weapon_anim WpnMod_SendWeaponAnim
-
-/**
- * Sets the activity for player based on an event or current state.
- *
- * @param iPlayer          Player index.
- * @param iPlayerAnim      Animation (see PLAYER_ANIM constants).
- */
-#define	wpnmod_set_player_anim WpnMod_SetPlayerAnim
-
-stock const e_pvData: __OffsetsCompat_CBase[CBase_End] =
+stock const __OffsetsCompat_CBase[CBase_End] =
 {
 	PV_ENT_pPlayer,
 	PV_ENT_pNext,
@@ -223,7 +128,7 @@ stock const e_pvData: __OffsetsCompat_CBase[CBase_End] =
 	PV_ENT_pLastItem,
 };
 
-stock const e_pvData: __OffsetsCompat[Offset_End] =
+stock const __OffsetsCompat[Offset_End] =
 {
 	PV_FL_flStartThrow,
 	PV_FL_flReleaseThrow,
@@ -255,144 +160,6 @@ stock const e_pvData: __OffsetsCompat[Offset_End] =
 	PV_FL_fuser3,
 	PV_FL_fuser4
 };
-
-/**
- * Set animation extension for player.
- *
- * @param iPlayer          Player id.
- * @param szAnimExt[]      Animation extension prefix.
- */
-stock wpnmod_set_anim_ext(const iPlayer, const szAnimExt[])
-{
-	WpnMod_SetPrivateData(iPlayer, PV_SZ_szAnimExtention, szAnimExt);
-}
-
-/**
- * Get animation extension for player.
- *
- * @param iPlayer          Player id.
- * @param szDest[]         Buffer.
- * @param iMaxLen          Max buffer size.
- */
-stock wpnmod_get_anim_ext(const iPlayer, szDest[], iMaxLen = sizeof szDest)
-{
-	WpnMod_GetPrivateData(iPlayer, PV_SZ_szAnimExtention, szDest, iMaxLen);
-}
-
-/**
- * Sets an integer from private data.
- *
- * @param iEntity          Entity index.
- * @param iOffset          Offset (see e_Offsets constants).
- * @param iValue           Value.
- */
-stock wpnmod_set_offset_int(const iEntity, const e_Offsets: iOffset, const iValue)
-{
-	WpnMod_SetPrivateData(iEntity, __OffsetsCompat[iOffset], iValue);
-}
-
-/**
- * Returns an integer from private data.
- *
- * @param iEntity          Entity index.
- * @param iOffset          Offset (see e_Offsets constants).
- * 
- * @return                 Value from private data. (integer)
- */
-stock wpnmod_get_offset_int(const iEntity, const e_Offsets: iOffset)
-{
-	return WpnMod_GetPrivateData(iEntity, __OffsetsCompat[iOffset]);
-}
-
-/**
- * Sets a float from private data.
- *
- * @param iEntity          Entity index.
- * @param iOffset          Offset (see e_Offsets constants).
- * @param flValue          Value.
- */
-stock wpnmod_set_offset_float(const iEntity, const e_Offsets: iOffset, const Float: flValue)
-{
-	WpnMod_SetPrivateData(iEntity, __OffsetsCompat[iOffset], flValue);
-}
-
-/**
- * Returns a float from private data.
- *
- * @param iEntity          Entity index.
- * @param iOffset          Offset (see e_Offsets constants).
- * 
- * @return                 Value from private data. (float)
- */
-stock Float: wpnmod_get_offset_float(const iEntity, const e_Offsets: iOffset)
-{
-	return WpnMod_GetPrivateData(iEntity, __OffsetsCompat[iOffset]);
-}
-
-/**
- * Set the corresponding cbase field in private data with the index.
- *
- * @param iEntity           The entity to examine the private data.
- * @param iOffset           Offset (See e_CBase constants).
- * @param iValue            The index to store.
- * @param iExtraOffset      The extra offset.
- */
-stock wpnmod_set_offset_cbase(const iEntity, const e_CBase: iOffset, const iValue, const iExtraOffset = 0)
-{
-	WpnMod_SetPrivateData(iEntity, __OffsetsCompat_CBase[iOffset], flValue, iExtraOffset);
-}
-
-/**
- * This will return an index of the corresponding cbase field in private data.
- *
- * @param iEntity            The entity to examine the private data.
- * @param iOffset            Offset (See e_CBase constants).
- * @param iExtraOffset       The extra offset.
- *
- * @return                   Value from private data. (integer)
- */
-stock wpnmod_get_offset_cbase(const iEntity, const e_CBase: iOffset, const iExtraOffset = 0)
-{
-	return WpnMod_GetPrivateData(iEntity, __OffsetsCompat_CBase[iOffset], iExtraOffset);
-}
-
-/**
- * Sets entity's think function. Analogue of set_task native.
- * 
- * Usage: 
- * 	wpnmod_set_think(iItem, "M249_CompleteReload");
- * 	set_pev(iItem, pev_nextthink, get_gametime() + 1.52);
- *
- * @param iItem              Entity's entity index.
- * @param szCallBack         The forward to call.
- */
-#define wpnmod_set_think WpnMod_SetThink
-
-/**
- * Sets entity's touch calback. 
- * 
- * @param iEntity            Entity's index.
- * @param szCallBack         The forward to call.
- */
-#define wpnmod_set_touch WpnMod_SetTouch
-
-/**
- * Fire bullets from player's weapon.
- *
- * @param iPlayer            Player index.
- * @param iAttacker          Attacker index (usualy it equal to previous param).
- * @param iShotsCount        Number of shots.
- * @param vecSpread          Spread.
- * @param flDistance         Max shot distance.
- * @param flDamage           Damage amount.
- * @param bitsDamageType     Damage type.
- * @param iTracerFreq        Tracer frequancy.
- */
-#define wpnmod_fire_bullets WpnMod_FireBullets
-
-
-
-
 
 
 

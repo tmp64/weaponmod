@@ -37,44 +37,138 @@
 
 #include "wpnmod_config.h"
 #include "wpnmod_utils.h"
+/*
+#define TRIE_DATA_UNSET 	0
+#define TRIE_DATA_CELL		1
+#define TRIE_DATA_STRING	2
+#define TRIE_DATA_ARRAY		3
 
-
-extern edict_t* Ammo_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles);
-extern edict_t* Weapon_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles);
-extern edict_t* Wpnmod_SpawnItem(const char* szName, Vector vecOrigin, Vector vecAngles);
-
-
-class CEntityManager
+class TrieData
 {
 private:
+	cell *m_data;
+	cell m_cell;
+	cell m_cellcount;
+	int m_type;
 
-	struct EntField
+	void needCells(cell cellcount)
 	{
-		const char *pKey;
-		void *pValue;
-	};
+		if (m_cellcount < cellcount)
+		{
+			if (m_data != NULL)
+			{
+				free(m_data);
+			}
+			size_t neededbytes = cellcount * sizeof(cell);
+			m_data = static_cast<cell *>(malloc(neededbytes));
+			m_cellcount = cellcount;
+		}
+	}
+public:
+	void freeCells()
+	{
+		if (m_data)
+		{
+			free(m_data);
+			m_data = NULL;
+		}
+		m_cellcount = 0;
+	}
+	TrieData() : m_data(NULL), m_cell(0), m_cellcount(0), m_type(TRIE_DATA_UNSET) { }
+	TrieData(const TrieData &src) : m_data(src.m_data),
+		m_cell(src.m_cell),
+		m_cellcount(src.m_cellcount),
+		m_type(src.m_type) { }
+	~TrieData() { }
+
+	int getType() { return m_type; }
+
+	void setCell(cell value)
+	{
+		freeCells();
+
+		m_cell = value;
+		m_type = TRIE_DATA_CELL;
+	}
+	void setString(cell *value)
+	{
+		cell len = 0;
+		cell *p = value;
+
+		while (*p++ != 0)
+		{
+			len++;
+		}
+		len += 1; // zero terminator
+		needCells(len);
+		memcpy(m_data, value, sizeof(cell) * len);
+
+		m_type = TRIE_DATA_STRING;
+	}
+	void setArray(cell *value, cell size)
+	{
+		if (size <= 0)
+			return;
+
+		needCells(size);
+		memcpy(m_data, value, sizeof(cell) * size);
+
+		m_type = TRIE_DATA_ARRAY;
+	}
+	bool getCell(cell *out)
+	{
+		if (m_type == TRIE_DATA_CELL)
+		{
+			*out = m_cell;
+			return true;
+		}
+
+		return false;
+	}
+	bool getString(cell *out, cell max)
+	{
+		if (m_type == TRIE_DATA_STRING && max >= 0)
+		{
+			memcpy(out, m_data, (max > m_cellcount ? m_cellcount : max) * sizeof(cell));
+			return true;
+		}
+		return false;
+	}
+	bool getArray(cell *out, cell max)
+	{
+		if (m_type == TRIE_DATA_ARRAY && max >= 0)
+		{
+			memcpy(out, m_data, (max > m_cellcount ? m_cellcount : max) * sizeof(cell));
+			return true;
+		}
+		return false;
+	}
+	void clear()
+	{
+		freeCells();
+		m_type = TRIE_DATA_UNSET;
+	}
+};
+*/
+class CEntityManager
+{
+public:
 
 	class CEntity
 	{
 	public:
+
 		CEntity()
 		{
-			m_iThink = NULL;
-			m_iTouch = NULL;
-			m_iExplode = NULL;
+			m_iThink = 0;
+			m_iTouch = 0;
+			m_iExplode = 0;
 		}
 
 		int m_iThink;
 		int m_iTouch;
 		int m_iExplode;
-
-		std::vector <EntField*> m_pFields;
 	};
-
-	bool m_bAlloced;
-	CEntity** m_EntsData;
-
-public:
 
 	typedef enum _forwardtypes
 	{
@@ -82,6 +176,12 @@ public:
 		FORWARD_TOUCH,
 		FORWARD_EXPLODE,
 	} FORWARDTYPE;
+
+	//typedef std::map<int, std::map<std::string, TrieData*>> TInt2StrTrieMap;
+
+	bool m_bAlloced;
+	CEntity** m_EntsData;
+	//TInt2StrTrieMap m_Tries;
 
 	CEntityManager()
 	{
@@ -112,46 +212,36 @@ public:
 		return m_bAlloced && IsValidPev(pEdict);
 	}
 
-	bool EntitySetField(edict_t *pEdict, const char* pKey, void *pValue)
-	{
-		if (!IsEntityValid(pEdict))
-		{
-			return false;
-		}
-
-		EntField *p = new EntField;
-
-		p->pKey = pKey;
-		p->pValue = pValue;
-
-		m_EntsData[ENTINDEX(pEdict)]->m_pFields.push_back(p);
-
-		return true;
-	}
-
-	void *EntityGetField(edict_t *pEdict, const char* pKey)
-	{
-		if (IsEntityValid(pEdict))
-		{
-			std::vector <EntField*> pFields = m_EntsData[ENTINDEX(pEdict)]->m_pFields;
-
-			for (int i = 0; i < (int)pFields.size(); i++)
-			{
-				if (!strcmp(pFields[i]->pKey, pKey))
-				{
-					return pFields[i]->pValue;
-				}
-			}
-		}
-
-		return NULL;
-	}
-
 	void OnAllocEntPrivateData(edict_t *pEdict)
 	{
 		if (IsEntityValid(pEdict))
 		{
 			memset((m_EntsData[ENTINDEX(pEdict)] = new CEntity), 0, sizeof(CEntity));
+
+			/*
+			m_Tries[ENTINDEX(pEdict)]["lol"] = new TrieData;
+			m_Tries[ENTINDEX(pEdict)]["lol2"] = new TrieData;
+			m_Tries[ENTINDEX(pEdict)]["lol3"] = new TrieData;
+			m_Tries[ENTINDEX(pEdict)]["lol4"] = new TrieData;
+
+
+			TInt2StrTrieMap::iterator i = m_Tries.begin();
+			*/
+
+			/*
+			const char *key = "lol";
+
+			if (m_Tries[0][key] == NULL)
+			{
+				m_Tries[0][key] = new TrieData;
+				printf2("WTF %d\n", ENTINDEX(pEdict));
+			}
+			else
+			{
+				m_Tries[0][key]->setCell(8);
+				delete m_Tries[0][key];
+			}
+			*/
 		}
 	}
 
@@ -160,22 +250,6 @@ public:
 		if (IsEntityValid(pEdict))
 		{
 			int iIndex = ENTINDEX(pEdict);
-
-			for (int i = 0; i < (int)m_EntsData[iIndex]->m_pFields.size(); i++)
-			{
-				if (strstr(m_EntsData[iIndex]->m_pFields[i]->pKey, "m_sz"))
-				{
-					delete [] m_EntsData[iIndex]->m_pFields[i]->pValue;
-				}
-				else
-				{
-					delete m_EntsData[iIndex]->m_pFields[i]->pValue;
-				}
-				
-				delete m_EntsData[iIndex]->m_pFields[i];
-			}
-
-			m_EntsData[iIndex]->m_pFields.clear();
 			delete m_EntsData[iIndex];
 			m_EntsData[iIndex] = NULL;
 		}
@@ -284,5 +358,9 @@ public:
 };
 
 extern CEntityManager g_Entitys;
+
+extern edict_t* Ammo_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles);
+extern edict_t* Weapon_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles);
+extern edict_t* Wpnmod_SpawnItem(const char* szName, Vector vecOrigin, Vector vecAngles);
 
 #endif // _WPNMOD_ENTITY_H

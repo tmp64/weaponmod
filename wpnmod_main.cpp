@@ -50,10 +50,6 @@ void OnAmxxAttach(void)
 // Called by Meta_Attach.
 int WpnMod_Init(void)
 {
-	/*std::map< std::string, void*> fields;
-	fields["lol"] = "lol";
-	fields.clear();*/
-
 	g_log.Init();
 
 	WPNMOD_LOG("Start.\n");

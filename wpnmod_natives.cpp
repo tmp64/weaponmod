@@ -62,6 +62,13 @@
 		return 0;																							\
 	}
 
+#define CHECK_PARAMS_NUM(x)																					\
+	if (paramnum != x)																						\
+	{																										\
+		MF_LogError(amx, AMX_ERR_NATIVE, "Bad arguments num, expected %d, passed %d", x, paramnum);			\
+		return -1;																							\
+	}
+
 
 
 
@@ -550,46 +557,37 @@ namespace DeprecatedNatives
 {
 	enum e_CBase
 	{
-		// Weapon
 		CBase_pPlayer,
 		CBase_pNext,
-
-		// Player
 		CBase_rgpPlayerItems,
 		CBase_pActiveItem,
 		CBase_pLastItem,
-
 		CBase_End
 	};
 
 	enum e_Offsets
 	{
-		// Weapon
 		Offset_flStartThrow,
 		Offset_flReleaseThrow,
 		Offset_iChargeReady,
 		Offset_iInAttack,
 		Offset_iFireState,
-		Offset_iFireOnEmpty,				// true when the gun is empty and the player is still holding down the attack key(s)
+		Offset_iFireOnEmpty,
 		Offset_flPumpTime,
-		Offset_iInSpecialReload,			// Are we in the middle of a reload for the shotguns
-		Offset_flNextPrimaryAttack,			// soonest time ItemPostFrame will call PrimaryAttack
-		Offset_flNextSecondaryAttack,		// soonest time ItemPostFrame will call SecondaryAttack
-		Offset_flTimeWeaponIdle,			// soonest time ItemPostFrame will call WeaponIdle
-		Offset_iPrimaryAmmoType,			// "primary" ammo index into players m_rgAmmo[]
-		Offset_iSecondaryAmmoType,			// "secondary" ammo index into players m_rgAmmo[]
-		Offset_iClip,						// number of shots left in the primary weapon clip, -1 it not used
-		Offset_iInReload,					// are we in the middle of a reload;
-		Offset_iDefaultAmmo,				// how much ammo you get when you pick up this weapon as placed by a level designer.
-
-		// Player
-		Offset_flNextAttack,				// cannot attack again until this time
-		Offset_iWeaponVolume,				// how loud the player's weapon is right now
-		Offset_iWeaponFlash,				// brightness of the weapon flash
+		Offset_iInSpecialReload,
+		Offset_flNextPrimaryAttack,
+		Offset_flNextSecondaryAttack,
+		Offset_flTimeWeaponIdle,
+		Offset_iPrimaryAmmoType,
+		Offset_iSecondaryAmmoType,
+		Offset_iClip,
+		Offset_iInReload,
+		Offset_iDefaultAmmo,
+		Offset_flNextAttack,
+		Offset_iWeaponVolume,
+		Offset_iWeaponFlash,
 		Offset_iLastHitGroup,
 		Offset_iFOV,
-
-		// Custom (for weapon and "info_target" entities only)
 		Offset_iuser1,
 		Offset_iuser2,
 		Offset_iuser3,
@@ -598,7 +596,6 @@ namespace DeprecatedNatives
 		Offset_fuser2,
 		Offset_fuser3,
 		Offset_fuser4,
-
 		Offset_End
 	};
 
@@ -644,14 +641,6 @@ namespace DeprecatedNatives
 		pvData_ammo_argrens
 	};
 
-	/**
-	 * Set animation extension for player.
-	 *
-	 * @param iPlayer		Player id.
-	 * @param szAnimExt[]	Animation extension prefix.
-	 *
-	 * native wpnmod_set_anim_ext(const iPlayer, const szAnimExt[]);
-	*/
 	AMXX_NATIVE(wpnmod_set_anim_ext)
 	{
 		int iPlayer = params[1];
@@ -661,15 +650,6 @@ namespace DeprecatedNatives
 		return 1;
 	}
 
-	/**
-	 * Get animation extension for player.
-	 *
-	 * @param iPlayer		Player id.
-	 * @param szDest[]		Buffer.
-	 * @param iMaxLen		Max buffer size.
-	 *
-	 * native wpnmod_get_anim_ext(const iPlayer, szDest[], iMaxLen);
-	 */
 	AMXX_NATIVE(wpnmod_get_anim_ext)
 	{
 		int iPlayer = params[1];
@@ -679,15 +659,6 @@ namespace DeprecatedNatives
 		return MF_SetAmxString(amx, params[2], GetPrivateString(INDEXENT2(iPlayer), pvData_szAnimExtention), params[3]);
 	}
 
-	/**
-	 * Sets an integer from private data.
-	 *
-	 * @param iEntity		Entity index.
-	 * @param iOffset		Offset (See e_Offsets constants).
-	 * @param iValue		Value.
-	 *
-	 * native wpnmod_set_offset_int(const iEntity, const e_Offsets: iOffset, const iValue);
-	*/
 	AMXX_NATIVE(wpnmod_set_offset_int)
 	{
 		int iEntity = params[1];
@@ -701,16 +672,6 @@ namespace DeprecatedNatives
 		return 1;
 	}
 
-	/**
-	 * Returns an integer from private data.
-	 *
-	 * @param iEntity		Entity index.
-	 * @param iOffset		Offset (See e_Offsets constants).
-	 * 
-	 * @return				Value from private data. (integer)
-	 *
-	 * native wpnmod_get_offset_int(const iEntity, const e_Offsets: iOffset);
-	*/
 	AMXX_NATIVE(wpnmod_get_offset_int)
 	{
 		int iEntity = params[1];
@@ -722,15 +683,6 @@ namespace DeprecatedNatives
 		return GetPrivateInt(INDEXENT2(iEntity), NativesPvDataOffsets[iOffset]);
 	}
 
-	/**
-	 * Sets a float from private data.
-	 *
-	 * @param iEntity		Entity index.
-	 * @param iOffset		Offset (See e_Offsets constants).
-	 * @param flValue		Value.
-	 *
-	 * native wpnmod_set_offset_float(const iEntity, const e_Offsets: iOffset, const Float: flValue);
-	*/
 	AMXX_NATIVE(wpnmod_set_offset_float)
 	{
 		int iEntity = params[1];
@@ -745,16 +697,6 @@ namespace DeprecatedNatives
 		return 1;
 	}
 
-	/**
-	 * Set the corresponding cbase field in private data with the index.
-	 *
-	 * @param iEntity			The entity to examine the private data.
-	 * @param iOffset			Offset (See e_CBase constants).
-	 * @param iValue			The index to store.
-	 * @param iExtraOffset		The extra offset.
-	 *
-	 * native wpnmod_set_offset_cbase(const iEntity, const e_CBase: iOffset, const iValue, const iExtraOffset = 0);
-	*/
 	AMXX_NATIVE(wpnmod_set_offset_cbase)
 	{
 		CHECK_ENTITY(params[1])
@@ -765,16 +707,6 @@ namespace DeprecatedNatives
 		return 1;
 	}
 
-	/**
-	 * Returns a float from private data.
-	 *
-	 * @param iEntity		Entity index.
-	 * @param iOffset		Offset (See e_Offsets constants).
-	 * 
-	 * @return				Value from private data. (float)
-	 *
-	 * native Float: wpnmod_get_offset_float(const iEntity, const e_Offsets: iOffset);
-	*/
 	AMXX_NATIVE(wpnmod_get_offset_float)
 	{
 		int iEntity = params[1];
@@ -786,17 +718,6 @@ namespace DeprecatedNatives
 		return amx_ftoc(GetPrivateFloat(INDEXENT2(iEntity), NativesPvDataOffsets[iOffset]));
 	}
 
-	/**
-	 * This will return an index of the corresponding cbase field in private data.
-	 *
-	 * @param iEntity			The entity to examine the private data.
-	 * @param iOffset			Offset (See e_CBase constants).
-	 * @param iExtraOffset		The extra offset.
-	 *
-	 * @return					Value from private data. (integer)
-	 *
-	 * native wpnmod_get_offset_cbase(const iEntity, const e_CBase: iOffset, const iExtraOffset = 0);
-	*/
 	AMXX_NATIVE(wpnmod_get_offset_cbase)
 	{
 		CHECK_ENTITY(params[1])
@@ -812,18 +733,6 @@ namespace DeprecatedNatives
 		return -1;
 	}
 
-	/**
-	* Sets weapon's think function. Analogue of set_task native.
-	*
-	* Usage:
-	* 	wpnmod_set_think(iItem, "M249_CompleteReload");
-	* 	set_pev(iItem, pev_nextthink, get_gametime() + 1.52);
-	*
-	* @param iItem				Weapon's entity index.
-	* @param szCallBack		The forward to call.
-	*
-	* native wpnmod_set_think(const iItem, const szCallBack[]);
-	*/
 	AMXX_NATIVE(wpnmod_set_think)
 	{
 		int iEntity = params[1];
@@ -864,14 +773,6 @@ namespace DeprecatedNatives
 		return 1;
 	}
 
-	/**
-	* Sets entity's touch function.
-	*
-	* @param iEntity			Entity index.
-	* @param szCallBack		The forward to call.
-	*
-	* native wpnmod_set_touch(const iEntity, const szCallBack[]);
-	*/
 	AMXX_NATIVE(wpnmod_set_touch)
 	{
 		int iEntity = params[1];
@@ -1762,65 +1663,72 @@ namespace NewNatives
 			return 0;
 		}
 
+		int iExtra = 0;
+
 		edict_t* pEntity = INDEXENT2(iEntity);
 		size_t paramnum = params[0] / sizeof(cell);
 
 		if (iSwitch >= PV_START_ENT && iSwitch <= PV_END_ENT)
 		{
-			if (paramnum > 1 && paramnum < 4)
+			if (paramnum == 3)
 			{
-				int iExtra = 0;
-
-				if (paramnum == 3)
-				{
-					iExtra = params[3];
-				}
-
-				edict_t* pResult = GetPrivateCbase(pEntity, pvDataReference[iSwitch], iExtra);
-
-				if (IsValidPev(pResult))
-				{
-						return ENTINDEX(pResult);
-				}
-
-				return -1;
+				iExtra = *MF_GetAmxAddr(amx, params[3]);
 			}
+			else
+			{
+				CHECK_PARAMS_NUM(2);
+			}
+
+			edict_t* pResult = GetPrivateCbase(pEntity, pvDataReference[iSwitch], iExtra);
+
+			if (IsValidPev(pResult))
+			{
+				return ENTINDEX(pResult);
+			}
+
+			return -1;
 		}
-		else if (paramnum == 2)
+		else if (iSwitch >= PV_START_INT && iSwitch <= PV_END_INT)
 		{
-			if (iSwitch >= PV_START_INT && iSwitch <= PV_END_INT)
+			if (paramnum == 3)
 			{
-				return GetPrivateInt(pEntity, pvDataReference[iSwitch]);
+				iExtra = *MF_GetAmxAddr(amx, params[3]);
 			}
-			else if (iSwitch >= PV_START_FL && iSwitch <= PV_END_FL)
+			else
 			{
-				return amx_ftoc(GetPrivateFloat(pEntity, pvDataReference[iSwitch]));
+				CHECK_PARAMS_NUM(2);
 			}
+
+			return GetPrivateInt(pEntity, pvDataReference[iSwitch], iExtra);
 		}
-		else if (paramnum == 4)
+		else if (iSwitch >= PV_START_FL && iSwitch <= PV_END_FL)
 		{
-			if (iSwitch >= PV_START_SZ && iSwitch <= PV_END_SZ)
+			CHECK_PARAMS_NUM(2);
+			return amx_ftoc(GetPrivateFloat(pEntity, pvDataReference[iSwitch]));
+		}
+		else if (iSwitch >= PV_START_SZ && iSwitch <= PV_END_SZ)
+		{
+			CHECK_PARAMS_NUM(4);
+
+			const char* szReturnValue = NULL;
+
+			switch (iSwitch)
 			{
-				const char* szReturnValue = NULL;
-
-				switch (iSwitch)
-				{
-					case PV_SZ_szAnimExtention:
-						szReturnValue = GetPrivateString(pEntity, pvData_szAnimExtention);
-						break;
-				}
-
-				if (!szReturnValue)
-				{
-					szReturnValue = "";
-				}
-
-				return MF_SetAmxString(amx, params[3], szReturnValue, params[4]);
+				case PV_SZ_szAnimExtention:
+					szReturnValue = GetPrivateString(pEntity, pvData_szAnimExtention);
+					break;
 			}
+
+			if (!szReturnValue)
+			{
+				szReturnValue = "";
+			}
+
+			return MF_SetAmxString(amx, params[3], szReturnValue, params[4]);
 		}
 
 		MF_LogError(amx, AMX_ERR_NATIVE, "Unknown e_pvData index or return combination %d", iSwitch);
-		return 0;
+		return -1;
 	}
 
 	/**
@@ -1851,66 +1759,81 @@ namespace NewNatives
 
 		if (iSwitch >= PV_START_ENT && iSwitch <= PV_END_ENT)
 		{
-			if (paramnum > 2 && paramnum < 5)
+			if (paramnum == 4)
 			{
-				int iTarget = *MF_GetAmxAddr(amx,params[3]);
-
-				CHECK_ENTITY(iTarget)
-
-				if (paramnum == 4)
-				{
-					iExtra = *MF_GetAmxAddr(amx,params[4]);
-				}
-
-				SetPrivateCbase(pEntity, pvDataReference[iSwitch], INDEXENT2(iTarget), iExtra);
-				return 1;
+				iExtra = *MF_GetAmxAddr(amx, params[4]);
 			}
+			else
+			{
+				CHECK_PARAMS_NUM(3);
+			}
+
+			int iTarget = *MF_GetAmxAddr(amx,params[3]);
+
+			CHECK_ENTITY(iTarget)
+			SetPrivateCbase(pEntity, pvDataReference[iSwitch], INDEXENT2(iTarget), iExtra);
+			return 1;
+			
 		}
-		else if (paramnum == 3)
+		else if (iSwitch >= PV_START_INT && iSwitch <= PV_END_INT)
 		{
-			if (iSwitch >= PV_START_INT && iSwitch <= PV_END_INT)
+			if (paramnum == 4)
 			{
-				SetPrivateInt(pEntity, pvDataReference[iSwitch], *MF_GetAmxAddr(amx,params[3]), iExtra);
-				return 1;
+				iExtra = *MF_GetAmxAddr(amx, params[4]);
 			}
-			else if (iSwitch >= PV_START_FL && iSwitch <= PV_END_FL)
+			else
 			{
-				SetPrivateFloat(pEntity, pvDataReference[iSwitch], amx_ctof(MF_GetAmxAddr(amx,params[3])[0]));
-				return 1;
+				CHECK_PARAMS_NUM(3);
 			}
-			else if (iSwitch >= PV_START_SZ && iSwitch <= PV_END_SZ)
+
+			SetPrivateInt(pEntity, pvDataReference[iSwitch], *MF_GetAmxAddr(amx, params[3]), iExtra);
+			return 1;
+		}
+		else if (iSwitch >= PV_START_FL && iSwitch <= PV_END_FL)
+		{
+			CHECK_PARAMS_NUM(3);
+			SetPrivateFloat(pEntity, pvDataReference[iSwitch], amx_ctof(MF_GetAmxAddr(amx,params[3])[0]));
+			return 1;
+		}
+		else if (iSwitch >= PV_START_SZ && iSwitch <= PV_END_SZ)
+		{
+			CHECK_PARAMS_NUM(3);
+
+			switch (iSwitch)
 			{
-				switch (iSwitch)
-				{
-					case PV_SZ_szAnimExtention:
-						SetPrivateString(pEntity, pvData_szAnimExtention, STRING(ALLOC_STRING(MF_GetAmxString(amx, params[3], 0, NULL))));
-						return 1;
-				}
+				case PV_SZ_szAnimExtention:
+					SetPrivateString(pEntity, pvData_szAnimExtention, STRING(ALLOC_STRING(MF_GetAmxString(amx, params[3], 0, NULL))));
+					return 1;
 			}
 		}
 
 		MF_LogError(amx, AMX_ERR_NATIVE, "Unknown e_pvData index or return combination %d", iSwitch);
-		return 0;
+		return -1;
 	}
 
 	/**
 	* native any: WpnMod_GetEntityField(const iEntity, const szField[], any:...);
 	*/
 	AMXX_NATIVE(WpnMod_GetEntityField)
-	{
+	{/*
 		int iEntity = params[1];
 
 		CHECK_ENTITY(iEntity);
 
-		edict_t* pEntity = INDEXENT2(iEntity);
+		TrieData *td = &g_Entitys.m_EntsData[iEntity]->m_trie[MF_GetAmxString(amx, params[2], 0, NULL)];
 
-		const char* pKey = MF_GetAmxString(amx, params[2], 0, NULL);
+		// should never, ever happen
+		if (td == NULL)
+		{
+			//LogError(amx, AMX_ERR_NATIVE, "Couldn't KTrie::retrieve(), handle: %d", params[1]);
+			return 0;
+		}
 
+		//g_Entitys.m_EntsData[iEntity]->m_trie["lol"].clear();
 
+		//printf("!!!!!!!!!!!!!!1 %s  %s\n", pKey, (char*)g_Entitys.EntityGetField(pEntity, pKey));
 
-		printf("!!!!!!!!!!!!!!1 %s  %s\n", pKey, (char*)g_Entitys.EntityGetField(pEntity, pKey));
-
-
+		*/
 		return 1;
 	}
 
@@ -1918,25 +1841,28 @@ namespace NewNatives
 	* native WpnMod_SetEntityField(const iEntity, const szField[], any:...);
 	*/
 	AMXX_NATIVE(WpnMod_SetEntityField)
-	{
+	{/*
 		int iEntity = params[1];
 
 		CHECK_ENTITY(iEntity);
 
-		edict_t* pEntity = INDEXENT2(iEntity);
+		const char* pKey = MF_GetAmxString(amx, params[2], 0, NULL);
+		//TrieData *td = &g_Entitys.m_EntsData[iEntity]->m_trie[pKey];
 
-		const char* pKey = STRING(ALLOC_STRING(MF_GetAmxString(amx, params[2], 0, NULL)));
-		void *pValue = NULL;
+		// should never, ever happen
+		if (td == NULL)
+		{
+			//LogError(amx, AMX_ERR_NATIVE, "Couldn't KTrie::retrieve(), handle: %d", params[1]);
+			return 0;
+		}
 
 		if (strstr(pKey, "m_i"))
 		{
-			pValue = new int;
-			*(int*)pValue = *MF_GetAmxAddr(amx, params[3]);
+			//*(int*)pValue = *MF_GetAmxAddr(amx, params[3]);
 		}
 		else if (strstr(pKey, "m_fl"))
 		{
-			pValue = new double;
-			*(double*)pValue = amx_ctof(MF_GetAmxAddr(amx, params[3])[0]);
+			//*(double*)pValue = amx_ctof(MF_GetAmxAddr(amx, params[3])[0]);
 		}
 		else if (strstr(pKey, "m_sz"))
 		{
@@ -1954,9 +1880,9 @@ namespace NewNatives
 		{
 			MF_LogError(amx, AMX_ERR_NATIVE, "Invalid field name provided: \"%s\"", pKey);
 			return 0;
-		}
+		}*/
 
-		return g_Entitys.EntitySetField(pEntity, pKey, pValue);
+		return 1;//g_Entitys.EntitySetField(pEntity, pKey, pValue);
 	}
 
 	/**
