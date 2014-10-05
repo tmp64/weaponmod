@@ -165,9 +165,19 @@ public:
 			m_iExplode = 0;
 		}
 
+		~CEntity()
+		{
+			for (int i = 0; i < (int)m_TouchFilter.size(); i++)
+			{
+				m_TouchFilter[i].clear();
+			}
+		}
+
 		int m_iThink;
 		int m_iTouch;
 		int m_iExplode;
+
+		std::vector <std::string> m_TouchFilter;
 	};
 
 	typedef enum _forwardtypes
@@ -255,22 +265,33 @@ public:
 		}
 	}
 
+	void AddClassnameToTouchFilter(edict_t *pEdict, std::string strClassname)
+	{
+		if (IsEntityValid(pEdict))
+		{
+			CEntity *p = m_EntsData[ENTINDEX(pEdict)];
+			p->m_TouchFilter.push_back(strClassname);
+		}
+	}
+
 	void SetAmxxForward(edict_t *pEdict, FORWARDTYPE forwardType, int iForwardID)
 	{
 		if (IsEntityValid(pEdict))
 		{
+			CEntity *p = m_EntsData[ENTINDEX(pEdict)];
+
 			switch (forwardType)
 			{
 			case FORWARD_THINK:
-				m_EntsData[ENTINDEX(pEdict)]->m_iThink = iForwardID;
+				p->m_iThink = iForwardID;
 				break;
 
 			case FORWARD_TOUCH:
-				m_EntsData[ENTINDEX(pEdict)]->m_iTouch = iForwardID;
+				p->m_iTouch = iForwardID;
 				break;
 
 			case FORWARD_EXPLODE:
-				m_EntsData[ENTINDEX(pEdict)]->m_iExplode = iForwardID;
+				p->m_iExplode = iForwardID;
 				break;
 			}
 		}
@@ -283,53 +304,64 @@ public:
 			return;
 		}
 
+		CEntity *ent = m_EntsData[ENTINDEX(pEdict)];
+
 		switch (forwardType)
 		{
 		case FORWARD_TOUCH:
-			if (m_EntsData[ENTINDEX(pEdict)]->m_iTouch)
+			if (!ent->m_iTouch)
 			{
-				va_list p;
-				va_start(p, forwardType);
-
-				MF_ExecuteForward
-				(
-					m_EntsData[ENTINDEX(pEdict)]->m_iTouch,
-
-					static_cast<cell>(ENTINDEX(pEdict)),
-					static_cast<cell>(ENTINDEX(va_arg(p, edict_t*)))
-				);
-
-				va_end(p);
+				return;
 			}
+			va_list p;
+			edict_t *pToucher;
+			va_start(p, forwardType);
+			pToucher = va_arg(p, edict_t*);
+			va_end(p);
+			if (ent->m_TouchFilter.size())
+			{
+				bool bSkipTouch = true;
+				for (int i = 0; i < (int)ent->m_TouchFilter.size(); i++)
+				{
+					if (!strcmp(STRING(pToucher->v.classname), ent->m_TouchFilter[i].c_str()))
+					{
+						bSkipTouch = false;
+					}
+				}
+				if (bSkipTouch)
+				{
+					return;
+				}
+			}
+			MF_ExecuteForward
+			(
+				ent->m_iTouch,
+				static_cast<cell>(ENTINDEX(pEdict)),
+				static_cast<cell>(ENTINDEX(pToucher))
+			);
 			break;
-
 		case FORWARD_EXPLODE:
-			if (m_EntsData[ENTINDEX(pEdict)]->m_iExplode)
+			if (ent->m_iExplode)
 			{
 				va_list p;
 				va_start(p, forwardType);
-
 				MF_ExecuteForward
 				(
-					m_EntsData[ENTINDEX(pEdict)]->m_iExplode,
-					
+					ent->m_iExplode,
 					static_cast<cell>(ENTINDEX(pEdict)),
 					reinterpret_cast<cell>(&va_arg(p, TraceResult))
 				);
-
 				va_end(p);
 			}
 			break;
-
 		case FORWARD_THINK:
-			if (m_EntsData[ENTINDEX(pEdict)]->m_iThink)
+			if (ent->m_iThink)
 			{
 				if (!strstr(STRING(pEdict->v.classname), "weapon_"))
 				{
 					MF_ExecuteForward
 					(
-						m_EntsData[ENTINDEX(pEdict)]->m_iThink,
-
+						ent->m_iThink,
 						static_cast<cell>(ENTINDEX(pEdict)),
 						static_cast<cell>(-1),
 						static_cast<cell>(-1),
@@ -340,13 +372,11 @@ public:
 				else
 				{
 					edict_t* pPlayer = GetPrivateCbase(pEdict, pvData_pPlayer);
-
 					MF_ExecuteForward
 					(
-						m_EntsData[ENTINDEX(pEdict)]->m_iThink,
-
+						ent->m_iThink,
 						static_cast<cell>(ENTINDEX(pEdict)),
-						static_cast<cell>(ENTINDEX(pPlayer)),
+						static_cast<cell>(IsValidPev(pPlayer) ? ENTINDEX(pPlayer) : -1),
 						static_cast<cell>(GetPrivateInt(pEdict, pvData_iClip)),
 						static_cast<cell>(GetAmmoInventory(pPlayer, PrimaryAmmoIndex(pEdict))),
 						static_cast<cell>(GetAmmoInventory(pPlayer, SecondaryAmmoIndex(pEdict)))

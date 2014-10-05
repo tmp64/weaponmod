@@ -1927,10 +1927,18 @@ namespace NewNatives
 	{
 		if (DeprecatedNatives::wpnmod_set_touch(amx, params))
 		{
+			int paramnum = params[0] / sizeof(cell);
+
+			if (paramnum > 2)
+			{
+				for (int i = 3; i <= paramnum; i++)
+				{
+					g_Entitys.AddClassnameToTouchFilter(INDEXENT2(params[1]), MF_GetAmxString(amx, params[i], 0, NULL));
+				}
+			}
+
 			return 1;
 		}
-
-		// TODO: implement classname filtration.
 
 		return 0;
 	}
