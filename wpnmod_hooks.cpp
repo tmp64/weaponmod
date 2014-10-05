@@ -502,8 +502,8 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 	Dll_SetThink(pWeapon, NULL);
 	Dll_SetTouch(pWeapon, NULL);
 
-	g_Entitys.SetAmxxForward(pWeapon, g_Entitys.FORWARD_THINK, NULL);
-	g_Entitys.SetAmxxForward(pWeapon, g_Entitys.FORWARD_TOUCH, NULL);
+	g_Entitys.SetAmxxForward(pWeapon, FWD_ENT_THINK, NULL);
+	g_Entitys.SetAmxxForward(pWeapon, FWD_ENT_TOUCH, NULL);
 
 	edict_t* pPlayer = GetPrivateCbase(pWeapon, pvData_pPlayer);
 
@@ -889,7 +889,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 
 	if (IsValidPev(pEntity))
 	{
-		g_Entitys.ExecuteAmxxForward(pEntity, g_Entitys.FORWARD_THINK);
+		g_Entitys.ExecuteAmxxForward(pEntity, FWD_ENT_THINK);
 	}
 }
 
@@ -908,7 +908,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 
 	if (IsValidPev(pEntity))
 	{
-		g_Entitys.ExecuteAmxxForward(pEntity, g_Entitys.FORWARD_TOUCH, pOther);
+		g_Entitys.ExecuteAmxxForward(pEntity, FWD_ENT_TOUCH, (void*)pOther);
 	}
 }
 

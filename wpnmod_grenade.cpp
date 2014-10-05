@@ -194,7 +194,7 @@ void Grenade_Explode(edict_t* pGrenade, int bitsDamageType)
 		}
 	}
 
-	g_Entitys.ExecuteAmxxForward(pGrenade, g_Entitys.FORWARD_EXPLODE, pTrace);
+	g_Entitys.ExecuteAmxxForward(pGrenade, FWD_ENT_EXPLODE, (void*)&pTrace);
 
 	pGrenade->v.velocity = Vector(0, 0, 0);
 	pGrenade->v.effects |= EF_NODRAW;

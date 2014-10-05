@@ -276,10 +276,12 @@ AMXX_NATIVE(wpnmod_fire_contact_grenade)
 				funcname, 
 				FP_CELL,
 				FP_CELL,
+				FP_ARRAY,
+				FP_ARRAY,
 				FP_DONE
 			);
 
-			g_Entitys.SetAmxxForward(pGrenade, g_Entitys.FORWARD_EXPLODE, iForward == -1 ? NULL : iForward);
+			g_Entitys.SetAmxxForward(pGrenade, FWD_ENT_EXPLODE, iForward == -1 ? NULL : iForward);
 		}
 
 		return ENTINDEX(pGrenade);
@@ -333,10 +335,12 @@ AMXX_NATIVE(wpnmod_fire_timed_grenade)
 				funcname, 
 				FP_CELL,
 				FP_CELL,
+				FP_ARRAY,
+				FP_ARRAY,
 				FP_DONE
 			);
 
-			g_Entitys.SetAmxxForward(pGrenade, g_Entitys.FORWARD_EXPLODE, iForward == -1 ? NULL : iForward);
+			g_Entitys.SetAmxxForward(pGrenade, FWD_ENT_EXPLODE, iForward == -1 ? NULL : iForward);
 		}
 
 		return ENTINDEX(pGrenade);
@@ -401,10 +405,12 @@ AMXX_NATIVE(wpnmod_explode_entity)
 			funcname, 
 			FP_CELL,
 			FP_CELL,
+			FP_ARRAY,
+			FP_ARRAY,
 			FP_DONE
 		);
 
-		g_Entitys.SetAmxxForward(INDEXENT2(params[1]), g_Entitys.FORWARD_EXPLODE, iForward == -1 ? NULL : iForward);
+		g_Entitys.SetAmxxForward(INDEXENT2(params[1]), FWD_ENT_EXPLODE, iForward == -1 ? NULL : iForward);
 	}
 
 	Grenade_Explode(INDEXENT2(params[1]), params[2]);
@@ -744,7 +750,7 @@ namespace DeprecatedNatives
 		if (!strlen(funcname))
 		{
 			Dll_SetThink(INDEXENT2(iEntity), NULL);
-			g_Entitys.SetAmxxForward(INDEXENT2(iEntity), g_Entitys.FORWARD_THINK, NULL);
+			g_Entitys.SetAmxxForward(INDEXENT2(iEntity), FWD_ENT_THINK, NULL);
 		}
 		else
 		{
@@ -767,7 +773,7 @@ namespace DeprecatedNatives
 			}
 
 			Dll_SetThink(INDEXENT2(iEntity), (void*)Global_Think);
-			g_Entitys.SetAmxxForward(INDEXENT2(iEntity), g_Entitys.FORWARD_THINK, iForward);
+			g_Entitys.SetAmxxForward(INDEXENT2(iEntity), FWD_ENT_THINK, iForward);
 		}
 
 		return 1;
@@ -784,11 +790,11 @@ namespace DeprecatedNatives
 		if (!strlen(funcname))
 		{
 			Dll_SetTouch(INDEXENT2(iEntity), NULL);
-			g_Entitys.SetAmxxForward(INDEXENT2(iEntity), g_Entitys.FORWARD_TOUCH, NULL);
+			g_Entitys.SetAmxxForward(INDEXENT2(iEntity), FWD_ENT_TOUCH, NULL);
 		}
 		else
 		{
-			int iForward = MF_RegisterSPForwardByName(amx, funcname, FP_CELL, FP_CELL, FP_DONE);
+			int iForward = MF_RegisterSPForwardByName(amx, funcname, FP_CELL, FP_CELL, FP_STRING, FP_ARRAY, FP_DONE);
 
 			if (iForward == -1)
 			{
@@ -797,7 +803,7 @@ namespace DeprecatedNatives
 			}
 
 			Dll_SetTouch(INDEXENT2(iEntity), (void*)Global_Touch);
-			g_Entitys.SetAmxxForward(INDEXENT2(iEntity), g_Entitys.FORWARD_TOUCH, iForward);
+			g_Entitys.SetAmxxForward(INDEXENT2(iEntity), FWD_ENT_TOUCH, iForward);
 		}
 
 		return 1;
@@ -1919,7 +1925,6 @@ namespace NewNatives
 	*
 	* @param iEntity            Entity index.
 	* @param szCallBack         The forward to call.
-	* @param szToucher          Specify toucher's classname.
 	*
 	* native WpnMod_SetTouch(const iEntity, const szCallBack[], const szToucher[] = "");
 	*/

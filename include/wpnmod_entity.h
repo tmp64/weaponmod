@@ -150,6 +150,11 @@ public:
 	}
 };
 */
+
+#define FWD_ENT_THINK		0
+#define FWD_ENT_TOUCH		1
+#define FWD_ENT_EXPLODE		2
+
 class CEntityManager
 {
 public:
@@ -179,13 +184,6 @@ public:
 
 		std::vector <std::string> m_TouchFilter;
 	};
-
-	typedef enum _forwardtypes
-	{
-		FORWARD_THINK,
-		FORWARD_TOUCH,
-		FORWARD_EXPLODE,
-	} FORWARDTYPE;
 
 	//typedef std::map<int, std::map<std::string, TrieData*>> TInt2StrTrieMap;
 
@@ -267,63 +265,59 @@ public:
 
 	void AddClassnameToTouchFilter(edict_t *pEdict, std::string strClassname)
 	{
-		if (IsEntityValid(pEdict))
+		// strClassname.trim();
+		strClassname.erase(strClassname.find_last_not_of(" \n\r\t") + 1);
+
+		if (!strClassname.empty() && IsEntityValid(pEdict))
 		{
 			CEntity *p = m_EntsData[ENTINDEX(pEdict)];
 			p->m_TouchFilter.push_back(strClassname);
 		}
 	}
 
-	void SetAmxxForward(edict_t *pEdict, FORWARDTYPE forwardType, int iForwardID)
+	void SetAmxxForward(edict_t *pEdict, int iForwardType, int iForwardID)
 	{
 		if (IsEntityValid(pEdict))
 		{
 			CEntity *p = m_EntsData[ENTINDEX(pEdict)];
 
-			switch (forwardType)
+			switch (iForwardType)
 			{
-			case FORWARD_THINK:
+			case FWD_ENT_THINK:
 				p->m_iThink = iForwardID;
 				break;
-
-			case FORWARD_TOUCH:
+			case FWD_ENT_TOUCH:
 				p->m_iTouch = iForwardID;
 				break;
-
-			case FORWARD_EXPLODE:
+			case FWD_ENT_EXPLODE:
 				p->m_iExplode = iForwardID;
 				break;
 			}
 		}
 	}
 
-	void ExecuteAmxxForward(edict_t *pEdict, FORWARDTYPE forwardType, ...)
+	void ExecuteAmxxForward(edict_t *pEdict, int iForwardType, void *pVar = NULL)
 	{
 		if (!IsEntityValid(pEdict))
 		{
 			return;
 		}
 
-		CEntity *ent = m_EntsData[ENTINDEX(pEdict)];
+		CEntity *p = m_EntsData[ENTINDEX(pEdict)];
 
-		switch (forwardType)
+		switch (iForwardType)
 		{
-		case FORWARD_TOUCH:
-			if (!ent->m_iTouch)
+		case FWD_ENT_TOUCH:
+			if (!p->m_iTouch)
 			{
 				return;
 			}
-			va_list p;
-			edict_t *pToucher;
-			va_start(p, forwardType);
-			pToucher = va_arg(p, edict_t*);
-			va_end(p);
-			if (ent->m_TouchFilter.size())
+			if (p->m_TouchFilter.size())
 			{
 				bool bSkipTouch = true;
-				for (int i = 0; i < (int)ent->m_TouchFilter.size(); i++)
+				for (int i = 0; i < (int)p->m_TouchFilter.size(); i++)
 				{
-					if (!strcmp(STRING(pToucher->v.classname), ent->m_TouchFilter[i].c_str()))
+					if (!strcmp(STRING(((edict_t *)pVar)->v.classname), p->m_TouchFilter[i].c_str()))
 					{
 						bSkipTouch = false;
 					}
@@ -335,33 +329,34 @@ public:
 			}
 			MF_ExecuteForward
 			(
-				ent->m_iTouch,
+				p->m_iTouch,
 				static_cast<cell>(ENTINDEX(pEdict)),
-				static_cast<cell>(ENTINDEX(pToucher))
+				static_cast<cell>(ENTINDEX(((edict_t *)pVar))),
+				static_cast<const char*>(STRING(((edict_t *)pVar)->v.classname)),
+				MF_PrepareCellArrayA(reinterpret_cast<cell *>(&pEdict->v.origin), 3, false)
 			);
 			break;
-		case FORWARD_EXPLODE:
-			if (ent->m_iExplode)
+		case FWD_ENT_EXPLODE:
+			if (p->m_iExplode)
 			{
-				va_list p;
-				va_start(p, forwardType);
 				MF_ExecuteForward
 				(
-					ent->m_iExplode,
+					p->m_iExplode,
 					static_cast<cell>(ENTINDEX(pEdict)),
-					reinterpret_cast<cell>(&va_arg(p, TraceResult))
+					reinterpret_cast<cell>(((TraceResult*)pVar)),
+					MF_PrepareCellArrayA(reinterpret_cast<cell *>(&(((TraceResult*)pVar)->vecEndPos)), 3, false),
+					MF_PrepareCellArrayA(reinterpret_cast<cell *>(&pEdict->v.origin), 3, false)
 				);
-				va_end(p);
 			}
 			break;
-		case FORWARD_THINK:
-			if (ent->m_iThink)
+		case FWD_ENT_THINK:
+			if (p->m_iThink)
 			{
 				if (!strstr(STRING(pEdict->v.classname), "weapon_"))
 				{
 					MF_ExecuteForward
 					(
-						ent->m_iThink,
+						p->m_iThink,
 						static_cast<cell>(ENTINDEX(pEdict)),
 						static_cast<cell>(-1),
 						static_cast<cell>(-1),
@@ -374,7 +369,7 @@ public:
 					edict_t* pPlayer = GetPrivateCbase(pEdict, pvData_pPlayer);
 					MF_ExecuteForward
 					(
-						ent->m_iThink,
+						p->m_iThink,
 						static_cast<cell>(ENTINDEX(pEdict)),
 						static_cast<cell>(IsValidPev(pPlayer) ? ENTINDEX(pPlayer) : -1),
 						static_cast<cell>(GetPrivateInt(pEdict, pvData_iClip)),
