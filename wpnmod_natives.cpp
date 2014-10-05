@@ -738,77 +738,7 @@ namespace DeprecatedNatives
 
 		return -1;
 	}
-
-	AMXX_NATIVE(wpnmod_set_think)
-	{
-		int iEntity = params[1];
-
-		CHECK_ENTITY(iEntity)
-
-		char *funcname = MF_GetAmxString(amx, params[2], 0, NULL);
-
-		if (!strlen(funcname))
-		{
-			Dll_SetThink(INDEXENT2(iEntity), NULL);
-			g_Entitys.SetAmxxForward(INDEXENT2(iEntity), FWD_ENT_THINK, NULL);
-		}
-		else
-		{
-			int iForward = MF_RegisterSPForwardByName
-				(
-				amx,
-				funcname,
-				FP_CELL,
-				FP_CELL,
-				FP_CELL,
-				FP_CELL,
-				FP_CELL,
-				FP_DONE
-				);
-
-			if (iForward == -1)
-			{
-				MF_LogError(amx, AMX_ERR_NATIVE, "Function not found (\"%s\").", funcname);
-				return 0;
-			}
-
-			Dll_SetThink(INDEXENT2(iEntity), (void*)Global_Think);
-			g_Entitys.SetAmxxForward(INDEXENT2(iEntity), FWD_ENT_THINK, iForward);
-		}
-
-		return 1;
-	}
-
-	AMXX_NATIVE(wpnmod_set_touch)
-	{
-		int iEntity = params[1];
-
-		CHECK_ENTITY(iEntity)
-
-		char *funcname = MF_GetAmxString(amx, params[2], 0, NULL);
-
-		if (!strlen(funcname))
-		{
-			Dll_SetTouch(INDEXENT2(iEntity), NULL);
-			g_Entitys.SetAmxxForward(INDEXENT2(iEntity), FWD_ENT_TOUCH, NULL);
-		}
-		else
-		{
-			int iForward = MF_RegisterSPForwardByName(amx, funcname, FP_CELL, FP_CELL, FP_STRING, FP_ARRAY, FP_DONE);
-
-			if (iForward == -1)
-			{
-				MF_LogError(amx, AMX_ERR_NATIVE, "Function not found (\"%s\").", funcname);
-				return 0;
-			}
-
-			Dll_SetTouch(INDEXENT2(iEntity), (void*)Global_Touch);
-			g_Entitys.SetAmxxForward(INDEXENT2(iEntity), FWD_ENT_TOUCH, iForward);
-		}
-
-		return 1;
-	}
-}
+} //namespace DeprecatedNatives
 
 namespace NewNatives
 {
@@ -1905,19 +1835,47 @@ namespace NewNatives
 	*/
 	AMXX_NATIVE(WpnMod_SetThink)
 	{
-		if (DeprecatedNatives::wpnmod_set_think(amx, params))
+		CHECK_ENTITY(params[1])
+
+		edict_t *pEdict = INDEXENT2(params[1]);
+		char *funcname = MF_GetAmxString(amx, params[2], 0, NULL);
+
+		if (!strlen(funcname))
 		{
-			float flNextThink = amx_ctof(params[3]);
-
-			if (flNextThink > 0.0)
-			{
-				INDEXENT2(params[1])->v.nextthink = gpGlobals->time + flNextThink;
-			}
-
+			Dll_SetThink(pEdict, NULL);
+			g_Entitys.SetAmxxForward(pEdict, FWD_ENT_THINK, NULL);
 			return 1;
 		}
 
-		return 0;
+		int iForward = -1;
+
+		// Entity is NOT a weapon
+		if (!strstr(STRING(pEdict->v.classname), "weapon_"))
+		{
+			iForward = MF_RegisterSPForwardByName(amx, funcname, FP_CELL, FP_ARRAY, FP_DONE);
+		}
+		else // Entity is a weapon
+		{
+			iForward = MF_RegisterSPForwardByName(amx, funcname, FP_CELL, FP_CELL, FP_CELL, FP_CELL, FP_CELL, FP_DONE);
+		}
+
+		if (iForward == -1)
+		{
+			MF_LogError(amx, AMX_ERR_NATIVE, "Function not found (\"%s\").", funcname);
+			return 0;
+		}
+
+		Dll_SetThink(pEdict, (void*)Global_Think);
+		g_Entitys.SetAmxxForward(pEdict, FWD_ENT_THINK, iForward);
+
+		float flNextThink = amx_ctof(params[3]);
+
+		if (flNextThink > 0.0)
+		{
+			pEdict->v.nextthink = gpGlobals->time + flNextThink;
+		}
+
+		return 1;
 	}
 
 	/**
@@ -1930,22 +1888,40 @@ namespace NewNatives
 	*/
 	AMXX_NATIVE(WpnMod_SetTouch)
 	{
-		if (DeprecatedNatives::wpnmod_set_touch(amx, params))
+		CHECK_ENTITY(params[1])
+
+		edict_t *pEdict = INDEXENT2(params[1]);
+		char *funcname = MF_GetAmxString(amx, params[2], 0, NULL);
+
+		if (!strlen(funcname))
 		{
-			int paramnum = params[0] / sizeof(cell);
-
-			if (paramnum > 2)
-			{
-				for (int i = 3; i <= paramnum; i++)
-				{
-					g_Entitys.AddClassnameToTouchFilter(INDEXENT2(params[1]), MF_GetAmxString(amx, params[i], 0, NULL));
-				}
-			}
-
+			Dll_SetTouch(pEdict, NULL);
+			g_Entitys.SetAmxxForward(pEdict, FWD_ENT_TOUCH, NULL);
 			return 1;
 		}
 
-		return 0;
+		int iForward = MF_RegisterSPForwardByName(amx, funcname, FP_CELL, FP_CELL, FP_STRING, FP_ARRAY, FP_DONE);
+
+		if (iForward == -1)
+		{
+			MF_LogError(amx, AMX_ERR_NATIVE, "Function not found (\"%s\").", funcname);
+			return 0;
+		}
+
+		int paramnum = params[0] / sizeof(cell);
+
+		if (paramnum > 2)
+		{
+			for (int i = 3; i <= paramnum; i++)
+			{
+				g_Entitys.AddClassnameToTouchFilter(INDEXENT2(params[1]), MF_GetAmxString(amx, params[i], 0, NULL));
+			}
+		}
+
+		Dll_SetTouch(pEdict, (void*)Global_Touch);
+		g_Entitys.SetAmxxForward(pEdict, FWD_ENT_TOUCH, iForward);
+
+		return 1;
 	}
 
 	/**
@@ -1971,7 +1947,6 @@ namespace NewNatives
 		CHECK_ENTITY(iAttacker)
 
 		Vector vecSpread;
-
 		cell *vSpread = MF_GetAmxAddr(amx, params[4]);
 
 		vecSpread.x = amx_ctof(vSpread[0]);
@@ -2076,64 +2051,10 @@ namespace NewNatives
 
 		return 1;
 	}
-}
+} // namespace NewNatives
 
 AMX_NATIVE_INFO Natives[] = 
 {
-	// Deprecated native names.
-	// Using them for backward compatibility.
-	{ "wpnmod_register_weapon",				NewNatives::WpnMod_RegisterWeapon				},
-	{ "wpnmod_register_weapon_forward",		NewNatives::WpnMod_RegisterWeaponForward		},
-	{ "wpnmod_register_ammobox",			NewNatives::WpnMod_RegisterAmmo					},
-	{ "wpnmod_register_ammobox_forward",	NewNatives::WpnMod_RegisterAmmoForward			},
-	{ "wpnmod_get_weapon_info",				NewNatives::WpnMod_GetWeaponInfo				},
-	{ "wpnmod_get_ammobox_info",			NewNatives::WpnMod_GetAmmoBoxInfo				},
-	{ "wpnmod_get_weapon_count",			NewNatives::WpnMod_GetWeaponNum					},
-	{ "wpnmod_get_ammobox_count",			NewNatives::WpnMod_GetAmmoBoxNum				},
-	{ "wpnmod_create_item",					NewNatives::WpnMod_CreateItem					},
-	{ "wpnmod_set_anim_ext",				DeprecatedNatives::wpnmod_set_anim_ext			},
-	{ "wpnmod_get_anim_ext",				DeprecatedNatives::wpnmod_get_anim_ext			},
-	{ "wpnmod_set_offset_int",				DeprecatedNatives::wpnmod_set_offset_int		},
-	{ "wpnmod_set_offset_float",			DeprecatedNatives::wpnmod_set_offset_float		},
-	{ "wpnmod_set_offset_cbase",			DeprecatedNatives::wpnmod_set_offset_cbase		},
-	{ "wpnmod_get_offset_int",				DeprecatedNatives::wpnmod_get_offset_int		},
-	{ "wpnmod_get_offset_float",			DeprecatedNatives::wpnmod_get_offset_float		},
-	{ "wpnmod_get_offset_cbase",			DeprecatedNatives::wpnmod_get_offset_cbase		},
-	{ "wpnmod_default_deploy",				NewNatives::WpnMod_DefaultDeploy				},
-	{ "wpnmod_default_reload",				NewNatives::WpnMod_DefaultReload				},
-	{ "wpnmod_reset_empty_sound",			NewNatives::WpnMod_ResetEmptySound				},
-	{ "wpnmod_play_empty_sound",			NewNatives::WpnMod_PlayEmptySound				},
-	{ "wpnmod_get_player_ammo",				NewNatives::WpnMod_GetPlayerAmmo				},
-	{ "wpnmod_set_player_ammo",				NewNatives::WpnMod_SetPlayerAmmo				},
-	{ "wpnmod_send_weapon_anim",			NewNatives::WpnMod_SendWeaponAnim				},
-	{ "wpnmod_set_player_anim",				NewNatives::WpnMod_SetPlayerAnim				},
-	{ "wpnmod_set_think",					DeprecatedNatives::wpnmod_set_think				},
-	{ "wpnmod_set_touch",					DeprecatedNatives::wpnmod_set_touch				},
-	{ "wpnmod_fire_bullets",				NewNatives::WpnMod_FireBullets					},
-	
-
-
-	
-	
-	
-	
-	{ "wpnmod_fire_contact_grenade", wpnmod_fire_contact_grenade},
-	{ "wpnmod_fire_timed_grenade", wpnmod_fire_timed_grenade},
-	{ "wpnmod_radius_damage", wpnmod_radius_damage},
-	{ "wpnmod_radius_damage2", wpnmod_radius_damage2},
-	{ "wpnmod_clear_multi_damage", wpnmod_clear_multi_damage},
-	{ "wpnmod_apply_multi_damage", wpnmod_apply_multi_damage},
-	{ "wpnmod_eject_brass", wpnmod_eject_brass},
-	{ "wpnmod_get_damage_decal", wpnmod_get_damage_decal},
-	{ "wpnmod_get_gun_position", wpnmod_get_gun_position},
-	{ "wpnmod_explode_entity", wpnmod_explode_entity},
-	{ "wpnmod_decal_trace", wpnmod_decal_trace},
-	{ "wpnmod_trace_texture", wpnmod_trace_texture},
-	
-
-
-
-
 	// Actual natives.
 	{ "WpnMod_RegisterWeapon",				NewNatives::WpnMod_RegisterWeapon				},
 	{ "WpnMod_RegisterWeaponForward",		NewNatives::WpnMod_RegisterWeaponForward		},
@@ -2161,9 +2082,52 @@ AMX_NATIVE_INFO Natives[] =
 	{ "WpnMod_FireBullets",					NewNatives::WpnMod_FireBullets					},
 	{ "WpnMod_GiveItem",					NewNatives::WpnMod_GiveItem						},
 	{ "WpnMod_GiveEquip",					NewNatives::WpnMod_GiveEquip					},
-	{ "WpnMod_VelocityByAim",				NewNatives::WpnMod_VelocityByAim },
+	// { "WpnMod_VelocityByAim",				NewNatives::WpnMod_VelocityByAim				},
+	// { "wpnmod_precache_model_sequences",	wpnmod_precache_model_sequences					},
 
-	// { "wpnmod_precache_model_sequences", wpnmod_precache_model_sequences},
+	// Deprecated native names. Using them for backward compatibility with old plugins.
+	{ "wpnmod_register_weapon",				NewNatives::WpnMod_RegisterWeapon				},
+	{ "wpnmod_register_weapon_forward",		NewNatives::WpnMod_RegisterWeaponForward		},
+	{ "wpnmod_register_ammobox",			NewNatives::WpnMod_RegisterAmmo					},
+	{ "wpnmod_register_ammobox_forward",	NewNatives::WpnMod_RegisterAmmoForward			},
+	{ "wpnmod_get_weapon_info",				NewNatives::WpnMod_GetWeaponInfo				},
+	{ "wpnmod_get_ammobox_info",			NewNatives::WpnMod_GetAmmoBoxInfo				},
+	{ "wpnmod_get_weapon_count",			NewNatives::WpnMod_GetWeaponNum					},
+	{ "wpnmod_get_ammobox_count",			NewNatives::WpnMod_GetAmmoBoxNum				},
+	{ "wpnmod_create_item",					NewNatives::WpnMod_CreateItem					},
+	{ "wpnmod_default_deploy",				NewNatives::WpnMod_DefaultDeploy				},
+	{ "wpnmod_default_reload",				NewNatives::WpnMod_DefaultReload				},
+	{ "wpnmod_reset_empty_sound",			NewNatives::WpnMod_ResetEmptySound				},
+	{ "wpnmod_play_empty_sound",			NewNatives::WpnMod_PlayEmptySound				},
+	{ "wpnmod_get_player_ammo",				NewNatives::WpnMod_GetPlayerAmmo				},
+	{ "wpnmod_set_player_ammo",				NewNatives::WpnMod_SetPlayerAmmo				},
+	{ "wpnmod_send_weapon_anim",			NewNatives::WpnMod_SendWeaponAnim				},
+	{ "wpnmod_set_player_anim",				NewNatives::WpnMod_SetPlayerAnim				},
+	{ "wpnmod_set_think",					NewNatives::WpnMod_SetThink						},
+	{ "wpnmod_set_touch",					NewNatives::WpnMod_SetTouch						},
+	{ "wpnmod_fire_bullets",				NewNatives::WpnMod_FireBullets					},
+	{ "wpnmod_set_anim_ext",				DeprecatedNatives::wpnmod_set_anim_ext			},
+	{ "wpnmod_get_anim_ext",				DeprecatedNatives::wpnmod_get_anim_ext			},
+	{ "wpnmod_set_offset_int",				DeprecatedNatives::wpnmod_set_offset_int		},
+	{ "wpnmod_set_offset_float",			DeprecatedNatives::wpnmod_set_offset_float		},
+	{ "wpnmod_set_offset_cbase",			DeprecatedNatives::wpnmod_set_offset_cbase		},
+	{ "wpnmod_get_offset_int",				DeprecatedNatives::wpnmod_get_offset_int		},
+	{ "wpnmod_get_offset_float",			DeprecatedNatives::wpnmod_get_offset_float		},
+	{ "wpnmod_get_offset_cbase",			DeprecatedNatives::wpnmod_get_offset_cbase		},
+
+	// WIP
+	{ "wpnmod_fire_contact_grenade", wpnmod_fire_contact_grenade},
+	{ "wpnmod_fire_timed_grenade", wpnmod_fire_timed_grenade},
+	{ "wpnmod_radius_damage", wpnmod_radius_damage},
+	{ "wpnmod_radius_damage2", wpnmod_radius_damage2},
+	{ "wpnmod_clear_multi_damage", wpnmod_clear_multi_damage},
+	{ "wpnmod_apply_multi_damage", wpnmod_apply_multi_damage},
+	{ "wpnmod_eject_brass", wpnmod_eject_brass},
+	{ "wpnmod_get_damage_decal", wpnmod_get_damage_decal},
+	{ "wpnmod_get_gun_position", wpnmod_get_gun_position},
+	{ "wpnmod_explode_entity", wpnmod_explode_entity},
+	{ "wpnmod_decal_trace", wpnmod_decal_trace},
+	{ "wpnmod_trace_texture", wpnmod_trace_texture},
 
 	{ NULL, NULL }
 };

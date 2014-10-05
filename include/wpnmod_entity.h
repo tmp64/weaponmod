@@ -307,36 +307,7 @@ public:
 
 		switch (iForwardType)
 		{
-		case FWD_ENT_TOUCH:
-			if (!p->m_iTouch)
-			{
-				return;
-			}
-			if (p->m_TouchFilter.size())
-			{
-				bool bSkipTouch = true;
-				for (int i = 0; i < (int)p->m_TouchFilter.size(); i++)
-				{
-					if (!strcmp(STRING(((edict_t *)pVar)->v.classname), p->m_TouchFilter[i].c_str()))
-					{
-						bSkipTouch = false;
-					}
-				}
-				if (bSkipTouch)
-				{
-					return;
-				}
-			}
-			MF_ExecuteForward
-			(
-				p->m_iTouch,
-				static_cast<cell>(ENTINDEX(pEdict)),
-				static_cast<cell>(ENTINDEX(((edict_t *)pVar))),
-				static_cast<const char*>(STRING(((edict_t *)pVar)->v.classname)),
-				MF_PrepareCellArrayA(reinterpret_cast<cell *>(&pEdict->v.origin), 3, false)
-			);
-			break;
-		case FWD_ENT_EXPLODE:
+		case FWD_ENT_EXPLODE: // pVar - explosion trace result
 			if (p->m_iExplode)
 			{
 				MF_ExecuteForward
@@ -352,19 +323,17 @@ public:
 		case FWD_ENT_THINK:
 			if (p->m_iThink)
 			{
+				// Entity is NOT a weapon
 				if (!strstr(STRING(pEdict->v.classname), "weapon_"))
 				{
 					MF_ExecuteForward
 					(
 						p->m_iThink,
 						static_cast<cell>(ENTINDEX(pEdict)),
-						static_cast<cell>(-1),
-						static_cast<cell>(-1),
-						static_cast<cell>(-1),
-						static_cast<cell>(-1)
+						MF_PrepareCellArrayA(reinterpret_cast<cell *>(&pEdict->v.origin), 3, false)
 					);
 				}
-				else
+				else // Entity is a weapon
 				{
 					edict_t* pPlayer = GetPrivateCbase(pEdict, pvData_pPlayer);
 					MF_ExecuteForward
@@ -377,6 +346,34 @@ public:
 						static_cast<cell>(GetAmmoInventory(pPlayer, SecondaryAmmoIndex(pEdict)))
 					);
 				}
+			}
+			break;
+		case FWD_ENT_TOUCH: // pVar - entity toucher
+			if (p->m_iTouch)
+			{
+				if (p->m_TouchFilter.size())
+				{
+					bool bSkipTouch = true;
+					for (int i = 0; i < (int)p->m_TouchFilter.size(); i++)
+					{
+						if (!strcmp(STRING(((edict_t *)pVar)->v.classname), p->m_TouchFilter[i].c_str()))
+						{
+							bSkipTouch = false;
+						}
+					}
+					if (bSkipTouch)
+					{
+						break;
+					}
+				}
+				MF_ExecuteForward
+				(
+					p->m_iTouch,
+					static_cast<cell>(ENTINDEX(pEdict)),
+					static_cast<cell>(ENTINDEX(((edict_t *)pVar))),
+					static_cast<const char*>(STRING(((edict_t *)pVar)->v.classname)),
+					MF_PrepareCellArrayA(reinterpret_cast<cell *>(&pEdict->v.origin), 3, false)
+				);
 			}
 		}
 	}
