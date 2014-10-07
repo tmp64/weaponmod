@@ -1331,11 +1331,24 @@ namespace NewNatives
 		vecAngles.y = amx_ctof(vAngles[1]);
 		vecAngles.z = amx_ctof(vAngles[2]);
 
-		edict_t* iItem = Wpnmod_SpawnItem(itemname, vecOrigin, vecAngles);
+		edict_t* pItem = Wpnmod_SpawnItem(itemname, vecOrigin, vecAngles);
 
-		if (IsValidPev(iItem))
+		if (IsValidPev(pItem))
 		{
-			return ENTINDEX(iItem);
+			// Custom weaponmod entity
+			return ENTINDEX(pItem);
+		}
+
+		// Okay, let's try to create usual entity
+		pItem = CREATE_NAMED_ENTITY(MAKE_STRING(itemname));
+
+		if (IsValidPev(pItem))
+		{
+			MDLL_Spawn(pItem);
+			SET_ORIGIN(pItem, vecOrigin);
+			pItem->v.angles = vecAngles;
+
+			return ENTINDEX(pItem);
 		}
 
 		return -1;
