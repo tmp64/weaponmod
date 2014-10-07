@@ -141,14 +141,17 @@ typedef struct
 
 typedef struct
 {
-	std::string		title;
-	std::string		author;
-	std::string		version;
-	std::string		worldModel;
+	std::string title;
+	std::string author;
+	std::string version;
+	std::string worldModel;
 
-	e_WpnType	iType;
-	ItemInfo	ItemData;
-	int			iForward[Fwd_Wpn_End];
+	e_WpnType iType;
+	ItemInfo ItemData;
+
+	int iWorldSeq;
+	int iWorldBody;
+	int iForward[Fwd_Wpn_End];
 } WeaponData;
 
 class CConfig

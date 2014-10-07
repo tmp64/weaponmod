@@ -883,9 +883,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 	void Global_Think(void* pvEntity)
 #endif
 {
-	static edict_t* pEntity;
-
-	pEntity = PrivateToEdict(pvEntity);
+	edict_t* pEntity = PrivateToEdict(pvEntity);
 
 	if (IsValidPev(pEntity))
 	{
@@ -900,11 +898,8 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 	void Global_Touch(void* pvEntity, void* pvOther)
 #endif
 {
-	static edict_t* pEntity;
-	static edict_t* pOther;
-
-	pEntity = PrivateToEdict(pvEntity);
-	pOther = PrivateToEdict(pvOther);
+	edict_t* pEntity = PrivateToEdict(pvEntity);
+	edict_t* pOther = PrivateToEdict(pvOther);
 
 	if (IsValidPev(pEntity))
 	{
@@ -1039,21 +1034,19 @@ void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 			MDLL_Spawn(pTempEntity);
 		}
 
+		WeaponInfoArray[iId].iWorldBody = pTempEntity->v.body;
+		WeaponInfoArray[iId].iWorldSeq = pTempEntity->v.sequence;
 		WeaponInfoArray[iId].worldModel.assign(STRING(pTempEntity->v.model));
+
 		UTIL_RemoveEntity(pTempEntity);
 	}
 
 	if (g_Config.m_bWpnBoxModels && !WeaponInfoArray[iId].worldModel.empty())
 	{
-		#define WEAPON_TRIPMINE 13
+		pWeaponBox->v.body = WeaponInfoArray[iId].iWorldBody;
+		pWeaponBox->v.sequence = WeaponInfoArray[iId].iWorldSeq;
 
 		SET_MODEL(pWeaponBox, WeaponInfoArray[iId].worldModel.c_str());
-
-		if (iId == WEAPON_TRIPMINE && WeaponInfoArray[iId].iType == Wpn_Default)
-		{
-			pWeaponBox->v.body = 3;
-			pWeaponBox->v.sequence = 8;
-		}
 	}
 
 	return 1;
