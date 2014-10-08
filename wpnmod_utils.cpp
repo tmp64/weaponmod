@@ -232,7 +232,7 @@ edict_t* GiveNamedItem(edict_t* pPlayer, const char* szName)
 	if (!IsValidPev(pItem))
 	{
 		bSpawn = true;
-		pItem = CREATE_NAMED_ENTITY(MAKE_STRING(STRING(ALLOC_STRING(szName))));
+		pItem = CREATE_NAMED_ENTITY(ALLOC_STRING(szName));
 	}
 
 	if (IsValidPev(pItem))

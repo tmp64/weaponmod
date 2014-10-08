@@ -1339,8 +1339,9 @@ namespace NewNatives
 			return ENTINDEX(pItem);
 		}
 
-		// Okay, let's try to create usual entity
-		pItem = CREATE_NAMED_ENTITY(MAKE_STRING(itemname));
+		// Okay, let's try to create usual entity.
+		// BTW, WTF?
+		pItem = CREATE_NAMED_ENTITY(ALLOC_STRING(itemname));
 
 		if (IsValidPev(pItem))
 		{
