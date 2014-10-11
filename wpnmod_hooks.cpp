@@ -949,9 +949,13 @@ void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 #endif
 {
 		edict_t* pItem = PrivateToEdict(pvItem);
+		Vector vecAngles = Vector(0, 0, 0);
 
-		// Save angles
-		Vector vecAngles = pItem->v.angles;
+		if (IsValidPev(pItem))
+		{
+			// Save angles
+			vecAngles = pItem->v.angles;
+		}
 
 		if (UnsetHook(&g_fh_FallThink))
 		{
@@ -959,10 +963,62 @@ void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 			SetHook(&g_fh_FallThink);
 		}
 
-		if (pItem->v.flags & FL_ONGROUND)
+		if (IsValidPev(pItem) && pItem->v.flags & FL_ONGROUND)
 		{
 			// Restore angles
 			pItem->v.angles = vecAngles;
+		}
+}
+
+
+#ifdef WIN32
+	void __fastcall Item_FallThink(void* pvItem)
+#else
+	void Item_FallThink(void* pvItem)
+#endif
+	{
+		edict_t* pItem = PrivateToEdict(pvItem);
+
+		if (IsValidPev(pItem))
+		{
+			pItem->v.nextthink = gpGlobals->time + 0.1;
+
+			if (pItem->v.flags & FL_ONGROUND)
+			{
+				pItem->v.solid = SOLID_TRIGGER;
+				SET_ORIGIN(pItem, pItem->v.origin);// link into world.
+				SET_SIZE(pItem, Vector(-16, -16, 0), Vector(16, 16, 16));
+
+				Dll_SetThink(pItem, NULL);
+			}
+		}
+	}
+
+
+#ifdef WIN32
+	void __fastcall CBasePlayerAmmoSpawn_HookHandler(void *pvItem)
+#else
+	void CBasePlayerAmmoSpawn_HookHandler(void *pvItem)
+#endif
+{
+		if (UnsetHook(&g_fh_AmmoSpawn))
+		{
+			PLAYER_AMMO_SPAWN(pvItem);
+			SetHook(&g_fh_AmmoSpawn);
+		}
+
+		edict_t* pItem = PrivateToEdict(pvItem);
+
+		if (IsValidPev(pItem))
+		{
+			pItem->v.solid = SOLID_BBOX;
+
+			SET_ORIGIN(pItem, pItem->v.origin);
+			SET_SIZE(pItem, Vector(0, 0, 0), Vector(0, 0, 0)); //pointsize until it lands on the ground.
+
+			Dll_SetThink(pItem, (void*)Item_FallThink);
+
+			pItem->v.nextthink = gpGlobals->time + 0.1;
 		}
 }
 

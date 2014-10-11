@@ -142,8 +142,6 @@ edict_t* Ammo_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles)
 				static_cast<cell>(0)
 			);
 		}
-
-		SET_SIZE(pAmmoBox, Vector(-16, -16, 0), Vector(16, 16, 16));
 	}
 
 	return pAmmoBox;

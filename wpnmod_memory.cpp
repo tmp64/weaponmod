@@ -40,6 +40,7 @@ function g_fh_GiveNamedItem = HOOK_FUNC_DLL(GiveNamedItem_HookHandler);
 function g_fh_funcPackWeapon = HOOK_FUNC_DLL(PackWeapon_HookHandler);
 function g_fh_PrecacheOtherWeapon = HOOK_FUNC_DLL(PrecacheOtherWeapon_HookHandler);
 function g_fh_FallThink = HOOK_FUNC_DLL(CBasePlayerItem_FallThink_HookHandler);
+function g_fh_AmmoSpawn = HOOK_FUNC_DLL(CBasePlayerAmmoSpawn_HookHandler);
 
 CMemory::CMemory()
 {
@@ -82,6 +83,7 @@ bool CMemory::Init(void)
 	Parse_SetAnimation();
 	Parse_SubRemove();
 	Parse_FallThink();
+	Parse_AmmoSpawn();
 
 	if (!m_bSuccess)
 	{
@@ -507,6 +509,103 @@ void CMemory::Parse_FallThink(void)
 
 	SetHook(&g_fh_FallThink);
 }
+
+void CMemory::Parse_AmmoSpawn(void)
+{
+	char* funcname = "CBasePlayerAmmo::Spawn";
+
+#ifdef __linux__
+
+	size_t pAdress = (size_t)FindFunction(&m_GameDllModule, "Spawn__15CBasePlayerAmmo");
+
+	if (!pAdress)
+	{
+		pAdress = (size_t)FindFunction(&m_GameDllModule, "_ZN15CBasePlayerAmmo5SpawnEv");
+	}
+
+	if (!pAdress)
+	{
+		WPNMOD_LOG("Error: \"%s\" not found\n", funcname);
+		m_bSuccess = false;
+		return;
+	}
+
+#else
+
+	int count = 0;
+
+	size_t pAdress = NULL;
+	size_t pCurrent = NULL;
+	size_t pCandidate = NULL;
+
+	//
+	// 68 10 88 0C 10	push offset aModelsW_argren ; "models/w_ARgrenade.mdl"
+	//
+
+	char			string[] = "models/w_ARgrenade.mdl";
+	char			mask[] = "xxxxxx";
+	unsigned char	pattern[] = "\x04\x68\x00\x00\x00\x00";
+
+	pCurrent = FindStringInDLL(m_start, m_end, string);
+
+	while (pCurrent)
+	{
+		*(size_t*)(pattern + 2) = (size_t)pCurrent;
+
+		if ((pCandidate = FindAdressInDLL(m_start, m_end, pattern, mask)))
+		{
+			count++;
+			pAdress = pCandidate;
+		}
+
+		pCurrent = FindStringInDLL(pCurrent + 1, m_end, string);
+	}
+
+	if (!count)
+	{
+		WPNMOD_LOG("Error: \"%s\" not found [0]\n", funcname);
+		m_bSuccess = false;
+		return;
+	}
+	else if (count > 1)
+	{
+		WPNMOD_LOG("Error: %d candidates found for \"%s\"\n", count, funcname);
+		m_bSuccess = false;
+		return;
+	}
+
+	// Find first call.
+	size_t end = pAdress + 32;
+	unsigned char opcode[] = "\xE9";
+
+	pAdress = FindAdressInDLL(pAdress, end, opcode, "x");
+
+	if (!pAdress)
+	{
+		WPNMOD_LOG("Error: \"%s\" not found [1] (count %d)\n", funcname, count);
+		m_bSuccess = false;
+		return;
+	}
+
+	pAdress += 1;
+	pAdress = *(size_t*)pAdress + pAdress + 4;
+
+	WPNMOD_LOG_ONLY("   Found \"%s\" at %p\n", funcname, pAdress);
+
+#endif
+
+	g_fh_AmmoSpawn.address = (void*)pAdress;
+
+	if (!CreateFunctionHook(&g_fh_AmmoSpawn))
+	{
+		WPNMOD_LOG("   Error: failed to hook \"%s\"\n", funcname);
+		m_bSuccess = false;
+		return;
+	}
+
+	SetHook(&g_fh_AmmoSpawn);
+}
+
 
 void CMemory::Parse_GameRules(void)
 {
