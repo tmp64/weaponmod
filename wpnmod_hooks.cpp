@@ -972,9 +972,9 @@ void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 
 
 #ifdef WIN32
-	void __fastcall Item_FallThink(void* pvItem)
+	void __fastcall Item_FallThinkCustom(void* pvItem)
 #else
-	void Item_FallThink(void* pvItem)
+	void Item_FallThinkCustom(void* pvItem)
 #endif
 	{
 		edict_t* pItem = PrivateToEdict(pvItem);
@@ -1016,7 +1016,35 @@ void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 			SET_ORIGIN(pItem, pItem->v.origin);
 			SET_SIZE(pItem, Vector(0, 0, 0), Vector(0, 0, 0)); //pointsize until it lands on the ground.
 
-			Dll_SetThink(pItem, (void*)Item_FallThink);
+			Dll_SetThink(pItem, (void*)Item_FallThinkCustom);
+
+			pItem->v.nextthink = gpGlobals->time + 0.1;
+		}
+}
+
+
+#ifdef WIN32
+	void __fastcall CItemSpawn_HookHandler(void *pvItem)
+#else
+	void CItemSpawn_HookHandler(void *pvItem)
+#endif
+{
+		if (UnsetHook(&g_fh_ItemSpawn))
+		{
+			GAME_ITEM_SPAWN(pvItem);
+			SetHook(&g_fh_ItemSpawn);
+		}
+
+		edict_t* pItem = PrivateToEdict(pvItem);
+
+		if (IsValidPev(pItem))
+		{
+			pItem->v.solid = SOLID_BBOX;
+
+			SET_ORIGIN(pItem, pItem->v.origin);
+			SET_SIZE(pItem, Vector(0, 0, 0), Vector(0, 0, 0)); //pointsize until it lands on the ground.
+
+			Dll_SetThink(pItem, (void*)Item_FallThinkCustom);
 
 			pItem->v.nextthink = gpGlobals->time + 0.1;
 		}

@@ -84,6 +84,7 @@ public:
 	void Parse_ApplyMultiDamage(void);
 	void Parse_PrecacheOtherWeapon(void);
 	void Parse_AmmoSpawn(void);
+	void Parse_ItemSpawn(void);
 
 	void EnableWeaponboxModels(void);
 	void EnableShieldHitboxTracing(void);
@@ -104,5 +105,6 @@ extern function g_fh_funcPackWeapon;
 extern function g_fh_PrecacheOtherWeapon;
 extern function g_fh_FallThink;
 extern function g_fh_AmmoSpawn;
+extern function g_fh_ItemSpawn;
 
 #endif // _WPNMOD_MEMORY_H

@@ -98,11 +98,13 @@
 	typedef void	(__fastcall *FuncSetAnimation)				(void*, DUMMY, int);
 	typedef void	(__fastcall *FuncFallthink)					(void*);
 	typedef void	(__fastcall *FuncAmmoSpawn)					(void*);
+	typedef void	(__fastcall *FuncItemSpawn)					(void*);
 
 	int		__fastcall	PackWeapon_HookHandler					(void* pvWpnBox, int DUMMY, void* pvWeapon);
 	void	__fastcall	GiveNamedItem_HookHandler				(void* pvPlayer, int DUMMY, const char* szName);
 	void	__fastcall	CBasePlayerItem_FallThink_HookHandler	(void *pvItem);
 	void	__fastcall	CBasePlayerAmmoSpawn_HookHandler		(void *pvItem);
+	void	__fastcall	CItemSpawn_HookHandler					(void *pvItem);
 
 	// BOOL CWeaponBox::PackWeapon(CBasePlayerItem *pWeapon)
 	//
@@ -124,11 +126,13 @@
 	typedef void	(*FuncSetAnimation)			(void*, int);
 	typedef void	(*FuncFallthink)			(void*);
 	typedef void	(*FuncAmmoSpawn)			(void*);
+	typedef void	(*FuncItemSpawn)			(void*);
 
 	int		PackWeapon_HookHandler					(void *pvWpnBox, void *pvWeapon);
 	void	GiveNamedItem_HookHandler				(void* pvPlayer, const char *szName);
 	void	CBasePlayerItem_FallThink_HookHandler	(void *pvItem);
 	void	CBasePlayerAmmoSpawn_HookHandler		(void *pvItem);
+	void	CItemSpawn_HookHandler					(void *pvItem);
 
 	// BOOL CWeaponBox::PackWeapon(CBasePlayerItem *pWeapon)
 	//
@@ -158,6 +162,13 @@
 		inline void PLAYER_AMMO_SPAWN(void* pvItem)
 		{
 			reinterpret_cast<FuncAmmoSpawn>(g_fh_AmmoSpawn.address)(pvItem);
+		}
+
+	// void CItem::Spawn(void);
+	//
+		inline void GAME_ITEM_SPAWN(void* pvItem)
+		{
+			reinterpret_cast<FuncItemSpawn>(g_fh_ItemSpawn.address)(pvItem);
 		}
 
 //
