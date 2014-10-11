@@ -1340,7 +1340,6 @@ namespace NewNatives
 		}
 
 		// Okay, let's try to create usual entity.
-		// BTW, WTF?
 		pItem = CREATE_NAMED_ENTITY(ALLOC_STRING(itemname));
 
 		if (IsValidPev(pItem))

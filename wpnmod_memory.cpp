@@ -39,6 +39,7 @@ CMemory g_Memory;
 function g_fh_GiveNamedItem = HOOK_FUNC_DLL(GiveNamedItem_HookHandler);
 function g_fh_funcPackWeapon = HOOK_FUNC_DLL(PackWeapon_HookHandler);
 function g_fh_PrecacheOtherWeapon = HOOK_FUNC_DLL(PrecacheOtherWeapon_HookHandler);
+function g_fh_FallThink = HOOK_FUNC_DLL(CBasePlayerItem_FallThink_HookHandler);
 
 CMemory::CMemory()
 {
@@ -80,6 +81,7 @@ bool CMemory::Init(void)
 	Parse_GiveNamedItem();
 	Parse_SetAnimation();
 	Parse_SubRemove();
+	Parse_FallThink();
 
 	if (!m_bSuccess)
 	{
@@ -103,6 +105,11 @@ void CMemory::UnsetHooks(void)
 	if (g_fh_PrecacheOtherWeapon.done)
 	{
 		UnsetHook(&g_fh_PrecacheOtherWeapon);
+	}
+
+	if (g_fh_FallThink.done)
+	{
+		UnsetHook(&g_fh_FallThink);
 	}
 }
 
@@ -456,9 +463,49 @@ void CMemory::Parse_SubRemove(void)
 		return;
 	}
 
-	m_pSubRemove= pAdress;
+	m_pSubRemove = pAdress;
 
 	WPNMOD_LOG_ONLY("   Found \"%s\" at %p\n", funcname, pAdress);
+}
+
+void CMemory::Parse_FallThink(void)
+{
+	char funcname[] = "CBasePlayerItem::FallThink";
+
+#ifdef WIN32
+
+	void* pAdress = (void*)FindFunction(&m_GameDllModule, "?FallThink@CBasePlayerItem@@QAEXXZ");
+
+#else
+
+	void* pAdress = (void*)FindFunction(&m_GameDllModule, "FallThink__15CBasePlayerItem");
+
+	if (!pAdress)
+	{
+		pAdress = (void*)FindFunction(&m_GameDllModule, "_ZN15CBasePlayerItem9FallThinkEv");
+	}
+
+#endif
+
+	if (!pAdress)
+	{
+		WPNMOD_LOG("   Error: \"%s\" not found\n", funcname);
+		m_bSuccess = false;
+		return;
+	}
+
+	WPNMOD_LOG_ONLY("   Found \"%s\" at %p\n", funcname, pAdress);
+
+	g_fh_FallThink.address = (void*)pAdress;
+
+	if (!CreateFunctionHook(&g_fh_FallThink))
+	{
+		WPNMOD_LOG("   Error: failed to hook \"%s\"\n", funcname);
+		m_bSuccess = false;
+		return;
+	}
+
+	SetHook(&g_fh_FallThink);
 }
 
 void CMemory::Parse_GameRules(void)

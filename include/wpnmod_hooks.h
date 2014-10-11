@@ -94,11 +94,13 @@
 
 #ifdef WIN32
 
-	typedef int		(__fastcall	*FuncPackWeapon)			(void*, DUMMY, void*);
-	typedef void	(__fastcall *FuncSetAnimation)			(void*, DUMMY, int);
+	typedef int		(__fastcall *FuncPackWeapon)				(void*, DUMMY, void*);
+	typedef void	(__fastcall *FuncSetAnimation)				(void*, DUMMY, int);
+	typedef void	(__fastcall *FuncFallthink)					(void*);
 
-	int		__fastcall	PackWeapon_HookHandler				(void* pvWpnBox, int DUMMY, void* pvWeapon);
-	void	__fastcall	GiveNamedItem_HookHandler			(void* pvPlayer, int DUMMY, const char* szName);
+	int		__fastcall	PackWeapon_HookHandler					(void* pvWpnBox, int DUMMY, void* pvWeapon);
+	void	__fastcall	GiveNamedItem_HookHandler				(void* pvPlayer, int DUMMY, const char* szName);
+	void	__fastcall	CBasePlayerItem_FallThink_HookHandler	(void *pvItem);
 
 	// BOOL CWeaponBox::PackWeapon(CBasePlayerItem *pWeapon)
 	//
@@ -114,13 +116,22 @@
 			reinterpret_cast<FuncSetAnimation>(g_Memory.m_pPlayerSetAnimation)(pentPlayer->pvPrivateData, DUMMY_VAL, animation);
 		}
 
+	// void CBasePlayerItem::FallThink(void);
+	//
+		inline void ITEM_FALLTHINK(void* pvItem)
+		{
+			reinterpret_cast<FuncFallthink>(g_fh_FallThink.address)(pvItem);
+		}
+
 #else
 
 	typedef int		(*FuncPackWeapon)			(void*, void*);
 	typedef void	(*FuncSetAnimation)			(void*, int);
+	typedef void	(*FuncFallthink)			(void*);
 
-	int		PackWeapon_HookHandler				(void *pvWpnBox, void *pvWeapon);
-	void	GiveNamedItem_HookHandler			(void* pvPlayer, const char *szName);
+	int		PackWeapon_HookHandler					(void *pvWpnBox, void *pvWeapon);
+	void	GiveNamedItem_HookHandler				(void* pvPlayer, const char *szName);
+	void	CBasePlayerItem_FallThink_HookHandler	(void *pvItem);
 
 	// BOOL CWeaponBox::PackWeapon(CBasePlayerItem *pWeapon)
 	//
@@ -134,6 +145,13 @@
 		inline void SET_ANIMATION(edict_t* pentPlayer, int animation)
 		{
 			reinterpret_cast<FuncSetAnimation>(g_Memory.m_pPlayerSetAnimation)(pentPlayer->pvPrivateData, animation);
+		}
+
+	// void CBasePlayerItem::FallThink(void);
+	//
+		inline void ITEM_FALLTHINK(void* pvItem)
+		{
+			reinterpret_cast<FuncFallthink>(g_fh_FallThink.address)(pvItem);
 		}
 
 #endif

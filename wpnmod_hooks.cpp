@@ -943,6 +943,31 @@ void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 
 
 #ifdef WIN32
+	void __fastcall CBasePlayerItem_FallThink_HookHandler(void *pvItem)
+#else
+	void CBasePlayerItem_FallThink_HookHandler(void *pvItem)
+#endif
+{
+		edict_t* pItem = PrivateToEdict(pvItem);
+
+		// Save angles
+		Vector vecAngles = pItem->v.angles;
+
+		if (UnsetHook(&g_fh_FallThink))
+		{
+			ITEM_FALLTHINK(pvItem);
+			SetHook(&g_fh_FallThink);
+		}
+
+		if (pItem->v.flags & FL_ONGROUND)
+		{
+			// Restore angles
+			pItem->v.angles = vecAngles;
+		}
+}
+
+
+#ifdef WIN32
 	void __fastcall GiveNamedItem_HookHandler(void *pvPlayer, int DUMMY, const char *szName)
 #else
 	void GiveNamedItem_HookHandler(void *pvPlayer, const char *szName)

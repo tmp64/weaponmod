@@ -76,6 +76,7 @@ public:
 
 	void Parse_GameRules(void);
 	void Parse_SubRemove(void);
+	void Parse_FallThink(void);
 	void Parse_GetAmmoIndex(void);
 	void Parse_SetAnimation(void);
 	void Parse_GiveNamedItem(void);
@@ -100,5 +101,6 @@ extern CMemory g_Memory;
 extern function g_fh_GiveNamedItem;
 extern function g_fh_funcPackWeapon;
 extern function g_fh_PrecacheOtherWeapon;
+extern function g_fh_FallThink;
 
 #endif // _WPNMOD_MEMORY_H
