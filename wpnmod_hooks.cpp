@@ -985,8 +985,10 @@ void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 
 			if (pItem->v.flags & FL_ONGROUND)
 			{
+				DROP_TO_FLOOR(pItem);
+
 				pItem->v.solid = SOLID_TRIGGER;
-				SET_ORIGIN(pItem, pItem->v.origin);// link into world.
+				SET_ORIGIN(pItem, pItem->v.origin); // link into world.
 				SET_SIZE(pItem, Vector(-16, -16, 0), Vector(16, 16, 16));
 
 				Dll_SetThink(pItem, NULL);

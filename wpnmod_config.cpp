@@ -83,6 +83,11 @@ void CConfig::InitGameMod(void)
 			// More slots in OP4.
 			m_iMaxWeaponSlots = 7;
 		}
+		else if (m_GameMod == SUBMOD_AGHLRU)
+		{
+			// More positions in Bugfixed and improved HL release.
+			m_iMaxWeaponPositions = 10;
+		}
 
 		m_pCurrentSlots = new int* [m_iMaxWeaponSlots];
 
@@ -480,6 +485,16 @@ void CConfig::ServerCommand(void)
 
 bool CConfig::ClientCommand(edict_t *pEntity)
 {
+	static int FF_ClientCommand;
+
+	if (FF_ClientCommand || (FF_ClientCommand = MF_RegisterForward("client_command", ET_STOP, FP_CELL, FP_DONE)))
+	{
+		if (MF_ExecuteForward(FF_ClientCommand, static_cast<cell>(ENTINDEX(pEntity)) != 0))
+		{
+			return false;
+		}
+	}
+
 	static const char* cmd = NULL;
 
 	cmd = CMD_ARGV(0);

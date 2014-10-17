@@ -248,7 +248,7 @@ bool SetHook(function *func)
 
 bool UnsetHook(function *func)
 {
-	if (!AllowWriteToMemory(func->address))
+	if (!func->done || !AllowWriteToMemory(func->address))
 	{
 		return false;
 	}

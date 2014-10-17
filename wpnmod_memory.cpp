@@ -101,20 +101,11 @@ bool CMemory::Init(void)
 
 void CMemory::UnsetHooks(void)
 {
-	if (g_fh_GiveNamedItem.done)
-	{
-		UnsetHook(&g_fh_GiveNamedItem);
-	}
-
-	if (g_fh_PrecacheOtherWeapon.done)
-	{
-		UnsetHook(&g_fh_PrecacheOtherWeapon);
-	}
-
-	if (g_fh_FallThink.done)
-	{
-		UnsetHook(&g_fh_FallThink);
-	}
+	UnsetHook(&g_fh_GiveNamedItem);
+	UnsetHook(&g_fh_PrecacheOtherWeapon);
+	UnsetHook(&g_fh_FallThink);
+	UnsetHook(&g_fh_AmmoSpawn);
+	UnsetHook(&g_fh_ItemSpawn);
 }
 
 void CMemory::Parse_ClearMultiDamage(void)
