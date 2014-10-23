@@ -55,6 +55,9 @@ private:
 	size_t	m_start;
 	size_t	m_end;
 
+	size_t	m_start_engine;
+	size_t	m_end_engine;
+
 	module	m_EngineModule;
 	module	m_GameDllModule;
 
@@ -85,6 +88,7 @@ public:
 	void Parse_PrecacheOtherWeapon(void);
 	void Parse_AmmoSpawn(void);
 	void Parse_ItemSpawn(void);
+	void Parse_GetDispatch(void);
 
 	void EnableWeaponboxModels(void);
 	void EnableShieldHitboxTracing(void);

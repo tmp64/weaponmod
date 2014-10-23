@@ -915,9 +915,10 @@ void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 	
 	if (IsValidPev(pEntity))
 	{
+		MDLL_Spawn(pEntity);
+
 		if (g_Config.IsItemBlocked(szClassname))
 		{
-			MDLL_Spawn(pEntity);
 			UTIL_RemoveEntity(pEntity);
 			return;
 		}

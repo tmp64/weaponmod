@@ -74,8 +74,12 @@ bool CMemory::Init(void)
 	m_start = (size_t)m_GameDllModule.base;
 	m_end = (size_t)m_GameDllModule.base + (size_t)m_GameDllModule.size;
 
+	m_start_engine = (size_t)m_EngineModule.base;
+	m_end_engine = (size_t)m_EngineModule.base + (size_t)m_EngineModule.size;
+
 	m_bSuccess = true;
 
+	Parse_GetDispatch();
 	Parse_ClearMultiDamage();
 	Parse_ApplyMultiDamage();
 	Parse_PrecacheOtherWeapon();
@@ -110,7 +114,7 @@ void CMemory::UnsetHooks(void)
 
 void CMemory::Parse_ClearMultiDamage(void)
 {
-	char funcname[] = "ClearMultiDamage";
+	char funcname[] = "ClearMultiDamage (gamedll)";
 
 #ifdef __linux__
 
@@ -161,7 +165,7 @@ void CMemory::Parse_ClearMultiDamage(void)
 
 void CMemory::Parse_ApplyMultiDamage(void)
 {
-	char funcname[] = "ApplyMultiDamage";
+	char funcname[] = "ApplyMultiDamage (gamedll)";
 
 #ifdef __linux__
 
@@ -211,7 +215,7 @@ void CMemory::Parse_ApplyMultiDamage(void)
 
 void CMemory::Parse_PrecacheOtherWeapon(void)
 {
-	char funcname[] = "UTIL_PrecacheOtherWeapon";
+	char funcname[] = "UTIL_PrecacheOtherWeapon (gamedll)";
 
 #ifdef __linux__
 
@@ -262,7 +266,7 @@ void CMemory::Parse_PrecacheOtherWeapon(void)
 
 void CMemory::Parse_GetAmmoIndex(void)
 {
-	char funcname[] = "CBasePlayer::GetAmmoIndex";
+	char funcname[] = "CBasePlayer::GetAmmoIndex (gamedll)";
 
 #ifdef __linux__
 
@@ -304,7 +308,7 @@ void CMemory::Parse_GetAmmoIndex(void)
 
 void CMemory::Parse_GiveNamedItem(void)
 {
-	char funcname[] = "CBasePlayer::GiveNamedItem";
+	char funcname[] = "CBasePlayer::GiveNamedItem (gamedll)";
 
 #ifdef __linux__
 
@@ -355,7 +359,7 @@ void CMemory::Parse_GiveNamedItem(void)
 
 void CMemory::Parse_SetAnimation(void)
 {
-	char funcname[] = "CBasePlayer::SetAnimation";
+	char funcname[] = "CBasePlayer::SetAnimation (gamedll)";
 
 #ifdef __linux__
 
@@ -434,7 +438,7 @@ void CMemory::Parse_SetAnimation(void)
 
 void CMemory::Parse_SubRemove(void)
 {
-	char funcname[] = "CBaseEntity::SUB_Remove";
+	char funcname[] = "CBaseEntity::SUB_Remove (gamedll)";
 
 #ifdef WIN32
 
@@ -465,7 +469,7 @@ void CMemory::Parse_SubRemove(void)
 
 void CMemory::Parse_FallThink(void)
 {
-	char funcname[] = "CBasePlayerItem::FallThink";
+	char funcname[] = "CBasePlayerItem::FallThink (gamedll)";
 
 #ifdef WIN32
 
@@ -505,7 +509,7 @@ void CMemory::Parse_FallThink(void)
 
 void CMemory::Parse_AmmoSpawn(void)
 {
-	char* funcname = "CBasePlayerAmmo::Spawn";
+	char* funcname = "CBasePlayerAmmo::Spawn (gamedll)";
 
 #ifdef __linux__
 
@@ -575,7 +579,7 @@ void CMemory::Parse_AmmoSpawn(void)
 
 	if (!pAdress)
 	{
-		WPNMOD_LOG("Error: \"%s\" not found [1] (count %d)\n", funcname, count);
+		WPNMOD_LOG("Error: \"%s\" not found [1]\n", funcname);
 		m_bSuccess = false;
 		return;
 	}
@@ -601,7 +605,7 @@ void CMemory::Parse_AmmoSpawn(void)
 
 void CMemory::Parse_ItemSpawn(void)
 {
-	char* funcname = "CItem::Spawn";
+	char* funcname = "CItem::Spawn (gamedll)";
 
 #ifdef __linux__
 
@@ -672,7 +676,7 @@ void CMemory::Parse_ItemSpawn(void)
 
 	if (!pAdress)
 	{
-		WPNMOD_LOG("Error: \"%s\" not found [1] (count %d)\n", funcname, count);
+		WPNMOD_LOG("Error: \"%s\" not found [1]\n", funcname);
 		m_bSuccess = false;
 		return;
 	}
@@ -714,7 +718,7 @@ void CMemory::Parse_GameRules(void)
 
 #else
 
-	char* funcname = "g_pGameRules";
+	char* funcname = "g_pGameRules (gamedll)";
 
 	int count = 0;
 
@@ -769,7 +773,7 @@ void CMemory::Parse_GameRules(void)
 
 	if (count != 1)
 	{
-		WPNMOD_LOG("Error: \"%s\" not found [1] (count %d)\n", funcname, count);
+		WPNMOD_LOG("Error: \"%s\" not found [1]\n", funcname);
 		return;
 	}
 
@@ -788,6 +792,103 @@ void CMemory::Parse_GameRules(void)
 
 	printf2(" *GameDescription is \"%s\"\n", GameDescription);
 #endif
+}
+
+void CMemory::Parse_GetDispatch(void)
+{
+	char* funcname = "GetDispatch (engine)";
+
+#ifdef __linux__
+
+	size_t pAdress = (size_t)FindFunction(&m_GameDllModule, "GetDispatch");
+
+	if (!pAdress)
+	{
+		//pAdress = (size_t)FindFunction(&m_GameDllModule, "");
+	}
+
+	if (!pAdress)
+	{
+		WPNMOD_LOG("Error: \"%s\" not found\n", funcname);
+		m_bSuccess = false;
+		return;
+	}
+
+#else
+
+	int count = 0;
+
+	size_t pAdress = NULL;
+	size_t pCurrent = NULL;
+	size_t pCandidate = NULL;
+
+	//
+	// 68 30 B1 E4 01		push	offset aGetentityapi2; "GetEntityAPI2"
+	// E8 09 F7 FF FF		call	GetDispatch
+	//
+
+	char			string[] = "GetEntityAPI2";
+	char			mask[] = "xxxxx";
+	unsigned char	pattern[] = "\x68\x00\x00\x00\x00";
+
+	pCurrent = FindStringInDLL(m_start_engine, m_end_engine, string);
+
+	while (pCurrent)
+	{
+		*(size_t*)(pattern + 1) = (size_t)pCurrent;
+
+		if ((pCandidate = FindAdressInDLL(m_start_engine, m_end_engine, pattern, mask)))
+		{
+			count++;
+			pAdress = pCandidate;
+		}
+
+		pCurrent = FindStringInDLL(pCurrent + 1, m_end_engine, string);
+	}
+
+	if (!count)
+	{
+		WPNMOD_LOG("Error: \"%s\" not found [0]\n", funcname);
+		m_bSuccess = false;
+		return;
+	}
+	else if (count > 1)
+	{
+		WPNMOD_LOG("Error: %d candidates found for \"%s\"\n", count, funcname);
+		m_bSuccess = false;
+		return;
+	}
+	
+	// Find first call.
+	size_t end = pAdress + 10;
+	unsigned char opcode[] = "\xE8";
+
+	pAdress = FindAdressInDLL(pAdress, end, opcode, "x");
+
+	if (!pAdress)
+	{
+		WPNMOD_LOG("Error: \"%s\" not found [1]\n", funcname);
+		m_bSuccess = false;
+		return;
+	}
+
+	pAdress += 1;
+	pAdress = *(size_t*)pAdress + pAdress + 4;
+
+	WPNMOD_LOG_ONLY("   Found \"%s\" at %p\n", funcname, pAdress);
+
+#endif
+	/*
+	g_fh_GetDispatch.address = (void*)pAdress;
+
+	if (!CreateFunctionHook(&g_fh_GetDispatch))
+	{
+		WPNMOD_LOG("   Error: failed to hook \"%s\"\n", funcname);
+		m_bSuccess = false;
+		return;
+	}
+
+	SetHook(&g_fh_GetDispatch);*/
 }
 
 void CMemory::EnableShieldHitboxTracing(void)
@@ -887,7 +988,7 @@ void CMemory::EnableWeaponboxModels(void)
 	// Let's find adress of "CWeaponBox::PackWeapon" in game dll.
 	//
 
-	char* funcname = "CWeaponBox::PackWeapon";
+	char* funcname = "CWeaponBox::PackWeapon (gamedll)";
 
 #ifdef __linux__
 
@@ -977,7 +1078,7 @@ void CMemory::EnableWeaponboxModels(void)
 
 	if (count != 3)
 	{
-		WPNMOD_LOG("Error: \"%s\" not found [1] (count %d)\n", funcname, count);
+		WPNMOD_LOG("Error: \"%s\" not found [1]\n", funcname);
 		return;
 	}
 
