@@ -70,7 +70,7 @@ edict_t* Weapon_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles)
 		return NULL;
 	}
 
-	edict_t* pItem = CREATE_NAMED_ENTITY(MAKE_STRING("weapon_crowbar"));
+	edict_t* pItem = CREATE_NAMED_ENTITY(MAKE_STRING(gWeaponReference));
 
 	if (IsValidPev(pItem))
 	{
@@ -123,7 +123,7 @@ edict_t* Ammo_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles)
 		return NULL;
 	}
 
-	edict_t* pAmmoBox = CREATE_NAMED_ENTITY(MAKE_STRING("ammo_rpgclip"));
+	edict_t* pAmmoBox = CREATE_NAMED_ENTITY(MAKE_STRING(gAmmoBoxReference));
 
 	if (IsValidPev(pAmmoBox))
 	{

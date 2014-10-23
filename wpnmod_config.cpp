@@ -43,6 +43,9 @@ int g_iWeaponsCount = 0;
 int g_iWeaponInitID = 0;
 int g_iAmmoBoxIndex = 0;
 
+const char* gWeaponReference = "weapon_crowbar";
+const char* gAmmoBoxReference = "ammo_rpgclip";
+
 WeaponData	WeaponInfoArray	[MAX_WEAPONS];
 AmmoBoxData AmmoBoxInfoArray[MAX_WEAPONS];
 

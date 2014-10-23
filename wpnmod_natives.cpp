@@ -917,7 +917,7 @@ namespace NewNatives
 
 				if (UnsetHook(&g_fh_PrecacheOtherWeapon))
 				{
-					PRECACHE_OTHER_WEAPON("weapon_crowbar");
+					PRECACHE_OTHER_WEAPON(gWeaponReference);
 					SetHook(&g_fh_PrecacheOtherWeapon);
 				}
 

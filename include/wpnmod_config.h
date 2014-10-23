@@ -212,6 +212,9 @@ extern int g_iAmmoBoxIndex;
 extern WeaponData WeaponInfoArray[MAX_WEAPONS];
 extern AmmoBoxData AmmoBoxInfoArray[MAX_WEAPONS];
 
+extern const char* gWeaponReference;
+extern const char* gAmmoBoxReference;
+
 extern cvar_t *cvar_sv_cheats;
 extern cvar_t *cvar_mp_weaponstay;
 

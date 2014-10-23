@@ -52,7 +52,7 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 	VHOOK_CROWBAR(IsUseable)
 };
 
-VirtualHookData	g_RpgAddAmmo_Hook		= VHOOK("ammo_rpgclip",		VO_AddAmmo,				AmmoBox_AddAmmo);
+VirtualHookData	g_RpgAddAmmo_Hook		= VHOOK(gAmmoBoxReference,	VO_AddAmmo,				AmmoBox_AddAmmo);
 VirtualHookData g_PlayerSpawn_Hook		= VHOOK("player",			VO_Spawn,				Player_Spawn);
 VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	Player_PostThink);
 
@@ -543,7 +543,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 
 	if (WeaponInfoArray[iId].iType == Wpn_Custom && IsValidPev(pPlayer))
 	{
-		if (!stricmp(STRING(pWeapon->v.classname), "weapon_crowbar"))
+		if (!stricmp(STRING(pWeapon->v.classname), gWeaponReference))
 		{
 			UTIL_RemoveEntity(pWeapon);
 			return 0;
@@ -688,9 +688,9 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 		return FALSE;
 	}
 
-	if (!stricmp(STRING(pAmmobox->v.classname), "ammo_rpgclip"))
+	if (!stricmp(STRING(pAmmobox->v.classname), gAmmoBoxReference))
 	{
-		if (g_Config.IsItemBlocked("ammo_rpgclip"))
+		if (g_Config.IsItemBlocked(gAmmoBoxReference))
 		{
 			UTIL_RemoveEntity(pAmmobox);
 			return FALSE;
@@ -777,6 +777,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 			GiveNamedItem(pPlayer, "item_suit");
 			GiveNamedItem(pPlayer, "item_battery");
 			GiveNamedItem(pPlayer, "item_healthkit");
+			GiveNamedItem(pPlayer, "item_longjump");
 
 			pPlayer->v.health = pPlayer->v.max_health;
 			pPlayer->v.armorvalue = pPlayer->v.max_health;
@@ -1156,6 +1157,7 @@ void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 	{
 		pWeaponBox->v.body = WeaponInfoArray[iId].iWorldBody;
 		pWeaponBox->v.sequence = WeaponInfoArray[iId].iWorldSeq;
+		pWeaponBox->v.framerate = 1.0;
 
 		SET_MODEL(pWeaponBox, WeaponInfoArray[iId].worldModel.c_str());
 	}

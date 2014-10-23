@@ -182,7 +182,7 @@
 
 	#define VHOOK_CROWBAR(call)											\
 	{																	\
-		"weapon_crowbar", VO_##call, (void*)Weapon_##call, NULL, NULL,	\
+		gWeaponReference, VO_##call, (void*)Weapon_##call, NULL, NULL,	\
 	}																	\
 
 	enum VirtualCrowbarHooks
