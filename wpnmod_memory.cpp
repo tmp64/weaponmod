@@ -42,6 +42,7 @@ function g_fh_PrecacheOtherWeapon = HOOK_FUNC_DLL(PrecacheOtherWeapon_HookHandle
 function g_fh_FallThink = HOOK_FUNC_DLL(CBasePlayerItem_FallThink_HookHandler);
 function g_fh_AmmoSpawn = HOOK_FUNC_DLL(CBasePlayerAmmoSpawn_HookHandler);
 function g_fh_ItemSpawn = HOOK_FUNC_DLL(CItemSpawn_HookHandler);
+function g_fh_GetDispatch = HOOK_FUNC_DLL(GetDispatch_HookHandler);
 
 CMemory::CMemory()
 {
@@ -110,6 +111,7 @@ void CMemory::UnsetHooks(void)
 	UnsetHook(&g_fh_FallThink);
 	UnsetHook(&g_fh_AmmoSpawn);
 	UnsetHook(&g_fh_ItemSpawn);
+	UnsetHook(&g_fh_GetDispatch);
 }
 
 void CMemory::Parse_ClearMultiDamage(void)
@@ -878,7 +880,7 @@ void CMemory::Parse_GetDispatch(void)
 	WPNMOD_LOG_ONLY("   Found \"%s\" at %p\n", funcname, pAdress);
 
 #endif
-	/*
+	
 	g_fh_GetDispatch.address = (void*)pAdress;
 
 	if (!CreateFunctionHook(&g_fh_GetDispatch))
@@ -888,7 +890,7 @@ void CMemory::Parse_GetDispatch(void)
 		return;
 	}
 
-	SetHook(&g_fh_GetDispatch);*/
+	SetHook(&g_fh_GetDispatch);
 }
 
 void CMemory::EnableShieldHitboxTracing(void)

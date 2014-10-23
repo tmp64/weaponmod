@@ -110,5 +110,6 @@ extern function g_fh_PrecacheOtherWeapon;
 extern function g_fh_FallThink;
 extern function g_fh_AmmoSpawn;
 extern function g_fh_ItemSpawn;
+extern function g_fh_GetDispatch;
 
 #endif // _WPNMOD_MEMORY_H

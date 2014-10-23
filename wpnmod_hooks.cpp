@@ -1167,6 +1167,20 @@ void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 }
 
 
+DISPATCHFUNCTION GetDispatch_HookHandler(char *pname)
+{
+	DISPATCHFUNCTION pDispatch = NULL;
+
+	if (UnsetHook(&g_fh_GetDispatch))
+	{
+		pDispatch = ENGINE_GET_DISPATCH(pname);
+		SetHook(&g_fh_GetDispatch);
+	}
+
+	return pDispatch;
+}
+
+
 void UpdateClientData_Post(const struct edict_s *ent, int sendweapons, struct clientdata_s *cd)
 {
 	if (IsValidPev(ent))

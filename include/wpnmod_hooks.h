@@ -57,12 +57,16 @@
 // FUNCTIONS
 //
 
-	typedef int		(*FuncGetAmmoIndex)			(const char*);
-	typedef void	(*FuncClearMultiDamage)		(void);
-	typedef void	(*FuncApplyMultiDamage)		(entvars_t*, entvars_t*);
-	typedef void	(*FuncPrecacheOtherWeapon)	(const char*);
+	typedef void				(*DISPATCHFUNCTION)				(struct entvars_s *, void *);
 
-	void	PrecacheOtherWeapon_HookHandler		(const char *szClassname);
+	typedef int					(*FuncGetAmmoIndex)				(const char*);
+	typedef void				(*FuncClearMultiDamage)			(void);
+	typedef void				(*FuncApplyMultiDamage)			(entvars_t*, entvars_t*);
+	typedef void				(*FuncPrecacheOtherWeapon)		(const char*);
+	typedef DISPATCHFUNCTION	(*FuncGetDispatch)				(char*);
+
+	DISPATCHFUNCTION	GetDispatch_HookHandler					(char *pname);
+	void				PrecacheOtherWeapon_HookHandler			(const char *szClassname);
 
 	// int CBasePlayer::GetAmmoIndex(const char *psz)
 	//
@@ -90,6 +94,13 @@
 		inline void PRECACHE_OTHER_WEAPON(const char* szClassname)
 		{
 			reinterpret_cast<FuncPrecacheOtherWeapon>(g_fh_PrecacheOtherWeapon.address)(szClassname);
+		}
+
+	// DISPATCHFUNCTION GetDispatch(char *pname)
+	//
+		inline DISPATCHFUNCTION ENGINE_GET_DISPATCH(char *pname)
+		{
+			return reinterpret_cast<FuncGetDispatch>(g_fh_GetDispatch.address)(pname);
 		}
 
 #ifdef WIN32
