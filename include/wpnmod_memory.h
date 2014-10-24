@@ -44,22 +44,34 @@
 	#define SERVER_OS "Windows"
 #endif
 
-#define HOOK_FUNC_DLL(call)														\
-{																				\
-	"", g_Memory.GetModule_Dll(), {"", "", 0}, NULL, (void*)call, {}, {}, 0,	\
-}																				\
+#define HOOK_FUNC_DLL(call)															\
+{																					\
+	"", g_Memory.GetModule_GameDll(), {"", "", 0}, NULL, (void*)call, {}, {}, 0,	\
+}																					\
+
+#define HOOK_FUNC_ENGINE(call)														\
+{																					\
+	"", g_Memory.GetModule_Engine(), {"", "", 0}, NULL, (void*)call, {}, {}, 0,		\
+}																					\
+
+#define HOOK_FUNC_METAMOD(call)														\
+{																					\
+	"", g_Memory.GetModule_Metamod(), {"", "", 0}, NULL, (void*)call, {}, {}, 0,	\
+}																					\
+
 
 class CMemory
 {
 private:
-	size_t	m_start;
-	size_t	m_end;
+	size_t	m_start_gamedll;
+	size_t	m_end_gamedll;
 
 	size_t	m_start_engine;
 	size_t	m_end_engine;
 
 	module	m_EngineModule;
 	module	m_GameDllModule;
+	module	m_MetamodModule;
 
 	bool	m_bSuccess;
 	bool	m_bIsNewGCC;
@@ -89,14 +101,18 @@ public:
 	void Parse_AmmoSpawn(void);
 	void Parse_ItemSpawn(void);
 	void Parse_GetDispatch(void);
+	void Parse_CallGameEntity(void);
 
 	void EnableWeaponboxModels(void);
 	void EnableShieldHitboxTracing(void);
 
 	bool IsNewGCC(void) { return m_bIsNewGCC; };
 
-	module* GetModule_Dll(void) { return &m_GameDllModule; };
+	module* GetModule_GameDll(void) { return &m_GameDllModule; };
 	module* GetModule_Engine(void) { return &m_EngineModule; };
+	module* GetModule_Metamod(void) { return &m_MetamodModule; };
+
+	char* GetDllNameByModule(void* base);
 
 	size_t ParseFunc(size_t start, size_t end, char* funcname, unsigned char* pattern, char* mask, size_t bytes);
 	size_t ParseFunc(size_t start, size_t end, char* funcname, char* string, unsigned char* pattern, char* mask, size_t bytes);
@@ -111,5 +127,6 @@ extern function g_fh_FallThink;
 extern function g_fh_AmmoSpawn;
 extern function g_fh_ItemSpawn;
 extern function g_fh_GetDispatch;
+extern function g_fh_CallGameEntity;
 
 #endif // _WPNMOD_MEMORY_H

@@ -1169,6 +1169,13 @@ void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 
 DISPATCHFUNCTION GetDispatch_HookHandler(char *pname)
 {
+	/*
+	if (!strcmp(pname, "weapon_example"))
+	{
+		return (DISPATCHFUNCTION)FindFunction(g_Memory.GetModule_GameDll(), "weapon_crowbar");
+	}
+	*/
+
 	DISPATCHFUNCTION pDispatch = NULL;
 
 	if (UnsetHook(&g_fh_GetDispatch))
@@ -1179,6 +1186,38 @@ DISPATCHFUNCTION GetDispatch_HookHandler(char *pname)
 
 	return pDispatch;
 }
+
+
+qboolean CallGameEntity_HookHandler(plid_t plid, const char *entStr, entvars_t *pev)
+{
+	/*
+	if (!strcmp(entStr, "weapon_example"))
+	{
+		typedef void(*ENTITY_FN) (entvars_t *);
+		ENTITY_FN pfnEntity = (ENTITY_FN)FindFunction(g_Memory.GetModule_GameDll(), "weapon_crowbar");
+
+		if (!pfnEntity)
+		{
+			printf2("!CallGameEntity: Error!\n");
+			return(false);
+		}
+
+		(*pfnEntity)(pev);
+		return(true);
+	}
+	*/
+
+	qboolean qResult = false;
+
+	if (UnsetHook(&g_fh_CallGameEntity))
+	{
+		qResult = METAMOD_CALL_GAME_ENTITY(plid, entStr, pev);
+		SetHook(&g_fh_CallGameEntity);
+	}
+
+	return qResult;
+}
+
 
 
 void UpdateClientData_Post(const struct edict_s *ent, int sendweapons, struct clientdata_s *cd)
@@ -1200,3 +1239,4 @@ void UpdateClientData_Post(const struct edict_s *ent, int sendweapons, struct cl
 
 	RETURN_META(MRES_IGNORED);
 }
+

@@ -61,11 +61,13 @@
 
 	typedef int					(*FuncGetAmmoIndex)				(const char*);
 	typedef void				(*FuncClearMultiDamage)			(void);
-	typedef void				(*FuncApplyMultiDamage)			(entvars_t*, entvars_t*);
+	typedef void				(*FuncApplyMultiDamage)			(entvars_t *, entvars_t *);
 	typedef void				(*FuncPrecacheOtherWeapon)		(const char*);
 	typedef DISPATCHFUNCTION	(*FuncGetDispatch)				(char*);
+	typedef qboolean			(*FuncCallGameEntity)			(plid_t, const char *, entvars_t *);
 
 	DISPATCHFUNCTION	GetDispatch_HookHandler					(char *pname);
+	qboolean			CallGameEntity_HookHandler				(plid_t plid, const char *entStr, entvars_t *pev);
 	void				PrecacheOtherWeapon_HookHandler			(const char *szClassname);
 
 	// int CBasePlayer::GetAmmoIndex(const char *psz)
@@ -101,6 +103,13 @@
 		inline DISPATCHFUNCTION ENGINE_GET_DISPATCH(char *pname)
 		{
 			return reinterpret_cast<FuncGetDispatch>(g_fh_GetDispatch.address)(pname);
+		}
+
+	// qboolean mutil_CallGameEntity(plid_t plid, const char *entStr, entvars_t *pev)
+	//
+		inline qboolean METAMOD_CALL_GAME_ENTITY(plid_t plid, const char *entStr, entvars_t *pev)
+		{
+			return reinterpret_cast<FuncCallGameEntity>(g_fh_CallGameEntity.address)(plid, entStr, pev);
 		}
 
 #ifdef WIN32
