@@ -1219,7 +1219,6 @@ qboolean CallGameEntity_HookHandler(plid_t plid, const char *entStr, entvars_t *
 }
 
 
-
 void UpdateClientData_Post(const struct edict_s *ent, int sendweapons, struct clientdata_s *cd)
 {
 	if (IsValidPev(ent))

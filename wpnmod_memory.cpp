@@ -813,7 +813,7 @@ void CMemory::Parse_GetDispatch(void)
 
 #ifdef __linux__
 
-	size_t pAdress = (size_t)FindFunction(&m_GameDllModule, "GetDispatch");
+	size_t pAdress = (size_t)FindFunction(&m_EngineModule, "GetDispatch");
 
 	if (!pAdress)
 	{
