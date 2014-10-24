@@ -888,9 +888,9 @@ void CMemory::Parse_GetDispatch(void)
 	pAdress += 1;
 	pAdress = *(size_t*)pAdress + pAdress + 4;
 
-	WPNMOD_LOG_ONLY("   Found \"%s\" at %p\n", funcname, pAdress);
-
 #endif
+
+	WPNMOD_LOG_ONLY("   Found \"%s\" at %p\n", funcname, pAdress);
 	
 	g_fh_GetDispatch.address = (void*)pAdress;
 

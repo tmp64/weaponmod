@@ -93,7 +93,7 @@ bool ParseSection(char* filePath, const char* section, void* handler, int separa
 						}
 						else
 						{
-							reinterpret_cast<void(*)(std::string, std::string)>(handler)(NULL, lineRead);
+							reinterpret_cast<void(*)(std::string, std::string)>(handler)(std::string(), lineRead);
 						}
 					}
 				}
