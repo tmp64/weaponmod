@@ -932,7 +932,6 @@ void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 		g_Config.m_pCurrentSlots[pII.iSlot][pII.iPosition] = 1;
 
 		UTIL_RemoveEntity(pEntity);
-
 		g_iWeaponsCount++;
 	}
 
@@ -1167,55 +1166,62 @@ void PrecacheOtherWeapon_HookHandler(const char *szClassname)
 }
 
 
+void* WpnMod_GetDispatch(char *pname)
+{
+	void* pDispatch = FindFunction(g_Memory.GetModule_GameDll(), pname);
+
+	// Entity is exist in gamedll
+	if (pDispatch != NULL)
+	{
+		// Return original
+		return pDispatch;
+	}
+
+	// Try to find custom classname and link it to reference value
+	if (strstr(pname, "weapon_"))
+	{
+		for (int i = 1; i <= g_iWeaponsCount; i++)
+		{
+			if (GetWeapon_pszName(i) && !_stricmp(GetWeapon_pszName(i), pname))
+			{
+				return FindFunction(g_Memory.GetModule_GameDll(), gWeaponReference);
+			}
+		}
+	}
+	else if (strstr(pname, "ammo_"))
+	{
+		for (int i = 1; i <= g_iAmmoBoxIndex; i++)
+		{
+			if (!_stricmp(AmmoBoxInfoArray[i].classname.c_str(), pname))
+			{
+				return FindFunction(g_Memory.GetModule_GameDll(), gAmmoBoxReference);
+			}
+		}
+	}
+
+	// Try another ways here
+	return NULL;
+}
+
+
 DISPATCHFUNCTION GetDispatch_HookHandler(char *pname)
 {
-	/*
-	if (!strcmp(pname, "weapon_example"))
-	{
-		return (DISPATCHFUNCTION)FindFunction(g_Memory.GetModule_GameDll(), "weapon_crowbar");
-	}
-	*/
-
-	DISPATCHFUNCTION pDispatch = NULL;
-
-	if (UnsetHook(&g_fh_GetDispatch))
-	{
-		pDispatch = ENGINE_GET_DISPATCH(pname);
-		SetHook(&g_fh_GetDispatch);
-	}
-
-	return pDispatch;
+	return (DISPATCHFUNCTION)WpnMod_GetDispatch(pname);
 }
 
 
 qboolean CallGameEntity_HookHandler(plid_t plid, const char *entStr, entvars_t *pev)
 {
-	/*
-	if (!strcmp(entStr, "weapon_example"))
+	ENTITY_FN pfnEntity = (ENTITY_FN)WpnMod_GetDispatch((char *)entStr);
+
+	if (!pfnEntity)
 	{
-		typedef void(*ENTITY_FN) (entvars_t *);
-		ENTITY_FN pfnEntity = (ENTITY_FN)FindFunction(g_Memory.GetModule_GameDll(), "weapon_crowbar");
-
-		if (!pfnEntity)
-		{
-			printf2("!CallGameEntity: Error!\n");
-			return(false);
-		}
-
-		(*pfnEntity)(pev);
-		return(true);
-	}
-	*/
-
-	qboolean qResult = false;
-
-	if (UnsetHook(&g_fh_CallGameEntity))
-	{
-		qResult = METAMOD_CALL_GAME_ENTITY(plid, entStr, pev);
-		SetHook(&g_fh_CallGameEntity);
+		//META_WARNING("Couldn't find game entity '%s' in game DLL '%s' for plugin '%s'", entStr, GET_GAME_INFO(PLID, GINFO_DLL_FILENAME), plid->name);
+		return(false);
 	}
 
-	return qResult;
+	(*pfnEntity)(pev);
+	return(true);
 }
 
 

@@ -207,12 +207,15 @@ public:
 
 	void FreeEntities(void)
 	{
-		for (int i = 0; i <= gpGlobals->maxEntities; ++i)
+		if (m_EntsData)
 		{
-			delete m_EntsData[i];
-		}
+			for (int i = 0; i <= gpGlobals->maxEntities; ++i)
+			{
+				delete m_EntsData[i];
+			}
 
-		delete [] m_EntsData;
+			delete[] m_EntsData;
+		}
 	}
 
 	bool IsEntityValid(edict_t *pEdict)

@@ -584,11 +584,15 @@ void CMemory::Parse_AmmoSpawn(void)
 		return;
 	}
 
-	// Find first call.
+	size_t start = pAdress;
 	size_t end = pAdress + 32;
-	unsigned char opcode[] = "\xE9";
 
-	pAdress = FindAdressInDLL(pAdress, end, opcode, "x");
+	pAdress = FindAdressInDLL(start, end, (unsigned char *)"\xE9", "x");
+
+	if (!pAdress)
+	{
+		pAdress = FindAdressInDLL(start, end, (unsigned char *)"\xE8", "x");
+	}
 
 	if (!pAdress)
 	{
@@ -681,11 +685,15 @@ void CMemory::Parse_ItemSpawn(void)
 		return;
 	}
 
-	// Find first call.
+	size_t start = pAdress;
 	size_t end = pAdress + 32;
-	unsigned char opcode[] = "\xE9";
 
-	pAdress = FindAdressInDLL(pAdress, end, opcode, "x");
+	pAdress = FindAdressInDLL(start, end, (unsigned char *)"\xE9", "x");
+
+	if (!pAdress)
+	{
+		pAdress = FindAdressInDLL(start, end, (unsigned char *)"\xE8", "x");
+	}
 
 	if (!pAdress)
 	{

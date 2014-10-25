@@ -185,9 +185,10 @@ public:
 	void	InitGameMod			(void);
 	void	WorldPrecache		(void);
 	void	SetConfigFile		(void);
-	char*	GetConfigFile		(void) { return &m_cfgpath[0]; };
+	char*	GetConfigFile		(void)	{ return &m_cfgpath[0]; };
+	bool	IsInited			(void)	{ return m_bInited; };
 
-	SUBMOD	GetSubMod			(void) { return m_GameMod; };
+	SUBMOD	GetSubMod			(void)	{ return m_GameMod; };
 	SUBMOD	CheckSubMod			(const char* game);
 
 	void	ServerActivate		(void);

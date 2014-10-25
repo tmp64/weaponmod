@@ -46,7 +46,7 @@ int g_iAmmoBoxIndex = 0;
 const char* gWeaponReference = "weapon_crowbar";
 const char* gAmmoBoxReference = "ammo_rpgclip";
 
-WeaponData	WeaponInfoArray	[MAX_WEAPONS];
+WeaponData WeaponInfoArray[MAX_WEAPONS];
 AmmoBoxData AmmoBoxInfoArray[MAX_WEAPONS];
 
 cvar_t* cvar_sv_cheats = NULL;
@@ -234,12 +234,15 @@ void CConfig::ServerDeactivate(void)
 
 void CConfig::ServerShutDown(void)
 {
-	for (int i = 0; i < m_iMaxWeaponSlots; ++i)
+	if (m_pCurrentSlots)
 	{
-		delete [] m_pCurrentSlots[i];
-	}
+		for (int i = 0; i < m_iMaxWeaponSlots; ++i)
+		{
+			delete[] m_pCurrentSlots[i];
+		}
 
-	delete [] m_pCurrentSlots;
+		delete[] m_pCurrentSlots;
+	}
 }
 
 void CConfig::SetConfigFile(void)
