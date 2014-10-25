@@ -63,11 +63,11 @@
 	typedef int					(*FuncGetAmmoIndex)				(const char*);
 	typedef void				(*FuncClearMultiDamage)			(void);
 	typedef void				(*FuncApplyMultiDamage)			(entvars_t *, entvars_t *);
-	typedef void				(*FuncPrecacheOtherWeapon)		(const char*);
+	typedef void				(*FuncWorldPrecache)			(void);
 
 	DISPATCHFUNCTION	GetDispatch_HookHandler				(char *pname);
 	qboolean			CallGameEntity_HookHandler			(plid_t plid, const char *entStr, entvars_t *pev);
-	void				PrecacheOtherWeapon_HookHandler		(const char *szClassname);
+	void				WorldPrecache_HookHandler			(void);
 
 	// int CBasePlayer::GetAmmoIndex(const char *psz)
 	//
@@ -90,11 +90,11 @@
 			reinterpret_cast<FuncApplyMultiDamage>(g_Memory.m_pApplyMultiDamage)(VARS(pentInflictor), VARS(pentAttacker));
 		}
 
-	// void UTIL_PrecacheOtherWeapon(const char *szClassname)
+	// void W_Precache(void)
 	//
-		inline void PRECACHE_OTHER_WEAPON(const char* szClassname)
+		inline void WORLD_PRECACHE(void)
 		{
-			reinterpret_cast<FuncPrecacheOtherWeapon>(g_fh_PrecacheOtherWeapon.address)(szClassname);
+			reinterpret_cast<FuncWorldPrecache>(g_fh_WorldPrecache.address)();
 		}
 
 #ifdef WIN32

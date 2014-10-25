@@ -65,17 +65,51 @@ int WpnMod_Init(void)
 	return 1;
 }
 
-int DispatchSpawn(edict_t *pent)
+void WpnMod_Init_GameMod(void)
 {
+	g_Entity.AllocEntities();
 	g_Config.InitGameMod();
-	g_Entitys.AllocEntities();
-	g_Config.WorldPrecache();
+}
 
-	RETURN_META_VALUE(MRES_IGNORED, 0);
+void WpnMod_Precache(void)
+{
+	g_Config.SetConfigFile();
+	
+
+	
+	for (int i = 1; i < MAX_WEAPONS; i++)
+	{
+		if (WEAPON_GET_NAME(i))
+		{
+			printf2("!!!!!! Default: %d %s\n", i, WEAPON_GET_NAME(i));
+
+			WeaponInfoArray[i].iType = Wpn_Default;
+
+			g_Config.m_pCurrentSlots[WEAPON_GET_SLOT(i)][WEAPON_GET_SLOT_POSITION(i)] = 1;
+		}
+	}
+
+	//printf2("!!!!!! TOtal %d\n", g_iWeaponsCount);
+
+	g_Config.LoadBlackList();
+
+
+	// Remove Blocked Items from info array.
+	// Regiser new
+
+	
 }
 
 void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 {
+	printf2("------------------\n");
+	for (int i = 1; i < MAX_WEAPONS; i++)
+	{
+		printf2("!!!!!! Current: %d %s  %d\n", i, WEAPON_GET_NAME(i), WEAPON_GET_SLOT(i));
+	}
+
+	//printf2("!!!!!! TOtal %d\n", g_iWeaponsCount);
+
 	g_Config.ServerActivate();
 	RETURN_META(MRES_IGNORED);
 }
@@ -90,7 +124,7 @@ void OnAmxxDetach(void)
 {
 	g_Memory.UnsetHooks();
 	g_Config.ServerShutDown();
-	g_Entitys.FreeEntities();
+	g_Entity.FreeEntities();
 }
 
 int DecalIndex_Post(const char *name)
@@ -101,14 +135,8 @@ int DecalIndex_Post(const char *name)
 
 void *PvAllocEntPrivateData_Post(edict_t *pEdict, int32 cb)
 {
-	g_Entitys.OnAllocEntPrivateData(pEdict);
+	g_Entity.OnAllocEntPrivateData(pEdict);
 	RETURN_META_VALUE(MRES_IGNORED, 0);
-}
-
-void OnFreeEntPrivateData(edict_t *pEnt)
-{
-	g_Entitys.OnFreeEntPrivateData(pEnt);
-	RETURN_META(MRES_IGNORED);
 }
 
 void ClientCommand(edict_t *pEntity)

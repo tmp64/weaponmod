@@ -34,7 +34,7 @@
 #include "wpnmod_entity.h"
 
 
-CEntityManager g_Entitys;
+CEntityManager g_Entity;
 
 
 edict_t* Wpnmod_SpawnItem(const char* szName, Vector vecOrigin, Vector vecAngles)
@@ -56,9 +56,9 @@ edict_t* Weapon_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles)
 {
 	int iId = 0;
 
-	for (int i = 1; i <= g_iWeaponsCount; i++)
+	for (int i = 1; i </*= g_iWeaponsCount*/MAX_WEAPONS; i++)
 	{
-		if (WeaponInfoArray[i].iType == Wpn_Custom && !_stricmp(GetWeapon_pszName(i), szName))
+		if (WeaponInfoArray[i].iType == Wpn_Custom && !_stricmp(WEAPON_GET_NAME(i), szName))
 		{
 			iId = i;
 			break;
@@ -77,12 +77,12 @@ edict_t* Weapon_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles)
 		MDLL_Spawn(pItem);
 		SET_ORIGIN(pItem, vecOrigin);
 
-		pItem->v.classname = MAKE_STRING(GetWeapon_pszName(iId));
+		pItem->v.classname = MAKE_STRING(WEAPON_GET_NAME(iId));
 		pItem->v.angles = vecAngles;
 
 		SetPrivateInt(pItem, pvData_iId, iId);
 
-		if (GetWeapon_MaxClip(iId) != -1)
+		if (WEAPON_GET_MAX_CLIP(iId) != -1)
 		{
 			SetPrivateInt(pItem, pvData_iClip, 0);
 		}

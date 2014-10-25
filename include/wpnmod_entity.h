@@ -162,22 +162,6 @@ public:
 	class CEntity
 	{
 	public:
-
-		CEntity()
-		{
-			m_iThink = 0;
-			m_iTouch = 0;
-			m_iExplode = 0;
-		}
-
-		~CEntity()
-		{
-			for (int i = 0; i < (int)m_TouchFilter.size(); i++)
-			{
-				m_TouchFilter[i].clear();
-			}
-		}
-
 		int m_iThink;
 		int m_iTouch;
 		int m_iExplode;
@@ -185,23 +169,18 @@ public:
 		std::vector <std::string> m_TouchFilter;
 	};
 
-	//typedef std::map<int, std::map<std::string, TrieData*>> TInt2StrTrieMap;
-
-	bool m_bAlloced;
 	CEntity** m_EntsData;
-	//TInt2StrTrieMap m_Tries;
 
-	CEntityManager()
-	{
-		m_bAlloced = false;
-	}
+	//typedef std::map<int, std::map<std::string, TrieData*>> TInt2StrTrieMap;
+	//TInt2StrTrieMap m_Tries;
 
 	void AllocEntities(void)
 	{
-		if (!m_bAlloced)
+		m_EntsData = new CEntity*[gpGlobals->maxEntities + 1];
+
+		for (int i = 0; i <= gpGlobals->maxEntities; ++i)
 		{
-			m_bAlloced = true;
-			m_EntsData = new CEntity*[gpGlobals->maxEntities + 1];
+			memset((m_EntsData[i] = new CEntity), 0, sizeof(CEntity));
 		}
 	}
 
@@ -218,16 +197,20 @@ public:
 		}
 	}
 
-	bool IsEntityValid(edict_t *pEdict)
-	{
-		return m_bAlloced && IsValidPev(pEdict);
-	}
-
 	void OnAllocEntPrivateData(edict_t *pEdict)
 	{
-		if (IsEntityValid(pEdict))
+		if (m_EntsData && IsValidPev(pEdict))
 		{
-			memset((m_EntsData[ENTINDEX(pEdict)] = new CEntity), 0, sizeof(CEntity));
+			int iIndex = ENTINDEX(pEdict);
+
+			m_EntsData[iIndex]->m_iThink = 0;
+			m_EntsData[iIndex]->m_iTouch = 0;
+			m_EntsData[iIndex]->m_iExplode = 0;
+
+			m_EntsData[iIndex]->m_TouchFilter.clear();
+
+
+			//memset((m_EntsData[ENTINDEX(pEdict)] = new CEntity), 0, sizeof(CEntity));
 
 			/*
 			m_Tries[ENTINDEX(pEdict)]["lol"] = new TrieData;
@@ -256,22 +239,12 @@ public:
 		}
 	}
 
-	void OnFreeEntPrivateData(edict_t *pEdict)
-	{
-		if (IsEntityValid(pEdict))
-		{
-			int iIndex = ENTINDEX(pEdict);
-			delete m_EntsData[iIndex];
-			m_EntsData[iIndex] = NULL;
-		}
-	}
-
 	void AddClassnameToTouchFilter(edict_t *pEdict, std::string strClassname)
 	{
 		// strClassname.trim();
 		strClassname.erase(strClassname.find_last_not_of(" \n\r\t") + 1);
 
-		if (!strClassname.empty() && IsEntityValid(pEdict))
+		if (!strClassname.empty() && IsValidPev(pEdict))
 		{
 			CEntity *p = m_EntsData[ENTINDEX(pEdict)];
 			p->m_TouchFilter.push_back(strClassname);
@@ -280,7 +253,7 @@ public:
 
 	void SetAmxxForward(edict_t *pEdict, int iForwardType, int iForwardID)
 	{
-		if (IsEntityValid(pEdict))
+		if (IsValidPev(pEdict))
 		{
 			CEntity *p = m_EntsData[ENTINDEX(pEdict)];
 
@@ -301,7 +274,7 @@ public:
 
 	void ExecuteAmxxForward(edict_t *pEdict, int iForwardType, void *pVar = NULL)
 	{
-		if (!IsEntityValid(pEdict))
+		if (!IsValidPev(pEdict))
 		{
 			return;
 		}
@@ -382,7 +355,7 @@ public:
 	}
 };
 
-extern CEntityManager g_Entitys;
+extern CEntityManager g_Entity;
 
 extern edict_t* Ammo_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles);
 extern edict_t* Weapon_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles);

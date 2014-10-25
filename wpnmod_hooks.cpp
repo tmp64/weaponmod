@@ -75,36 +75,28 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 		return 0;
 	}
 
-	if (!g_iWeaponInitID)
-	{
-		iId = GetPrivateInt(pWeapon, pvData_iId);
-	}
-	else
-	{
-		iId = g_iWeaponInitID;
-		g_iWeaponInitID = 0;
-	}
+	iId = GetPrivateInt(pWeapon, pvData_iId);
 
 	if (WeaponInfoArray[iId].iType == Wpn_Custom)
 	{
 		p->iId = iId;
-		p->pszName = GetWeapon_pszName(iId);
-		p->iSlot = GetWeapon_Slot(iId);
-		p->iPosition = GetWeapon_ItemPosition(iId);
-		p->iMaxAmmo1 = GetWeapon_MaxAmmo1(iId);
-		p->iMaxAmmo2 = GetWeapon_MaxAmmo2(iId);
-		p->iMaxClip = GetWeapon_MaxClip(iId);
-		p->iFlags = GetWeapon_Flags(iId);
-		p->iWeight = GetWeapon_Weight(iId);
+		p->pszName = WEAPON_GET_NAME(iId);
+		p->iSlot = WEAPON_GET_SLOT(iId);
+		p->iPosition = WEAPON_GET_SLOT_POSITION(iId);
+		p->iMaxAmmo1 = WEAPON_GET_MAX_AMMO1(iId);
+		p->iMaxAmmo2 = WEAPON_GET_MAX_AMMO2(iId);
+		p->iMaxClip = WEAPON_GET_MAX_CLIP(iId);
+		p->iFlags = WEAPON_GET_FLAGS(iId);
+		p->iWeight = WEAPON_GET_WEIGHT(iId);
 
-		if (GetWeapon_pszAmmo1(iId)[0])
+		if (WEAPON_GET_AMMO1(iId)[0])
 		{
-			p->pszAmmo1 = GetWeapon_pszAmmo1(iId);
+			p->pszAmmo1 = WEAPON_GET_AMMO1(iId);
 		}
 
-		if (GetWeapon_pszAmmo2(iId)[0])
+		if (WEAPON_GET_AMMO2(iId)[0])
 		{
-			p->pszAmmo2 = GetWeapon_pszAmmo2(iId);
+			p->pszAmmo2 = WEAPON_GET_AMMO2(iId);
 		}
 	}
 
@@ -270,7 +262,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 	if (iInReload && flNextAttack <= gpGlobals->time)
 	{
 		// complete the reload. 
-		int j = min(GetWeapon_MaxClip(iId) - iClip, iAmmoPrimary);	
+		int j = min(WEAPON_GET_MAX_CLIP(iId) - iClip, iAmmoPrimary);
 
 		iClip += j;
 		iAmmoPrimary -= j;
@@ -284,7 +276,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 
 	if ((pPlayer->v.button & IN_ATTACK2) && flNextSecondaryAttack < 0.0)
 	{
-		if (GetWeapon_pszAmmo2(iId) && !iAmmoSecondary)
+		if (WEAPON_GET_AMMO2(iId) && !iAmmoSecondary)
 		{
 			SetPrivateInt(pWeapon, pvData_fFireOnEmpty, TRUE);
 		}
@@ -307,7 +299,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 	}
 	else if ((pPlayer->v.button & IN_ATTACK) && flNextPrimaryAttack < 0.0)
 	{
-		if ((!iClip && GetWeapon_pszAmmo1(iId)) || (GetWeapon_MaxClip(iId) == -1 && !iAmmoPrimary ) )
+		if ((!iClip && WEAPON_GET_AMMO1(iId)) || (WEAPON_GET_MAX_CLIP(iId) == -1 && !iAmmoPrimary))
 		{
 			SetPrivateInt(pWeapon, pvData_fFireOnEmpty, TRUE);
 		}
@@ -328,7 +320,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 
 		pPlayer->v.button &= ~IN_ATTACK;
 	}
-	else if (pPlayer->v.button & IN_RELOAD && GetWeapon_MaxClip(iId) != -1 && !iInReload ) 
+	else if (pPlayer->v.button & IN_RELOAD && WEAPON_GET_MAX_CLIP(iId) != -1 && !iInReload)
 	{
 		// reload when reload is pressed, or if no buttons are down and weapon is empty.
 		if (WeaponInfoArray[iId].iForward[Fwd_Wpn_Reload])
@@ -353,7 +345,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 		if (!IS_USEABLE(pWeapon) && flNextPrimaryAttack < 0.0) 
 		{
 			// weapon isn't useable, switch.
-			if (!(GetWeapon_Flags(iId) & ITEM_FLAG_NOAUTOSWITCHEMPTY) && GetNextBestWeapon(pPlayer, pWeapon))
+			if (!(WEAPON_GET_FLAGS(iId) & ITEM_FLAG_NOAUTOSWITCHEMPTY) && GetNextBestWeapon(pPlayer, pWeapon))
 			{
 				SetPrivateFloat(pWeapon, pvData_flNextPrimaryAttack, 0.3);
 				return;
@@ -362,7 +354,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 		else
 		{
 			// weapon is useable. Reload if empty and weapon has waited as long as it has to after firing
-			if (!iClip && !(GetWeapon_Flags(iId) & ITEM_FLAG_NOAUTORELOAD) && flNextPrimaryAttack < 0.0)
+			if (!iClip && !(WEAPON_GET_FLAGS(iId) & ITEM_FLAG_NOAUTORELOAD) && flNextPrimaryAttack < 0.0)
 			{
 				if (WeaponInfoArray[iId].iForward[Fwd_Wpn_Reload])
 				{
@@ -502,8 +494,8 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 	Dll_SetThink(pWeapon, NULL);
 	Dll_SetTouch(pWeapon, NULL);
 
-	g_Entitys.SetAmxxForward(pWeapon, FWD_ENT_THINK, NULL);
-	g_Entitys.SetAmxxForward(pWeapon, FWD_ENT_TOUCH, NULL);
+	g_Entity.SetAmxxForward(pWeapon, FWD_ENT_THINK, NULL);
+	g_Entity.SetAmxxForward(pWeapon, FWD_ENT_TOUCH, NULL);
 
 	edict_t* pPlayer = GetPrivateCbase(pWeapon, pvData_pPlayer);
 
@@ -616,13 +608,14 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 
 	if (WeaponInfoArray[iId].iType == Wpn_Custom)
 	{
+
 		// Opposing Force magic, lol.
-		if  (GetWeapon_Slot(iId) >= 6)
+		if (WEAPON_GET_SLOT(iId) >= 6)
 		{
 			return 4;
 		}
 
-		return GetWeapon_Slot(iId) + 1;
+		return WEAPON_GET_SLOT(iId) + 1;
 	}
 
 	return ITEM_SLOT(pvItem);
@@ -649,13 +642,13 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 		return RESPAWN(pvItem);
 	}
 	
-	edict_t* pItem = Wpnmod_SpawnItem(GetWeapon_pszName(iId), pWeapon->v.origin, pWeapon->v.angles);
+	edict_t* pItem = Wpnmod_SpawnItem(WEAPON_GET_NAME(iId), pWeapon->v.origin, pWeapon->v.angles);
 
 	if (IsValidPev(pItem))
 	{
 		float flNextRespawn;
 
-		if (cvar_mp_weaponstay && cvar_mp_weaponstay->value && !(GetWeapon_Flags(iId) & ITEM_FLAG_LIMITINWORLD))
+		if (cvar_mp_weaponstay && cvar_mp_weaponstay->value && !(WEAPON_GET_FLAGS(iId) & ITEM_FLAG_LIMITINWORLD))
 		{
 			flNextRespawn = 0;
 		}
@@ -782,18 +775,21 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 			pPlayer->v.health = pPlayer->v.max_health;
 			pPlayer->v.armorvalue = pPlayer->v.max_health;
 
-			for (int k = 1; k <= g_iWeaponsCount; k++)
+			for (int k = 1; k </*= g_iWeaponsCount*/MAX_WEAPONS; k++)
 			{
-				GiveNamedItem(pPlayer, GetWeapon_pszName(k));
-
-				if (GetWeapon_MaxAmmo1(k) != -1)
+				if (WEAPON_GET_NAME(k))
 				{
-					SetAmmoInventory(pPlayer, GET_AMMO_INDEX(GetWeapon_pszAmmo1(k)), GetWeapon_MaxAmmo1(k));
-				}
+					GiveNamedItem(pPlayer, WEAPON_GET_NAME(k));
 
-				if (GetWeapon_MaxAmmo2(k) != -1)
-				{
-					SetAmmoInventory(pPlayer, GET_AMMO_INDEX(GetWeapon_pszAmmo2(k)), GetWeapon_MaxAmmo2(k));
+					if (WEAPON_GET_MAX_AMMO1(k) != -1)
+					{
+						SetAmmoInventory(pPlayer, GET_AMMO_INDEX(WEAPON_GET_AMMO1(k)), WEAPON_GET_MAX_AMMO1(k));
+					}
+
+					if (WEAPON_GET_MAX_AMMO2(k) != -1)
+					{
+						SetAmmoInventory(pPlayer, GET_AMMO_INDEX(WEAPON_GET_AMMO2(k)), WEAPON_GET_MAX_AMMO2(k));
+					}
 				}
 			}
 
@@ -888,7 +884,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 
 	if (IsValidPev(pEntity))
 	{
-		g_Entitys.ExecuteAmxxForward(pEntity, FWD_ENT_THINK);
+		g_Entity.ExecuteAmxxForward(pEntity, FWD_ENT_THINK);
 	}
 }
 
@@ -904,42 +900,28 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 
 	if (IsValidPev(pEntity))
 	{
-		g_Entitys.ExecuteAmxxForward(pEntity, FWD_ENT_TOUCH, (void*)pOther);
+		g_Entity.ExecuteAmxxForward(pEntity, FWD_ENT_TOUCH, (void*)pOther);
 	}
 }
 
 
-void PrecacheOtherWeapon_HookHandler(const char *szClassname)
+void WorldPrecache_HookHandler(void)
 {
-	edict_t	*pEntity = CREATE_NAMED_ENTITY(MAKE_STRING(szClassname));
-	
-	if (IsValidPev(pEntity))
+	static bool bOnce = false;
+
+	if (!bOnce)
 	{
-		MDLL_Spawn(pEntity);
-
-		if (g_Config.IsItemBlocked(szClassname))
-		{
-			UTIL_RemoveEntity(pEntity);
-			return;
-		}
-
-		ItemInfo pII;
-		GET_ITEM_INFO(pEntity, &pII);
-
-		WeaponInfoArray[pII.iId].ItemData = pII;
-		WeaponInfoArray[pII.iId].iType = Wpn_Default;
-
-		g_Config.m_pCurrentSlots[pII.iSlot][pII.iPosition] = 1;
-
-		UTIL_RemoveEntity(pEntity);
-		g_iWeaponsCount++;
+		bOnce = true;
+		WpnMod_Init_GameMod();
 	}
 
-	if (UnsetHook(&g_fh_PrecacheOtherWeapon))
+	if (UnsetHook(&g_fh_WorldPrecache))
 	{
-		PRECACHE_OTHER_WEAPON(szClassname);
-		SetHook(&g_fh_PrecacheOtherWeapon);
+		WORLD_PRECACHE();
+		SetHook(&g_fh_WorldPrecache);
 	}
+
+	WpnMod_Precache();
 }
 
 
@@ -1180,9 +1162,9 @@ void* WpnMod_GetDispatch(char *pname)
 	// Try to find custom classname and link it to reference value
 	if (strstr(pname, "weapon_"))
 	{
-		for (int i = 1; i <= g_iWeaponsCount; i++)
+		for (int i = 1; i </*= g_iWeaponsCount*/MAX_WEAPONS; i++)
 		{
-			if (GetWeapon_pszName(i) && !_stricmp(GetWeapon_pszName(i), pname))
+			if (WEAPON_GET_NAME(i) && !_stricmp(WEAPON_GET_NAME(i), pname))
 			{
 				return FindFunction(g_Memory.GetModule_GameDll(), gWeaponReference);
 			}

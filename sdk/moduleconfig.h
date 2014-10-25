@@ -125,7 +125,7 @@
 // (wd) are Will Day's notes
 // - GetEntityAPI2 functions
 // #define FN_GameDLLInit				GameDLLInit					/* pfnGameInit() */
-#define FN_DispatchSpawn				DispatchSpawn				/* pfnSpawn() */
+// #define FN_DispatchSpawn				DispatchSpawn				/* pfnSpawn() */
 // #define FN_DispatchThink				DispatchThink				/* pfnThink() */
 // #define FN_DispatchUse				DispatchUse					/* pfnUse() */
 // #define FN_DispatchTouch				DispatchTouch				/* pfnTouch() */
@@ -519,7 +519,7 @@
 // #define FN_Voice_SetClientListening_Post		Voice_SetClientListening_Post
 // #define FN_GetPlayerAuthId_Post				GetPlayerAuthId_Post
 
-#define FN_OnFreeEntPrivateData				OnFreeEntPrivateData
+// #define FN_OnFreeEntPrivateData				OnFreeEntPrivateData
 // #define FN_GameShutdown						GameShutdown
 // #define FN_ShouldCollide						ShouldCollide
 

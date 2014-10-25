@@ -39,8 +39,7 @@
 
 CConfig g_Config;
 
-int g_iWeaponsCount = 0;
-int g_iWeaponInitID = 0;
+//int g_iWeaponsCount = 0;
 int g_iAmmoBoxIndex = 0;
 
 const char* gWeaponReference = "weapon_crowbar";
@@ -55,8 +54,6 @@ cvar_t* cvar_mp_weaponstay = NULL;
 CConfig::CConfig()
 {
 	m_bInited = false;
-	m_bWorldSpawned = false;
-
 	m_bCrowbarHooked = false;
 	m_bAmmoBoxHooked = false;
 
@@ -74,70 +71,68 @@ CConfig::CConfig()
 
 void CConfig::InitGameMod(void)
 {
-	if (!m_bInited)
+	m_bInited = true;
+	m_GameMod = CheckSubMod(MF_GetModname());
+
+	pvData_Init();
+	Vtable_Init();
+
+	if (m_GameMod == SUBMOD_GEARBOX)
 	{
-		m_GameMod = CheckSubMod(MF_GetModname());
-
-		pvData_Init();
-		Vtable_Init();
-
-		if (m_GameMod == SUBMOD_GEARBOX)
-		{
-			// More slots in OP4.
-			m_iMaxWeaponSlots = 7;
-		}
-		else if (m_GameMod == SUBMOD_AGHLRU)
-		{
-			// More positions in Bugfixed and improved HL release.
-			m_iMaxWeaponPositions = 10;
-		}
-
-		m_pCurrentSlots = new int* [m_iMaxWeaponSlots];
-
-		for (int i = 0; i < m_iMaxWeaponSlots; ++i)
-		{
-			memset((m_pCurrentSlots[i] = new int [m_iMaxWeaponPositions]), 0, sizeof(int) * m_iMaxWeaponPositions);
-		}
-
-		cvar_t version = 
-		{
-			"hl_wpnmod_version",
-			(char *)Plugin_info.version,
-			FCVAR_SERVER
-		};
-
-		REG_SVR_COMMAND("wpnmod", CConfig::ServerCommand);
-		CVAR_REGISTER(&version);
-
-		m_bInited = true;
+		// More slots in OP4.
+		m_iMaxWeaponSlots = 7;
 	}
-}
-
-void CConfig::WorldPrecache(void)
-{
-	if (m_bWorldSpawned)
+	else if (m_GameMod == SUBMOD_AGHLRU)
 	{
-		return;
+		// More positions in Bugfixed and improved HL release.
+		m_iMaxWeaponPositions = 10;
 	}
 
-	SetConfigFile();
+	m_pCurrentSlots = new int* [m_iMaxWeaponSlots];
+
+	for (int i = 0; i < m_iMaxWeaponSlots; ++i)
+	{
+		memset((m_pCurrentSlots[i] = new int [m_iMaxWeaponPositions]), 0, sizeof(int) * m_iMaxWeaponPositions);
+	}
 
 	cvar_sv_cheats = CVAR_GET_POINTER("sv_cheats");
 	cvar_mp_weaponstay = CVAR_GET_POINTER("mp_weaponstay");
 
-	WPNMOD_LOG_ONLY("-------- Mapchange to %s --------\n", STRING(gpGlobals->mapname));
+	cvar_t version = 
+	{
+		"hl_wpnmod_version",
+		(char *)Plugin_info.version,
+		FCVAR_SERVER
+	};
+
+	REG_SVR_COMMAND("wpnmod", CConfig::ServerCommand);
+	CVAR_REGISTER(&version);
+}
+
+void CConfig::LoadBlackList(void)
+{
+	WPNMOD_LOG("-------- Mapchange to %s --------\n", STRING(gpGlobals->mapname));
 
 	if (ParseSection(GetConfigFile(), "[block]", (void*)OnParseBlockedItems, -1) && (int)m_pBlockedItemsList.size())
 	{
-		WPNMOD_LOG_ONLY("Blocked default items:\n");
+		WPNMOD_LOG("Blocked items:\n");
 
 		for (int i = 0; i < (int)m_pBlockedItemsList.size(); i++)
 		{
-			WPNMOD_LOG_ONLY(" \"%s\"\n", m_pBlockedItemsList[i]->classname);
+			WPNMOD_LOG(" \"%s\"\n", m_pBlockedItemsList[i]->classname);
+
+			for (int iId = 1; iId < MAX_WEAPONS; iId++)
+			{
+				if (WEAPON_GET_NAME(iId) && !_strcmpi(WEAPON_GET_NAME(iId), m_pBlockedItemsList[i]->classname))
+				{
+					//printf2("WOW: %d %s\n", iId, WEAPON_GET_NAME(iId));
+					WEAPON_RESET_ITEMINFO(iId);
+					//--g_iWeaponsCount;
+					//memset(&WeaponInfoArray[iId], 0, sizeof(WeaponData));
+				}
+			}
 		}
 	}
-
-	m_bWorldSpawned = true;
 }
 
 void CConfig::ServerActivate(void)
@@ -174,12 +169,10 @@ void CConfig::ServerActivate(void)
 
 void CConfig::ServerDeactivate(void)
 {
-	m_bWorldSpawned = false;
 	m_bCrowbarHooked = false;
 	m_bAmmoBoxHooked = false;
 
-	g_iWeaponsCount = 0;
-	g_iWeaponInitID = 0;
+	//g_iWeaponsCount = 0;
 	g_iAmmoBoxIndex = 0;
 
 	memset(WeaponInfoArray, 0, sizeof(WeaponInfoArray));
@@ -304,8 +297,8 @@ void CConfig::AutoSlotDetection(int iWeaponID, int iSlot, int iPosition)
 	{
 		m_pCurrentSlots[iSlot][iPosition] = iWeaponID;
 
-		WeaponInfoArray[iWeaponID].ItemData.iSlot = iSlot;
-		WeaponInfoArray[iWeaponID].ItemData.iPosition = iPosition;
+		WEAPON_SET_SLOT(iWeaponID, iSlot);
+		WEAPON_SET_SLOT_POSITION(iWeaponID, iPosition);
 	}
 	else
 	{
@@ -319,10 +312,10 @@ void CConfig::AutoSlotDetection(int iWeaponID, int iSlot, int iPosition)
 				{
 					m_pCurrentSlots[i][k] = iWeaponID;
 
-					WeaponInfoArray[iWeaponID].ItemData.iSlot = i;
-					WeaponInfoArray[iWeaponID].ItemData.iPosition = k;
+					WEAPON_SET_SLOT(iWeaponID, i);
+					WEAPON_SET_SLOT_POSITION(iWeaponID, k);
 
-					WPNMOD_LOG("Warning: \"%s\" is moved to slot %d-%d.\n", GetWeapon_pszName(iWeaponID), i + 1, k + 1);
+					WPNMOD_LOG("Warning: \"%s\" is moved to slot %d-%d.\n", WEAPON_GET_NAME(iWeaponID), i + 1, k + 1);
 
 					bFound = true;
 					break;
@@ -332,8 +325,8 @@ void CConfig::AutoSlotDetection(int iWeaponID, int iSlot, int iPosition)
 
 		if (!bFound)
 		{
-			WeaponInfoArray[iWeaponID].ItemData.iPosition = MAX_WEAPONS;
-			WPNMOD_LOG("Warning: No free slot for \"%s\" in HUD!\n", GetWeapon_pszName(iWeaponID));
+			WEAPON_SET_SLOT_POSITION(iWeaponID, MAX_WEAPONS);
+			WPNMOD_LOG("Warning: No free slot for \"%s\" in HUD!\n", WEAPON_GET_NAME(iWeaponID));
 		}
 	}
 }
@@ -424,12 +417,12 @@ void CConfig::ServerCommand(void)
 
 		printf2("\nCurrently loaded weapons:\n");
 
-		for (i = 1; i <= g_iWeaponsCount; i++)
+		for (i = 1; i < /*g_iWeaponsCount*/ MAX_WEAPONS; i++)
 		{
 			if (WeaponInfoArray[i].iType == Wpn_Custom)
 			{
 				items++;
-				printf2(" [%2d] %-23.22s\n", ++weapons, GetWeapon_pszName(i));
+				printf2(" [%2d] %-23.22s\n", ++weapons, WEAPON_GET_NAME(i));
 			}
 		}
 
@@ -543,11 +536,11 @@ bool CConfig::ClientCommand(edict_t *pEntity)
 
 		CLIENT_PRINT(pEntity, print_console, "Currently loaded weapons:\n");
 
-		for (i = 1; i <= g_iWeaponsCount; i++)
+		for (i = 1; i </*= g_iWeaponsCount*/ MAX_WEAPONS; i++)
 		{
 			if (WeaponInfoArray[i].iType == Wpn_Custom)
 			{
-				sprintf(buf, " [%2d] %-23.22s\n", ++weapons, GetWeapon_pszName(i));
+				sprintf(buf, " [%2d] %-23.22s\n", ++weapons, WEAPON_GET_NAME(i));
 				CLIENT_PRINT(pEntity, print_console, buf);
 			}
 		}

@@ -36,14 +36,14 @@
 
 CMemory g_Memory;
 
-function g_fh_GiveNamedItem = HOOK_FUNC_DLL(GiveNamedItem_HookHandler);
-function g_fh_funcPackWeapon = HOOK_FUNC_DLL(PackWeapon_HookHandler);
-function g_fh_PrecacheOtherWeapon = HOOK_FUNC_DLL(PrecacheOtherWeapon_HookHandler);
-function g_fh_FallThink = HOOK_FUNC_DLL(CBasePlayerItem_FallThink_HookHandler);
-function g_fh_AmmoSpawn = HOOK_FUNC_DLL(CBasePlayerAmmoSpawn_HookHandler);
-function g_fh_ItemSpawn = HOOK_FUNC_DLL(CItemSpawn_HookHandler);
-function g_fh_GetDispatch = HOOK_FUNC_ENGINE(GetDispatch_HookHandler);
-function g_fh_CallGameEntity = HOOK_FUNC_METAMOD(CallGameEntity_HookHandler);
+function g_fh_GiveNamedItem			= HOOK_FUNC(GiveNamedItem_HookHandler);
+function g_fh_funcPackWeapon		= HOOK_FUNC(PackWeapon_HookHandler);
+function g_fh_FallThink				= HOOK_FUNC(CBasePlayerItem_FallThink_HookHandler);
+function g_fh_AmmoSpawn				= HOOK_FUNC(CBasePlayerAmmoSpawn_HookHandler);
+function g_fh_ItemSpawn				= HOOK_FUNC(CItemSpawn_HookHandler);
+function g_fh_GetDispatch			= HOOK_FUNC(GetDispatch_HookHandler);
+function g_fh_CallGameEntity		= HOOK_FUNC(CallGameEntity_HookHandler);
+function g_fh_WorldPrecache			= HOOK_FUNC(WorldPrecache_HookHandler);
 
 CMemory::CMemory()
 {
@@ -94,10 +94,10 @@ bool CMemory::Init(void)
 
 	Parse_GetDispatch();
 	Parse_CallGameEntity();
+	Parse_WorldPrecache();
 	Parse_InfoArrays();
 	Parse_ClearMultiDamage();
 	Parse_ApplyMultiDamage();
-	Parse_PrecacheOtherWeapon();
 	Parse_GetAmmoIndex();
 	Parse_GiveNamedItem();
 	Parse_SetAnimation();
@@ -121,12 +121,12 @@ bool CMemory::Init(void)
 void CMemory::UnsetHooks(void)
 {
 	UnsetHook(&g_fh_GiveNamedItem);
-	UnsetHook(&g_fh_PrecacheOtherWeapon);
 	UnsetHook(&g_fh_FallThink);
 	UnsetHook(&g_fh_AmmoSpawn);
 	UnsetHook(&g_fh_ItemSpawn);
 	UnsetHook(&g_fh_GetDispatch);
 	UnsetHook(&g_fh_CallGameEntity);
+	UnsetHook(&g_fh_WorldPrecache);
 }
 
 void CMemory::Parse_ClearMultiDamage(void)
@@ -228,57 +228,6 @@ void CMemory::Parse_ApplyMultiDamage(void)
 #endif
 
 	m_pApplyMultiDamage = (void*)pAdress;
-}
-
-void CMemory::Parse_PrecacheOtherWeapon(void)
-{
-	char funcname[] = "UTIL_PrecacheOtherWeapon (gamedll)";
-
-#ifdef __linux__
-
-	size_t pAdress	= (size_t)FindFunction(&m_GameDllModule, "UTIL_PrecacheOtherWeapon__FPCc");
-
-	if (!pAdress)
-	{
-		pAdress	= (size_t)FindFunction(&m_GameDllModule, "_Z24UTIL_PrecacheOtherWeaponPKc");
-	}
-
-	if (!pAdress)
-	{
-		WPNMOD_LOG("   Error: \"%s\" not found\n", funcname);
-		m_bSuccess = false;
-		return;
-	}
-
-	WPNMOD_LOG_ONLY("   Found \"%s\" at %p\n", funcname, pAdress);
-
-#else
-
-	char			string[]			= "weapon_rpg";
-	char			mask[]				= "xxxxxx";
-	unsigned char	pattern[]			= "\x68\x00\x00\x00\x00\xE8";
-	size_t			BytesOffset			= 6;
-
-	size_t pAdress = ParseFunc(m_start_gamedll, m_end_gamedll, funcname, string, pattern, mask, BytesOffset);
-
-	if (!pAdress)
-	{
-		m_bSuccess = false;
-		return;
-	}
-
-#endif
-
-	g_fh_PrecacheOtherWeapon.address = (void*)pAdress;
-
-	if (!CreateFunctionHook(&g_fh_PrecacheOtherWeapon))
-	{
-		WPNMOD_LOG("   Error: failed to hook \"%s\"\n", funcname);
-		m_bSuccess = false;
-		return;
-	}
-
-	SetHook(&g_fh_PrecacheOtherWeapon);
 }
 
 void CMemory::Parse_GetAmmoIndex(void)
@@ -608,9 +557,9 @@ void CMemory::Parse_AmmoSpawn(void)
 	pAdress += 1;
 	pAdress = *(size_t*)pAdress + pAdress + 4;
 
-	WPNMOD_LOG_ONLY("   Found \"%s\" at %p\n", funcname, pAdress);
-
 #endif
+
+	WPNMOD_LOG_ONLY("   Found \"%s\" at %p\n", funcname, pAdress);
 
 	g_fh_AmmoSpawn.address = (void*)pAdress;
 
@@ -709,9 +658,9 @@ void CMemory::Parse_ItemSpawn(void)
 	pAdress += 1;
 	pAdress = *(size_t*)pAdress + pAdress + 4;
 
-	WPNMOD_LOG_ONLY("   Found \"%s\" at %p\n", funcname, pAdress);
-
 #endif
+
+	WPNMOD_LOG_ONLY("   Found \"%s\" at %p\n", funcname, pAdress);
 	
 	g_fh_ItemSpawn.address = (void*)pAdress;
 
@@ -727,13 +676,31 @@ void CMemory::Parse_ItemSpawn(void)
 
 void CMemory::Parse_WorldPrecache(void)
 {
+	char* funcname = "W_Precache (gamedll)";
+
+#ifdef __linux__
+
+	size_t pAdress = (size_t)FindFunction(&m_GameDllModule, "W_Precache__Fv");
+
+	if (!pAdress)
+	{
+		pAdress = (size_t)FindFunction(&m_GameDllModule, "_Z10W_Precachev");
+	}
+
+	if (!pAdress)
+	{
+		WPNMOD_LOG("   Error: \"%s\" not found\n", funcname);
+		m_bSuccess = false;
+		return;
+	}
+
+#else
+
 	int count = 0;
 
 	size_t pAdress = NULL;
 	size_t pCurrent = NULL;
 	size_t pCandidate = NULL;
-
-	char* funcname = "W_Precache (gamedll)";
 
 	// 85 C0				test	eax, eax
 	// 75 10				jnz		short loc_100EC92C
@@ -804,9 +771,20 @@ void CMemory::Parse_WorldPrecache(void)
 	pAdress += 1;
 	pAdress = *(size_t*)pAdress + pAdress + 4;
 
+#endif
+
 	WPNMOD_LOG_ONLY("   Found \"%s\" at %p\n", funcname, pAdress);
 
-	m_pWorldPrecache = (void*)pAdress;
+	g_fh_WorldPrecache.address = m_pWorldPrecache = (void*)pAdress;
+
+	if (!CreateFunctionHook(&g_fh_WorldPrecache))
+	{
+		WPNMOD_LOG("   Error: failed to hook \"%s\"\n", funcname);
+		m_bSuccess = false;
+		return;
+	}
+
+	SetHook(&g_fh_WorldPrecache);
 }
 
 void CMemory::Parse_InfoArrays(void)
@@ -835,8 +813,6 @@ void CMemory::Parse_InfoArrays(void)
 	m_pItemInfoArray = (ItemInfo*)(pAdress);
 
 #else
-
-	Parse_WorldPrecache();
 
 	if (!m_pWorldPrecache)
 	{
@@ -1177,9 +1153,9 @@ void CMemory::EnableShieldHitboxTracing(void)
 {
 	bool bShieldRegistered = false;
 
-	for (int i = 1; i <= g_iWeaponsCount; i++)
+	for (int i = 1; i </*= g_iWeaponsCount*/MAX_WEAPONS; i++)
 	{
-		if (WeaponInfoArray[i].iType == Wpn_Custom && !stricmp(GetWeapon_pszName(i), "weapon_shield"))
+		if (WeaponInfoArray[i].iType == Wpn_Custom && !stricmp(WEAPON_GET_NAME(i), "weapon_shield"))
 		{
 			bShieldRegistered = true;
 			break;
@@ -1496,5 +1472,39 @@ size_t CMemory::ParseFunc(size_t start, size_t end, char* funcname, char* string
 	WPNMOD_LOG_ONLY("   Found \"%s\" at %p\n", funcname, pAdress);
 
 	return pAdress;
+}
+
+
+
+
+void CMemory::AddAmmoNameToAmmoRegistry(const char *szAmmoname)
+{
+	int iAmmoIndex = 0;
+
+	// make sure it's not already in the registry
+	for (int i = 0; i < MAX_AMMO_SLOTS; i++)
+	{
+		if (!m_pAmmoInfoArray[i].pszName)
+			continue;
+
+		if (_stricmp(m_pAmmoInfoArray[i].pszName, szAmmoname) == 0)
+			return; // ammo already in registry, just quite
+
+		iAmmoIndex++;
+	}
+
+	iAmmoIndex++;
+
+
+	m_pAmmoInfoArray[iAmmoIndex].pszName = STRING(ALLOC_STRING(szAmmoname));
+
+
+	/*giAmmoIndex++;
+	ASSERT(giAmmoIndex < MAX_AMMO_SLOTS);
+	if (giAmmoIndex >= MAX_AMMO_SLOTS)
+		giAmmoIndex = 0;
+
+	CBasePlayerItem::AmmoInfoArray[giAmmoIndex].pszName = szAmmoname;
+	CBasePlayerItem::AmmoInfoArray[giAmmoIndex].iId = giAmmoIndex;   // yes, this info is redundant*/
 }
 

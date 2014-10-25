@@ -281,7 +281,7 @@ AMXX_NATIVE(wpnmod_fire_contact_grenade)
 				FP_DONE
 			);
 
-			g_Entitys.SetAmxxForward(pGrenade, FWD_ENT_EXPLODE, iForward == -1 ? NULL : iForward);
+			g_Entity.SetAmxxForward(pGrenade, FWD_ENT_EXPLODE, iForward == -1 ? NULL : iForward);
 		}
 
 		return ENTINDEX(pGrenade);
@@ -340,7 +340,7 @@ AMXX_NATIVE(wpnmod_fire_timed_grenade)
 				FP_DONE
 			);
 
-			g_Entitys.SetAmxxForward(pGrenade, FWD_ENT_EXPLODE, iForward == -1 ? NULL : iForward);
+			g_Entity.SetAmxxForward(pGrenade, FWD_ENT_EXPLODE, iForward == -1 ? NULL : iForward);
 		}
 
 		return ENTINDEX(pGrenade);
@@ -410,7 +410,7 @@ AMXX_NATIVE(wpnmod_explode_entity)
 			FP_DONE
 		);
 
-		g_Entitys.SetAmxxForward(INDEXENT2(params[1]), FWD_ENT_EXPLODE, iForward == -1 ? NULL : iForward);
+		g_Entity.SetAmxxForward(INDEXENT2(params[1]), FWD_ENT_EXPLODE, iForward == -1 ? NULL : iForward);
 	}
 
 	Grenade_Explode(INDEXENT2(params[1]), params[2]);
@@ -863,37 +863,58 @@ namespace NewNatives
 	{
 		const char *szWeaponName = MF_GetAmxString(amx, params[1], 0, NULL);
 
+		printf2("!!!! WpnMod_RegisterWeapon: %s\n", szWeaponName);
+
 		for (int i = 1; i < MAX_WEAPONS; i++)
 		{
-			if (WeaponInfoArray[i].iType != Wpn_None)
+			if (WEAPON_GET_NAME(i))
 			{
-				if (!stricmp(GetWeapon_pszName(i), szWeaponName))
+				if (!stricmp(WEAPON_GET_NAME(i), szWeaponName))
 				{
 					MF_LogError(amx, AMX_ERR_NATIVE, "Weapon name is duplicated.");
 					return -1;
 				}
 
-				if (GetWeapon_pszAmmo1(i) && GET_AMMO_INDEX(GetWeapon_pszAmmo1(i)) >= MAX_AMMO_SLOTS 
-					|| GetWeapon_pszAmmo2(i) && GET_AMMO_INDEX(GetWeapon_pszAmmo2(i)) >= MAX_AMMO_SLOTS)
+				if (WEAPON_GET_AMMO1(i) && GET_AMMO_INDEX(WEAPON_GET_AMMO1(i)) >= MAX_AMMO_SLOTS
+					|| WEAPON_GET_AMMO2(i) && GET_AMMO_INDEX(WEAPON_GET_AMMO2(i)) >= MAX_AMMO_SLOTS)
 				{
 					MF_LogError(amx, AMX_ERR_NATIVE, "Ammo limit reached.");
 					return -1;
 				}
 			}
-			else if (WeaponInfoArray[i].iType == Wpn_None)
+			else
 			{
-				g_iWeaponsCount++;
+				//g_iWeaponsCount++;
 
 				WeaponInfoArray[i].iType = Wpn_Custom;
 
-				WeaponInfoArray[i].ItemData.pszName = STRING(ALLOC_STRING(szWeaponName));
-				WeaponInfoArray[i].ItemData.pszAmmo1 = STRING(ALLOC_STRING(MF_GetAmxString(amx, params[4], 0, NULL)));
-				WeaponInfoArray[i].ItemData.iMaxAmmo1 = params[5];
-				WeaponInfoArray[i].ItemData.pszAmmo2 = STRING(ALLOC_STRING(MF_GetAmxString(amx, params[6], 0, NULL)));
-				WeaponInfoArray[i].ItemData.iMaxAmmo2 = params[7];
-				WeaponInfoArray[i].ItemData.iMaxClip = params[8];
-				WeaponInfoArray[i].ItemData.iFlags = params[9];
-				WeaponInfoArray[i].ItemData.iWeight = params[10];
+				WEAPON_SET_NAME(i, STRING(ALLOC_STRING(szWeaponName)));
+				WEAPON_SET_AMMO1(i, STRING(ALLOC_STRING(MF_GetAmxString(amx, params[4], 0, NULL))));
+				WEAPON_SET_MAX_AMMO1(i, params[5]);
+				WEAPON_SET_AMMO2(i, STRING(ALLOC_STRING(MF_GetAmxString(amx, params[6], 0, NULL))));
+				WEAPON_SET_MAX_AMMO2(i, params[7]);
+				WEAPON_SET_MAX_CLIP(i, params[8]);
+				WEAPON_SET_ID(i);
+				WEAPON_SET_FLAGS(i, params[9]);
+				WEAPON_SET_WEIGHT(i, params[10]);
+
+
+				g_Config.AutoSlotDetection(i, params[2] - 1, params[3] - 1);
+
+
+				if (WEAPON_GET_AMMO1(i)[0])
+				{
+					g_Memory.AddAmmoNameToAmmoRegistry(WEAPON_GET_AMMO1(i));
+				}
+
+				if (WEAPON_GET_AMMO2(i)[0])
+				{
+					g_Memory.AddAmmoNameToAmmoRegistry(WEAPON_GET_AMMO2(i));
+				}
+
+
+				
+
 
 				CPlugin* plugin = (CPlugin*)amx->userdata[UD_FINDPLUGIN];
 				
@@ -901,7 +922,7 @@ namespace NewNatives
 				WeaponInfoArray[i].author.assign(plugin->author.c_str());
 				WeaponInfoArray[i].version.assign(plugin->version.c_str());
 				
-				g_Config.AutoSlotDetection(i, params[2] - 1, params[3] - 1);
+				
 
 				if (!g_Config.m_bCrowbarHooked)
 				{
@@ -911,14 +932,6 @@ namespace NewNatives
 					{
 						SetHookVirtual(&g_CrowbarHooks[k]);
 					}
-				}
-
-				g_iWeaponInitID = i;
-
-				if (UnsetHook(&g_fh_PrecacheOtherWeapon))
-				{
-					PRECACHE_OTHER_WEAPON(gWeaponReference);
-					SetHook(&g_fh_PrecacheOtherWeapon);
 				}
 
 				return i;
@@ -942,7 +955,7 @@ namespace NewNatives
 	{
 		int iId = params[1];
 
-		if (iId <= 0 || iId > g_iWeaponsCount || WeaponInfoArray[iId].iType != Wpn_Custom)
+		if (iId <= 0 || iId >= MAX_WEAPONS || WeaponInfoArray[iId].iType != Wpn_Custom)
 		{
 			MF_LogError(amx, AMX_ERR_NATIVE, "Invalid weapon id provided (%d).", iId);
 			return 0;
@@ -1121,9 +1134,8 @@ namespace NewNatives
 			iId = GetPrivateInt(pItem, pvData_iId);
 		}
 
-		if (iId <= 0 || iId > g_iWeaponsCount)
+		if (iId <= 0 || iId >= MAX_WEAPONS || !WEAPON_GET_NAME(iId))
 		{
-			MF_LogError(amx, AMX_ERR_NATIVE, "Invalid weapon id provided (%d).", iId);
 			return 0;
 		}
 
@@ -1137,28 +1149,28 @@ namespace NewNatives
 					return WeaponInfoArray[iId].iType != Wpn_Default;
 
 				case ItemInfo_iSlot:
-					return GetWeapon_Slot(iId);
+					return WEAPON_GET_SLOT(iId);
 
 				case ItemInfo_iPosition:
-					return GetWeapon_ItemPosition(iId);
+					return WEAPON_GET_SLOT_POSITION(iId);
 
 				case ItemInfo_iMaxAmmo1:
-					return GetWeapon_MaxAmmo1(iId);
+					return WEAPON_GET_MAX_AMMO1(iId);
 
 				case ItemInfo_iMaxAmmo2:
-					return GetWeapon_MaxAmmo2(iId);
+					return WEAPON_GET_MAX_AMMO2(iId);
 
 				case ItemInfo_iMaxClip:
-					return GetWeapon_MaxClip(iId);
+					return WEAPON_GET_MAX_CLIP(iId);
 
 				case ItemInfo_iId:
 					return iId;
 
 				case ItemInfo_iFlags:
-					return GetWeapon_Flags(iId);
+					return WEAPON_GET_FLAGS(iId);
 
 				case ItemInfo_iWeight:
-					return GetWeapon_Weight(iId);
+					return WEAPON_GET_WEIGHT(iId);
 			}
 		}
 		else if (iSwitch >= ItemInfo_szName && iSwitch <= ItemInfo_szVersion && paramnum == 4)
@@ -1168,13 +1180,13 @@ namespace NewNatives
 			switch (iSwitch)
 			{
 				case ItemInfo_szName:
-					szReturnValue = GetWeapon_pszName(iId);
+					szReturnValue = WEAPON_GET_NAME(iId);
 					break;
 				case ItemInfo_szAmmo1:
-					szReturnValue = GetWeapon_pszAmmo1(iId);
+					szReturnValue = WEAPON_GET_AMMO1(iId);
 					break;
 				case ItemInfo_szAmmo2:
-					szReturnValue = GetWeapon_pszAmmo2(iId);
+					szReturnValue = WEAPON_GET_AMMO2(iId);
 					break;
 				case ItemInfo_szTitle:
 					szReturnValue = WeaponInfoArray[iId].title.c_str();
@@ -1287,7 +1299,7 @@ namespace NewNatives
 	*/
 	AMXX_NATIVE(WpnMod_GetWeaponNum)
 	{
-		return g_iWeaponsCount;
+		return MAX_WEAPONS;
 	}
 
 	/**
@@ -1778,9 +1790,9 @@ namespace NewNatives
 			return 0;
 		}
 
-		//g_Entitys.m_EntsData[iEntity]->m_trie["lol"].clear();
+		//g_Entity.m_EntsData[iEntity]->m_trie["lol"].clear();
 
-		//printf("!!!!!!!!!!!!!!1 %s  %s\n", pKey, (char*)g_Entitys.EntityGetField(pEntity, pKey));
+		//printf("!!!!!!!!!!!!!!1 %s  %s\n", pKey, (char*)g_Entity.EntityGetField(pEntity, pKey));
 
 		*/
 		return 1;
@@ -1856,7 +1868,7 @@ namespace NewNatives
 		if (!strlen(funcname))
 		{
 			Dll_SetThink(pEdict, NULL);
-			g_Entitys.SetAmxxForward(pEdict, FWD_ENT_THINK, NULL);
+			g_Entity.SetAmxxForward(pEdict, FWD_ENT_THINK, NULL);
 			return 1;
 		}
 
@@ -1879,7 +1891,7 @@ namespace NewNatives
 		}
 
 		Dll_SetThink(pEdict, (void*)Global_Think);
-		g_Entitys.SetAmxxForward(pEdict, FWD_ENT_THINK, iForward);
+		g_Entity.SetAmxxForward(pEdict, FWD_ENT_THINK, iForward);
 
 		float flNextThink = amx_ctof(params[3]);
 
@@ -1909,7 +1921,7 @@ namespace NewNatives
 		if (!strlen(funcname))
 		{
 			Dll_SetTouch(pEdict, NULL);
-			g_Entitys.SetAmxxForward(pEdict, FWD_ENT_TOUCH, NULL);
+			g_Entity.SetAmxxForward(pEdict, FWD_ENT_TOUCH, NULL);
 			return 1;
 		}
 
@@ -1927,12 +1939,12 @@ namespace NewNatives
 		{
 			for (int i = 3; i <= paramnum; i++)
 			{
-				g_Entitys.AddClassnameToTouchFilter(INDEXENT2(params[1]), MF_GetAmxString(amx, params[i], 0, NULL));
+				g_Entity.AddClassnameToTouchFilter(INDEXENT2(params[1]), MF_GetAmxString(amx, params[i], 0, NULL));
 			}
 		}
 
 		Dll_SetTouch(pEdict, (void*)Global_Touch);
-		g_Entitys.SetAmxxForward(pEdict, FWD_ENT_TOUCH, iForward);
+		g_Entity.SetAmxxForward(pEdict, FWD_ENT_TOUCH, iForward);
 
 		return 1;
 	}

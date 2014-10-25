@@ -59,6 +59,7 @@
 #define ITEM_FLAG_LIMITINWORLD				8
 #define ITEM_FLAG_EXHAUSTIBLE				16
 
+
 typedef enum
 {
 	SUBMOD_UNKNOWN = 0,
@@ -133,7 +134,6 @@ typedef struct
 	std::string worldModel;
 
 	e_WpnType iType;
-	ItemInfo ItemData;
 
 	int iWorldSeq;
 	int iWorldBody;
@@ -144,7 +144,6 @@ class CConfig
 {
 private:
 	bool	m_bInited;
-	bool	m_bWorldSpawned;
 	char	m_cfgpath[1024];
 	SUBMOD	m_GameMod;
 
@@ -169,7 +168,6 @@ public:
 	std::vector <VirtualHookData*>	m_pBlockedItemsList;
 
 	void	InitGameMod			(void);
-	void	WorldPrecache		(void);
 	void	SetConfigFile		(void);
 	char*	GetConfigFile		(void)	{ return &m_cfgpath[0]; };
 	bool	IsInited			(void)	{ return m_bInited; };
@@ -181,6 +179,7 @@ public:
 	void	ServerShutDown		(void);
 	void	ServerDeactivate	(void);
 	void	ManageEquipment		(void);
+	void	LoadBlackList		(void);
 	void	AutoSlotDetection	(int iWeaponID, int iSlot, int iPosition);
 
 	void	DecalPushList		(const char *name);
@@ -192,8 +191,7 @@ public:
 
 extern CConfig g_Config;
 
-extern int g_iWeaponsCount;
-extern int g_iWeaponInitID;
+//extern int g_iWeaponsCount;
 extern int g_iAmmoBoxIndex;
 
 extern WeaponData WeaponInfoArray[MAX_WEAPONS];
@@ -207,16 +205,8 @@ extern cvar_t *cvar_mp_weaponstay;
 
 extern AMX_NATIVE_INFO Natives[];
 
-inline int			GetWeapon_Slot(const int iId)			{ return WeaponInfoArray[iId].ItemData.iSlot; }
-inline int			GetWeapon_ItemPosition(const int iId)	{ return WeaponInfoArray[iId].ItemData.iPosition; }
-inline const char*	GetWeapon_pszAmmo1(const int iId)		{ return WeaponInfoArray[iId].ItemData.pszAmmo1; }
-inline int			GetWeapon_MaxAmmo1(const int iId)		{ return WeaponInfoArray[iId].ItemData.iMaxAmmo1; }
-inline const char*	GetWeapon_pszAmmo2(const int iId)		{ return WeaponInfoArray[iId].ItemData.pszAmmo2; }
-inline int			GetWeapon_MaxAmmo2(const int iId)		{ return WeaponInfoArray[iId].ItemData.iMaxAmmo2; }
-inline const char*	GetWeapon_pszName(const int iId)		{ return WeaponInfoArray[iId].ItemData.pszName; }
-inline int			GetWeapon_MaxClip(const int iId)		{ return WeaponInfoArray[iId].ItemData.iMaxClip; }
-inline int			GetWeapon_Weight(const int iId)			{ return WeaponInfoArray[iId].ItemData.iWeight; }
-inline int			GetWeapon_Flags(const int iId)			{ return WeaponInfoArray[iId].ItemData.iFlags; }
+extern void WpnMod_Init_GameMod(void);
+extern void WpnMod_Precache(void);
 
 //
 // CPlugin.h AMXX
