@@ -123,7 +123,7 @@ void CConfig::LoadBlackList(void)
 
 			for (int iId = 1; iId < MAX_WEAPONS; iId++)
 			{
-				if (WEAPON_GET_NAME(iId) && !_strcmpi(WEAPON_GET_NAME(iId), m_pBlockedItemsList[i]->classname))
+				if (WEAPON_GET_NAME(iId) && !stricmp(WEAPON_GET_NAME(iId), m_pBlockedItemsList[i]->classname))
 				{
 					//printf2("WOW: %d %s\n", iId, WEAPON_GET_NAME(iId));
 					WEAPON_RESET_ITEMINFO(iId);
