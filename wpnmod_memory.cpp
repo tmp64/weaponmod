@@ -1153,7 +1153,7 @@ void CMemory::EnableShieldHitboxTracing(void)
 {
 	bool bShieldRegistered = false;
 
-	for (int i = 1; i </*= g_iWeaponsCount*/MAX_WEAPONS; i++)
+	for (int i = 1; i < MAX_WEAPONS; i++)
 	{
 		if (WeaponInfoArray[i].iType == Wpn_Custom && !stricmp(WEAPON_GET_NAME(i), "weapon_shield"))
 		{

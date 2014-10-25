@@ -39,7 +39,6 @@
 
 CConfig g_Config;
 
-//int g_iWeaponsCount = 0;
 int g_iAmmoBoxIndex = 0;
 
 const char* gWeaponReference = "weapon_crowbar";
@@ -111,24 +110,21 @@ void CConfig::InitGameMod(void)
 
 void CConfig::LoadBlackList(void)
 {
-	WPNMOD_LOG("-------- Mapchange to %s --------\n", STRING(gpGlobals->mapname));
+	WPNMOD_LOG_ONLY("-------- Mapchange to %s --------\n", STRING(gpGlobals->mapname));
 
 	if (ParseSection(GetConfigFile(), "[block]", (void*)OnParseBlockedItems, -1) && (int)m_pBlockedItemsList.size())
 	{
-		WPNMOD_LOG("Blocked items:\n");
+		WPNMOD_LOG_ONLY("Blocked items:\n");
 
 		for (int i = 0; i < (int)m_pBlockedItemsList.size(); i++)
 		{
-			WPNMOD_LOG(" \"%s\"\n", m_pBlockedItemsList[i]->classname);
+			WPNMOD_LOG_ONLY(" \"%s\"\n", m_pBlockedItemsList[i]->classname);
 
 			for (int iId = 1; iId < MAX_WEAPONS; iId++)
 			{
 				if (WEAPON_GET_NAME(iId) && !stricmp(WEAPON_GET_NAME(iId), m_pBlockedItemsList[i]->classname))
 				{
-					//printf2("WOW: %d %s\n", iId, WEAPON_GET_NAME(iId));
 					WEAPON_RESET_ITEMINFO(iId);
-					//--g_iWeaponsCount;
-					//memset(&WeaponInfoArray[iId], 0, sizeof(WeaponData));
 				}
 			}
 		}
@@ -172,7 +168,6 @@ void CConfig::ServerDeactivate(void)
 	m_bCrowbarHooked = false;
 	m_bAmmoBoxHooked = false;
 
-	//g_iWeaponsCount = 0;
 	g_iAmmoBoxIndex = 0;
 
 	memset(WeaponInfoArray, 0, sizeof(WeaponInfoArray));
@@ -417,7 +412,7 @@ void CConfig::ServerCommand(void)
 
 		printf2("\nCurrently loaded weapons:\n");
 
-		for (i = 1; i < /*g_iWeaponsCount*/ MAX_WEAPONS; i++)
+		for (i = 1; i < MAX_WEAPONS; i++)
 		{
 			if (WeaponInfoArray[i].iType == Wpn_Custom)
 			{
@@ -536,7 +531,7 @@ bool CConfig::ClientCommand(edict_t *pEntity)
 
 		CLIENT_PRINT(pEntity, print_console, "Currently loaded weapons:\n");
 
-		for (i = 1; i </*= g_iWeaponsCount*/ MAX_WEAPONS; i++)
+		for (i = 1; i < MAX_WEAPONS; i++)
 		{
 			if (WeaponInfoArray[i].iType == Wpn_Custom)
 			{

@@ -874,18 +874,16 @@ namespace NewNatives
 					MF_LogError(amx, AMX_ERR_NATIVE, "Weapon name is duplicated.");
 					return -1;
 				}
-
+				/*
 				if (WEAPON_GET_AMMO1(i) && GET_AMMO_INDEX(WEAPON_GET_AMMO1(i)) >= MAX_AMMO_SLOTS
 					|| WEAPON_GET_AMMO2(i) && GET_AMMO_INDEX(WEAPON_GET_AMMO2(i)) >= MAX_AMMO_SLOTS)
 				{
 					MF_LogError(amx, AMX_ERR_NATIVE, "Ammo limit reached.");
 					return -1;
-				}
+				}*/
 			}
 			else
 			{
-				//g_iWeaponsCount++;
-
 				WeaponInfoArray[i].iType = Wpn_Custom;
 
 				WEAPON_SET_NAME(i, STRING(ALLOC_STRING(szWeaponName)));

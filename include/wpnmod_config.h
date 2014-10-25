@@ -191,7 +191,6 @@ public:
 
 extern CConfig g_Config;
 
-//extern int g_iWeaponsCount;
 extern int g_iAmmoBoxIndex;
 
 extern WeaponData WeaponInfoArray[MAX_WEAPONS];

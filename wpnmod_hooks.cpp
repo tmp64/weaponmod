@@ -775,7 +775,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 			pPlayer->v.health = pPlayer->v.max_health;
 			pPlayer->v.armorvalue = pPlayer->v.max_health;
 
-			for (int k = 1; k </*= g_iWeaponsCount*/MAX_WEAPONS; k++)
+			for (int k = 1; k < MAX_WEAPONS; k++)
 			{
 				if (WEAPON_GET_NAME(k))
 				{
@@ -1162,7 +1162,7 @@ void* WpnMod_GetDispatch(char *pname)
 	// Try to find custom classname and link it to reference value
 	if (strstr(pname, "weapon_"))
 	{
-		for (int i = 1; i </*= g_iWeaponsCount*/MAX_WEAPONS; i++)
+		for (int i = 1; i < MAX_WEAPONS; i++)
 		{
 			if (WEAPON_GET_NAME(i) && !_stricmp(WEAPON_GET_NAME(i), pname))
 			{

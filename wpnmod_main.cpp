@@ -89,8 +89,6 @@ void WpnMod_Precache(void)
 		}
 	}
 
-	//printf2("!!!!!! TOtal %d\n", g_iWeaponsCount);
-
 	g_Config.LoadBlackList();
 
 
@@ -107,8 +105,6 @@ void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 	{
 		printf2("!!!!!! Current: %d %s  %d\n", i, WEAPON_GET_NAME(i), WEAPON_GET_SLOT(i));
 	}
-
-	//printf2("!!!!!! TOtal %d\n", g_iWeaponsCount);
 
 	g_Config.ServerActivate();
 	RETURN_META(MRES_IGNORED);

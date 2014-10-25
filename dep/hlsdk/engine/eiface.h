@@ -389,7 +389,7 @@ typedef enum _fieldtypes
 
 	FIELD_TYPECOUNT,		// MUST BE LAST
 } FIELDTYPE;
-
+/*
 #ifndef offsetof
 #define offsetof(s,m)	(size_t)&(((s *)0)->m)
 #endif
@@ -400,7 +400,7 @@ typedef enum _fieldtypes
 #define DEFINE_ENTITY_FIELD(name,fieldtype)			_FIELD(entvars_t, name, fieldtype, 1, 0 )
 #define DEFINE_ENTITY_GLOBAL_FIELD(name,fieldtype)	_FIELD(entvars_t, name, fieldtype, 1, FTYPEDESC_GLOBAL )
 #define DEFINE_GLOBAL_FIELD(type,name,fieldtype)	_FIELD(type, name, fieldtype, 1, FTYPEDESC_GLOBAL )
-
+*/
 
 #define FTYPEDESC_GLOBAL			0x0001		// This field is masked for global entity save/restore
 
