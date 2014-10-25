@@ -55,6 +55,7 @@ CMemory::CMemory()
 	m_pClearMultiDamage = NULL;
 	m_pApplyMultiDamage = NULL;
 	m_pPlayerSetAnimation = NULL;
+	m_pWorldPrecache = NULL;
 }
 
 bool CMemory::Init(void)
@@ -91,6 +92,7 @@ bool CMemory::Init(void)
 
 	Parse_GetDispatch();
 	Parse_CallGameEntity();
+	Parse_WorldPrecache();
 	Parse_ClearMultiDamage();
 	Parse_ApplyMultiDamage();
 	Parse_PrecacheOtherWeapon();
@@ -719,6 +721,97 @@ void CMemory::Parse_ItemSpawn(void)
 	}
 
 	SetHook(&g_fh_ItemSpawn);
+}
+
+void CMemory::Parse_WorldPrecache(void)
+{
+	char* funcname = "W_Precache (gamedll)";
+
+#ifdef __linux__
+
+	size_t pAdress = (size_t)FindFunction(&m_GameDllModule, "lol");
+
+	if (!pAdress)
+	{
+		pAdress = (size_t)FindFunction(&m_GameDllModule, "lol");
+	}
+
+	if (!pAdress)
+	{
+		WPNMOD_LOG("   Error: \"%s\" not found\n", funcname);
+		m_bSuccess = false;
+		return;
+	}
+
+#else
+
+	int count = 0;
+
+	size_t pAdress = NULL;
+	size_t pCurrent = NULL;
+	size_t pCandidate = NULL;
+
+	char			string[] = "**COULD NOT CREATE SOUNDENT**\n";
+	char			mask[] = "xxxxxx";
+	unsigned char	pattern[] = "\x10\x68\x00\x00\x00\x00";
+
+	pCurrent = FindStringInDLL(m_start_gamedll, m_end_gamedll, string);
+
+	while (pCurrent)
+	{
+		*(size_t*)(pattern + 2) = (size_t)pCurrent;
+
+		if ((pCandidate = FindAdressInDLL(m_start_gamedll, m_end_gamedll, pattern, mask)))
+		{
+			count++;
+			pAdress = pCandidate;
+		}
+
+		pCurrent = FindStringInDLL(pCurrent + 1, m_end_gamedll, string);
+	}
+
+	if (!count)
+	{
+		WPNMOD_LOG("   Error: \"%s\" not found [0]\n", funcname);
+		m_bSuccess = false;
+		return;
+	}
+	else if (count > 1)
+	{
+		WPNMOD_LOG("   Error: \"%s\" not found [1]\n", funcname);
+		m_bSuccess = false;
+		return;
+	}
+
+	count = 0;
+
+	size_t end = pAdress + 50;
+	unsigned char opcode[] = "\xE8";
+
+	pCurrent = FindAdressInDLL(pAdress + 4, end, opcode, "x");
+
+	// Find fourth call.
+	while (pCurrent && count != 4)
+	{
+		count++;
+		pAdress = pCurrent;
+		pCurrent = FindAdressInDLL(pCurrent + 1, end, opcode, "x");
+	}
+
+	if (count != 4)
+	{
+		WPNMOD_LOG("   Error: \"%s\" not found [2]\n", funcname);
+		return;
+	}
+
+	pAdress += 1;
+	pAdress = *(size_t*)pAdress + pAdress + 4;
+
+#endif
+
+	WPNMOD_LOG_ONLY("   Found \"%s\" at %p\n", funcname, pAdress);
+
+	m_pWorldPrecache = (void*)pAdress;
 }
 
 void CMemory::Parse_GameRules(void)

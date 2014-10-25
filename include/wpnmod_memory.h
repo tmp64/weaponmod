@@ -85,6 +85,7 @@ public:
 	void* m_pClearMultiDamage;
 	void* m_pApplyMultiDamage;
 	void* m_pPlayerSetAnimation;
+	void* m_pWorldPrecache;
 
 	bool Init(void);
 	void UnsetHooks(void);
@@ -102,6 +103,7 @@ public:
 	void Parse_ItemSpawn(void);
 	void Parse_GetDispatch(void);
 	void Parse_CallGameEntity(void);
+	void Parse_WorldPrecache(void);
 
 	void EnableWeaponboxModels(void);
 	void EnableShieldHitboxTracing(void);
