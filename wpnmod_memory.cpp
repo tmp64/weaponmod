@@ -56,25 +56,27 @@ CMemory::CMemory()
 	m_pApplyMultiDamage = NULL;
 	m_pPlayerSetAnimation = NULL;
 	m_pWorldPrecache = NULL;
+	m_pItemInfoArray = NULL;
+	m_pAmmoInfoArray = NULL;
 }
 
 bool CMemory::Init(void)
 {
 	if (!FindModuleByAddr((void*)g_engfuncs.pfnAlertMessage, &m_EngineModule))
 	{
-		WPNMOD_LOG("  Failed to locate game engine!\n"); // But how? o_O
+		WPNMOD_LOG("  Failed to locate game engine!\n");
 		return false;
 	}
 
 	if (!FindModuleByAddr((void*)gpMetaUtilFuncs->pfnGetGameInfo, &m_MetamodModule))
 	{
-		WPNMOD_LOG("  Failed to locate metamod!\n"); // But how? o_O
+		WPNMOD_LOG("  Failed to locate metamod!\n");
 		return false;
 	}
 
 	if (!FindModuleByAddr((void*)MDLL_FUNC->pfnGetGameDescription(), &m_GameDllModule))
 	{
-		WPNMOD_LOG("  Failed to locate %s\n", GET_GAME_INFO(PLID, GINFO_DLL_FILENAME));
+		WPNMOD_LOG("  Failed to locate gamedll!\n");
 		return false;
 	}
 
@@ -92,7 +94,7 @@ bool CMemory::Init(void)
 
 	Parse_GetDispatch();
 	Parse_CallGameEntity();
-	Parse_WorldPrecache();
+	Parse_InfoArrays();
 	Parse_ClearMultiDamage();
 	Parse_ApplyMultiDamage();
 	Parse_PrecacheOtherWeapon();
@@ -725,31 +727,25 @@ void CMemory::Parse_ItemSpawn(void)
 
 void CMemory::Parse_WorldPrecache(void)
 {
-	char* funcname = "W_Precache (gamedll)";
-
-#ifdef __linux__
-
-	size_t pAdress = (size_t)FindFunction(&m_GameDllModule, "lol");
-
-	if (!pAdress)
-	{
-		pAdress = (size_t)FindFunction(&m_GameDllModule, "lol");
-	}
-
-	if (!pAdress)
-	{
-		WPNMOD_LOG("   Error: \"%s\" not found\n", funcname);
-		m_bSuccess = false;
-		return;
-	}
-
-#else
-
 	int count = 0;
 
 	size_t pAdress = NULL;
 	size_t pCurrent = NULL;
 	size_t pCandidate = NULL;
+
+	char* funcname = "W_Precache (gamedll)";
+
+	// 85 C0				test	eax, eax
+	// 75 10				jnz		short loc_100EC92C
+	// 68 0C D4 14 10		push	offset aCouldNotCreate; "**COULD NOT CREATE SOUNDENT**\n"
+	// 6A 01				push	1; _DWORD
+	// FF 15 DC 15 15 10	call	dword_101515DC
+	// 83 C4 08				add		esp, 8
+	// E8 7F 03 00 00		call	sub_100ECCB0
+	// E8 6A FB FD FF		call	sub_100CC4A0
+	// E8 A5 01 FE FF		call	sub_100CCAE0
+	// E8 70 D5 FF FF		call	sub_100E9EB0
+	// E8 3B F6 F2 FF		call	W_Precache
 
 	char			string[] = "**COULD NOT CREATE SOUNDENT**\n";
 	char			mask[] = "xxxxxx";
@@ -801,17 +797,161 @@ void CMemory::Parse_WorldPrecache(void)
 	if (count != 4)
 	{
 		WPNMOD_LOG("   Error: \"%s\" not found [2]\n", funcname);
+		m_bSuccess = false;
 		return;
 	}
 
 	pAdress += 1;
 	pAdress = *(size_t*)pAdress + pAdress + 4;
 
-#endif
-
 	WPNMOD_LOG_ONLY("   Found \"%s\" at %p\n", funcname, pAdress);
 
 	m_pWorldPrecache = (void*)pAdress;
+}
+
+void CMemory::Parse_InfoArrays(void)
+{
+	//
+	// Let's find "ItemInfo CBasePlayerItem::ItemInfoArray[MAX_WEAPONS]" in gamedll
+	//
+
+#ifdef __linux__
+
+	size_t pAdress = (size_t)FindFunction(&m_GameDllModule, "_15CBasePlayerItem_ItemInfoArray");
+
+	if (!pAdress)
+	{
+		pAdress = (size_t)FindFunction(&m_GameDllModule, "_ZN15CBasePlayerItem13ItemInfoArrayE");
+	}
+
+	if (!pAdress)
+	{
+		WPNMOD_LOG("   Error: \"ItemInfoArray (gamedll)\" not found [0]\n");
+		WPNMOD_LOG("   Error: \"AmmoInfoArray (gamedll)\" not found [0]\n");
+		m_bSuccess = false;
+		return;
+	}
+
+	m_pItemInfoArray = (ItemInfo*)(pAdress);
+
+#else
+
+	Parse_WorldPrecache();
+
+	if (!m_pWorldPrecache)
+	{
+		// Nothing to do here!
+		WPNMOD_LOG("   Error: \"ItemInfoArray (gamedll)\" not found [0]\n");
+		WPNMOD_LOG("   Error: \"AmmoInfoArray (gamedll)\" not found [0]\n");
+		m_bSuccess = false;
+		return;
+	}
+
+	// Win1
+	// void W_Precache(void)
+	// 68 80 05 00 00	push	10110000000b
+	// 6A 00			push	0
+	// 68 28 D8 10 10	push	offset ItemInfoArray
+	// E8 8F 4D 00 00	call	sub_1009E5E0
+	// 68 00 01 00 00	push	100000000b
+	// 6A 00			push	0
+	// 68 A8 DD 10 10	push	offset AmmoInfoArray
+
+	// Win2
+	// void W_Precache(void)
+	// 57				push	edi
+	// B9 60 01 00 00	mov		ecx, 160h
+	// 33 C0			xor		eax, eax
+	// BF 48 15 16 10	mov		edi, offset ItemInfoArray
+	// F3 AB			rep		stosd
+	// B9 40 00 00 00	mov		ecx, 40h
+	// BF 40 14 16 10	mov		edi, offset AmmoInfoArray
+	// F3 AB			rep		stosd
+
+	size_t start = (size_t)m_pWorldPrecache;
+	size_t end = (size_t)m_pWorldPrecache + 15;
+
+	size_t pAdress = FindAdressInDLL(start, end, (unsigned char *)"\x6A\x00\x68", "xxx");
+
+	if (!pAdress)
+	{
+		pAdress = FindAdressInDLL(start, end, (unsigned char *)"\x33\xC0\xBF", "xxx");
+	}
+
+	if (!pAdress)
+	{
+		WPNMOD_LOG("   Error: \"ItemInfoArray (gamedll)\" not found [1]\n");
+		WPNMOD_LOG("   Error: \"AmmoInfoArray (gamedll)\" not found [1]\n");
+		m_bSuccess = false;
+		return;
+	}
+
+	pAdress += 3;
+	m_pItemInfoArray = (ItemInfo*)*(size_t*)(pAdress);
+
+#endif
+
+	// Success!
+	WPNMOD_LOG_ONLY("   Found \"ItemInfoArray (gamedll)\" at %p\n", pAdress);
+
+	//
+	// Now let's find "AmmoInfo CBasePlayerItem::AmmoInfoArray[MAX_AMMO_SLOTS]";
+	//
+
+#ifdef __linux__
+
+	pAdress = (size_t)FindFunction(&m_GameDllModule, "_15CBasePlayerItem_AmmoInfoArray");
+
+	if (!pAdress)
+	{
+		pAdress = (size_t)FindFunction(&m_GameDllModule, "_ZN15CBasePlayerItem13AmmoInfoArrayE");
+	}
+
+	if (!pAdress)
+	{
+		WPNMOD_LOG("   Error: \"AmmoInfoArray (gamedll)\" not found [1]\n");
+		m_bSuccess = false;
+		return;
+	}
+
+	m_pAmmoInfoArray = (AmmoInfo*)(pAdress);
+
+#else
+
+	start = pAdress;
+	end = pAdress + 25;
+
+	pAdress = FindAdressInDLL(start, end, (unsigned char *)"\x6A\x00\x68", "xxx");
+
+	if (!pAdress)
+	{
+		pAdress = FindAdressInDLL(start, end, (unsigned char *)"\xBF", "x");
+	}
+
+	if (!pAdress)
+	{
+		WPNMOD_LOG("   Error: \"AmmoInfoArray (gamedll)\" not found [2]\n");
+		m_bSuccess = false;
+		return;
+	}
+
+	unsigned char *bytes = (unsigned char*)&(*(size_t*)pAdress);
+
+	if (bytes[0] == 0x6A)
+	{
+		pAdress += 3;
+	}
+	else if (bytes[0] == 0xBF)
+	{
+		pAdress += 1;
+	}
+
+	m_pAmmoInfoArray = (AmmoInfo*)*(size_t*)(pAdress);
+
+#endif
+
+	// Success!
+	WPNMOD_LOG_ONLY("   Found \"AmmoInfoArray (gamedll)\" at %p\n", pAdress);
 }
 
 void CMemory::Parse_GameRules(void)
@@ -888,6 +1028,7 @@ void CMemory::Parse_GameRules(void)
 	if (count != 1)
 	{
 		WPNMOD_LOG("Error: \"%s\" not found [2]\n", funcname);
+		m_bSuccess = false;
 		return;
 	}
 

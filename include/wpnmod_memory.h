@@ -59,6 +59,26 @@
 	"", g_Memory.GetModule_Metamod(), {"", "", 0}, NULL, (void*)call, {}, {}, 0,	\
 }																					\
 
+typedef struct
+{
+	int		iSlot;
+	int		iPosition;
+	const char	*pszAmmo1;	// ammo 1 type
+	int		iMaxAmmo1;		// max ammo 1
+	const char	*pszAmmo2;	// ammo 2 type
+	int		iMaxAmmo2;		// max ammo 2
+	const char	*pszName;
+	int		iMaxClip;
+	int		iId;
+	int		iFlags;
+	int		iWeight;// this value used to determine this weapon's importance in autoselection.
+} ItemInfo;
+
+typedef struct
+{
+	const char *pszName;
+	int iId;
+} AmmoInfo;
 
 class CMemory
 {
@@ -78,6 +98,9 @@ private:
 
 public:
 	CMemory();
+
+	ItemInfo* m_pItemInfoArray;
+	AmmoInfo* m_pAmmoInfoArray;
 
 	void* m_pSubRemove;
 	void* m_pGetAmmoIndex;
@@ -104,6 +127,7 @@ public:
 	void Parse_GetDispatch(void);
 	void Parse_CallGameEntity(void);
 	void Parse_WorldPrecache(void);
+	void Parse_InfoArrays(void);
 
 	void EnableWeaponboxModels(void);
 	void EnableShieldHitboxTracing(void);
@@ -118,6 +142,8 @@ public:
 
 	size_t ParseFunc(size_t start, size_t end, char* funcname, unsigned char* pattern, char* mask, size_t bytes);
 	size_t ParseFunc(size_t start, size_t end, char* funcname, char* string, unsigned char* pattern, char* mask, size_t bytes);
+
+	const char*	GetWeapon_pszName(const int iId) { return m_pItemInfoArray[iId].pszName; }
 };
 
 extern CMemory g_Memory;

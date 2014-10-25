@@ -44,6 +44,7 @@
 
 #include "wpnmod_vtable.h"
 #include "wpnmod_pvdata.h"
+#include "wpnmod_memory.h"
 #include "wpnmod_log.h"
 
 #ifdef __linux__
@@ -117,21 +118,6 @@ typedef struct
 	const char*	ammoname;
 	int count;
 } StartAmmo;
-
-typedef struct
-{
-	int		iSlot;
-	int		iPosition;
-	const char	*pszAmmo1;	// ammo 1 type
-	int		iMaxAmmo1;		// max ammo 1
-	const char	*pszAmmo2;	// ammo 2 type
-	int		iMaxAmmo2;		// max ammo 2
-	const char	*pszName;
-	int		iMaxClip;
-	int		iId;
-	int		iFlags;
-	int		iWeight;// this value used to determine this weapon's importance in autoselection.
-} ItemInfo;
 
 typedef struct
 {
