@@ -63,41 +63,33 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 	int Weapon_GetItemInfo(void* pvItem, ItemInfo* p)
 #endif
 {
-	GET_ITEM_INFO(pvItem, p);
-
-	static int iId = 0;
-	static edict_t* pWeapon;
-
-	pWeapon = PrivateToEdict(pvItem);
+	edict_t* pWeapon = PrivateToEdict(pvItem);
 
 	if (!IsValidPev(pWeapon))
 	{
 		return 0;
 	}
 
-	iId = GetPrivateInt(pWeapon, pvData_iId);
+	int iId = GetPrivateInt(pWeapon, pvData_iId);
 
-	if (WeaponInfoArray[iId].iType == Wpn_Custom)
+	p->iId			= iId;
+	p->pszName		= WEAPON_GET_NAME(iId);
+	p->iSlot		= WEAPON_GET_SLOT(iId);
+	p->iPosition	= WEAPON_GET_SLOT_POSITION(iId);
+	p->iMaxAmmo1	= WEAPON_GET_MAX_AMMO1(iId);
+	p->iMaxAmmo2	= WEAPON_GET_MAX_AMMO2(iId);
+	p->iMaxClip		= WEAPON_GET_MAX_CLIP(iId);
+	p->iFlags		= WEAPON_GET_FLAGS(iId);
+	p->iWeight		= WEAPON_GET_WEIGHT(iId);
+
+	//if (WEAPON_GET_AMMO1(iId))
 	{
-		p->iId = iId;
-		p->pszName = WEAPON_GET_NAME(iId);
-		p->iSlot = WEAPON_GET_SLOT(iId);
-		p->iPosition = WEAPON_GET_SLOT_POSITION(iId);
-		p->iMaxAmmo1 = WEAPON_GET_MAX_AMMO1(iId);
-		p->iMaxAmmo2 = WEAPON_GET_MAX_AMMO2(iId);
-		p->iMaxClip = WEAPON_GET_MAX_CLIP(iId);
-		p->iFlags = WEAPON_GET_FLAGS(iId);
-		p->iWeight = WEAPON_GET_WEIGHT(iId);
+		p->pszAmmo1 = WEAPON_GET_AMMO1(iId);
+	}
 
-		if (WEAPON_GET_AMMO1(iId)[0])
-		{
-			p->pszAmmo1 = WEAPON_GET_AMMO1(iId);
-		}
-
-		if (WEAPON_GET_AMMO2(iId)[0])
-		{
-			p->pszAmmo2 = WEAPON_GET_AMMO2(iId);
-		}
+	//if (WEAPON_GET_AMMO2(iId))
+	{
+		p->pszAmmo2 = WEAPON_GET_AMMO2(iId);
 	}
 
 	return 1;
@@ -126,21 +118,12 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 
 	edict_t* pPlayer = GetPrivateCbase(pWeapon, pvData_pPlayer);
 
-	if (!IsValidPev(pPlayer))
+	if (IsValidPev(pPlayer))
 	{
-		return FALSE;
+		return WEAPON_FORWARD_EXECUTE(iId, Fwd_Wpn_CanDeploy, pWeapon, pPlayer);
 	}
 
-	return MF_ExecuteForward
-	(
-		WeaponInfoArray[iId].iForward[Fwd_Wpn_CanDeploy],
-
-		static_cast<cell>(ENTINDEX(pWeapon)), 
-		static_cast<cell>(ENTINDEX(pPlayer)), 
-		static_cast<cell>(GetPrivateInt(pWeapon, pvData_iClip)), 
-		static_cast<cell>(GetAmmoInventory(pPlayer, PrimaryAmmoIndex(pWeapon))),
-		static_cast<cell>(GetAmmoInventory(pPlayer, SecondaryAmmoIndex(pWeapon)))
-	);
+	return FALSE;
 }
 
 
@@ -166,30 +149,13 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 
 	edict_t* pPlayer = GetPrivateCbase(pWeapon, pvData_pPlayer);
 
-	int iReturn = FALSE;
-
-	if (!IsValidPev(pPlayer))
+	if (IsValidPev(pPlayer))
 	{
-		return iReturn;
+		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer), g_engfuncs.pfnGetInfoKeyBuffer(pPlayer), "cl_lw", "0");
+		return WEAPON_FORWARD_EXECUTE(iId, Fwd_Wpn_Deploy, pWeapon, pPlayer);
 	}
 
-	g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer), g_engfuncs.pfnGetInfoKeyBuffer(pPlayer), "cl_lw", "0");
-
-	if (WeaponInfoArray[iId].iForward[Fwd_Wpn_Deploy])
-	{
-		iReturn = MF_ExecuteForward
-		(
-			WeaponInfoArray[iId].iForward[Fwd_Wpn_Deploy],
-
-			static_cast<cell>(ENTINDEX(pWeapon)), 
-			static_cast<cell>(ENTINDEX(pPlayer)), 
-			static_cast<cell>(GetPrivateInt(pWeapon, pvData_iClip)), 
-			static_cast<cell>(GetAmmoInventory(pPlayer, PrimaryAmmoIndex(pWeapon))),
-			static_cast<cell>(GetAmmoInventory(pPlayer, SecondaryAmmoIndex(pWeapon)))
-		);
-	}
-
-	return iReturn;
+	return FALSE;
 }
 
 
@@ -245,19 +211,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 	iClip		= GetPrivateInt(pWeapon, pvData_iClip);
 	iInReload	= GetPrivateInt(pWeapon, pvData_fInReload);
 
-	if (WeaponInfoArray[iId].iForward[Fwd_Wpn_ItemPostFrame])
-	{
-		MF_ExecuteForward
-		(
-			WeaponInfoArray[iId].iForward[Fwd_Wpn_ItemPostFrame],
-
-			static_cast<cell>(ENTINDEX(pWeapon)), 
-			static_cast<cell>(ENTINDEX(pPlayer)), 
-			static_cast<cell>(iClip), 
-			static_cast<cell>(iAmmoPrimary),
-			static_cast<cell>(iAmmoSecondary)
-		);
-	}
+	WEAPON_FORWARD_EXECUTE(iId, Fwd_Wpn_ItemPostFrame, pWeapon, pPlayer);
 
 	if (iInReload && flNextAttack <= gpGlobals->time)
 	{
@@ -281,20 +235,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 			SetPrivateInt(pWeapon, pvData_fFireOnEmpty, TRUE);
 		}
 
-		if (WeaponInfoArray[iId].iForward[Fwd_Wpn_SecondaryAttack])
-		{
-			MF_ExecuteForward
-			(
-				WeaponInfoArray[iId].iForward[Fwd_Wpn_SecondaryAttack],
-
-				static_cast<cell>(ENTINDEX(pWeapon)), 
-				static_cast<cell>(ENTINDEX(pPlayer)), 
-				static_cast<cell>(iClip), 
-				static_cast<cell>(iAmmoPrimary),
-				static_cast<cell>(iAmmoSecondary)
-			);
-		}
-
+		WEAPON_FORWARD_EXECUTE(iId, Fwd_Wpn_SecondaryAttack, pWeapon, pPlayer);
 		pPlayer->v.button &= ~IN_ATTACK2;
 	}
 	else if ((pPlayer->v.button & IN_ATTACK) && flNextPrimaryAttack < 0.0)
@@ -304,38 +245,13 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 			SetPrivateInt(pWeapon, pvData_fFireOnEmpty, TRUE);
 		}
 
-		if (WeaponInfoArray[iId].iForward[Fwd_Wpn_PrimaryAttack])
-		{
-			MF_ExecuteForward
-			(
-				WeaponInfoArray[iId].iForward[Fwd_Wpn_PrimaryAttack],
-
-				static_cast<cell>(ENTINDEX(pWeapon)), 
-				static_cast<cell>(ENTINDEX(pPlayer)), 
-				static_cast<cell>(iClip), 
-				static_cast<cell>(iAmmoPrimary),
-				static_cast<cell>(iAmmoSecondary)
-			);
-		}
-
+		WEAPON_FORWARD_EXECUTE(iId, Fwd_Wpn_PrimaryAttack, pWeapon, pPlayer);
 		pPlayer->v.button &= ~IN_ATTACK;
 	}
 	else if (pPlayer->v.button & IN_RELOAD && WEAPON_GET_MAX_CLIP(iId) != -1 && !iInReload)
 	{
 		// reload when reload is pressed, or if no buttons are down and weapon is empty.
-		if (WeaponInfoArray[iId].iForward[Fwd_Wpn_Reload])
-		{
-			MF_ExecuteForward
-			(
-				WeaponInfoArray[iId].iForward[Fwd_Wpn_Reload],
-
-				static_cast<cell>(ENTINDEX(pWeapon)), 
-				static_cast<cell>(ENTINDEX(pPlayer)), 
-				static_cast<cell>(iClip), 
-				static_cast<cell>(iAmmoPrimary),
-				static_cast<cell>(iAmmoSecondary)
-			);
-		}
+		WEAPON_FORWARD_EXECUTE(iId, Fwd_Wpn_Reload, pWeapon, pPlayer);
 	}
 	else if (!(pPlayer->v.button & (IN_ATTACK | IN_ATTACK2)))
 	{
@@ -356,36 +272,12 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 			// weapon is useable. Reload if empty and weapon has waited as long as it has to after firing
 			if (!iClip && !(WEAPON_GET_FLAGS(iId) & ITEM_FLAG_NOAUTORELOAD) && flNextPrimaryAttack < 0.0)
 			{
-				if (WeaponInfoArray[iId].iForward[Fwd_Wpn_Reload])
-				{
-					MF_ExecuteForward
-					(
-						WeaponInfoArray[iId].iForward[Fwd_Wpn_Reload],
-
-						static_cast<cell>(ENTINDEX(pWeapon)), 
-						static_cast<cell>(ENTINDEX(pPlayer)), 
-						static_cast<cell>(iClip), 
-						static_cast<cell>(iAmmoPrimary),
-						static_cast<cell>(iAmmoSecondary)
-					);
-				}
+				WEAPON_FORWARD_EXECUTE(iId, Fwd_Wpn_Reload, pWeapon, pPlayer);
 				return;
 			}
 		}
 
-		if (WeaponInfoArray[iId].iForward[Fwd_Wpn_Idle])
-		{
-			MF_ExecuteForward
-			(
-				WeaponInfoArray[iId].iForward[Fwd_Wpn_Idle],
-
-				static_cast<cell>(ENTINDEX(pWeapon)), 
-				static_cast<cell>(ENTINDEX(pPlayer)), 
-				static_cast<cell>(iClip), 
-				static_cast<cell>(iAmmoPrimary),
-				static_cast<cell>(iAmmoSecondary)
-			);
-		}
+		WEAPON_FORWARD_EXECUTE(iId, Fwd_Wpn_Idle, pWeapon, pPlayer);
 	}
 }
 
@@ -608,7 +500,6 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 
 	if (WeaponInfoArray[iId].iType == Wpn_Custom)
 	{
-
 		// Opposing Force magic, lol.
 		if (WEAPON_GET_SLOT(iId) >= 6)
 		{
@@ -1152,10 +1043,10 @@ void* WpnMod_GetDispatch(char *pname)
 {
 	void* pDispatch = FindFunction(g_Memory.GetModule_GameDll(), pname);
 
-	// Entity is exist in gamedll
+	// Entity exists in gamedll
 	if (pDispatch != NULL)
 	{
-		// Return original
+		// Return her original address
 		return pDispatch;
 	}
 
@@ -1188,7 +1079,25 @@ void* WpnMod_GetDispatch(char *pname)
 
 DISPATCHFUNCTION GetDispatch_HookHandler(char *pname)
 {
-	return (DISPATCHFUNCTION)WpnMod_GetDispatch(pname);
+	DISPATCHFUNCTION pDispatch = NULL;
+
+	if (g_Config.IsInited())
+	{
+		pDispatch = (DISPATCHFUNCTION)WpnMod_GetDispatch(pname);
+
+		if (pDispatch != NULL)
+		{
+			return pDispatch;
+		}
+	}
+
+	if (UnsetHook(&g_fh_GetDispatch))
+	{
+		pDispatch = ENGINE_GET_DISPATCH(pname);
+		SetHook(&g_fh_GetDispatch);
+	}
+
+	return pDispatch;
 }
 
 
@@ -1198,7 +1107,7 @@ qboolean CallGameEntity_HookHandler(plid_t plid, const char *entStr, entvars_t *
 
 	if (!pfnEntity)
 	{
-		//META_WARNING("Couldn't find game entity '%s' in game DLL '%s' for plugin '%s'", entStr, GET_GAME_INFO(PLID, GINFO_DLL_FILENAME), plid->name);
+		WPNMOD_LOG("Warning: couldn't find game entity \"%s\" in game DLL \"%s\" for meta plugin \"%s\"\n", entStr, GET_GAME_INFO(PLID, GINFO_DLL_FILENAME), plid->name);
 		return(false);
 	}
 

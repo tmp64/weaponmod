@@ -114,7 +114,7 @@ void CConfig::LoadBlackList(void)
 
 	if (ParseSection(GetConfigFile(), "[block]", (void*)OnParseBlockedItems, -1) && (int)m_pBlockedItemsList.size())
 	{
-		WPNMOD_LOG_ONLY("Blocked items:\n");
+		WPNMOD_LOG_ONLY("BlackList:\n");
 
 		for (int i = 0; i < (int)m_pBlockedItemsList.size(); i++)
 		{
@@ -124,7 +124,8 @@ void CConfig::LoadBlackList(void)
 			{
 				if (WEAPON_GET_NAME(iId) && !stricmp(WEAPON_GET_NAME(iId), m_pBlockedItemsList[i]->classname))
 				{
-					WEAPON_RESET_ITEMINFO(iId);
+					WEAPON_RESET_INFO(iId);
+					memset(&WeaponInfoArray[iId], 0, sizeof(WeaponData));
 				}
 			}
 		}
@@ -167,6 +168,8 @@ void CConfig::ServerDeactivate(void)
 {
 	m_bCrowbarHooked = false;
 	m_bAmmoBoxHooked = false;
+
+	memset(m_WeaponsInfo, 0, sizeof(m_WeaponsInfo));
 
 	g_iAmmoBoxIndex = 0;
 
@@ -276,8 +279,11 @@ SUBMOD CConfig::CheckSubMod(const char* game)
 	return SUBMOD_UNKNOWN;
 }
 
-void CConfig::AutoSlotDetection(int iWeaponID, int iSlot, int iPosition)
+bool CConfig::CheckSlots(int iWeaponID)
 {
+	int iSlot = WEAPON_GET_SLOT(iWeaponID);
+	int iPosition = WEAPON_GET_SLOT_POSITION(iWeaponID);
+
 	if (iSlot >= m_iMaxWeaponSlots || iSlot < 0)
 	{
 		iSlot = m_iMaxWeaponSlots - 1;
@@ -294,36 +300,30 @@ void CConfig::AutoSlotDetection(int iWeaponID, int iSlot, int iPosition)
 
 		WEAPON_SET_SLOT(iWeaponID, iSlot);
 		WEAPON_SET_SLOT_POSITION(iWeaponID, iPosition);
+
+		return true;
 	}
-	else
+
+	for (int k, i = 0; i < m_iMaxWeaponSlots; i++)
 	{
-		bool bFound = false;
-
-		for (int k, i = 0; i < m_iMaxWeaponSlots && !bFound; i++)
+		for (k = 0; k < m_iMaxWeaponPositions; k++)
 		{
-			for (k = 0; k < m_iMaxWeaponPositions; k++)
+			if (!m_pCurrentSlots[i][k])
 			{
-				if (!m_pCurrentSlots[i][k])
-				{
-					m_pCurrentSlots[i][k] = iWeaponID;
+				m_pCurrentSlots[i][k] = iWeaponID;
 
-					WEAPON_SET_SLOT(iWeaponID, i);
-					WEAPON_SET_SLOT_POSITION(iWeaponID, k);
+				WEAPON_SET_SLOT(iWeaponID, i);
+				WEAPON_SET_SLOT_POSITION(iWeaponID, k);
 
-					WPNMOD_LOG("Warning: \"%s\" is moved to slot %d-%d.\n", WEAPON_GET_NAME(iWeaponID), i + 1, k + 1);
-
-					bFound = true;
-					break;
-				}
+				WPNMOD_LOG("Warning: \"%s\" is moved to slot %d-%d.\n", WEAPON_GET_NAME(iWeaponID), i + 1, k + 1);
+				return true;
 			}
 		}
-
-		if (!bFound)
-		{
-			WEAPON_SET_SLOT_POSITION(iWeaponID, MAX_WEAPONS);
-			WPNMOD_LOG("Warning: No free slot for \"%s\" in HUD!\n", WEAPON_GET_NAME(iWeaponID));
-		}
 	}
+
+	WEAPON_SET_SLOT_POSITION(iWeaponID, MAX_WEAPONS);
+	WPNMOD_LOG("Warning: No free slot for \"%s\" in HUD!\n", WEAPON_GET_NAME(iWeaponID));
+	return false;
 }
 
 void CConfig::ManageEquipment(void)

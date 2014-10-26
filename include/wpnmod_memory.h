@@ -49,6 +49,11 @@
 	"", NULL, {"", "", 0}, NULL, (void*)call, {}, {}, 0,	\
 }															\
 
+#define GET_AMMO_INDEX				g_Memory.GetAmmoIndex
+#define REGISTER_AMMO_INFO			g_Memory.AddAmmoNameToAmmoRegistry
+
+#define WEAPON_RESET_INFO			g_Memory.Weapon_ResetInfo
+
 #define WEAPON_GET_NAME				g_Memory.Weapon_GetpszName
 #define WEAPON_GET_AMMO1			g_Memory.Weapon_GetpszAmmo1
 #define WEAPON_GET_AMMO2			g_Memory.Weapon_GetpszAmmo2
@@ -73,8 +78,6 @@
 #define WEAPON_SET_SLOT				g_Memory.Weapon_SetSlot
 #define WEAPON_SET_SLOT_POSITION	g_Memory.Weapon_SetSlotPosition
 
-#define REGISTER_AMMO_INFO		g_Memory.AddAmmoNameToAmmoRegistry
-#define WEAPON_RESET_ITEMINFO		g_Memory.Weapon_ResetInfoArray
 
 typedef struct
 {
@@ -120,7 +123,6 @@ public:
 	AmmoInfo* m_pAmmoInfoArray;
 
 	void* m_pSubRemove;
-	void* m_pGetAmmoIndex;
 	void* m_pWpnBoxKillThink;
 	void* m_pClearMultiDamage;
 	void* m_pApplyMultiDamage;
@@ -133,7 +135,6 @@ public:
 	void Parse_GameRules(void);
 	void Parse_SubRemove(void);
 	void Parse_FallThink(void);
-	void Parse_GetAmmoIndex(void);
 	void Parse_SetAnimation(void);
 	void Parse_GiveNamedItem(void);
 	void Parse_ClearMultiDamage(void);
@@ -155,15 +156,6 @@ public:
 	module* GetModule_Metamod(void) { return &m_MetamodModule; };
 
 	char* GetDllNameByModule(void* base);
-
-
-
-	bool AddAmmoNameToAmmoRegistry(const char *szAmmoname);
-
-
-
-
-
 
 	size_t ParseFunc(size_t start, size_t end, char* funcname, unsigned char* pattern, char* mask, size_t bytes);
 	size_t ParseFunc(size_t start, size_t end, char* funcname, char* string, unsigned char* pattern, char* mask, size_t bytes);
@@ -192,7 +184,14 @@ public:
 	void	Weapon_SetSlot			(const int iId, const int Slot)				{ m_pItemInfoArray[iId].iSlot = Slot; }
 	void	Weapon_SetSlotPosition	(const int iId, const int SlotPosition)		{ m_pItemInfoArray[iId].iPosition = SlotPosition; }
 
-	void	Weapon_ResetInfoArray	(const int iId)		{ memset(&m_pItemInfoArray[iId], 0, sizeof(ItemInfo)); }
+	int		GetAmmoIndex				(const char *psz);
+	bool	AddAmmoNameToAmmoRegistry	(const char *szAmmoname);
+
+	void Weapon_ResetInfo(const int iId)
+	{
+		memset(&m_pItemInfoArray[iId], 0, sizeof(ItemInfo));
+		//memset(&WeaponInfoArray[iId], 0, sizeof(WeaponData));
+	}
 };
 
 extern CMemory g_Memory;

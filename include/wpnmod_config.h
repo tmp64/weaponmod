@@ -46,6 +46,7 @@
 #include "wpnmod_pvdata.h"
 #include "wpnmod_memory.h"
 #include "wpnmod_log.h"
+#include "wpnmod_utils.h"
 
 #ifdef __linux__
 	#define stricmp	strcasecmp
@@ -58,6 +59,40 @@
 #define ITEM_FLAG_NOAUTOSWITCHEMPTY			4
 #define ITEM_FLAG_LIMITINWORLD				8
 #define ITEM_FLAG_EXHAUSTIBLE				16
+
+#define WEAPON_FORWARD_REGISTER g_Config.WeaponRegisterForward
+#define WEAPON_FORWARD_EXECUTE g_Config.WeaponExecuteForward
+
+//
+// CPlugin.h AMXX
+//
+
+#include "CString.h"
+
+#define PS_STOPPED		4
+#define UD_FINDPLUGIN	3
+
+class CPlugin
+{
+public:
+	AMX amx;
+	void* code;
+
+	String	name;
+	String	version;
+	String	title;
+	String	author;
+	String	errorMsg;
+
+	char padding[0x10]; // + 16
+
+	int status;
+};
+
+#define GET_AMXX_PLUGIN_POINTER(amx)	(CPlugin*)amx->userdata[UD_FINDPLUGIN]
+#define STOP_AMXX_PLUGIN(amx)			((CPlugin*)amx->userdata[UD_FINDPLUGIN])->status = PS_STOPPED
+
+
 
 
 typedef enum
@@ -108,6 +143,18 @@ enum e_WpnType
 	Wpn_End
 };
 
+
+
+
+
+
+
+
+
+
+
+
+
 typedef struct 
 {
 	const char*	name;
@@ -140,6 +187,33 @@ typedef struct
 	int iForward[Fwd_Wpn_End];
 } WeaponData;
 
+
+
+class CWeaponInfo
+{
+public:
+	typedef struct
+	{
+		int iSeq;
+		int iBody;
+		std::string strModel;
+	} WorldModel;
+
+	CPlugin*	m_pAmxx;
+	e_WpnType	m_WpnType;
+	WorldModel	m_ModelInfo;
+	int			m_AmxxForwards[Fwd_Wpn_End];
+
+	CWeaponInfo()
+	{
+		m_pAmxx = NULL;
+		m_WpnType = Wpn_None;
+
+		memset(&m_ModelInfo, 0, sizeof(WorldModel));
+		memset(m_AmxxForwards, 0, sizeof(m_AmxxForwards));
+	}
+};
+
 class CConfig
 {
 private:
@@ -147,7 +221,58 @@ private:
 	char	m_cfgpath[1024];
 	SUBMOD	m_GameMod;
 
+	CWeaponInfo m_WeaponsInfo[MAX_WEAPONS];
+
 public:
+	
+	void WeaponSaveModel(int iId, const char *pModel, int iBody, int iSequance)
+	{
+		m_WeaponsInfo[iId].m_ModelInfo.strModel.assign(STRING(pModel));
+		m_WeaponsInfo[iId].m_ModelInfo.iBody = iBody;
+		m_WeaponsInfo[iId].m_ModelInfo.iSeq = iSequance;
+	}
+
+	void WeaponMarkAsCustom(int iId) { m_WeaponsInfo[iId].m_WpnType = Wpn_Custom; };
+	void WeaponMarkAsDefault(int iId) { m_WeaponsInfo[iId].m_WpnType = Wpn_Default; };
+
+	bool WeaponIsCustom(int iId) { return m_WeaponsInfo[iId].m_WpnType == Wpn_Custom; };
+	bool WeaponIsDefault(int iId) { return m_WeaponsInfo[iId].m_WpnType == Wpn_Default; };
+
+	int WeaponRegisterForward(int iId, e_WpnFwds fwdType, AMX *amx, const char * pFuncName)
+	{
+		int iRegResult = MF_RegisterSPForwardByName(amx, pFuncName, FP_CELL, FP_CELL, FP_CELL, FP_CELL, FP_CELL, FP_DONE);
+
+		if (iRegResult == -1)
+		{
+			return 0;
+		}
+
+		m_WeaponsInfo[iId].m_AmxxForwards[fwdType] = iRegResult;
+		return iRegResult;
+	}
+
+	int WeaponExecuteForward(int iId, e_WpnFwds fwdType, edict_t* pWeapon, edict_t* pPlayer)
+	{
+		if (!m_WeaponsInfo[iId].m_AmxxForwards[fwdType])
+		{
+			return 0;
+		}
+
+		return MF_ExecuteForward
+		(
+			m_WeaponsInfo[iId].m_AmxxForwards[fwdType],
+
+			static_cast<cell>(ENTINDEX(pWeapon)),
+			static_cast<cell>(ENTINDEX(pPlayer)),
+			static_cast<cell>(GetPrivateInt(pWeapon, pvData_iClip)),
+			static_cast<cell>(GetAmmoInventory(pPlayer, PrimaryAmmoIndex(pWeapon))),
+			static_cast<cell>(GetAmmoInventory(pPlayer, SecondaryAmmoIndex(pWeapon)))
+		);
+	}
+
+	int WeaponGetForward(int iId, e_WpnFwds fwdType) { return m_WeaponsInfo[iId].m_AmxxForwards[fwdType]; }
+
+
 	CConfig();
 
 	int** m_pCurrentSlots;
@@ -180,10 +305,10 @@ public:
 	void	ServerDeactivate	(void);
 	void	ManageEquipment		(void);
 	void	LoadBlackList		(void);
-	void	AutoSlotDetection	(int iWeaponID, int iSlot, int iPosition);
 
 	void	DecalPushList		(const char *name);
 	bool	IsItemBlocked		(const char *name);
+	bool	CheckSlots			(int iWeaponID);
 
 	static void ServerCommand	(void);
 	static bool ClientCommand	(edict_t *pEntity);
@@ -207,30 +332,5 @@ extern AMX_NATIVE_INFO Natives[];
 extern void WpnMod_Init_GameMod(void);
 extern void WpnMod_Precache(void);
 
-//
-// CPlugin.h AMXX
-//
-
-#include "CString.h"
-
-#define PS_STOPPED		4
-#define UD_FINDPLUGIN	3
-
-class CPlugin
-{
-public:
-	AMX amx;
-	void* code;
-
-	String	name;
-	String	version;
-	String	title;
-	String	author;
-	String	errorMsg;
-
-	char padding[0x10]; // + 16
-
-	int status;
-};
 
 #endif // _CONFIG_H

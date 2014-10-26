@@ -51,7 +51,6 @@ CMemory::CMemory()
 
 	m_pSubRemove = NULL;
 	m_pWpnBoxKillThink = NULL;
-	m_pGetAmmoIndex = NULL;
 	m_pClearMultiDamage = NULL;
 	m_pApplyMultiDamage = NULL;
 	m_pPlayerSetAnimation = NULL;
@@ -98,7 +97,6 @@ bool CMemory::Init(void)
 	Parse_InfoArrays();
 	Parse_ClearMultiDamage();
 	Parse_ApplyMultiDamage();
-	Parse_GetAmmoIndex();
 	Parse_GiveNamedItem();
 	Parse_SetAnimation();
 	Parse_SubRemove();
@@ -228,48 +226,6 @@ void CMemory::Parse_ApplyMultiDamage(void)
 #endif
 
 	m_pApplyMultiDamage = (void*)pAdress;
-}
-
-void CMemory::Parse_GetAmmoIndex(void)
-{
-	char funcname[] = "CBasePlayer::GetAmmoIndex (gamedll)";
-
-#ifdef __linux__
-
-	size_t pAdress = (size_t)FindFunction(&m_GameDllModule, "GetAmmoIndex__11CBasePlayerPCc");
-
-	if (!pAdress)
-	{
-		pAdress = (size_t)FindFunction(&m_GameDllModule, "_ZN11CBasePlayer12GetAmmoIndexEPKc");
-	}
-
-	if (!pAdress)
-	{
-		WPNMOD_LOG("   Error: \"%s\" not found\n", funcname);
-		m_bSuccess = false;
-		return;
-	}
-
-	WPNMOD_LOG_ONLY("   Found \"%s\" at %p\n", funcname, pAdress);
-
-#else
-
-	char			string[]			= "357";
-	char			mask[]				= "xxxxxxx?x";
-	unsigned char	pattern[]			= "\x68\x00\x00\x00\x00\x89\x46\x00\xE8";
-	size_t			BytesOffset			= 9;
-
-	size_t pAdress = ParseFunc(m_start_gamedll, m_end_gamedll, funcname, string, pattern, mask, BytesOffset);
-
-	if (!pAdress)
-	{
-		m_bSuccess = false;
-		return;
-	}
-
-#endif
-
-	m_pGetAmmoIndex = (void*)pAdress;
 }
 
 void CMemory::Parse_GiveNamedItem(void)
@@ -795,7 +751,7 @@ void CMemory::Parse_InfoArrays(void)
 
 #ifdef __linux__
 
-	size_t pAdress = (size_t)FindFunction(&m_GameDllModule, "_15CBasePlayerItem_ItemInfoArray_ptr");
+	size_t pAdress = (size_t)FindFunction(&m_GameDllModule, "_15CBasePlayerItem.ItemInfoArray");
 
 	if (!pAdress)
 	{
@@ -876,7 +832,7 @@ void CMemory::Parse_InfoArrays(void)
 
 #ifdef __linux__
 
-	pAdress = (size_t)FindFunction(&m_GameDllModule, "_15CBasePlayerItem_AmmoInfoArray_ptr");
+	pAdress = (size_t)FindFunction(&m_GameDllModule, "_15CBasePlayerItem.AmmoInfoArray");
 
 	if (!pAdress)
 	{
@@ -1220,7 +1176,7 @@ void CMemory::EnableWeaponboxModels(void)
 
 	if (iAmxxScript != -1)
 	{
-		((CPlugin*)MF_GetScriptAmx(iAmxxScript)->userdata[UD_FINDPLUGIN])->status = PS_STOPPED;
+		STOP_AMXX_PLUGIN(MF_GetScriptAmx(iAmxxScript));
 		WPNMOD_LOG("Warning: amxx plugin \"%s\" stopped.\n", plugin_amxx);
 	}
 
@@ -1395,6 +1351,29 @@ char* CMemory::GetDllNameByModule(void* base)
 
 	ptr = strrchr(lp, PATH_SEP_CHAR);
 	return (ptr ? ptr + 1 : lp);
+}
+
+int CMemory::GetAmmoIndex(const char *psz)
+{
+	if (!psz)
+	{
+		return -1;
+	}
+
+	for (int iAmmoIndex = 1; iAmmoIndex < MAX_AMMO_SLOTS; iAmmoIndex++)
+	{
+		if (!m_pAmmoInfoArray[iAmmoIndex].pszName)
+		{
+			continue;
+		}
+
+		if (_stricmp(psz, m_pAmmoInfoArray[iAmmoIndex].pszName) == 0)
+		{
+			return iAmmoIndex;
+		}
+	}
+
+	return -1;
 }
 
 bool CMemory::AddAmmoNameToAmmoRegistry(const char *szAmmoname)

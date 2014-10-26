@@ -60,21 +60,14 @@
 	typedef void				(*ENTITY_FN)					(entvars_t *);
 	typedef void				(*DISPATCHFUNCTION)				(struct entvars_s *, void *);
 
-	typedef int					(*FuncGetAmmoIndex)				(const char*);
 	typedef void				(*FuncClearMultiDamage)			(void);
 	typedef void				(*FuncApplyMultiDamage)			(entvars_t *, entvars_t *);
 	typedef void				(*FuncWorldPrecache)			(void);
+	typedef DISPATCHFUNCTION	(*FuncGetDispatch)				(char *);
 
 	DISPATCHFUNCTION	GetDispatch_HookHandler				(char *pname);
 	qboolean			CallGameEntity_HookHandler			(plid_t plid, const char *entStr, entvars_t *pev);
 	void				WorldPrecache_HookHandler			(void);
-
-	// int CBasePlayer::GetAmmoIndex(const char *psz)
-	//
-		inline int GET_AMMO_INDEX(const char* ammoName)
-		{
-			return reinterpret_cast<FuncGetAmmoIndex>(g_Memory.m_pGetAmmoIndex)(ammoName);
-		}
 
 	// void ClearMultiDamage(void)
 	//
@@ -95,6 +88,13 @@
 		inline void WORLD_PRECACHE(void)
 		{
 			reinterpret_cast<FuncWorldPrecache>(g_fh_WorldPrecache.address)();
+		}
+
+	// DISPATCHFUNCTION GetDispatch(char *pname)
+	//
+		inline DISPATCHFUNCTION ENGINE_GET_DISPATCH(char *pname)
+		{
+			return reinterpret_cast<FuncGetDispatch>(g_fh_GetDispatch.address)(pname);
 		}
 
 #ifdef WIN32
@@ -213,7 +213,6 @@
 
 #ifdef WIN32
 
-	typedef int		(__fastcall *FuncGetItemInfo)		(void*, DUMMY, ItemInfo*);
 	typedef BOOL	(__fastcall *FuncCanDeploy)			(void*, DUMMY);
 	typedef BOOL	(__fastcall *FuncDeploy)			(void*, DUMMY);
 	typedef BOOL	(__fastcall *FuncCanHolster)		(void*, DUMMY);
@@ -246,18 +245,6 @@
 	int		__fastcall Item_Block			(void* pvItem, int DUMMY, void* pvOther);
 	void	__fastcall Player_Spawn			(void* pvPlayer);
 	void	__fastcall Player_PostThink		(void* pvPlayer);
-
-	// virtual int CBasePlayerItem::GetItemInfo(ItemInfo* p);
-	//
-		inline int GET_ITEM_INFO(void* pvItem, ItemInfo* p)
-		{
-			return reinterpret_cast<FuncGetItemInfo>(g_CrowbarHooks[CrowbarHook_GetItemInfo].address)(pvItem, DUMMY_VAL, p);
-		}
-
-		inline int GET_ITEM_INFO(edict_t* pentItem, ItemInfo* p)
-		{
-			return reinterpret_cast<FuncGetItemInfo >(GET_VTABLE_ENT(pentItem)[GET_VTABLE_OFFSET(VO_GetItemInfo)])(pentItem->pvPrivateData, DUMMY_VAL, p);
-		}
 
 	// virtual BOOL CanDeploy(void)
 	//
@@ -423,7 +410,6 @@
 
 #else
 
-	typedef int		(*FuncGetItemInfo)		(void*, ItemInfo*);
 	typedef BOOL	(*FuncCanDeploy)		(void*);
 	typedef BOOL	(*FuncDeploy)			(void*);
 	typedef BOOL	(*FuncCanHolster)		(void*);
@@ -456,18 +442,6 @@
 	int		Item_Block				(void* pvItem, void* pvOther);
 	void	Player_Spawn			(void* pvPlayer);
 	void	Player_PostThink		(void* pvPlayer);
-
-	// virtual int CBasePlayerItem::GetItemInfo(ItemInfo* p);
-	//
-		inline int GET_ITEM_INFO(void* pvItem, ItemInfo* p)
-		{
-			return reinterpret_cast<FuncGetItemInfo>(g_CrowbarHooks[CrowbarHook_GetItemInfo].address)(pvItem, p);
-		}
-
-		inline int GET_ITEM_INFO(edict_t* pentItem, ItemInfo* p)
-		{
-			return reinterpret_cast<FuncGetItemInfo>(GET_VTABLE_ENT(pentItem)[GET_VTABLE_OFFSET(VO_GetItemInfo)])(pentItem->pvPrivateData, p);
-		}
 
 	// virtual BOOL CanDeploy(void)
 	//

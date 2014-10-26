@@ -134,20 +134,17 @@ void SelectItem(edict_t* pPlayer, const char* pstr)
 
 bool GetNextBestWeapon(edict_t* pPlayer, edict_t* pCurrentWeapon)
 {
-	edict_t* pBest= NULL;
-	edict_t* pCheck = NULL;
-
-	ItemInfo pII_Check;
-	ItemInfo pII_Current;
-
-	int iBestWeight = -1;
-
-	GET_ITEM_INFO(pCurrentWeapon, &pII_Current);
-
 	if (!CAN_HOLSTER(pCurrentWeapon))
 	{
 		return false;
 	}
+
+	edict_t* pBest= NULL;
+	edict_t* pCheck = NULL;
+
+	int iIdCheck = 0;
+	int iBestWeight = -1;
+	int iIdCurrent = GetPrivateInt(pCurrentWeapon, pvData_iId);
 
 	for (int i = 0 ; i <= g_Config.m_iMaxWeaponSlots ; i++)
 	{
@@ -155,9 +152,9 @@ bool GetNextBestWeapon(edict_t* pPlayer, edict_t* pCurrentWeapon)
 
 		while (IsValidPev(pCheck))
 		{
-			GET_ITEM_INFO(pCheck, &pII_Check);
+			iIdCheck = GetPrivateInt(pCheck, pvData_iId);
 
-			if (pII_Check.iWeight > -1 && pII_Check.iWeight == pII_Current.iWeight && pCheck != pCurrentWeapon)
+			if (WEAPON_GET_WEIGHT(iIdCheck) > -1 && WEAPON_GET_WEIGHT(iIdCheck) == WEAPON_GET_WEIGHT(iIdCurrent) && pCheck != pCurrentWeapon)
 			{
 				if (CAN_DEPLOY(pCheck))
 				{
@@ -167,11 +164,11 @@ bool GetNextBestWeapon(edict_t* pPlayer, edict_t* pCurrentWeapon)
 					}
 				}
 			}
-			else if (pII_Check.iWeight > iBestWeight && pCheck != pCurrentWeapon)
+			else if (WEAPON_GET_WEIGHT(iIdCheck) > iBestWeight && pCheck != pCurrentWeapon)
 			{
 				if (CAN_DEPLOY(pCheck))
 				{
-					iBestWeight = pII_Check.iWeight;
+					iBestWeight = WEAPON_GET_WEIGHT(iIdCheck);
 					pBest = pCheck;
 				}
 			}
