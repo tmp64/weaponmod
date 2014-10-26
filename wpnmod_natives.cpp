@@ -862,65 +862,65 @@ namespace NewNatives
 	AMXX_NATIVE(WpnMod_RegisterWeapon)
 	{
 		const char *szWeaponName = MF_GetAmxString(amx, params[1], 0, NULL);
+		
 
 		printf2("!!!! WpnMod_RegisterWeapon: %s\n", szWeaponName);
 
-		for (int i = 1; i < MAX_WEAPONS; i++)
+		for (int iId = 1; iId < MAX_WEAPONS; iId++)
 		{
-			if (WEAPON_GET_NAME(i))
+			if (WEAPON_GET_NAME(iId))
 			{
-				if (!stricmp(WEAPON_GET_NAME(i), szWeaponName))
+				if (!stricmp(WEAPON_GET_NAME(iId), szWeaponName))
 				{
 					MF_LogError(amx, AMX_ERR_NATIVE, "Weapon name is duplicated.");
 					return -1;
 				}
-				/*
-				if (WEAPON_GET_AMMO1(i) && GET_AMMO_INDEX(WEAPON_GET_AMMO1(i)) >= MAX_AMMO_SLOTS
-					|| WEAPON_GET_AMMO2(i) && GET_AMMO_INDEX(WEAPON_GET_AMMO2(i)) >= MAX_AMMO_SLOTS)
-				{
-					MF_LogError(amx, AMX_ERR_NATIVE, "Ammo limit reached.");
-					return -1;
-				}*/
 			}
 			else
 			{
-				WeaponInfoArray[i].iType = Wpn_Custom;
+				WEAPON_SET_AMMO1(iId, STRING(ALLOC_STRING(MF_GetAmxString(amx, params[4], 0, NULL))));
 
-				WEAPON_SET_NAME(i, STRING(ALLOC_STRING(szWeaponName)));
-				WEAPON_SET_AMMO1(i, STRING(ALLOC_STRING(MF_GetAmxString(amx, params[4], 0, NULL))));
-				WEAPON_SET_MAX_AMMO1(i, params[5]);
-				WEAPON_SET_AMMO2(i, STRING(ALLOC_STRING(MF_GetAmxString(amx, params[6], 0, NULL))));
-				WEAPON_SET_MAX_AMMO2(i, params[7]);
-				WEAPON_SET_MAX_CLIP(i, params[8]);
-				WEAPON_SET_ID(i);
-				WEAPON_SET_FLAGS(i, params[9]);
-				WEAPON_SET_WEIGHT(i, params[10]);
-
-
-				g_Config.AutoSlotDetection(i, params[2] - 1, params[3] - 1);
-
-
-				if (WEAPON_GET_AMMO1(i)[0])
+				if (WEAPON_GET_AMMO1(iId)[0])
 				{
-					g_Memory.AddAmmoNameToAmmoRegistry(WEAPON_GET_AMMO1(i));
+					if (!REGISTER_AMMO_INFO(WEAPON_GET_AMMO1(iId)))
+					{
+						WEAPON_RESET_ITEMINFO(iId);
+						MF_LogError(amx, AMX_ERR_NATIVE, "Ammo limit reached!");
+						return -1;
+					}
 				}
 
-				if (WEAPON_GET_AMMO2(i)[0])
+				WEAPON_SET_AMMO2(iId, STRING(ALLOC_STRING(MF_GetAmxString(amx, params[6], 0, NULL))));
+
+				if (WEAPON_GET_AMMO2(iId)[0])
 				{
-					g_Memory.AddAmmoNameToAmmoRegistry(WEAPON_GET_AMMO2(i));
+					if (!REGISTER_AMMO_INFO(WEAPON_GET_AMMO2(iId)))
+					{
+						WEAPON_RESET_ITEMINFO(iId);
+						MF_LogError(amx, AMX_ERR_NATIVE, "Ammo limit reached!");
+						return -1;
+					}
 				}
 
+				WeaponInfoArray[iId].iType = Wpn_Custom;
 
-				
+				WEAPON_SET_NAME(iId, STRING(ALLOC_STRING(szWeaponName)));
 
+				WEAPON_SET_MAX_AMMO1(iId, params[5]);
+				WEAPON_SET_MAX_AMMO2(iId, params[7]);
+				WEAPON_SET_MAX_CLIP(iId, params[8]);
+
+				WEAPON_SET_ID(iId);
+				WEAPON_SET_FLAGS(iId, params[9]);
+				WEAPON_SET_WEIGHT(iId, params[10]);
+
+				g_Config.AutoSlotDetection(iId, params[2] - 1, params[3] - 1);
 
 				CPlugin* plugin = (CPlugin*)amx->userdata[UD_FINDPLUGIN];
 				
-				WeaponInfoArray[i].title.assign(plugin->title.c_str());
-				WeaponInfoArray[i].author.assign(plugin->author.c_str());
-				WeaponInfoArray[i].version.assign(plugin->version.c_str());
-				
-				
+				WeaponInfoArray[iId].title.assign(plugin->title.c_str());
+				WeaponInfoArray[iId].author.assign(plugin->author.c_str());
+				WeaponInfoArray[iId].version.assign(plugin->version.c_str());
 
 				if (!g_Config.m_bCrowbarHooked)
 				{
@@ -932,7 +932,7 @@ namespace NewNatives
 					}
 				}
 
-				return i;
+				return iId;
 			}
 		}
 

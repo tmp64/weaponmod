@@ -795,7 +795,7 @@ void CMemory::Parse_InfoArrays(void)
 
 #ifdef __linux__
 
-	size_t pAdress = (size_t)FindFunction(&m_GameDllModule, "_15CBasePlayerItem_ItemInfoArray");
+	size_t pAdress = (size_t)FindFunction(&m_GameDllModule, "_15CBasePlayerItem_ItemInfoArray_ptr");
 
 	if (!pAdress)
 	{
@@ -876,7 +876,7 @@ void CMemory::Parse_InfoArrays(void)
 
 #ifdef __linux__
 
-	pAdress = (size_t)FindFunction(&m_GameDllModule, "_15CBasePlayerItem_AmmoInfoArray");
+	pAdress = (size_t)FindFunction(&m_GameDllModule, "_15CBasePlayerItem_AmmoInfoArray_ptr");
 
 	if (!pAdress)
 	{
@@ -1397,6 +1397,32 @@ char* CMemory::GetDllNameByModule(void* base)
 	return (ptr ? ptr + 1 : lp);
 }
 
+bool CMemory::AddAmmoNameToAmmoRegistry(const char *szAmmoname)
+{
+	int iAmmoIndex;
+
+	for (iAmmoIndex = 1; iAmmoIndex < MAX_AMMO_SLOTS; iAmmoIndex++)
+	{
+		if (!m_pAmmoInfoArray[iAmmoIndex].pszName)
+		{
+			break;
+		}
+
+		if (_stricmp(m_pAmmoInfoArray[iAmmoIndex].pszName, szAmmoname) == 0)
+		{
+			return true;
+		}
+	}
+
+	if (iAmmoIndex >= MAX_AMMO_SLOTS)
+	{
+		return false;
+	}
+
+	m_pAmmoInfoArray[iAmmoIndex].pszName = STRING(ALLOC_STRING(szAmmoname));
+	return true;
+}
+
 size_t CMemory::ParseFunc(size_t start, size_t end, char* funcname, unsigned char* pattern, char* mask, size_t bytes)
 {
 	int count = 0;
@@ -1472,39 +1498,5 @@ size_t CMemory::ParseFunc(size_t start, size_t end, char* funcname, char* string
 	WPNMOD_LOG_ONLY("   Found \"%s\" at %p\n", funcname, pAdress);
 
 	return pAdress;
-}
-
-
-
-
-void CMemory::AddAmmoNameToAmmoRegistry(const char *szAmmoname)
-{
-	int iAmmoIndex = 0;
-
-	// make sure it's not already in the registry
-	for (int i = 0; i < MAX_AMMO_SLOTS; i++)
-	{
-		if (!m_pAmmoInfoArray[i].pszName)
-			continue;
-
-		if (_stricmp(m_pAmmoInfoArray[i].pszName, szAmmoname) == 0)
-			return; // ammo already in registry, just quite
-
-		iAmmoIndex++;
-	}
-
-	iAmmoIndex++;
-
-
-	m_pAmmoInfoArray[iAmmoIndex].pszName = STRING(ALLOC_STRING(szAmmoname));
-
-
-	/*giAmmoIndex++;
-	ASSERT(giAmmoIndex < MAX_AMMO_SLOTS);
-	if (giAmmoIndex >= MAX_AMMO_SLOTS)
-		giAmmoIndex = 0;
-
-	CBasePlayerItem::AmmoInfoArray[giAmmoIndex].pszName = szAmmoname;
-	CBasePlayerItem::AmmoInfoArray[giAmmoIndex].iId = giAmmoIndex;   // yes, this info is redundant*/
 }
 

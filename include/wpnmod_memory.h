@@ -73,6 +73,7 @@
 #define WEAPON_SET_SLOT				g_Memory.Weapon_SetSlot
 #define WEAPON_SET_SLOT_POSITION	g_Memory.Weapon_SetSlotPosition
 
+#define REGISTER_AMMO_INFO		g_Memory.AddAmmoNameToAmmoRegistry
 #define WEAPON_RESET_ITEMINFO		g_Memory.Weapon_ResetInfoArray
 
 typedef struct
@@ -157,7 +158,7 @@ public:
 
 
 
-	void AddAmmoNameToAmmoRegistry(const char *szAmmoname);
+	bool AddAmmoNameToAmmoRegistry(const char *szAmmoname);
 
 
 
