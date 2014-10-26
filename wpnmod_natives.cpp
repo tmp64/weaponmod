@@ -893,11 +893,12 @@ namespace NewNatives
 				WEAPON_SET_SLOT_POSITION(iId, params[3] - 1);
 
 				const char *szAmmo1 = MF_GetAmxString(amx, params[4], 0, NULL);
-				if (*szAmmo1 == NULL)
+				/*if (*szAmmo1 == NULL)
 				{
 					WEAPON_SET_AMMO1(iId, NULL);
 				}
-				else
+				else*/
+				if (*szAmmo1)
 				{
 					if (!REGISTER_AMMO_INFO(szAmmo1))
 					{
@@ -905,15 +906,15 @@ namespace NewNatives
 					}
 
 					WEAPON_SET_AMMO1(iId, STRING(ALLOC_STRING(szAmmo1)));
-					WEAPON_SET_MAX_AMMO1(iId, params[5]);
 				}
 
 				const char *szAmmo2 = MF_GetAmxString(amx, params[6], 0, NULL);
-				if (*szAmmo2 == NULL)
+				/*if (*szAmmo2 == NULL)
 				{
 					WEAPON_SET_AMMO2(iId, NULL);
 				}
-				else
+				else*/
+				if (*szAmmo2)
 				{
 					if (!REGISTER_AMMO_INFO(szAmmo2))
 					{
@@ -921,10 +922,13 @@ namespace NewNatives
 					}
 
 					WEAPON_SET_AMMO2(iId, STRING(ALLOC_STRING(szAmmo2)));
-					WEAPON_SET_MAX_AMMO2(iId, params[7]);
+					
 				}
 
+				WEAPON_SET_MAX_AMMO1(iId, params[5]);
+				WEAPON_SET_MAX_AMMO2(iId, params[7]);
 				WEAPON_SET_MAX_CLIP(iId, params[8]);
+
 				WEAPON_SET_FLAGS(iId, params[9]);
 				WEAPON_SET_WEIGHT(iId, params[10]);
 
@@ -987,26 +991,6 @@ namespace NewNatives
 		}
 
 		const char *funcname = MF_GetAmxString(amx, params[3], 0, NULL);
-
-		WeaponInfoArray[iId].iForward[Fwd] = MF_RegisterSPForwardByName
-		(
-			amx, 
-			funcname, 
-			FP_CELL, 
-			FP_CELL, 
-			FP_CELL, 
-			FP_CELL, 
-			FP_CELL, 
-			FP_DONE
-		);
-
-		if (WeaponInfoArray[iId].iForward[Fwd] == -1)
-		{
-			WeaponInfoArray[iId].iForward[Fwd] = 0;
-			MF_LogError(amx, AMX_ERR_NATIVE, "Function not found (%d, \"%s\").", Fwd, funcname);
-			return 0;
-		}
-
 
 		if (WEAPON_FORWARD_REGISTER(iId, (e_WpnFwds)Fwd, amx, funcname) == 0)
 		{

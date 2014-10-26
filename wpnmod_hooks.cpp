@@ -111,7 +111,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 
 	int iId = GetPrivateInt(pWeapon, pvData_iId);
 
-	if (WeaponInfoArray[iId].iType == Wpn_Default || !WeaponInfoArray[iId].iForward[Fwd_Wpn_CanDeploy])
+	if (WeaponInfoArray[iId].iType == Wpn_Default || !WEAPON_FORWARD_EXISTS(iId, Fwd_Wpn_CanDeploy))
 	{
 		return CAN_DEPLOY(pvItem);
 	}
@@ -151,7 +151,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 
 	if (IsValidPev(pPlayer))
 	{
-		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer), g_engfuncs.pfnGetInfoKeyBuffer(pPlayer), "cl_lw", "0");
+		SET_CLIENT_KEYVALUE(ENTINDEX(pPlayer), GET_INFOKEYBUFFER(pPlayer), "cl_lw", "0");
 		return WEAPON_FORWARD_EXECUTE(iId, Fwd_Wpn_Deploy, pWeapon, pPlayer);
 	}
 
@@ -297,28 +297,19 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 
 	int iId = GetPrivateInt(pWeapon, pvData_iId);
 
-	if (WeaponInfoArray[iId].iType == Wpn_Default || !WeaponInfoArray[iId].iForward[Fwd_Wpn_IsUseable])
+	if (WeaponInfoArray[iId].iType == Wpn_Default || !WEAPON_FORWARD_EXISTS(iId, Fwd_Wpn_IsUseable))
 	{
 		return IS_USEABLE(pvItem);
 	}
 
 	edict_t* pPlayer = GetPrivateCbase(pWeapon, pvData_pPlayer);
 
-	if (!IsValidPev(pPlayer))
+	if (IsValidPev(pPlayer))
 	{
-		return FALSE;
+		return WEAPON_FORWARD_EXECUTE(iId, Fwd_Wpn_IsUseable, pWeapon, pPlayer);
 	}
 
-	return MF_ExecuteForward
-	(
-		WeaponInfoArray[iId].iForward[Fwd_Wpn_IsUseable],
-
-		static_cast<cell>(ENTINDEX(pWeapon)), 
-		static_cast<cell>(ENTINDEX(pPlayer)), 
-		static_cast<cell>(GetPrivateInt(pWeapon, pvData_iClip)), 
-		static_cast<cell>(GetAmmoInventory(pPlayer, PrimaryAmmoIndex(pWeapon))),
-		static_cast<cell>(GetAmmoInventory(pPlayer, SecondaryAmmoIndex(pWeapon)))
-	);
+	return FALSE;
 }
 
 
@@ -337,28 +328,19 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 
 	int iId = GetPrivateInt(pWeapon, pvData_iId);
 
-	if (WeaponInfoArray[iId].iType == Wpn_Default || !WeaponInfoArray[iId].iForward[Fwd_Wpn_CanHolster])
+	if (WeaponInfoArray[iId].iType == Wpn_Default || !WEAPON_FORWARD_EXISTS(iId, Fwd_Wpn_CanHolster))
 	{
 		return CAN_HOLSTER(pvItem);
 	}
 
 	edict_t* pPlayer = GetPrivateCbase(pWeapon, pvData_pPlayer);
 
-	if (!IsValidPev(pPlayer))
+	if (IsValidPev(pPlayer))
 	{
-		return FALSE;
+		return WEAPON_FORWARD_EXECUTE(iId, Fwd_Wpn_CanHolster, pWeapon, pPlayer);
 	}
 
-	return MF_ExecuteForward
-	(
-		WeaponInfoArray[iId].iForward[Fwd_Wpn_CanHolster],
-
-		static_cast<cell>(ENTINDEX(pWeapon)), 
-		static_cast<cell>(ENTINDEX(pPlayer)), 
-		static_cast<cell>(GetPrivateInt(pWeapon, pvData_iClip)), 
-		static_cast<cell>(GetAmmoInventory(pPlayer, PrimaryAmmoIndex(pWeapon))),
-		static_cast<cell>(GetAmmoInventory(pPlayer, SecondaryAmmoIndex(pWeapon)))
-	);
+	return FALSE;
 }
 
 
@@ -391,21 +373,11 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 
 	edict_t* pPlayer = GetPrivateCbase(pWeapon, pvData_pPlayer);
 
-	if (IsValidPev(pPlayer) && WeaponInfoArray[iId].iForward[Fwd_Wpn_Holster])
+	if (IsValidPev(pPlayer))
 	{
-		MF_ExecuteForward
-		(
-			WeaponInfoArray[iId].iForward[Fwd_Wpn_Holster],
-
-			static_cast<cell>(ENTINDEX(pWeapon)), 
-			static_cast<cell>(ENTINDEX(pPlayer)), 
-			static_cast<cell>(GetPrivateInt(pWeapon, pvData_iClip)), 
-			static_cast<cell>(GetAmmoInventory(pPlayer, PrimaryAmmoIndex(pWeapon))),
-			static_cast<cell>(GetAmmoInventory(pPlayer, SecondaryAmmoIndex(pWeapon)))
-		);
+		WEAPON_FORWARD_EXECUTE(iId, Fwd_Wpn_Holster, pWeapon, pPlayer);
+		SET_CLIENT_KEYVALUE(ENTINDEX(pPlayer), GET_INFOKEYBUFFER(pPlayer), "cl_lw", "1");
 	}
-
-	g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer), g_engfuncs.pfnGetInfoKeyBuffer(pPlayer), "cl_lw", "1");
 }
 
 
@@ -433,24 +405,10 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 			return 0;
 		}
 
-		if (WeaponInfoArray[iId].iForward[Fwd_Wpn_AddToPlayer2])
+		if (WEAPON_FORWARD_EXISTS(iId, Fwd_Wpn_AddToPlayer2)
+			&& WEAPON_FORWARD_EXECUTE(iId, Fwd_Wpn_AddToPlayer2, pWeapon, pPlayer) == 0)
 		{
-			if 
-			(
-				!MF_ExecuteForward
-				(
-					WeaponInfoArray[iId].iForward[Fwd_Wpn_AddToPlayer2],
-
-					static_cast<cell>(ENTINDEX(pWeapon)), 
-					static_cast<cell>(ENTINDEX(pPlayer)), 
-					static_cast<cell>(GetPrivateInt(pWeapon, pvData_iClip)), 
-					static_cast<cell>(GetAmmoInventory(pPlayer, PrimaryAmmoIndex(pWeapon))),
-					static_cast<cell>(GetAmmoInventory(pPlayer, SecondaryAmmoIndex(pWeapon)))
-				)
-			)
-			{
-				return FALSE;
-			}
+			return FALSE;
 		}
 
 		if (g_Config.GetSubMod() != SUBMOD_AGHLRU)
@@ -464,19 +422,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 			}
 		}
 
-		if (WeaponInfoArray[iId].iForward[Fwd_Wpn_AddToPlayer])
-		{
-			MF_ExecuteForward
-			(
-				WeaponInfoArray[iId].iForward[Fwd_Wpn_AddToPlayer],
-
-				static_cast<cell>(ENTINDEX(pWeapon)), 
-				static_cast<cell>(ENTINDEX(pPlayer)), 
-				static_cast<cell>(GetPrivateInt(pWeapon, pvData_iClip)), 
-				static_cast<cell>(GetAmmoInventory(pPlayer, PrimaryAmmoIndex(pWeapon))),
-				static_cast<cell>(GetAmmoInventory(pPlayer, SecondaryAmmoIndex(pWeapon)))
-			);
-		}
+		WEAPON_FORWARD_EXECUTE(iId, Fwd_Wpn_AddToPlayer, pWeapon, pPlayer);
 	}
 
 	return ADD_TO_PLAYER(pvItem, pvPlayer);

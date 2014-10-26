@@ -87,19 +87,7 @@ edict_t* Weapon_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles)
 			SetPrivateInt(pItem, pvData_iClip, 0);
 		}
 
-		if (WeaponInfoArray[iId].iForward[Fwd_Wpn_Spawn])
-		{
-			MF_ExecuteForward
-			(
-				WeaponInfoArray[iId].iForward[Fwd_Wpn_Spawn],
-
-				static_cast<cell>(ENTINDEX(pItem)),
-				static_cast<cell>(0),
-				static_cast<cell>(0),
-				static_cast<cell>(0),
-				static_cast<cell>(0)
-			);
-		}
+		WEAPON_FORWARD_EXECUTE(iId, Fwd_Wpn_Spawn, pItem, NULL);
 	}
 
 	return pItem;

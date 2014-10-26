@@ -60,8 +60,9 @@
 #define ITEM_FLAG_LIMITINWORLD				8
 #define ITEM_FLAG_EXHAUSTIBLE				16
 
-#define WEAPON_FORWARD_REGISTER g_Config.WeaponRegisterForward
-#define WEAPON_FORWARD_EXECUTE g_Config.WeaponExecuteForward
+#define WEAPON_FORWARD_REGISTER	g_Config.WeaponRegisterForward
+#define WEAPON_FORWARD_EXECUTE	g_Config.WeaponExecuteForward
+#define WEAPON_FORWARD_EXISTS	g_Config.WeaponGetForward
 
 //
 // CPlugin.h AMXX
@@ -258,15 +259,26 @@ public:
 			return 0;
 		}
 
+		int iAmmo1 = 0;
+		int iAmmo2 = 0;
+		int iPlayer = 0;
+
+		if (IsValidPev(pPlayer))
+		{
+			iPlayer = ENTINDEX(pPlayer);
+			iAmmo1 = GetAmmoInventory(pPlayer, PrimaryAmmoIndex(pWeapon));
+			iAmmo2 = GetAmmoInventory(pPlayer, SecondaryAmmoIndex(pWeapon));
+		}
+
 		return MF_ExecuteForward
 		(
 			m_WeaponsInfo[iId].m_AmxxForwards[fwdType],
 
 			static_cast<cell>(ENTINDEX(pWeapon)),
-			static_cast<cell>(ENTINDEX(pPlayer)),
+			static_cast<cell>(iPlayer),
 			static_cast<cell>(GetPrivateInt(pWeapon, pvData_iClip)),
-			static_cast<cell>(GetAmmoInventory(pPlayer, PrimaryAmmoIndex(pWeapon))),
-			static_cast<cell>(GetAmmoInventory(pPlayer, SecondaryAmmoIndex(pWeapon)))
+			static_cast<cell>(iAmmo1),
+			static_cast<cell>(iAmmo2)
 		);
 	}
 
