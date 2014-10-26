@@ -74,7 +74,11 @@ void WpnMod_Init_GameMod(void)
 void WpnMod_Precache(void)
 {
 	g_Config.SetConfigFile();
-	
+
+	UTIL_PrecacheOther("item_suit");
+	UTIL_PrecacheOther("item_battery");
+	UTIL_PrecacheOther("item_healthkit");
+	UTIL_PrecacheOther("item_longjump");
 
 	
 	for (int i = 1; i < MAX_WEAPONS; i++)

@@ -495,6 +495,17 @@ void UTIL_EmitAmbientSound(edict_t *entity, const Vector &vecOrigin, const char 
 	EMIT_AMBIENT_SOUND(entity, rgfl, samp, vol, attenuation, fFlags, pitch);
 }
 
+void UTIL_PrecacheOther(const char *szClassname)
+{
+	edict_t	*pent = CREATE_NAMED_ENTITY(MAKE_STRING(szClassname));
+
+	if (IsValidPev(pent))
+	{
+		MDLL_Spawn(pent);
+		REMOVE_ENTITY(pent);
+	}
+}
+
 // hit the world, try to play sound based on texture material type
 float TEXTURETYPE_PlaySound(TraceResult* ptr,  Vector vecSrc, Vector vecEnd)
 {
