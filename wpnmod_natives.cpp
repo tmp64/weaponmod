@@ -937,7 +937,8 @@ namespace NewNatives
 					// Do Something
 				}
 
-				WeaponInfoArray[iId].iType = Wpn_Custom;
+				WEAPON_MAKE_CUSTOM(iId);
+
 				WeaponInfoArray[iId].title.assign(plugin->title.c_str());
 				WeaponInfoArray[iId].author.assign(plugin->author.c_str());
 				WeaponInfoArray[iId].version.assign(plugin->version.c_str());
@@ -976,7 +977,7 @@ namespace NewNatives
 	{
 		int iId = params[1];
 
-		if (iId <= 0 || iId >= MAX_WEAPONS || WeaponInfoArray[iId].iType != Wpn_Custom)
+		if (iId <= 0 || iId >= MAX_WEAPONS || !WEAPON_IS_CUSTOM(iId))
 		{
 			MF_LogError(amx, AMX_ERR_NATIVE, "Invalid weapon id provided (%d).", iId);
 			return 0;
@@ -1155,7 +1156,7 @@ namespace NewNatives
 			switch (iSwitch)
 			{
 				case ItemInfo_isCustom:
-					return WeaponInfoArray[iId].iType == Wpn_Custom;
+					return WEAPON_IS_CUSTOM(iId);
 
 				case ItemInfo_iSlot:
 					return WEAPON_GET_SLOT(iId);

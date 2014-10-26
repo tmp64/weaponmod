@@ -60,9 +60,17 @@
 #define ITEM_FLAG_LIMITINWORLD				8
 #define ITEM_FLAG_EXHAUSTIBLE				16
 
-#define WEAPON_FORWARD_REGISTER	g_Config.WeaponRegisterForward
-#define WEAPON_FORWARD_EXECUTE	g_Config.WeaponExecuteForward
-#define WEAPON_FORWARD_EXISTS	g_Config.WeaponGetForward
+#define WEAPON_IS_CUSTOM			g_Config.WeaponIsCustom
+#define WEAPON_IS_DEFAULT			g_Config.WeaponIsDefault
+#define WEAPON_MAKE_CUSTOM			g_Config.WeaponMarkAsCustom
+#define WEAPON_MAKE_DEFAULT			g_Config.WeaponMarkAsDefault
+
+#define WEAPON_FORWARD_REGISTER		g_Config.WeaponRegisterForward
+#define WEAPON_FORWARD_EXECUTE		g_Config.WeaponExecuteForward
+#define WEAPON_FORWARD_EXISTS		g_Config.WeaponGetForward
+
+#define WEAPON_SAVE_WORLD_MODEL		g_Config.WeaponSaveModel
+#define WEAPON_RESTORE_WORLD_MODEL	g_Config.WeaponRestoreModel
 
 //
 // CPlugin.h AMXX
@@ -92,8 +100,6 @@ public:
 
 #define GET_AMXX_PLUGIN_POINTER(amx)	(CPlugin*)amx->userdata[UD_FINDPLUGIN]
 #define STOP_AMXX_PLUGIN(amx)			((CPlugin*)amx->userdata[UD_FINDPLUGIN])->status = PS_STOPPED
-
-
 
 
 typedef enum
@@ -135,27 +141,6 @@ enum e_WpnFwds
 	Fwd_Wpn_End
 };
 
-enum e_WpnType
-{
-	Wpn_None,
-	Wpn_Default,
-	Wpn_Custom,
-
-	Wpn_End
-};
-
-
-
-
-
-
-
-
-
-
-
-
-
 typedef struct 
 {
 	const char*	name;
@@ -174,24 +159,34 @@ typedef struct
 	int iForward[Fwd_Ammo_End];
 } AmmoBoxData;
 
+
+
+
+
 typedef struct
 {
 	std::string title;
 	std::string author;
 	std::string version;
-	std::string worldModel;
 
-	e_WpnType iType;
-
-	int iWorldSeq;
-	int iWorldBody;
-	int iForward[Fwd_Wpn_End];
 } WeaponData;
 
 
 
+
+
+
+enum e_WpnType
+{
+	Wpn_None,
+	Wpn_Default,
+	Wpn_Custom,
+	Wpn_End
+};
+
 class CWeaponInfo
 {
+
 public:
 	typedef struct
 	{
@@ -225,19 +220,51 @@ private:
 	CWeaponInfo m_WeaponsInfo[MAX_WEAPONS];
 
 public:
-	
-	void WeaponSaveModel(int iId, const char *pModel, int iBody, int iSequance)
-	{
-		m_WeaponsInfo[iId].m_ModelInfo.strModel.assign(STRING(pModel));
-		m_WeaponsInfo[iId].m_ModelInfo.iBody = iBody;
-		m_WeaponsInfo[iId].m_ModelInfo.iSeq = iSequance;
-	}
+	CConfig();
 
-	void WeaponMarkAsCustom(int iId) { m_WeaponsInfo[iId].m_WpnType = Wpn_Custom; };
-	void WeaponMarkAsDefault(int iId) { m_WeaponsInfo[iId].m_WpnType = Wpn_Default; };
+	int** m_pCurrentSlots;
+	int m_iMaxWeaponSlots;
+	int m_iMaxWeaponPositions;
 
-	bool WeaponIsCustom(int iId) { return m_WeaponsInfo[iId].m_WpnType == Wpn_Custom; };
-	bool WeaponIsDefault(int iId) { return m_WeaponsInfo[iId].m_WpnType == Wpn_Default; };
+	bool m_bWpnBoxModels;
+	int m_iWpnBoxLifeTime;
+	int m_iWpnBoxRenderColor;
+
+	bool m_bCrowbarHooked;
+	bool m_bAmmoBoxHooked;
+
+	edict_t* m_pEquipEnt;
+
+	std::vector <DecalList*> m_pDecalList;
+	std::vector <StartAmmo*> m_pStartAmmoList;
+	std::vector <VirtualHookData*>	m_pBlockedItemsList;
+
+	void	InitGameMod			(void);
+	void	SetConfigFile		(void);
+	char*	GetConfigFile		(void)	{ return &m_cfgpath[0]; };
+	bool	IsInited			(void)	{ return m_bInited; };
+
+	SUBMOD	GetSubMod			(void)	{ return m_GameMod; };
+	SUBMOD	CheckSubMod			(const char* game);
+
+	void	ServerActivate		(void);
+	void	ServerShutDown		(void);
+	void	ServerDeactivate	(void);
+	void	ManageEquipment		(void);
+	void	LoadBlackList		(void);
+
+	void	DecalPushList		(const char *name);
+	bool	IsItemBlocked		(const char *name);
+	bool	CheckSlots			(int iWeaponID);
+
+	static void ServerCommand	(void);
+	static bool ClientCommand	(edict_t *pEntity);
+
+	void WeaponMarkAsCustom		(int iId)	{ m_WeaponsInfo[iId].m_WpnType = Wpn_Custom; };
+	void WeaponMarkAsDefault	(int iId)	{ m_WeaponsInfo[iId].m_WpnType = Wpn_Default; };
+
+	bool WeaponIsCustom		(int iId)	{ return m_WeaponsInfo[iId].m_WpnType == Wpn_Custom; };
+	bool WeaponIsDefault	(int iId)	{ return m_WeaponsInfo[iId].m_WpnType == Wpn_Default; };
 
 	int WeaponRegisterForward(int iId, e_WpnFwds fwdType, AMX *amx, const char * pFuncName)
 	{
@@ -282,48 +309,13 @@ public:
 		);
 	}
 
-	int WeaponGetForward(int iId, e_WpnFwds fwdType) { return m_WeaponsInfo[iId].m_AmxxForwards[fwdType]; }
+	int WeaponGetForward(int iId, e_WpnFwds fwdType)
+	{
+		return m_WeaponsInfo[iId].m_AmxxForwards[fwdType];
+	}
 
-
-	CConfig();
-
-	int** m_pCurrentSlots;
-	int m_iMaxWeaponSlots;
-	int m_iMaxWeaponPositions;
-
-	bool m_bWpnBoxModels;
-	int m_iWpnBoxLifeTime;
-	int m_iWpnBoxRenderColor;
-
-	bool m_bCrowbarHooked;
-	bool m_bAmmoBoxHooked;
-
-	edict_t* m_pEquipEnt;
-
-	std::vector <DecalList*> m_pDecalList;
-	std::vector <StartAmmo*> m_pStartAmmoList;
-	std::vector <VirtualHookData*>	m_pBlockedItemsList;
-
-	void	InitGameMod			(void);
-	void	SetConfigFile		(void);
-	char*	GetConfigFile		(void)	{ return &m_cfgpath[0]; };
-	bool	IsInited			(void)	{ return m_bInited; };
-
-	SUBMOD	GetSubMod			(void)	{ return m_GameMod; };
-	SUBMOD	CheckSubMod			(const char* game);
-
-	void	ServerActivate		(void);
-	void	ServerShutDown		(void);
-	void	ServerDeactivate	(void);
-	void	ManageEquipment		(void);
-	void	LoadBlackList		(void);
-
-	void	DecalPushList		(const char *name);
-	bool	IsItemBlocked		(const char *name);
-	bool	CheckSlots			(int iWeaponID);
-
-	static void ServerCommand	(void);
-	static bool ClientCommand	(edict_t *pEntity);
+	void WeaponSaveModel	(int iId);
+	void WeaponRestoreModel	(int iId, edict_t* pEntity);
 };
 
 extern CConfig g_Config;

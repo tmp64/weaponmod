@@ -87,7 +87,7 @@ void WpnMod_Precache(void)
 		{
 			printf2("!!!!!! Default: %d %s\n", i, WEAPON_GET_NAME(i));
 
-			WeaponInfoArray[i].iType = Wpn_Default;
+			WEAPON_MAKE_DEFAULT(i);
 
 			g_Config.m_pCurrentSlots[WEAPON_GET_SLOT(i)][WEAPON_GET_SLOT_POSITION(i)] = 1;
 		}

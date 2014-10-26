@@ -1111,7 +1111,7 @@ void CMemory::EnableShieldHitboxTracing(void)
 
 	for (int i = 1; i < MAX_WEAPONS; i++)
 	{
-		if (WeaponInfoArray[i].iType == Wpn_Custom && !stricmp(WEAPON_GET_NAME(i), "weapon_shield"))
+		if (WEAPON_IS_CUSTOM(i) && !stricmp(WEAPON_GET_NAME(i), "weapon_shield"))
 		{
 			bShieldRegistered = true;
 			break;

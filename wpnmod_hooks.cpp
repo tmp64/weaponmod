@@ -111,7 +111,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 
 	int iId = GetPrivateInt(pWeapon, pvData_iId);
 
-	if (WeaponInfoArray[iId].iType == Wpn_Default || !WEAPON_FORWARD_EXISTS(iId, Fwd_Wpn_CanDeploy))
+	if (WEAPON_IS_DEFAULT(iId) || !WEAPON_FORWARD_EXISTS(iId, Fwd_Wpn_CanDeploy))
 	{
 		return CAN_DEPLOY(pvItem);
 	}
@@ -142,7 +142,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 
 	int iId = GetPrivateInt(pWeapon, pvData_iId);
 
-	if (WeaponInfoArray[iId].iType == Wpn_Default)
+	if (WEAPON_IS_DEFAULT(iId))
 	{
 		return DEPLOY(pvItem);
 	}
@@ -188,7 +188,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 
 	iId = GetPrivateInt(pWeapon, pvData_iId);
 
-	if (WeaponInfoArray[iId].iType == Wpn_Default)
+	if (WEAPON_IS_DEFAULT(iId))
 	{
 		ITEM_POST_FRAME(pvItem);
 		return;
@@ -297,7 +297,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 
 	int iId = GetPrivateInt(pWeapon, pvData_iId);
 
-	if (WeaponInfoArray[iId].iType == Wpn_Default || !WEAPON_FORWARD_EXISTS(iId, Fwd_Wpn_IsUseable))
+	if (WEAPON_IS_DEFAULT(iId) || !WEAPON_FORWARD_EXISTS(iId, Fwd_Wpn_IsUseable))
 	{
 		return IS_USEABLE(pvItem);
 	}
@@ -328,7 +328,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 
 	int iId = GetPrivateInt(pWeapon, pvData_iId);
 
-	if (WeaponInfoArray[iId].iType == Wpn_Default || !WEAPON_FORWARD_EXISTS(iId, Fwd_Wpn_CanHolster))
+	if (WEAPON_IS_DEFAULT(iId) || !WEAPON_FORWARD_EXISTS(iId, Fwd_Wpn_CanHolster))
 	{
 		return CAN_HOLSTER(pvItem);
 	}
@@ -359,7 +359,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 
 	int iId = GetPrivateInt(pWeapon, pvData_iId);
 
-	if (WeaponInfoArray[iId].iType == Wpn_Default)
+	if (WEAPON_IS_DEFAULT(iId))
 	{
 		HOLSTER(pvItem);
 		return;
@@ -397,7 +397,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 	int iId = GetPrivateInt(pWeapon, pvData_iId);
 	edict_t* pPlayer = PrivateToEdict(pvPlayer);
 
-	if (WeaponInfoArray[iId].iType == Wpn_Custom && IsValidPev(pPlayer))
+	if (WEAPON_IS_CUSTOM(iId) && IsValidPev(pPlayer))
 	{
 		if (!stricmp(STRING(pWeapon->v.classname), gWeaponReference))
 		{
@@ -444,7 +444,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 
 	int iId = GetPrivateInt(pWeapon, pvData_iId);
 
-	if (WeaponInfoArray[iId].iType == Wpn_Custom)
+	if (WEAPON_IS_CUSTOM(iId))
 	{
 		// Opposing Force magic, lol.
 		if (WEAPON_GET_SLOT(iId) >= 6)
@@ -474,7 +474,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 
 	int iId = GetPrivateInt(pWeapon, pvData_iId);
 
-	if (WeaponInfoArray[iId].iType == Wpn_Default)
+	if (WEAPON_IS_DEFAULT(iId))
 	{
 		return RESPAWN(pvItem);
 	}
@@ -942,43 +942,10 @@ void WorldPrecache_HookHandler(void)
 
 	int iId = GetPrivateInt(pWeaponEnt, pvData_iId);
 
-	if (g_Config.m_bWpnBoxModels && WeaponInfoArray[iId].worldModel.empty())
+	if (g_Config.m_bWpnBoxModels)
 	{
-		edict_t* pTempEntity = NULL;
-
-		if (WeaponInfoArray[iId].iType == Wpn_Default)
-		{
-			pTempEntity = CREATE_NAMED_ENTITY(pWeaponEnt->v.classname);
-		}
-		else
-		{
-			pTempEntity = Wpnmod_SpawnItem(STRING(pWeaponEnt->v.classname), Vector(0, 0, 0), Vector(0, 0, 0));
-		}
-
-		if (!IsValidPev(pTempEntity))
-		{
-			return iResult;
-		}
-
-		if (WeaponInfoArray[iId].iType == Wpn_Default)
-		{
-			MDLL_Spawn(pTempEntity);
-		}
-
-		WeaponInfoArray[iId].iWorldBody = pTempEntity->v.body;
-		WeaponInfoArray[iId].iWorldSeq = pTempEntity->v.sequence;
-		WeaponInfoArray[iId].worldModel.assign(STRING(pTempEntity->v.model));
-
-		UTIL_RemoveEntity(pTempEntity);
-	}
-
-	if (g_Config.m_bWpnBoxModels && !WeaponInfoArray[iId].worldModel.empty())
-	{
-		pWeaponBox->v.body = WeaponInfoArray[iId].iWorldBody;
-		pWeaponBox->v.sequence = WeaponInfoArray[iId].iWorldSeq;
-		pWeaponBox->v.framerate = 1.0;
-
-		SET_MODEL(pWeaponBox, WeaponInfoArray[iId].worldModel.c_str());
+		WEAPON_SAVE_WORLD_MODEL(iId);
+		WEAPON_RESTORE_WORLD_MODEL(iId, pWeaponBox);
 	}
 
 	return 1;
@@ -992,7 +959,7 @@ void* WpnMod_GetDispatch(char *pname)
 	// Entity exists in gamedll
 	if (pDispatch != NULL)
 	{
-		// Return her original address
+		// Return original address
 		return pDispatch;
 	}
 
@@ -1019,6 +986,7 @@ void* WpnMod_GetDispatch(char *pname)
 	}
 
 	// Try another ways here
+	// Later...
 	return NULL;
 }
 
@@ -1064,19 +1032,9 @@ qboolean CallGameEntity_HookHandler(plid_t plid, const char *entStr, entvars_t *
 
 void UpdateClientData_Post(const struct edict_s *ent, int sendweapons, struct clientdata_s *cd)
 {
-	if (IsValidPev(ent))
+	if (WEAPON_IS_CUSTOM(cd->m_iId))
 	{
-		edict_t *pActiveItem = GetPrivateCbase((edict_t*)ent, pvData_pActiveItem);
-
-		if (IsValidPev(pActiveItem))
-		{
-			int iId = GetPrivateInt(pActiveItem, pvData_iId);
-
-			if (WeaponInfoArray[iId].iType == Wpn_Custom)
-			{
-				cd->m_iId = 0;
-			}
-		}
+		cd->m_iId = 0;
 	}
 
 	RETURN_META(MRES_IGNORED);

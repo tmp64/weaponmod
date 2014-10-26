@@ -66,6 +66,8 @@ CConfig::CConfig()
 
 	m_GameMod = SUBMOD_UNKNOWN;
 	m_pEquipEnt = NULL;
+
+	memset(m_WeaponsInfo, 0, sizeof(m_WeaponsInfo));
 };
 
 void CConfig::InitGameMod(void)
@@ -378,6 +380,51 @@ bool CConfig::IsItemBlocked(const char *name)
 	return false;
 }
 
+void CConfig::WeaponSaveModel(int iId)
+{
+	if (!m_WeaponsInfo[iId].m_ModelInfo.strModel.empty())
+	{
+		return;
+	}
+
+	edict_t* pTempEntity = NULL;
+
+	if (WeaponIsDefault(iId))
+	{
+		pTempEntity = CREATE_NAMED_ENTITY(MAKE_STRING(WEAPON_GET_NAME(iId)));
+	}
+	else
+	{
+		pTempEntity = Wpnmod_SpawnItem(WEAPON_GET_NAME(iId), Vector(0, 0, 0), Vector(0, 0, 0));
+	}
+
+	if (!IsValidPev(pTempEntity))
+	{
+		return;
+	}
+
+	if (WeaponIsDefault(iId))
+	{
+		MDLL_Spawn(pTempEntity);
+	}
+
+	m_WeaponsInfo[iId].m_ModelInfo.strModel.assign(STRING(pTempEntity->v.model));
+	m_WeaponsInfo[iId].m_ModelInfo.iBody = pTempEntity->v.body;
+	m_WeaponsInfo[iId].m_ModelInfo.iSeq = pTempEntity->v.sequence;
+}
+
+void CConfig::WeaponRestoreModel(int iId, edict_t* pEntity)
+{
+	if (!m_WeaponsInfo[iId].m_ModelInfo.strModel.empty())
+	{
+		pEntity->v.body = m_WeaponsInfo[iId].m_ModelInfo.iBody;
+		pEntity->v.sequence = m_WeaponsInfo[iId].m_ModelInfo.iSeq;
+		pEntity->v.framerate = 1.0;
+
+		SET_MODEL(pEntity, m_WeaponsInfo[iId].m_ModelInfo.strModel.c_str());
+	}
+}
+
 void CConfig::ServerCommand(void)
 {
 	const char *cmd = CMD_ARGV(1);
@@ -414,7 +461,7 @@ void CConfig::ServerCommand(void)
 
 		for (i = 1; i < MAX_WEAPONS; i++)
 		{
-			if (WeaponInfoArray[i].iType == Wpn_Custom)
+			if (WEAPON_IS_CUSTOM(i))
 			{
 				items++;
 				printf2(" [%2d] %-23.22s\n", ++weapons, WEAPON_GET_NAME(i));
@@ -533,7 +580,7 @@ bool CConfig::ClientCommand(edict_t *pEntity)
 
 		for (i = 1; i < MAX_WEAPONS; i++)
 		{
-			if (WeaponInfoArray[i].iType == Wpn_Custom)
+			if (WEAPON_IS_CUSTOM(i))
 			{
 				sprintf(buf, " [%2d] %-23.22s\n", ++weapons, WEAPON_GET_NAME(i));
 				CLIENT_PRINT(pEntity, print_console, buf);

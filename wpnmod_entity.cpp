@@ -58,7 +58,7 @@ edict_t* Weapon_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles)
 
 	for (int i = 1; i < MAX_WEAPONS; i++)
 	{
-		if (WeaponInfoArray[i].iType == Wpn_Custom && !_stricmp(WEAPON_GET_NAME(i), szName))
+		if (WEAPON_IS_CUSTOM(i) && !_stricmp(WEAPON_GET_NAME(i), szName))
 		{
 			iId = i;
 			break;
