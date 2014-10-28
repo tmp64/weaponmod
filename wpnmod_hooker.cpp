@@ -143,98 +143,6 @@ int FindModuleByAddr (void *addr, module *lib)
 }
 #endif
 
-void *FindFunction(module *lib, signature sig)
-{
-	if (!lib || !sig.text[0])
-	{
-		return NULL;
-	}
-
-	unsigned char *pBuff = (unsigned char *)lib->base;
-	unsigned char *pEnd = (unsigned char *)lib->base+lib->size-sig.size;
-
-	unsigned long i;
-
-	while (pBuff < pEnd)
-	{
-		for (i = 0; i < sig.size; i++)
-		{
-			if ((sig.mask[i] != '?') && ((unsigned char)(sig.text[i]) != pBuff[i]))
-				break;
-		}
-
-		if (i == sig.size)
-		{
-			return (void*)pBuff;
-		}
-
-		pBuff++;
-	}
-	
-	return NULL;
-}
-
-size_t FindFunction(module *lib, const unsigned char *pattern, const char *mask)
-{
-	if (!lib)
-	{
-		return NULL;
-	}
-
-	size_t pattern_len = strlen(mask);
-
-	unsigned char *pBuff = (unsigned char *)lib->base;
-	unsigned char *pEnd = (unsigned char *)lib->base + lib->size - pattern_len;
-
-	unsigned long i;
-
-	while (pBuff < pEnd)
-	{
-		for (i = 0; i < pattern_len; i++)
-		{
-			if ((mask[i] != '?') && ((unsigned char)(pattern[i]) != pBuff[i]))
-			{
-				break;
-			}
-		}
-
-		if (i == pattern_len)
-		{
-			return (size_t)(void*)pBuff;
-		}
-
-		pBuff++;
-	}
-
-	return NULL;
-}
-
-void *FindFunction(module *lib, const char *name)
-{
-	if (!lib)
-	{
-		return NULL;
-	}
-
-	return DLSYM((DLHANDLE)lib->handler, name);
-}
-
-void *FindFunction(function *func)
-{
-	if (!func)
-	{
-		return NULL;
-	}
-
-	void *address = NULL;
-	if (NULL == (address = FindFunction(func->lib, func->name)))
-	{
-		return FindFunction(func->lib, func->sig);
-	}
-
-	return address;
-}
-
 bool SetHook(function *func)
 {
 	if (!AllowWriteToMemory(func->address))
@@ -262,11 +170,6 @@ int CreateFunctionHook(function *func)
 	if (!func)
 	{
 		return 0;
-	}
-
-	if (!func->address)
-	{
-		func->address = (unsigned char*)FindFunction(func);
 	}
 
 	if (func->address && func->handler)
@@ -323,6 +226,16 @@ size_t FindStringInDLL(size_t start, size_t end, const char *string)
 	}
 
 	return NULL;
+}
+
+size_t FindAdressInDLL(module *lib, const char *name)
+{
+	if (!lib)
+	{
+		return NULL;
+	}
+
+	return (size_t)DLSYM((DLHANDLE)lib->handler, name);
 }
 
 size_t FindAdressInDLL(size_t start, size_t end, unsigned char *pattern, char *mask)

@@ -60,10 +60,6 @@ CConfig::CConfig()
 	m_iMaxWeaponSlots = 5;
 	m_iMaxWeaponPositions = 5;
 
-	m_bWpnBoxModels = false;
-	m_iWpnBoxLifeTime = 120;
-	m_iWpnBoxRenderColor = NULL;
-
 	m_GameMod = SUBMOD_UNKNOWN;
 	m_pEquipEnt = NULL;
 
@@ -157,11 +153,6 @@ void CConfig::ServerActivate(void)
 
 	g_Memory.EnableShieldHitboxTracing();
 
-	if (ParseSection(GetConfigFile(), "[weaponbox]", (void*)OnParseWeaponbox, ':'))
-	{
-		g_Memory.EnableWeaponboxModels();
-	}
-
 	SetHookVirtual(&g_PlayerSpawn_Hook);
 	SetHookVirtual(&g_PlayerPostThink_Hook);
 }
@@ -210,19 +201,11 @@ void CConfig::ServerDeactivate(void)
 		UnsetHookVirtual(&g_CrowbarHooks[i]);
 	}
 
-	if (g_fh_funcPackWeapon.done)
-	{
-		UnsetHook(&g_fh_funcPackWeapon);
-	}
-
-	m_pEquipEnt = NULL;
-	g_fh_funcPackWeapon.address = NULL;
-
 	UnsetHookVirtual(&g_RpgAddAmmo_Hook);
 	UnsetHookVirtual(&g_PlayerSpawn_Hook);
 	UnsetHookVirtual(&g_PlayerPostThink_Hook);
 
-	m_iWpnBoxLifeTime = 120;
+	m_pEquipEnt = NULL;
 }
 
 void CConfig::ServerShutDown(void)
@@ -378,51 +361,6 @@ bool CConfig::IsItemBlocked(const char *name)
 	}
 
 	return false;
-}
-
-void CConfig::WeaponSaveModel(int iId)
-{
-	if (!m_WeaponsInfo[iId].m_ModelInfo.strModel.empty())
-	{
-		return;
-	}
-
-	edict_t* pTempEntity = NULL;
-
-	if (WeaponIsDefault(iId))
-	{
-		pTempEntity = CREATE_NAMED_ENTITY(MAKE_STRING(WEAPON_GET_NAME(iId)));
-	}
-	else
-	{
-		pTempEntity = Wpnmod_SpawnItem(WEAPON_GET_NAME(iId), Vector(0, 0, 0), Vector(0, 0, 0));
-	}
-
-	if (!IsValidPev(pTempEntity))
-	{
-		return;
-	}
-
-	if (WeaponIsDefault(iId))
-	{
-		MDLL_Spawn(pTempEntity);
-	}
-
-	m_WeaponsInfo[iId].m_ModelInfo.strModel.assign(STRING(pTempEntity->v.model));
-	m_WeaponsInfo[iId].m_ModelInfo.iBody = pTempEntity->v.body;
-	m_WeaponsInfo[iId].m_ModelInfo.iSeq = pTempEntity->v.sequence;
-}
-
-void CConfig::WeaponRestoreModel(int iId, edict_t* pEntity)
-{
-	if (!m_WeaponsInfo[iId].m_ModelInfo.strModel.empty())
-	{
-		pEntity->v.body = m_WeaponsInfo[iId].m_ModelInfo.iBody;
-		pEntity->v.sequence = m_WeaponsInfo[iId].m_ModelInfo.iSeq;
-		pEntity->v.framerate = 1.0;
-
-		SET_MODEL(pEntity, m_WeaponsInfo[iId].m_ModelInfo.strModel.c_str());
-	}
 }
 
 void CConfig::ServerCommand(void)

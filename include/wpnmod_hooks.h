@@ -99,24 +99,15 @@
 
 #ifdef WIN32
 
-	typedef int		(__fastcall *FuncPackWeapon)				(void*, DUMMY, void*);
 	typedef void	(__fastcall *FuncSetAnimation)				(void*, DUMMY, int);
 	typedef void	(__fastcall *FuncFallthink)					(void*);
 	typedef void	(__fastcall *FuncAmmoSpawn)					(void*);
 	typedef void	(__fastcall *FuncItemSpawn)					(void*);
 
-	int		__fastcall	PackWeapon_HookHandler					(void* pvWpnBox, int DUMMY, void* pvWeapon);
 	void	__fastcall	GiveNamedItem_HookHandler				(void* pvPlayer, int DUMMY, const char* szName);
 	void	__fastcall	CBasePlayerItem_FallThink_HookHandler	(void *pvItem);
 	void	__fastcall	CBasePlayerAmmoSpawn_HookHandler		(void *pvItem);
 	void	__fastcall	CItemSpawn_HookHandler					(void *pvItem);
-
-	// BOOL CWeaponBox::PackWeapon(CBasePlayerItem *pWeapon)
-	//
-		inline int WEAPONBOX_PACK_WEAPON(void* pvWpnBox, void* pvWeapon)
-		{
-			return reinterpret_cast<FuncPackWeapon>(g_fh_funcPackWeapon.address)(pvWpnBox, DUMMY_VAL, pvWeapon);
-		}
 
 	// void SetAnimation(PLAYER_ANIM playerAnim);
 	//
@@ -127,24 +118,15 @@
 
 #else
 
-	typedef int		(*FuncPackWeapon)			(void*, void*);
 	typedef void	(*FuncSetAnimation)			(void*, int);
 	typedef void	(*FuncFallthink)			(void*);
 	typedef void	(*FuncAmmoSpawn)			(void*);
 	typedef void	(*FuncItemSpawn)			(void*);
 
-	int		PackWeapon_HookHandler					(void *pvWpnBox, void *pvWeapon);
 	void	GiveNamedItem_HookHandler				(void* pvPlayer, const char *szName);
 	void	CBasePlayerItem_FallThink_HookHandler	(void *pvItem);
 	void	CBasePlayerAmmoSpawn_HookHandler		(void *pvItem);
 	void	CItemSpawn_HookHandler					(void *pvItem);
-
-	// BOOL CWeaponBox::PackWeapon(CBasePlayerItem *pWeapon)
-	//
-		inline int WEAPONBOX_PACK_WEAPON(void* pvWpnBox, void* pvWeapon)
-		{
-			return reinterpret_cast<FuncPackWeapon>(g_fh_funcPackWeapon.address)(pvWpnBox,  pvWeapon);
-		}
 
 	// void SetAnimation(PLAYER_ANIM playerAnim);
 	//

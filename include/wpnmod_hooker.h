@@ -64,20 +64,10 @@ struct module
 	void*	handler;
 };
 
-struct signature
-{
-	const char*		text;
-	const char*		mask;
-	size_t			size;
-};
-
 struct function
 {
 	const char*		name;
 
-	module*			lib;
-	signature		sig;
-	
 	void*			address;
 	void*			handler;
 
@@ -91,11 +81,7 @@ bool	SetHook					(function *func);
 bool	UnsetHook				(function *func);
 bool	AllowWriteToMemory		(void *address);
 
-void*	FindFunction			(function *func);
-void*	FindFunction			(module *lib, signature sig);
-void*	FindFunction			(module *lib, const char *name);
-size_t	FindFunction			(module *lib, const unsigned char *pattern, const char *mask);
-
+size_t	FindAdressInDLL			(module *lib, const char *name);
 size_t	FindAdressInDLL			(size_t start, size_t end, unsigned char *pattern, char *mask);
 size_t	FindStringInDLL			(size_t start, size_t end, const char *string);
 

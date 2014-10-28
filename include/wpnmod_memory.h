@@ -44,10 +44,10 @@
 	#define SERVER_OS "Windows"
 #endif
 
-#define HOOK_FUNC(call)										\
-{															\
-	"", NULL, {"", "", 0}, NULL, (void*)call, {}, {}, 0,	\
-}															\
+#define HOOK_FUNC(call)					\
+{										\
+	"",  NULL, (void*)call, {}, {}, 0,	\
+}										\
 
 #define GET_AMMO_INDEX				g_Memory.GetAmmoIndex
 #define REGISTER_AMMO_INFO			g_Memory.AddAmmoNameToAmmoRegistry
@@ -123,7 +123,6 @@ public:
 	AmmoInfo* m_pAmmoInfoArray;
 
 	void* m_pSubRemove;
-	void* m_pWpnBoxKillThink;
 	void* m_pClearMultiDamage;
 	void* m_pApplyMultiDamage;
 	void* m_pPlayerSetAnimation;
@@ -132,7 +131,6 @@ public:
 	bool Init(void);
 	void UnsetHooks(void);
 
-	void Parse_GameRules(void);
 	void Parse_SubRemove(void);
 	void Parse_FallThink(void);
 	void Parse_SetAnimation(void);
@@ -146,7 +144,6 @@ public:
 	void Parse_WorldPrecache(void);
 	void Parse_InfoArrays(void);
 
-	void EnableWeaponboxModels(void);
 	void EnableShieldHitboxTracing(void);
 
 	bool IsNewGCC(void) { return m_bIsNewGCC; };
@@ -197,7 +194,6 @@ public:
 extern CMemory g_Memory;
 
 extern function g_fh_GiveNamedItem;
-extern function g_fh_funcPackWeapon;
 extern function g_fh_FallThink;
 extern function g_fh_AmmoSpawn;
 extern function g_fh_ItemSpawn;

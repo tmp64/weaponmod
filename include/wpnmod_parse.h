@@ -40,7 +40,6 @@
 extern	void	ParseBSP				(void);
 extern	void	ParseSpawnPoints		(void);
 
-extern	void	OnParseWeaponbox		(std::string key, std::string value);
 extern	void	OnParseStartAmmos		(std::string item, std::string count);
 extern	void	OnParseStartEquipments	(std::string item, std::string count);
 extern	void	OnParseBlockedItems		(std::string dummy, std::string BlockedItem);

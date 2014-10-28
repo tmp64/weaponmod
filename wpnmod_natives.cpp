@@ -878,7 +878,7 @@ namespace NewNatives
 			{
 				if (!stricmp(WEAPON_GET_NAME(iId), szWeaponName))
 				{
-					WPNMOD_LOG("Warning: \"%s\" already registered!\n", szWeaponName);
+					WPNMOD_LOG("Error: \"%s\" already registered!\n", szWeaponName);
 					WPNMOD_LOG("Warning: amxx plugin \"%s\" stopped.\n", plugin->name.c_str());
 					STOP_AMXX_PLUGIN(amx);
 					return 0;

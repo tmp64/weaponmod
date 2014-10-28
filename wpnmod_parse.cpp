@@ -116,22 +116,6 @@ void OnParseStartAmmos(std::string item, std::string count)
 	g_Config.m_pStartAmmoList.push_back(p);
 }
 
-void OnParseWeaponbox(std::string key, std::string value)
-{
-	if (!strcmp(key.c_str(), "setmodel"))
-	{
-		g_Config.m_bWpnBoxModels = atoi(value.c_str()) > 0 ? true : false;
-	}
-	else if (!strcmp(key.c_str(), "rendercolor"))
-	{
-		g_Config.m_iWpnBoxRenderColor = atoi(value.c_str());
-	}
-	else if (!strcmp(key.c_str(), "lifetime"))
-	{
-		g_Config.m_iWpnBoxLifeTime = atoi(value.c_str());
-	}
-}
-
 void OnParseBlockedItems(std::string dummy, std::string BlockedItem)
 {
 	VirtualHookData *p = new VirtualHookData;

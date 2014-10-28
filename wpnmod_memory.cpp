@@ -37,7 +37,6 @@
 CMemory g_Memory;
 
 function g_fh_GiveNamedItem			= HOOK_FUNC(GiveNamedItem_HookHandler);
-function g_fh_funcPackWeapon		= HOOK_FUNC(PackWeapon_HookHandler);
 function g_fh_FallThink				= HOOK_FUNC(CBasePlayerItem_FallThink_HookHandler);
 function g_fh_AmmoSpawn				= HOOK_FUNC(CBasePlayerAmmoSpawn_HookHandler);
 function g_fh_ItemSpawn				= HOOK_FUNC(CItemSpawn_HookHandler);
@@ -50,7 +49,6 @@ CMemory::CMemory()
 	m_bIsNewGCC = false;
 
 	m_pSubRemove = NULL;
-	m_pWpnBoxKillThink = NULL;
 	m_pClearMultiDamage = NULL;
 	m_pApplyMultiDamage = NULL;
 	m_pPlayerSetAnimation = NULL;
@@ -133,12 +131,12 @@ void CMemory::Parse_ClearMultiDamage(void)
 
 #ifdef __linux__
 
-	size_t pAdress	= (size_t)FindFunction(&m_GameDllModule, "ClearMultiDamage__Fv");
+	size_t pAdress	= FindAdressInDLL(&m_GameDllModule, "ClearMultiDamage__Fv");
 
 	if (!pAdress)
 	{
 		m_bIsNewGCC = true;
-		pAdress	= (size_t)FindFunction(&m_GameDllModule, "_Z16ClearMultiDamagev");
+		pAdress	= FindAdressInDLL(&m_GameDllModule, "_Z16ClearMultiDamagev");
 	}
 
 	if (!pAdress)
@@ -152,7 +150,7 @@ void CMemory::Parse_ClearMultiDamage(void)
 
 #else
 
-	size_t pAdress = (size_t)FindFunction(&m_GameDllModule, "?SuperBounceTouch@CSqueakGrenade@@AAEXPAVCBaseEntity@@@Z");
+	size_t pAdress = (size_t)FindAdressInDLL(&m_GameDllModule, "?SuperBounceTouch@CSqueakGrenade@@AAEXPAVCBaseEntity@@@Z");
 
 	char			mask[]			= "x?????x?????x";
 	unsigned char	pattern[]		= "\x3B\x00\x00\x00\x00\x00\x0F\x00\x00\x00\x00\x00\xE8";
@@ -184,11 +182,11 @@ void CMemory::Parse_ApplyMultiDamage(void)
 
 #ifdef __linux__
 
-	size_t pAdress	= (size_t)FindFunction(&m_GameDllModule, "ApplyMultiDamage__FP9entvars_sT0");
+	size_t pAdress	= FindAdressInDLL(&m_GameDllModule, "ApplyMultiDamage__FP9entvars_sT0");
 
 	if (!pAdress)
 	{
-		pAdress	= (size_t)FindFunction(&m_GameDllModule, "_Z16ApplyMultiDamageP9entvars_sS0_");
+		pAdress	= FindAdressInDLL(&m_GameDllModule, "_Z16ApplyMultiDamageP9entvars_sS0_");
 	}
 
 	if (!pAdress)
@@ -202,7 +200,7 @@ void CMemory::Parse_ApplyMultiDamage(void)
 
 #else
 
-	size_t pAdress	= (size_t)FindFunction(&m_GameDllModule, "?SuperBounceTouch@CSqueakGrenade@@AAEXPAVCBaseEntity@@@Z");
+	size_t pAdress = (size_t)FindAdressInDLL(&m_GameDllModule, "?SuperBounceTouch@CSqueakGrenade@@AAEXPAVCBaseEntity@@@Z");
 
 	char				mask[]				= "xxx????x";
 	unsigned char		pattern[]			= "\x50\x50\xE8\x00\x00\x00\x00\x8B";
@@ -234,11 +232,11 @@ void CMemory::Parse_GiveNamedItem(void)
 
 #ifdef __linux__
 
-	size_t pAdress	= (size_t)FindFunction(&m_GameDllModule, "GiveNamedItem__11CBasePlayerPCc");
+	size_t pAdress = FindAdressInDLL(&m_GameDllModule, "GiveNamedItem__11CBasePlayerPCc");
 
 	if (!pAdress)
 	{
-		pAdress	= (size_t)FindFunction(&m_GameDllModule, "_ZN11CBasePlayer13GiveNamedItemEPKc");
+		pAdress	= FindAdressInDLL(&m_GameDllModule, "_ZN11CBasePlayer13GiveNamedItemEPKc");
 	}
 
 	if (!pAdress)
@@ -285,11 +283,11 @@ void CMemory::Parse_SetAnimation(void)
 
 #ifdef __linux__
 
-	size_t pAdress	= (size_t)FindFunction(&m_GameDllModule, "SetAnimation__11CBasePlayer11PLAYER_ANIM");
+	size_t pAdress = FindAdressInDLL(&m_GameDllModule, "SetAnimation__11CBasePlayer11PLAYER_ANIM");
 
 	if (!pAdress)
 	{
-		pAdress	= (size_t)FindFunction(&m_GameDllModule, "_ZN11CBasePlayer12SetAnimationE11PLAYER_ANIM");
+		pAdress	= FindAdressInDLL(&m_GameDllModule, "_ZN11CBasePlayer12SetAnimationE11PLAYER_ANIM");
 	}
 
 	if (!pAdress)
@@ -364,15 +362,15 @@ void CMemory::Parse_SubRemove(void)
 
 #ifdef WIN32
 
-	void* pAdress = (void*)FindFunction(&m_GameDllModule, "?SUB_Remove@CBaseEntity@@QAEXXZ");
+	void* pAdress = (void*)FindAdressInDLL(&m_GameDllModule, "?SUB_Remove@CBaseEntity@@QAEXXZ");
 
 #else
 
-	void* pAdress = (void*)FindFunction(&m_GameDllModule, "SUB_Remove__11CBaseEntity");
+	void* pAdress = (void*)FindAdressInDLL(&m_GameDllModule, "SUB_Remove__11CBaseEntity");
 
 	if (!pAdress)
 	{
-		pAdress = (void*)FindFunction(&m_GameDllModule, "_ZN11CBaseEntity10SUB_RemoveEv");
+		pAdress = (void*)FindAdressInDLL(&m_GameDllModule, "_ZN11CBaseEntity10SUB_RemoveEv");
 	}
 
 #endif
@@ -395,15 +393,15 @@ void CMemory::Parse_FallThink(void)
 
 #ifdef WIN32
 
-	void* pAdress = (void*)FindFunction(&m_GameDllModule, "?FallThink@CBasePlayerItem@@QAEXXZ");
+	void* pAdress = (void*)FindAdressInDLL(&m_GameDllModule, "?FallThink@CBasePlayerItem@@QAEXXZ");
 
 #else
 
-	void* pAdress = (void*)FindFunction(&m_GameDllModule, "FallThink__15CBasePlayerItem");
+	void* pAdress = (void*)FindAdressInDLL(&m_GameDllModule, "FallThink__15CBasePlayerItem");
 
 	if (!pAdress)
 	{
-		pAdress = (void*)FindFunction(&m_GameDllModule, "_ZN15CBasePlayerItem9FallThinkEv");
+		pAdress = (void*)FindAdressInDLL(&m_GameDllModule, "_ZN15CBasePlayerItem9FallThinkEv");
 	}
 
 #endif
@@ -435,11 +433,11 @@ void CMemory::Parse_AmmoSpawn(void)
 
 #ifdef __linux__
 
-	size_t pAdress = (size_t)FindFunction(&m_GameDllModule, "Spawn__15CBasePlayerAmmo");
+	size_t pAdress = FindAdressInDLL(&m_GameDllModule, "Spawn__15CBasePlayerAmmo");
 
 	if (!pAdress)
 	{
-		pAdress = (size_t)FindFunction(&m_GameDllModule, "_ZN15CBasePlayerAmmo5SpawnEv");
+		pAdress = FindAdressInDLL(&m_GameDllModule, "_ZN15CBasePlayerAmmo5SpawnEv");
 	}
 
 	if (!pAdress)
@@ -535,11 +533,11 @@ void CMemory::Parse_ItemSpawn(void)
 
 #ifdef __linux__
 
-	size_t pAdress = (size_t)FindFunction(&m_GameDllModule, "Spawn__5CItem");
+	size_t pAdress = FindAdressInDLL(&m_GameDllModule, "Spawn__5CItem");
 
 	if (!pAdress)
 	{
-		pAdress = (size_t)FindFunction(&m_GameDllModule, "_ZN5CItem5SpawnEv");
+		pAdress = FindAdressInDLL(&m_GameDllModule, "_ZN5CItem5SpawnEv");
 	}
 
 	if (!pAdress)
@@ -636,11 +634,11 @@ void CMemory::Parse_WorldPrecache(void)
 
 #ifdef __linux__
 
-	size_t pAdress = (size_t)FindFunction(&m_GameDllModule, "W_Precache__Fv");
+	size_t pAdress = FindAdressInDLL(&m_GameDllModule, "W_Precache__Fv");
 
 	if (!pAdress)
 	{
-		pAdress = (size_t)FindFunction(&m_GameDllModule, "_Z10W_Precachev");
+		pAdress = FindAdressInDLL(&m_GameDllModule, "_Z10W_Precachev");
 	}
 
 	if (!pAdress)
@@ -751,11 +749,11 @@ void CMemory::Parse_InfoArrays(void)
 
 #ifdef __linux__
 
-	size_t pAdress = (size_t)FindFunction(&m_GameDllModule, "_15CBasePlayerItem.ItemInfoArray");
+	size_t pAdress = FindAdressInDLL(&m_GameDllModule, "_15CBasePlayerItem.ItemInfoArray");
 
 	if (!pAdress)
 	{
-		pAdress = (size_t)FindFunction(&m_GameDllModule, "_ZN15CBasePlayerItem13ItemInfoArrayE");
+		pAdress = FindAdressInDLL(&m_GameDllModule, "_ZN15CBasePlayerItem13ItemInfoArrayE");
 	}
 
 	if (!pAdress)
@@ -832,11 +830,11 @@ void CMemory::Parse_InfoArrays(void)
 
 #ifdef __linux__
 
-	pAdress = (size_t)FindFunction(&m_GameDllModule, "_15CBasePlayerItem.AmmoInfoArray");
+	pAdress = FindAdressInDLL(&m_GameDllModule, "_15CBasePlayerItem.AmmoInfoArray");
 
 	if (!pAdress)
 	{
-		pAdress = (size_t)FindFunction(&m_GameDllModule, "_ZN15CBasePlayerItem13AmmoInfoArrayE");
+		pAdress = FindAdressInDLL(&m_GameDllModule, "_ZN15CBasePlayerItem13AmmoInfoArrayE");
 	}
 
 	if (!pAdress)
@@ -886,112 +884,17 @@ void CMemory::Parse_InfoArrays(void)
 	WPNMOD_LOG_ONLY("   Found \"AmmoInfoArray (gamedll)\" at %p\n", pAdress);
 }
 
-void CMemory::Parse_GameRules(void)
-{
-#ifdef __linux__
-
-	void* pAdress = FindFunction(&m_GameDllModule, "g_pGameRules");
-
-	WPNMOD_LOG("   Found \"g_pGameRules\" at %p\n", pAdress);
-
-	#define ObjectVTableOffsetBase	0x0
-	#define GET_VTABLE_OBJECT(e) (*((void***)(((char*)e) + ObjectVTableOffsetBase)))
-
-	typedef const char* (*FuncGetGameDescription) (void*);
-	const char* GameDescription = reinterpret_cast<FuncGetGameDescription>(GET_VTABLE_OBJECT(pAdress)[12])(pAdress);
-
-	printf2(" *GameDescription is \"%s\"\n", GameDescription);
-
-#else
-
-	char* funcname = "g_pGameRules (gamedll)";
-
-	int count = 0;
-
-	size_t pAdress = NULL;
-	size_t pCurrent = NULL;
-	size_t pCandidate = NULL;
-
-	char			string[]		= "items/smallmedkit1.wav";
-	char			mask[]			= "xxxxxx";
-	unsigned char	pattern[]		= "\x68\x00\x00\x00\x00\x6A";
-
-	pCurrent = FindStringInDLL(m_start_gamedll, m_end_gamedll, string);
-
-	while (pCurrent)
-	{
-		*(size_t*)(pattern + 1) = (size_t)pCurrent;
-
-		if ((pCandidate = FindAdressInDLL(m_start_gamedll, m_end_gamedll, pattern, mask)))
-		{
-			count++;
-			pAdress = pCandidate;
-		}
-
-		pCurrent = FindStringInDLL(pCurrent + 1, m_end_gamedll, string);
-	}
-
-	if (!count)
-	{
-		WPNMOD_LOG("   Error: \"%s\" not found [0]\n", funcname);
-		return;
-	}
-	else if (count > 1)
-	{
-		WPNMOD_LOG("   Error: \"%s\" not found [1]\n", funcname);
-		return;
-	}
-
-	count = 0;
-
-	size_t end = pAdress + 30;
-	unsigned char opcode[] = "\x8B\x0D";
-
-	pCurrent = FindAdressInDLL(pAdress, end, opcode, "xx");
-
-	// Find first mov.
-	while (pCurrent && count != 1)
-	{
-		count++;
-		pAdress = pCurrent;
-		pCurrent = FindAdressInDLL(pCurrent + 1, end, opcode, "xx");
-	}
-
-	if (count != 1)
-	{
-		WPNMOD_LOG("Error: \"%s\" not found [2]\n", funcname);
-		m_bSuccess = false;
-		return;
-	}
-
-	pAdress += 2;
-
-	void* pGameRules = (void*) **((size_t **)pAdress);
-
-	WPNMOD_LOG("   Found \"%s\" at %p %p\n", funcname, pAdress, pGameRules);
-
-
-	#define ObjectVTableOffsetBase	0x0
-	#define GET_VTABLE_OBJECT(e) (*((void***)(((char*)e) + ObjectVTableOffsetBase)))
-
-	typedef const char* (__fastcall *FuncGetGameDescription) (void*, DUMMY);
-	const char* GameDescription = reinterpret_cast<FuncGetGameDescription>(GET_VTABLE_OBJECT(pGameRules)[10])(pGameRules, DUMMY_VAL);
-
-	printf2(" *GameDescription is \"%s\"\n", GameDescription);
-#endif
-}
-
 void CMemory::Parse_GetDispatch(void)
 {
 	char* funcname = "GetDispatch (engine)";
 
 #ifdef __linux__
 
-	size_t pAdress = (size_t)FindFunction(&m_EngineModule, "GetDispatch");
+	size_t pAdress = FindAdressInDLL(&m_EngineModule, "GetDispatch");
 
 	if (!pAdress)
 	{
-		//pAdress = (size_t)FindFunction(&m_GameDllModule, "");
+		//pAdress = FindAdressInDLL(&m_GameDllModule, "");
 	}
 
 	if (!pAdress)
@@ -1125,17 +1028,12 @@ void CMemory::EnableShieldHitboxTracing(void)
 
 #ifdef __linux__
 
-	void* pAdress = FindFunction(&m_EngineModule, "g_bIsCStrike");
+	void* pAdress = (void*)FindAdressInDLL(&m_EngineModule, "g_bIsCStrike");
 
 #else
 
-	signature sig =
-	{
-		"\xC3\xE8\x00\x00\x00\x00\xA1\x00\x00\x00\x00\x85\xC0\x75\x00\xA1",
-		"xx????x????xxx?x", 16
-	};
-
-	size_t pAdress = (size_t)FindFunction(&m_EngineModule, sig);
+	size_t pAdress = FindAdressInDLL(m_start_engine, m_end_gamedll,
+		(unsigned char *)"\xC3\xE8\x00\x00\x00\x00\xA1\x00\x00\x00\x00\x85\xC0\x75\x00\xA1", "xx????x????xxx?x");
 
 	if (pAdress)
 	{
@@ -1163,162 +1061,6 @@ void CMemory::EnableShieldHitboxTracing(void)
 
 		WPNMOD_LOG_ONLY("Shield hitbox tracing enabled at %p\n", pAdress);
 	}
-}
-
-void CMemory::EnableWeaponboxModels(void)
-{
-	//
-	// Check for running amxx plugin, stop if exists.
-	//
-
-	char* plugin_amxx = "weaponbox_models.amxx";
-	int iAmxxScript = MF_FindScriptByName(MF_BuildPathname("%s/%s", LOCALINFO((char*)"amxx_pluginsdir"), plugin_amxx));
-
-	if (iAmxxScript != -1)
-	{
-		STOP_AMXX_PLUGIN(MF_GetScriptAmx(iAmxxScript));
-		WPNMOD_LOG("Warning: amxx plugin \"%s\" stopped.\n", plugin_amxx);
-	}
-
-	//
-	// Check for running meta plugin, unload if exists.
-	//
-
-#ifdef WIN32
-	char* plugin_meta = "wpnbox_models_mm.dll";
-#else
-	char* plugin_meta = "wpnbox_models_mm_i386.so";
-#endif
-
-	void* pMetaPlugin = DLOPEN(plugin_meta);
-
-	if (pMetaPlugin)
-	{
-		UNLOAD_PLUGIN_BY_HANDLE(PLID, pMetaPlugin, PT_NEVER, PNL_PLG_FORCED);
-		WPNMOD_LOG("Warning: meta plugin \"%s\" unloaded.\n", plugin_meta);
-	}
-
-	//
-	// Let's find adress of "CWeaponBox::PackWeapon" in game dll.
-	//
-
-	char* funcname = "CWeaponBox::PackWeapon (gamedll)";
-
-#ifdef __linux__
-
-	size_t pAdress = (size_t)FindFunction(&m_GameDllModule, "PackWeapon__10CWeaponBoxP15CBasePlayerItem");
-
-	if (!pAdress)
-	{
-		pAdress = (size_t)FindFunction(&m_GameDllModule, "_ZN10CWeaponBox10PackWeaponEP15CBasePlayerItem");
-	}
-
-	if (!pAdress)
-	{
-		WPNMOD_LOG("   Error: \"%s\" not found\n", funcname);
-		return;
-	}
-
-	m_pWpnBoxKillThink = (void*)FindFunction(&m_GameDllModule, "Kill__10CWeaponBox");
-
-	if (!m_pWpnBoxKillThink)
-	{
-		m_pWpnBoxKillThink = (void*)FindFunction(&m_GameDllModule, "_ZN10CWeaponBox4KillEv");
-	}
-
-#else
-
-	int count = 0;
-
-	size_t pAdress = NULL;
-	size_t pCurrent = NULL;
-	size_t pCandidate = NULL;
-
-	//
-	// 50					push eax
-	// 68 EC 65 0C 10		push offset aWeaponbox_0 ; "weaponbox"
-	//
-
-	char			string[]		= "weaponbox";
-	char			mask[]			= "xxxxxx";
-	unsigned char	pattern[]		= "\x50\x68\x00\x00\x00\x00";
-
-	pCurrent = FindStringInDLL(m_start_gamedll, m_end_gamedll, string);
-
-	while (pCurrent)
-	{
-		*(size_t*)(pattern + 2) = (size_t)pCurrent;
-
-		if ((pCandidate = FindAdressInDLL(m_start_gamedll, m_end_gamedll, pattern, mask)))
-		{
-			count++;
-			pAdress = pCandidate;
-		}
-
-		pCurrent = FindStringInDLL(pCurrent + 1, m_end_gamedll, string);
-	}
-
-	if (!count)
-	{
-		WPNMOD_LOG("   Error: \"%s\" not found [0]\n", funcname);
-		return;
-	}
-	else if (count > 1)
-	{
-		WPNMOD_LOG("   Error: \"%s\" not found [1]\n", funcname);
-		return;
-	}
-
-	count = 0;
-
-	//
-	// E8 4A A3 FA FF		call	?Create@CBaseEntity@@SAPAV1@PADABVVector@@1PAUedict_s@@@Z
-	// E8 DD DE 02 00		call	?PackAmmo@CWeaponBox@@QAEHHH@Z
-	// E8 11 DF 02 00		call	?PackWeapon@CWeaponBox@@QAEHPAVCBasePlayerItem@@@Z
-	//
-
-	size_t end = pAdress + 300;
-	unsigned char opcode[] = "\xE8";
-
-	pCurrent = FindAdressInDLL(pAdress + 4, end, opcode, "x");
-
-	// Find third call.
-	while (pCurrent && count != 3)
-	{
-		count++;
-		pAdress = pCurrent;
-		pCurrent = FindAdressInDLL(pCurrent + 1, end, opcode, "x");
-	}
-
-	if (count != 3)
-	{
-		WPNMOD_LOG("   Error: \"%s\" not found [2]\n", funcname);
-		return;
-	}
-
-	pAdress += 1;
-	pAdress = *(size_t*)pAdress + pAdress + 4;
-
-	m_pWpnBoxKillThink = (void*)FindFunction(&m_GameDllModule, "?Kill@CWeaponBox@@QAEXXZ");
-
-#endif
-
-	if (!m_pWpnBoxKillThink)
-	{
-		WPNMOD_LOG("   Error: \"%s\" not found [3]\n", funcname);
-		return;
-	}
-
-	g_fh_funcPackWeapon.address = (void*)pAdress;
-
-	if (!CreateFunctionHook(&g_fh_funcPackWeapon))
-	{
-		WPNMOD_LOG("   Error: failed to hook \"%s\"\n", funcname);
-		return;
-	}
-
-	WPNMOD_LOG_ONLY("   Function \"%s\" successfully hooked at %p\n", funcname, pAdress);
-	SetHook(&g_fh_funcPackWeapon);
 }
 
 char* CMemory::GetDllNameByModule(void* base)

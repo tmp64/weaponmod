@@ -69,8 +69,6 @@
 #define WEAPON_FORWARD_EXECUTE		g_Config.WeaponExecuteForward
 #define WEAPON_FORWARD_EXISTS		g_Config.WeaponGetForward
 
-#define WEAPON_SAVE_WORLD_MODEL		g_Config.WeaponSaveModel
-#define WEAPON_RESTORE_WORLD_MODEL	g_Config.WeaponRestoreModel
 
 //
 // CPlugin.h AMXX
@@ -186,26 +184,15 @@ enum e_WpnType
 
 class CWeaponInfo
 {
-
 public:
-	typedef struct
-	{
-		int iSeq;
-		int iBody;
-		std::string strModel;
-	} WorldModel;
-
 	CPlugin*	m_pAmxx;
 	e_WpnType	m_WpnType;
-	WorldModel	m_ModelInfo;
 	int			m_AmxxForwards[Fwd_Wpn_End];
 
 	CWeaponInfo()
 	{
 		m_pAmxx = NULL;
 		m_WpnType = Wpn_None;
-
-		memset(&m_ModelInfo, 0, sizeof(WorldModel));
 		memset(m_AmxxForwards, 0, sizeof(m_AmxxForwards));
 	}
 };
@@ -225,10 +212,6 @@ public:
 	int** m_pCurrentSlots;
 	int m_iMaxWeaponSlots;
 	int m_iMaxWeaponPositions;
-
-	bool m_bWpnBoxModels;
-	int m_iWpnBoxLifeTime;
-	int m_iWpnBoxRenderColor;
 
 	bool m_bCrowbarHooked;
 	bool m_bAmmoBoxHooked;
@@ -314,8 +297,8 @@ public:
 		return m_WeaponsInfo[iId].m_AmxxForwards[fwdType];
 	}
 
-	void WeaponSaveModel	(int iId);
-	void WeaponRestoreModel	(int iId, edict_t* pEntity);
+	//void		WeaponSetAmxxPlugin		(int iId, CPlugin* plugin);
+	//CPlugin*	WeaponGetAmxxPlugin		(int iId);
 };
 
 extern CConfig g_Config;

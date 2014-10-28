@@ -883,78 +883,9 @@ void WorldPrecache_HookHandler(void)
 }
 
 
-#ifdef WIN32
-	int __fastcall PackWeapon_HookHandler(void* pvWpnBox, int DUMMY, void* pvWeapon)
-#else
-	int PackWeapon_HookHandler(void* pvWpnBox, void* pvWeapon)
-#endif
-{
-	int iResult = 0;
-
-	if (UnsetHook(&g_fh_funcPackWeapon))
-	{
-		iResult = WEAPONBOX_PACK_WEAPON(pvWpnBox, pvWeapon);
-		SetHook(&g_fh_funcPackWeapon);
-	}
-
-	if (!iResult)
-	{
-		return 0;
-	}
-
-	edict_t* pWeaponBox = PrivateToEdict(pvWpnBox);
-	edict_t* pWeaponEnt = PrivateToEdict(pvWeapon);
-
-	if (!IsValidPev(pWeaponBox) || !IsValidPev(pWeaponEnt))
-	{
-		return iResult;
-	}
-
-	if (g_Memory.m_pWpnBoxKillThink)
-	{
-		Dll_SetThink(pWeaponBox, g_Memory.m_pWpnBoxKillThink);
-		pWeaponBox->v.nextthink = gpGlobals->time + g_Config.m_iWpnBoxLifeTime;
-	}
-
-	if (g_Config.m_iWpnBoxRenderColor)
-	{
-		pWeaponBox->v.renderfx = kRenderFxGlowShell;
-		pWeaponBox->v.rendermode = kRenderNormal;
-		pWeaponBox->v.renderamt = 16.0;
-
-		if (g_Config.m_iWpnBoxRenderColor == 255255255)
-		{
-			pWeaponBox->v.rendercolor = Vector(RANDOM_LONG(0, 255), RANDOM_LONG(0, 255), RANDOM_LONG(0, 255));
-		}
-		else
-		{
-			Vector vecColor;
-			int iColor = g_Config.m_iWpnBoxRenderColor;
-
-			vecColor.x = iColor / 1000000;
-			iColor %= 1000000;
-			vecColor.y = iColor / 1000;
-			vecColor.z = iColor % 1000;
-
-			pWeaponBox->v.rendercolor = vecColor;
-		}
-	}
-
-	int iId = GetPrivateInt(pWeaponEnt, pvData_iId);
-
-	if (g_Config.m_bWpnBoxModels)
-	{
-		WEAPON_SAVE_WORLD_MODEL(iId);
-		WEAPON_RESTORE_WORLD_MODEL(iId, pWeaponBox);
-	}
-
-	return 1;
-}
-
-
 void* WpnMod_GetDispatch(char *pname)
 {
-	void* pDispatch = FindFunction(g_Memory.GetModule_GameDll(), pname);
+	void* pDispatch = (void*)FindAdressInDLL(g_Memory.GetModule_GameDll(), pname);
 
 	// Entity exists in gamedll
 	if (pDispatch != NULL)
@@ -970,7 +901,7 @@ void* WpnMod_GetDispatch(char *pname)
 		{
 			if (WEAPON_GET_NAME(i) && !_stricmp(WEAPON_GET_NAME(i), pname))
 			{
-				return FindFunction(g_Memory.GetModule_GameDll(), gWeaponReference);
+				return (void*)FindAdressInDLL(g_Memory.GetModule_GameDll(), gWeaponReference);
 			}
 		}
 	}
@@ -980,7 +911,7 @@ void* WpnMod_GetDispatch(char *pname)
 		{
 			if (!_stricmp(AmmoBoxInfoArray[i].classname.c_str(), pname))
 			{
-				return FindFunction(g_Memory.GetModule_GameDll(), gAmmoBoxReference);
+				return (void*)FindAdressInDLL(g_Memory.GetModule_GameDll(), gAmmoBoxReference);
 			}
 		}
 	}
