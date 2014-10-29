@@ -455,7 +455,7 @@
 	//
 		inline BOOL AMMOBOX_REF_ADD_AMMO(void* pvAmmo, void* pvOther)
 		{
-			return reinterpret_cast<FuncAddAmmo>(g_AmmoBoxRefHooks[AmmoBoxRefHook_AddAmmo].address)(pvAmmo, DUMMY_VAL, pvOther);
+			return reinterpret_cast<FuncAddAmmo>(g_AmmoBoxRefHooks[AmmoBoxRefHook_AddAmmo].address)(pvAmmo, pvOther);
 		}
 
 	// virtual BOOL CanDeploy(void)
