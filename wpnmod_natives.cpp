@@ -37,6 +37,7 @@
 #include "wpnmod_utils.h"
 #include "wpnmod_hooks.h"
 #include "wpnmod_parse.h"
+#include "wpnmod_items.h"
 
 
 #define AMXX_NATIVE(x) static cell AMX_NATIVE_CALL x (AMX *amx, cell *params)

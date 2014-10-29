@@ -35,6 +35,7 @@
 #include "wpnmod_hooks.h"
 #include "wpnmod_utils.h"
 #include "wpnmod_memory.h"
+#include "wpnmod_items.h"
 
 
 int GetAmmoInventory(edict_t* pPlayer, int iAmmoIndex)
@@ -115,7 +116,7 @@ void SelectItem(edict_t* pPlayer, const char* pstr)
 
 	edict_t *pCheck = NULL;
 
-	for (int i = 0 ; i <= g_Config.m_iMaxWeaponSlots; i++)
+	for (int i = 0 ; i <= g_Items.m_iMaxWeaponSlots; i++)
 	{
 		pCheck = GetPrivateCbase(pPlayer, pvData_rgpPlayerItems, i);
 
@@ -146,7 +147,7 @@ bool GetNextBestWeapon(edict_t* pPlayer, edict_t* pCurrentWeapon)
 	int iBestWeight = -1;
 	int iIdCurrent = GetPrivateInt(pCurrentWeapon, pvData_iId);
 
-	for (int i = 0 ; i <= g_Config.m_iMaxWeaponSlots ; i++)
+	for (int i = 0 ; i <= g_Items.m_iMaxWeaponSlots ; i++)
 	{
 		pCheck = GetPrivateCbase(pPlayer, pvData_rgpPlayerItems, i);
 

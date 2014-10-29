@@ -49,48 +49,10 @@
 	"",  NULL, (void*)call, {}, {}, 0,	\
 }										\
 
-#define GET_AMMO_INDEX				g_Memory.GetAmmoIndex
-
-#define WEAPON_RESET_INFO			g_Memory.Weapon_ResetInfo
-#define WEAPON_GET_ID				g_Memory.Weapon_Exists
-
-#define WEAPON_GET_NAME				g_Memory.Weapon_GetpszName
-#define WEAPON_GET_AMMO1			g_Memory.Weapon_GetpszAmmo1
-#define WEAPON_GET_AMMO2			g_Memory.Weapon_GetpszAmmo2
-#define WEAPON_GET_MAX_AMMO1		g_Memory.Weapon_GetMaxAmmo1
-#define WEAPON_GET_MAX_AMMO2		g_Memory.Weapon_GetMaxAmmo2
-#define WEAPON_GET_MAX_CLIP			g_Memory.Weapon_GetMaxClip
-#define WEAPON_GET_WEIGHT			g_Memory.Weapon_GetWeight
-#define WEAPON_GET_FLAGS			g_Memory.Weapon_GetFlags
-#define WEAPON_GET_SLOT				g_Memory.Weapon_GetSlot
-#define WEAPON_GET_SLOT_POSITION	g_Memory.Weapon_GetSlotPosition
-
-#define WEAPON_SET_SLOT				g_Memory.Weapon_SetSlot
-#define WEAPON_SET_SLOT_POSITION	g_Memory.Weapon_SetSlotPosition
-
-#define WEAPON_REGISTER				g_Memory.Weapon_RegisterWeapon
 
 
-typedef struct
-{
-	int		iSlot;
-	int		iPosition;
-	const char	*pszAmmo1;	// ammo 1 type
-	int		iMaxAmmo1;		// max ammo 1
-	const char	*pszAmmo2;	// ammo 2 type
-	int		iMaxAmmo2;		// max ammo 2
-	const char	*pszName;
-	int		iMaxClip;
-	int		iId;
-	int		iFlags;
-	int		iWeight;// this value used to determine this weapon's importance in autoselection.
-} ItemInfo;
 
-typedef struct
-{
-	const char *pszName;
-	int iId;
-} AmmoInfo;
+
 
 class CMemory
 {
@@ -110,9 +72,6 @@ private:
 
 public:
 	CMemory();
-
-	ItemInfo* m_pItemInfoArray;
-	AmmoInfo* m_pAmmoInfoArray;
 
 	void* m_pSubRemove;
 	void* m_pClearMultiDamage;
@@ -149,44 +108,6 @@ public:
 	size_t ParseFunc(size_t start, size_t end, char* funcname, unsigned char* pattern, char* mask, size_t bytes);
 	size_t ParseFunc(size_t start, size_t end, char* funcname, char* string, unsigned char* pattern, char* mask, size_t bytes);
 
-	const char*	Weapon_GetpszName		(const int iId)		{ return m_pItemInfoArray[iId].pszName; }
-	const char*	Weapon_GetpszAmmo1		(const int iId)		{ return m_pItemInfoArray[iId].pszAmmo1; }
-	const char* Weapon_GetpszAmmo2		(const int iId)		{ return m_pItemInfoArray[iId].pszAmmo2; }
-	int			Weapon_GetMaxAmmo1		(const int iId)		{ return m_pItemInfoArray[iId].iMaxAmmo1; }
-	int			Weapon_GetMaxAmmo2		(const int iId)		{ return m_pItemInfoArray[iId].iMaxAmmo2; }
-	int			Weapon_GetMaxClip		(const int iId)		{ return m_pItemInfoArray[iId].iMaxClip; }
-	int			Weapon_GetId			(const int iId)		{ return m_pItemInfoArray[iId].iId; }
-	int			Weapon_GetWeight		(const int iId)		{ return m_pItemInfoArray[iId].iWeight; }
-	int			Weapon_GetFlags			(const int iId)		{ return m_pItemInfoArray[iId].iFlags; }
-	int			Weapon_GetSlot			(const int iId)		{ return m_pItemInfoArray[iId].iSlot; }
-	int			Weapon_GetSlotPosition	(const int iId)		{ return m_pItemInfoArray[iId].iPosition; }
-
-	void	Weapon_SetSlot			(const int iId, const int Slot)				{ m_pItemInfoArray[iId].iSlot = Slot; }
-	void	Weapon_SetSlotPosition	(const int iId, const int SlotPosition)		{ m_pItemInfoArray[iId].iPosition = SlotPosition; }
-
-	int Weapon_Exists(const char* szName)
-	{
-		for (int i = 1; i < MAX_WEAPONS; i++)
-		{
-			if (Weapon_GetpszName(i) && !_stricmp(Weapon_GetpszName(i), szName))
-			{
-				return i;
-			}
-		}
-
-		return 0;
-	}
-
-	int		GetAmmoIndex				(const char *psz);
-	bool	AddAmmoNameToAmmoRegistry	(const char *szAmmoname);
-
-	void Weapon_ResetInfo(const int iId)
-	{
-		memset(&m_pItemInfoArray[iId], 0, sizeof(ItemInfo));
-		//memset(&WeaponInfoArray[iId], 0, sizeof(WeaponData));
-	}
-
-	int Weapon_RegisterWeapon(AMX *amx, cell *params);
 };
 
 extern CMemory g_Memory;

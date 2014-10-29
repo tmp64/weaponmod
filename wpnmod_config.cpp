@@ -35,33 +35,19 @@
 #include "wpnmod_entity.h"
 #include "wpnmod_hooks.h"
 #include "wpnmod_parse.h"
+#include "wpnmod_items.h"
 
 
 CConfig g_Config;
-
-const char* gWeaponReference = "weapon_crowbar";
-const char* gAmmoBoxReference = "ammo_rpgclip";
 
 WeaponData WeaponInfoArray[MAX_WEAPONS];
 
 cvar_t* cvar_sv_cheats = NULL;
 cvar_t* cvar_mp_weaponstay = NULL;
 
-CConfig::CConfig()
-{
-	m_bInited = false;
-	m_bCrowbarHooked = false;
-	m_bAmmoBoxHooked = false;
 
-	m_pCurrentSlots = NULL;
-	m_iMaxWeaponSlots = 5;
-	m_iMaxWeaponPositions = 5;
 
-	m_GameMod = SUBMOD_UNKNOWN;
-	m_pEquipEnt = NULL;
 
-	memset(m_WeaponsInfo, 0, sizeof(m_WeaponsInfo));
-};
 
 void CConfig::InitGameMod(void)
 {
@@ -71,22 +57,20 @@ void CConfig::InitGameMod(void)
 	pvData_Init();
 	Vtable_Init();
 
-	if (m_GameMod == SUBMOD_GEARBOX)
+	if (GetSubMod() == SUBMOD_GEARBOX)
 	{
-		// More slots in OP4.
-		m_iMaxWeaponSlots = 7;
+		// Opposing Force.
+		g_Items.AllocWeaponSlots(7, 5);
 	}
-	else if (m_GameMod == SUBMOD_AGHLRU)
+	else if (GetSubMod() == SUBMOD_AGHLRU)
 	{
-		// More positions in Bugfixed and improved HL release.
-		m_iMaxWeaponPositions = 10;
+		// Bugfixed and improved HL release.
+		g_Items.AllocWeaponSlots(5, 10);
 	}
-
-	m_pCurrentSlots = new int* [m_iMaxWeaponSlots];
-
-	for (int i = 0; i < m_iMaxWeaponSlots; ++i)
+	else
 	{
-		memset((m_pCurrentSlots[i] = new int [m_iMaxWeaponPositions]), 0, sizeof(int) * m_iMaxWeaponPositions);
+		// Default
+		g_Items.AllocWeaponSlots(5, 5);
 	}
 
 	cvar_sv_cheats = CVAR_GET_POINTER("sv_cheats");
@@ -156,19 +140,6 @@ void CConfig::ServerActivate(void)
 
 void CConfig::ServerDeactivate(void)
 {
-	memset(m_WeaponsInfo, 0, sizeof(m_WeaponsInfo));
-
-	for (int i = 0; i < (int)m_AmmoBoxesInfo.size(); i++)
-	{
-		delete m_AmmoBoxesInfo[i];
-	}
-
-	m_AmmoBoxesInfo.clear();
-
-
-
-
-
 	memset(WeaponInfoArray, 0, sizeof(WeaponInfoArray));
 
 
@@ -197,29 +168,13 @@ void CConfig::ServerDeactivate(void)
 
 	m_pBlockedItemsList.clear();
 
-	for (int i = 0; i < m_iMaxWeaponSlots; ++i)
-	{
-		memset(m_pCurrentSlots[i], 0, sizeof(int) * m_iMaxWeaponPositions);
-	}
-
 	UnsetHookVirtual(&g_PlayerSpawn_Hook);
 	UnsetHookVirtual(&g_PlayerPostThink_Hook);
 
 	m_pEquipEnt = NULL;
 }
 
-void CConfig::ServerShutDown(void)
-{
-	if (m_pCurrentSlots)
-	{
-		for (int i = 0; i < m_iMaxWeaponSlots; ++i)
-		{
-			delete[] m_pCurrentSlots[i];
-		}
 
-		delete[] m_pCurrentSlots;
-	}
-}
 
 void CConfig::SetConfigFile(void)
 {
@@ -264,52 +219,7 @@ SUBMOD CConfig::CheckSubMod(const char* game)
 	return SUBMOD_UNKNOWN;
 }
 
-bool CConfig::CheckSlots(int iWeaponID)
-{
-	int iSlot = WEAPON_GET_SLOT(iWeaponID);
-	int iPosition = WEAPON_GET_SLOT_POSITION(iWeaponID);
 
-	if (iSlot >= m_iMaxWeaponSlots || iSlot < 0)
-	{
-		iSlot = m_iMaxWeaponSlots - 1;
-	}
-
-	if (iPosition >= m_iMaxWeaponPositions || iPosition < 0)
-	{
-		iPosition = m_iMaxWeaponPositions - 1;
-	}
-
-	if (!m_pCurrentSlots[iSlot][iPosition])
-	{
-		m_pCurrentSlots[iSlot][iPosition] = iWeaponID;
-
-		WEAPON_SET_SLOT(iWeaponID, iSlot);
-		WEAPON_SET_SLOT_POSITION(iWeaponID, iPosition);
-
-		return true;
-	}
-
-	for (int k, i = 0; i < m_iMaxWeaponSlots; i++)
-	{
-		for (k = 0; k < m_iMaxWeaponPositions; k++)
-		{
-			if (!m_pCurrentSlots[i][k])
-			{
-				m_pCurrentSlots[i][k] = iWeaponID;
-
-				WEAPON_SET_SLOT(iWeaponID, i);
-				WEAPON_SET_SLOT_POSITION(iWeaponID, k);
-
-				WPNMOD_LOG("Warning: \"%s\" is moved to slot %d-%d.\n", WEAPON_GET_NAME(iWeaponID), i + 1, k + 1);
-				return true;
-			}
-		}
-	}
-
-	WEAPON_SET_SLOT_POSITION(iWeaponID, MAX_WEAPONS);
-	WPNMOD_LOG("Warning: No free slot for \"%s\" in HUD!\n", WEAPON_GET_NAME(iWeaponID));
-	return false;
-}
 
 void CConfig::ManageEquipment(void)
 {
@@ -361,183 +271,6 @@ bool CConfig::IsItemBlocked(const char *name)
 	}
 
 	return false;
-}
-
-int CConfig::Ammobox_Register(const char *name)
-{
-	CAmmoBoxInfo *p = new CAmmoBoxInfo;
-
-	p->m_strClassname.assign(name);
-	m_AmmoBoxesInfo.push_back(p);
-
-	if (!m_bAmmoBoxHooked)
-	{
-		m_bAmmoBoxHooked = true;
-		for (int k = 0; k < AmmoBoxRefHook_End; k++)
-		{
-			SetHookVirtual(&g_AmmoBoxRefHooks[k]);
-		}
-	}
-
-	return m_AmmoBoxesInfo.size();
-}
-
-int CConfig::Ammobox_RegisterForward(int iId, e_AmmoFwds fwdType, AMX *amx, const char *pFuncName)
-{
-	if (iId <= 0 || iId >= Ammobox_GetCount())
-	{
-		MF_LogError(amx, AMX_ERR_NATIVE, "Invalid ammobox id provided (%d).", iId);
-		return 0;
-	}
-
-	if (fwdType < 0 || fwdType >= Fwd_Ammo_End)
-	{
-		MF_LogError(amx, AMX_ERR_NATIVE, "Function out of bounds. Got: %d, Max: %d.", iId, fwdType - 1);
-		return 0;
-	}
-
-	int iRegResult = MF_RegisterSPForwardByName(amx, pFuncName, FP_CELL, FP_CELL, FP_DONE);
-
-	if (iRegResult == -1)
-	{
-		MF_LogError(amx, AMX_ERR_NATIVE, "Function not found (%d, \"%s\").", fwdType, pFuncName);
-		return 0;
-	}
-
-	m_AmmoBoxesInfo[--iId]->m_AmxxForwards[fwdType] = iRegResult;
-	return iRegResult;
-}
-
-int CConfig::Ammobox_ExecuteForward(int iId, e_AmmoFwds fwdType, edict_t* pAmmobox, edict_t* pPlayer)
-{
-	if (!m_AmmoBoxesInfo[--iId]->m_AmxxForwards[fwdType])
-	{
-		return 0;
-	}
-
-	int iPlayer = 0;
-
-	if (IsValidPev(pPlayer))
-	{
-		iPlayer = ENTINDEX(pPlayer);
-	}
-
-	return MF_ExecuteForward
-	(
-		m_AmmoBoxesInfo[iId]->m_AmxxForwards[fwdType],
-
-		static_cast<cell>(ENTINDEX(pAmmobox)),
-		static_cast<cell>(iPlayer)
-	);
-}
-
-int CConfig::Ammobox_GetCount()
-{
-	return m_AmmoBoxesInfo.size() + 1;
-}
-
-const char*	CConfig::Ammobox_GetName(int iId)
-{
-	if (iId <= 0 || iId >= Ammobox_GetCount())
-	{
-		return NULL;
-	}
-
-	return m_AmmoBoxesInfo[--iId]->m_strClassname.c_str();
-}
-
-int CConfig::Ammobox_GetId(const char *name)
-{
-	for (int i = 0; i < (int)m_AmmoBoxesInfo.size(); i++)
-	{
-		if (_stricmp(m_AmmoBoxesInfo[i]->m_strClassname.c_str(), name) == 0)
-		{
-			return i + 1;
-		}
-	}
-
-	return 0;
-}
-
-int CConfig::Weapon_RegisterForward(int iId, e_WpnFwds fwdType, AMX *amx, const char * pFuncName)
-{
-	if (iId <= 0 || iId >= MAX_WEAPONS || !Weapon_IsCustom(iId))
-	{
-		MF_LogError(amx, AMX_ERR_NATIVE, "Invalid weapon id provided (%d).", iId);
-		return 0;
-	}
-
-	if (fwdType < 0 || fwdType >= Fwd_Wpn_End)
-	{
-		MF_LogError(amx, AMX_ERR_NATIVE, "Function out of bounds. Got: %d, Max: %d.", iId, Fwd_Wpn_End - 1);
-		return 0;
-	}
-
-	int iRegResult = MF_RegisterSPForwardByName(amx, pFuncName, FP_CELL, FP_CELL, FP_CELL, FP_CELL, FP_CELL, FP_DONE);
-
-	if (iRegResult == -1)
-	{
-		MF_LogError(amx, AMX_ERR_NATIVE, "Function not found (%d, \"%s\").", fwdType, pFuncName);
-		return 0;
-	}
-
-	m_WeaponsInfo[iId].m_AmxxForwards[fwdType] = iRegResult;
-	return iRegResult;
-}
-
-int CConfig::Weapon_ExecuteForward(int iId, e_WpnFwds fwdType, edict_t* pWeapon, edict_t* pPlayer)
-{
-	if (!m_WeaponsInfo[iId].m_AmxxForwards[fwdType])
-	{
-		return 0;
-	}
-
-	int iAmmo1 = 0;
-	int iAmmo2 = 0;
-	int iPlayer = 0;
-
-	if (IsValidPev(pPlayer))
-	{
-		iPlayer = ENTINDEX(pPlayer);
-		iAmmo1 = GetAmmoInventory(pPlayer, PrimaryAmmoIndex(pWeapon));
-		iAmmo2 = GetAmmoInventory(pPlayer, SecondaryAmmoIndex(pWeapon));
-	}
-
-	return MF_ExecuteForward
-	(
-		m_WeaponsInfo[iId].m_AmxxForwards[fwdType],
-
-		static_cast<cell>(ENTINDEX(pWeapon)),
-		static_cast<cell>(iPlayer),
-		static_cast<cell>(GetPrivateInt(pWeapon, pvData_iClip)),
-		static_cast<cell>(iAmmo1),
-		static_cast<cell>(iAmmo2)
-	);
-}
-
-int CConfig::Weapon_GetForward(int iId, e_WpnFwds fwdType)
-{
-	return m_WeaponsInfo[iId].m_AmxxForwards[fwdType];
-}
-
-void CConfig::Weapon_MarkAsCustom(int iId)
-{
-	m_WeaponsInfo[iId].m_WpnType = Wpn_Custom;
-}
-
-void CConfig::Weapon_MarkAsDefault(int iId)
-{
-	m_WeaponsInfo[iId].m_WpnType = Wpn_Default;
-}
-
-bool CConfig::Weapon_IsCustom(int iId)
-{
-	return m_WeaponsInfo[iId].m_WpnType == Wpn_Custom;
-}
-
-bool CConfig::Weapon_IsDefault(int iId)
-{
-	return m_WeaponsInfo[iId].m_WpnType == Wpn_Default;
 }
 
 void CConfig::ServerCommand(void)

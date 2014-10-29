@@ -33,6 +33,7 @@
 
 #include "wpnmod_config.h"
 #include "wpnmod_entity.h"
+#include "wpnmod_items.h"
 #include "wpnmod_parse.h"
 #include "wpnmod_hooks.h"
 
@@ -89,17 +90,11 @@ void WpnMod_Precache(void)
 
 			WEAPON_MAKE_DEFAULT(i);
 
-			g_Config.m_pCurrentSlots[WEAPON_GET_SLOT(i)][WEAPON_GET_SLOT_POSITION(i)] = 1;
+			g_Items.m_pCurrentSlots[WEAPON_GET_SLOT(i)][WEAPON_GET_SLOT_POSITION(i)] = 1;
 		}
 	}
 
 	g_Config.LoadBlackList();
-
-
-	// Remove Blocked Items from info array.
-	// Regiser new
-
-	
 }
 
 void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
@@ -117,6 +112,7 @@ void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 
 void ServerDeactivate()
 {
+	g_Items.ServerDeactivate();
 	g_Config.ServerDeactivate();
 	RETURN_META(MRES_IGNORED);
 }
@@ -124,7 +120,7 @@ void ServerDeactivate()
 void OnAmxxDetach(void)
 {
 	g_Memory.UnsetHooks();
-	g_Config.ServerShutDown();
+	g_Items.FreeWeaponSlots();
 	g_Entity.FreeEntities();
 }
 

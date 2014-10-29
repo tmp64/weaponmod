@@ -35,6 +35,7 @@
 #include "wpnmod_parse.h"
 #include "wpnmod_utils.h"
 #include "wpnmod_hooks.h"
+#include "wpnmod_items.h"
 #include "entity_state.h"
 
 

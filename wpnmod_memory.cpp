@@ -33,6 +33,7 @@
 
 #include "wpnmod_memory.h"
 #include "wpnmod_hooks.h"
+#include "wpnmod_items.h"
 
 CMemory g_Memory;
 
@@ -53,8 +54,6 @@ CMemory::CMemory()
 	m_pApplyMultiDamage = NULL;
 	m_pPlayerSetAnimation = NULL;
 	m_pWorldPrecache = NULL;
-	m_pItemInfoArray = NULL;
-	m_pAmmoInfoArray = NULL;
 }
 
 bool CMemory::Init(void)
@@ -781,7 +780,7 @@ void CMemory::Parse_InfoArrays(void)
 		return;
 	}
 
-	m_pItemInfoArray = (ItemInfo*)(pAdress);
+	g_Items.m_pItemInfoArray = (ItemInfo*)(pAdress);
 
 #else
 
@@ -834,7 +833,7 @@ void CMemory::Parse_InfoArrays(void)
 	}
 
 	pAdress += 3;
-	m_pItemInfoArray = (ItemInfo*)*(size_t*)(pAdress);
+	g_Items.m_pItemInfoArray = (ItemInfo*)*(size_t*)(pAdress);
 
 #endif
 
@@ -861,7 +860,7 @@ void CMemory::Parse_InfoArrays(void)
 		return;
 	}
 
-	m_pAmmoInfoArray = (AmmoInfo*)(pAdress);
+	g_Items.m_pAmmoInfoArray = (AmmoInfo*)(pAdress);
 
 #else
 
@@ -893,7 +892,7 @@ void CMemory::Parse_InfoArrays(void)
 		pAdress += 1;
 	}
 
-	m_pAmmoInfoArray = (AmmoInfo*)*(size_t*)(pAdress);
+	g_Items.m_pAmmoInfoArray = (AmmoInfo*)*(size_t*)(pAdress);
 
 #endif
 
@@ -1101,139 +1100,7 @@ char* CMemory::GetDllNameByModule(void* base)
 	return (ptr ? ptr + 1 : lp);
 }
 
-int CMemory::GetAmmoIndex(const char *psz)
-{
-	if (!psz)
-	{
-		return -1;
-	}
 
-	for (int iAmmoIndex = 1; iAmmoIndex < MAX_AMMO_SLOTS; iAmmoIndex++)
-	{
-		if (!m_pAmmoInfoArray[iAmmoIndex].pszName)
-		{
-			continue;
-		}
-
-		if (_stricmp(psz, m_pAmmoInfoArray[iAmmoIndex].pszName) == 0)
-		{
-			return iAmmoIndex;
-		}
-	}
-
-	return -1;
-}
-
-bool CMemory::AddAmmoNameToAmmoRegistry(const char *szAmmoname)
-{
-	int iAmmoIndex;
-
-	for (iAmmoIndex = 1; iAmmoIndex < MAX_AMMO_SLOTS; iAmmoIndex++)
-	{
-		if (!m_pAmmoInfoArray[iAmmoIndex].pszName)
-		{
-			break;
-		}
-
-		if (_stricmp(m_pAmmoInfoArray[iAmmoIndex].pszName, szAmmoname) == 0)
-		{
-			return true;
-		}
-	}
-
-	if (iAmmoIndex >= MAX_AMMO_SLOTS)
-	{
-		return false;
-	}
-
-	m_pAmmoInfoArray[iAmmoIndex].pszName = STRING(ALLOC_STRING(szAmmoname));
-	return true;
-}
-
-int CMemory::Weapon_RegisterWeapon(AMX *amx, cell *params)
-{
-	const char *szWeaponName = STRING(ALLOC_STRING(MF_GetAmxString(amx, params[1], 0, NULL)));
-	printf2("!!!! WpnMod_RegisterWeapon: %s\n", szWeaponName);
-
-	int iId = Weapon_Exists(szWeaponName);
-
-	if (iId)
-	{
-		WPNMOD_LOG("Error: \"%s\" already registered!\n", szWeaponName);
-		return 0;
-	}
-
-	for (int i = 1; i < MAX_WEAPONS; i++)
-	{
-		if (!Weapon_GetpszName(i))
-		{
-			iId = i;
-			break;
-		}
-	}
-
-	if (!iId)
-	{
-		WPNMOD_LOG("Warning: maximum weapon limit reached, \"%s\" was not registered!\n", szWeaponName);
-		return 0;
-	}
-
-	m_pItemInfoArray[iId].iId		= iId;
-	m_pItemInfoArray[iId].pszName	= szWeaponName;
-	m_pItemInfoArray[iId].iSlot		= params[2] - 1;
-	m_pItemInfoArray[iId].iPosition	= params[3] - 1;
-
-	const char *szAmmo1 = MF_GetAmxString(amx, params[4], 0, NULL);
-	if (*szAmmo1)
-	{
-		if (!AddAmmoNameToAmmoRegistry(szAmmo1))
-		{
-			// Error
-		}
-
-		m_pItemInfoArray[iId].pszAmmo1 = STRING(ALLOC_STRING(szAmmo1));
-	}
-
-	const char *szAmmo2 = MF_GetAmxString(amx, params[6], 0, NULL);
-	if (*szAmmo2)
-	{
-		if (!AddAmmoNameToAmmoRegistry(szAmmo2))
-		{
-			// Error
-		}
-
-		m_pItemInfoArray[iId].pszAmmo2 = STRING(ALLOC_STRING(szAmmo2));
-	}
-
-	m_pItemInfoArray[iId].iMaxAmmo1	= params[5];
-	m_pItemInfoArray[iId].iMaxAmmo2	= params[7];
-	m_pItemInfoArray[iId].iMaxClip	= params[8];
-	m_pItemInfoArray[iId].iFlags	= params[9];
-	m_pItemInfoArray[iId].iWeight	= params[10];
-
-	if (!g_Config.CheckSlots(iId))
-	{
-		// Do Something
-	}
-
-	WEAPON_MAKE_CUSTOM(iId);
-
-	//WeaponInfoArray[iId].title.assign(plugin->title.c_str());
-	//WeaponInfoArray[iId].author.assign(plugin->author.c_str());
-	//WeaponInfoArray[iId].version.assign(plugin->version.c_str());
-
-	if (!g_Config.m_bCrowbarHooked)
-	{
-		g_Config.m_bCrowbarHooked = true;
-
-		for (int k = 0; k < WeaponRefHook_End; k++)
-		{
-			SetHookVirtual(&g_CrowbarHooks[k]);
-		}
-	}
-
-	return iId;
-}
 
 
 size_t CMemory::ParseFunc(size_t start, size_t end, char* funcname, unsigned char* pattern, char* mask, size_t bytes)

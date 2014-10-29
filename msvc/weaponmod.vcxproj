@@ -111,6 +111,7 @@
   <ItemGroup>
     <ClCompile Include="..\sdk\amxxmodule.cpp" />
     <ClCompile Include="..\wpnmod_entity.cpp" />
+    <ClCompile Include="..\wpnmod_items.cpp" />
     <ClCompile Include="..\wpnmod_log.cpp" />
     <ClCompile Include="..\wpnmod_version.cpp" />
     <ClCompile Include="..\wpnmod_config.cpp" />
@@ -132,6 +133,7 @@
     <ClInclude Include="..\include\wpnmod_grenade.h" />
     <ClInclude Include="..\include\wpnmod_hooker.h" />
     <ClInclude Include="..\include\wpnmod_hooks.h" />
+    <ClInclude Include="..\include\wpnmod_items.h" />
     <ClInclude Include="..\include\wpnmod_log.h" />
     <ClInclude Include="..\include\wpnmod_memory.h" />
     <ClInclude Include="..\include\wpnmod_parse.h" />
