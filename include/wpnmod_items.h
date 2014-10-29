@@ -78,7 +78,6 @@
 #define WEAPON_IS_CUSTOM			g_Items.Weapon_IsCustom
 #define WEAPON_IS_DEFAULT			g_Items.Weapon_IsDefault
 
-#define WEAPON_MAKE_CUSTOM			g_Items.Weapon_MarkAsCustom
 #define WEAPON_MAKE_DEFAULT			g_Items.Weapon_MarkAsDefault
 
 #define WEAPON_FORWARD_REGISTER		g_Items.Weapon_RegisterForward
@@ -86,17 +85,31 @@
 #define WEAPON_FORWARD_IS_EXIST		g_Items.Weapon_GetForward
 
 
+typedef struct
+{
+	const char *pszName;
+	int iId;
+} AmmoInfo;
 
-
-
-
-
+typedef struct
+{
+	int		iSlot;
+	int		iPosition;
+	const char	*pszAmmo1;
+	int		iMaxAmmo1;
+	const char	*pszAmmo2;
+	int		iMaxAmmo2;
+	const char	*pszName;
+	int		iMaxClip;
+	int		iId;
+	int		iFlags;
+	int		iWeight;
+} ItemInfo;
 
 enum e_AmmoFwds
 {
 	Fwd_Ammo_Spawn,
 	Fwd_Ammo_AddAmmo,
-
 	Fwd_Ammo_End
 };
 
@@ -115,168 +128,106 @@ enum e_WpnFwds
 	Fwd_Wpn_AddToPlayer,
 	Fwd_Wpn_AddToPlayer2,
 	Fwd_Wpn_ItemPostFrame,
-
 	Fwd_Wpn_End
 };
-
-enum e_WpnType
-{
-	Wpn_None,
-	Wpn_Default,
-	Wpn_Custom,
-	Wpn_End
-};
-
-class CWeaponInfo
-{
-public:
-	//CPlugin*	m_pAmxx;
-	e_WpnType	m_WpnType;
-	int			m_AmxxForwards[Fwd_Wpn_End];
-
-	CWeaponInfo()
-	{
-		//m_pAmxx = NULL;
-		m_WpnType = Wpn_None;
-		memset(m_AmxxForwards, 0, sizeof(m_AmxxForwards));
-	}
-};
-
-class CAmmoBoxInfo
-{
-public:
-	//CPlugin*	m_pAmxx;
-	std::string	m_strClassname;
-	int			m_AmxxForwards[Fwd_Ammo_End];
-
-	CAmmoBoxInfo()
-	{
-		//m_pAmxx = NULL;
-		memset(m_AmxxForwards, 0, sizeof(m_AmxxForwards));
-	}
-};
-
-typedef struct
-{
-	int		iSlot;
-	int		iPosition;
-	const char	*pszAmmo1;	// ammo 1 type
-	int		iMaxAmmo1;		// max ammo 1
-	const char	*pszAmmo2;	// ammo 2 type
-	int		iMaxAmmo2;		// max ammo 2
-	const char	*pszName;
-	int		iMaxClip;
-	int		iId;
-	int		iFlags;
-	int		iWeight;// this value used to determine this weapon's importance in autoselection.
-} ItemInfo;
-
-typedef struct
-{
-	const char *pszName;
-	int iId;
-} AmmoInfo;
 
 class CItems
 {
 public:
-	CItems()
-	{
-		m_bCrowbarHooked = false;
-		m_bAmmoBoxHooked = false;
-
-		m_pCurrentSlots = NULL;
-		m_iMaxWeaponSlots = 5;
-		m_iMaxWeaponPositions = 5;
-
-		m_pItemInfoArray = NULL;
-		m_pAmmoInfoArray = NULL;
-
-		memset(m_WeaponsInfo, 0, sizeof(m_WeaponsInfo));
-	}
-
 	ItemInfo* m_pItemInfoArray;
 	AmmoInfo* m_pAmmoInfoArray;
 
-	CWeaponInfo m_WeaponsInfo[MAX_WEAPONS];
-	std::vector <CAmmoBoxInfo*> m_AmmoBoxesInfo;
+	enum e_WpnType
+	{
+		Wpn_None,
+		Wpn_Default,
+		Wpn_Custom,
+		Wpn_End
+	};
+
+	class CAmmoBoxInfo
+	{
+	public:
+		//CPlugin* m_pAmxx;
+		std::string m_strClassname;
+		int m_AmxxForwards[Fwd_Ammo_End];
+
+		CAmmoBoxInfo()
+		{
+			//m_pAmxx = NULL;
+			memset(m_AmxxForwards, 0, sizeof(m_AmxxForwards));
+		}
+	}; std::vector <CAmmoBoxInfo*> m_AmmoBoxesInfo;
+
+	class CWeaponInfo
+	{
+	public:
+		//CPlugin* m_pAmxx;
+		e_WpnType m_WpnType;
+		int m_AmxxForwards[Fwd_Wpn_End];
+
+		CWeaponInfo()
+		{
+			//m_pAmxx = NULL;
+			m_WpnType = Wpn_None;
+			memset(m_AmxxForwards, 0, sizeof(m_AmxxForwards));
+		}
+	}; CWeaponInfo m_WeaponsInfo[MAX_WEAPONS];
+
+	CItems();
 
 	int** m_pCurrentSlots;
 	int m_iMaxWeaponSlots;
 	int m_iMaxWeaponPositions;
 
-	bool m_bCrowbarHooked;
-	bool m_bAmmoBoxHooked;
+	void AllocWeaponSlots			(int slots, int positions);
+	void FreeWeaponSlots			(void);
+	bool CheckSlots					(int iWeaponID);
+	void ServerDeactivate			(void);
 
-	bool CheckSlots(int iWeaponID);
-	void AllocWeaponSlots(int slots, int positions);
-	void FreeWeaponSlots(void);
-	void ServerDeactivate(void);
+	bool m_bWeaponRefHooked;
+	bool m_bAmmoBoxRefHooked;
 
-	int Ammobox_Register(const char *name);
-	int Ammobox_RegisterForward(int iId, e_AmmoFwds fwdType, AMX *amx, const char *pFuncName);
-	int	Ammobox_ExecuteForward(int iId, e_AmmoFwds fwdType, edict_t* pAmmobox, edict_t* pPlayer);
-	int Ammobox_GetCount(void);
-	int Ammobox_GetId(const char *name);
-	const char* Ammobox_GetName(int iId);
+	int Ammobox_Register			(const char *name);
+	int Ammobox_RegisterForward		(int iId, e_AmmoFwds fwdType, AMX *amx, const char *pFuncName);
+	int	Ammobox_ExecuteForward		(int iId, e_AmmoFwds fwdType, edict_t* pAmmobox, edict_t* pPlayer);
+	int Ammobox_GetCount			(void);
+	int Ammobox_GetId				(const char *name);
+	const char* Ammobox_GetName		(int iId);
 
-	int Weapon_RegisterForward(int iId, e_WpnFwds fwdType, AMX *amx, const char * pFuncName);
-	int Weapon_ExecuteForward(int iId, e_WpnFwds fwdType, edict_t* pWeapon, edict_t* pPlayer);
-	int Weapon_GetForward(int iId, e_WpnFwds fwdType);
-
-	bool Weapon_IsCustom(int iId);
-	bool Weapon_IsDefault(int iId);
-
-	void Weapon_MarkAsCustom(int iId);
-	void Weapon_MarkAsDefault(int iId);
-
+	int GetAmmoIndex				(const char *psz);
+	bool AddAmmoNameToAmmoRegistry	(const char *szAmmoname);
 	
-	int Weapon_GetMaxAmmo1(const int iId)		{ return m_pItemInfoArray[iId].iMaxAmmo1; }
-	int Weapon_GetMaxAmmo2(const int iId)		{ return m_pItemInfoArray[iId].iMaxAmmo2; }
-	int Weapon_GetMaxClip(const int iId)		{ return m_pItemInfoArray[iId].iMaxClip; }
-	int Weapon_GetId(const int iId)		{ return m_pItemInfoArray[iId].iId; }
-	int Weapon_GetWeight(const int iId)		{ return m_pItemInfoArray[iId].iWeight; }
-	int Weapon_GetFlags(const int iId)		{ return m_pItemInfoArray[iId].iFlags; }
-	int Weapon_GetSlot(const int iId)		{ return m_pItemInfoArray[iId].iSlot; }
-	int Weapon_GetSlotPosition(const int iId)		{ return m_pItemInfoArray[iId].iPosition; }
+	int Weapon_RegisterWeapon		(AMX *amx, cell *params);
+	int Weapon_RegisterForward		(int iId, e_WpnFwds fwdType, AMX *amx, const char * pFuncName);
+	int Weapon_ExecuteForward		(int iId, e_WpnFwds fwdType, edict_t* pWeapon, edict_t* pPlayer);
+	int Weapon_GetForward			(int iId, e_WpnFwds fwdType);
+	int Weapon_Exists				(const char* szName);
 
-	const char*	Weapon_GetpszName(const int iId)		{ return m_pItemInfoArray[iId].pszName; }
-	const char*	Weapon_GetpszAmmo1(const int iId)		{ return m_pItemInfoArray[iId].pszAmmo1; }
-	const char* Weapon_GetpszAmmo2(const int iId)		{ return m_pItemInfoArray[iId].pszAmmo2; }
+	bool Weapon_IsCustom			(int iId);
+	bool Weapon_IsDefault			(int iId);
 
-	
-	int Weapon_Exists(const char* szName)
-	{
-		for (int i = 1; i < MAX_WEAPONS; i++)
-		{
-			if (Weapon_GetpszName(i) && !_stricmp(Weapon_GetpszName(i), szName))
-			{
-				return i;
-			}
-		}
+	void Weapon_MarkAsDefault		(int iId);
+	void Weapon_ResetInfo			(int iId);
 
-		return 0;
-	}
+	int Weapon_GetMaxAmmo1			(const int iId)		{ return m_pItemInfoArray[iId].iMaxAmmo1; }
+	int Weapon_GetMaxAmmo2			(const int iId)		{ return m_pItemInfoArray[iId].iMaxAmmo2; }
+	int Weapon_GetMaxClip			(const int iId)		{ return m_pItemInfoArray[iId].iMaxClip; }
+	int Weapon_GetId				(const int iId)		{ return m_pItemInfoArray[iId].iId; }
+	int Weapon_GetWeight			(const int iId)		{ return m_pItemInfoArray[iId].iWeight; }
+	int Weapon_GetFlags				(const int iId)		{return m_pItemInfoArray[iId].iFlags; }
+	int Weapon_GetSlot				(const int iId)		{ return m_pItemInfoArray[iId].iSlot; }
+	int Weapon_GetSlotPosition		(const int iId)		{ return m_pItemInfoArray[iId].iPosition; }
 
-	int GetAmmoIndex(const char *psz);
-	bool AddAmmoNameToAmmoRegistry(const char *szAmmoname);
-
-	void Weapon_ResetInfo(const int iId)
-	{
-		memset(&m_pItemInfoArray[iId], 0, sizeof(ItemInfo));
-		memset(&WeaponInfoArray[iId], 0, sizeof(WeaponData));
-	}
-
-	int Weapon_RegisterWeapon(AMX *amx, cell *params);
+	const char*	Weapon_GetpszName	(const int iId)		{ return m_pItemInfoArray[iId].pszName; }
+	const char*	Weapon_GetpszAmmo1	(const int iId)		{ return m_pItemInfoArray[iId].pszAmmo1; }
+	const char* Weapon_GetpszAmmo2	(const int iId)		{ return m_pItemInfoArray[iId].pszAmmo2; }
 };
 
 extern CItems g_Items;
 
 extern const char* gWeaponReference;
 extern const char* gAmmoBoxReference;
-
-
-
 
 
 #endif // _WPNMOD_ITEMS_H

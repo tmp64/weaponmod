@@ -42,6 +42,20 @@ CItems g_Items;
 const char* gWeaponReference = "weapon_crowbar";
 const char* gAmmoBoxReference = "ammo_rpgclip";
 
+CItems::CItems()
+{
+	m_bWeaponRefHooked = false;
+	m_bAmmoBoxRefHooked = false;
+
+	m_pCurrentSlots = NULL;
+	m_iMaxWeaponSlots = 5;
+	m_iMaxWeaponPositions = 5;
+
+	m_pItemInfoArray = NULL;
+	m_pAmmoInfoArray = NULL;
+
+	memset(m_WeaponsInfo, 0, sizeof(m_WeaponsInfo));
+}
 
 void CItems::AllocWeaponSlots(int slots, int positions)
 {
@@ -140,9 +154,9 @@ int CItems::Ammobox_Register(const char *name)
 	p->m_strClassname.assign(name);
 	m_AmmoBoxesInfo.push_back(p);
 
-	if (!m_bAmmoBoxHooked)
+	if (!m_bAmmoBoxRefHooked)
 	{
-		m_bAmmoBoxHooked = true;
+		m_bAmmoBoxRefHooked = true;
 		for (int k = 0; k < AmmoBoxRefHook_End; k++)
 		{
 			SetHookVirtual(&g_AmmoBoxRefHooks[k]);
@@ -229,6 +243,138 @@ int CItems::Ammobox_GetId(const char *name)
 	return 0;
 }
 
+bool CItems::AddAmmoNameToAmmoRegistry(const char *szAmmoname)
+{
+	int iAmmoIndex;
+
+	for (iAmmoIndex = 1; iAmmoIndex < MAX_AMMO_SLOTS; iAmmoIndex++)
+	{
+		if (!m_pAmmoInfoArray[iAmmoIndex].pszName)
+		{
+			break;
+		}
+
+		if (_stricmp(m_pAmmoInfoArray[iAmmoIndex].pszName, szAmmoname) == 0)
+		{
+			return true;
+		}
+	}
+
+	if (iAmmoIndex >= MAX_AMMO_SLOTS)
+	{
+		return false;
+	}
+
+	m_pAmmoInfoArray[iAmmoIndex].pszName = STRING(ALLOC_STRING(szAmmoname));
+	return true;
+}
+
+int CItems::GetAmmoIndex(const char *psz)
+{
+	if (!psz)
+	{
+		return -1;
+	}
+
+	for (int iAmmoIndex = 1; iAmmoIndex < MAX_AMMO_SLOTS; iAmmoIndex++)
+	{
+		if (!m_pAmmoInfoArray[iAmmoIndex].pszName)
+		{
+			continue;
+		}
+
+		if (_stricmp(psz, m_pAmmoInfoArray[iAmmoIndex].pszName) == 0)
+		{
+			return iAmmoIndex;
+		}
+	}
+
+	return -1;
+}
+
+int CItems::Weapon_RegisterWeapon(AMX *amx, cell *params)
+{
+	const char *szWeaponName = STRING(ALLOC_STRING(MF_GetAmxString(amx, params[1], 0, NULL)));
+	int iId = Weapon_Exists(szWeaponName);
+
+	if (iId)
+	{
+		WPNMOD_LOG("Error: \"%s\" already registered!\n", szWeaponName);
+		return 0;
+	}
+
+	for (int i = 1; i < MAX_WEAPONS; i++)
+	{
+		if (!Weapon_GetpszName(i))
+		{
+			iId = i;
+			break;
+		}
+	}
+
+	if (!iId)
+	{
+		WPNMOD_LOG("Error: maximum weapon limit reached, \"%s\" was not registered!\n", szWeaponName);
+		return 0;
+	}
+
+	m_pItemInfoArray[iId].iId = iId;
+	m_pItemInfoArray[iId].pszName = szWeaponName;
+	m_pItemInfoArray[iId].iSlot = params[2] - 1;
+	m_pItemInfoArray[iId].iPosition = params[3] - 1;
+
+	const char *szAmmo1 = MF_GetAmxString(amx, params[4], 0, NULL);
+	if (*szAmmo1)
+	{
+		if (!AddAmmoNameToAmmoRegistry(szAmmo1))
+		{
+			// Error
+		}
+
+		m_pItemInfoArray[iId].pszAmmo1 = STRING(ALLOC_STRING(szAmmo1));
+	}
+
+	const char *szAmmo2 = MF_GetAmxString(amx, params[6], 0, NULL);
+	if (*szAmmo2)
+	{
+		if (!AddAmmoNameToAmmoRegistry(szAmmo2))
+		{
+			// Error
+		}
+
+		m_pItemInfoArray[iId].pszAmmo2 = STRING(ALLOC_STRING(szAmmo2));
+	}
+
+	m_pItemInfoArray[iId].iMaxAmmo1 = params[5];
+	m_pItemInfoArray[iId].iMaxAmmo2 = params[7];
+	m_pItemInfoArray[iId].iMaxClip = params[8];
+	m_pItemInfoArray[iId].iFlags = params[9];
+	m_pItemInfoArray[iId].iWeight = params[10];
+
+	if (!CheckSlots(iId))
+	{
+		// Do Something
+	}
+
+	m_WeaponsInfo[iId].m_WpnType = Wpn_Custom;
+
+	//WeaponInfoArray[iId].title.assign(plugin->title.c_str());
+	//WeaponInfoArray[iId].author.assign(plugin->author.c_str());
+	//WeaponInfoArray[iId].version.assign(plugin->version.c_str());
+
+	if (!m_bWeaponRefHooked)
+	{
+		m_bWeaponRefHooked = true;
+
+		for (int k = 0; k < WeaponRefHook_End; k++)
+		{
+			SetHookVirtual(&g_CrowbarHooks[k]);
+		}
+	}
+
+	return iId;
+}
+
 int CItems::Weapon_RegisterForward(int iId, e_WpnFwds fwdType, AMX *amx, const char * pFuncName)
 {
 	if (iId <= 0 || iId >= MAX_WEAPONS || !Weapon_IsCustom(iId))
@@ -290,11 +436,6 @@ int CItems::Weapon_GetForward(int iId, e_WpnFwds fwdType)
 	return m_WeaponsInfo[iId].m_AmxxForwards[fwdType];
 }
 
-void CItems::Weapon_MarkAsCustom(int iId)
-{
-	m_WeaponsInfo[iId].m_WpnType = Wpn_Custom;
-}
-
 void CItems::Weapon_MarkAsDefault(int iId)
 {
 	m_WeaponsInfo[iId].m_WpnType = Wpn_Default;
@@ -310,138 +451,22 @@ bool CItems::Weapon_IsDefault(int iId)
 	return m_WeaponsInfo[iId].m_WpnType == Wpn_Default;
 }
 
-int CItems::GetAmmoIndex(const char *psz)
+int CItems::Weapon_Exists(const char* szName)
 {
-	if (!psz)
-	{
-		return -1;
-	}
-
-	for (int iAmmoIndex = 1; iAmmoIndex < MAX_AMMO_SLOTS; iAmmoIndex++)
-	{
-		if (!m_pAmmoInfoArray[iAmmoIndex].pszName)
-		{
-			continue;
-		}
-
-		if (_stricmp(psz, m_pAmmoInfoArray[iAmmoIndex].pszName) == 0)
-		{
-			return iAmmoIndex;
-		}
-	}
-
-	return -1;
-}
-
-bool CItems::AddAmmoNameToAmmoRegistry(const char *szAmmoname)
-{
-	int iAmmoIndex;
-
-	for (iAmmoIndex = 1; iAmmoIndex < MAX_AMMO_SLOTS; iAmmoIndex++)
-	{
-		if (!m_pAmmoInfoArray[iAmmoIndex].pszName)
-		{
-			break;
-		}
-
-		if (_stricmp(m_pAmmoInfoArray[iAmmoIndex].pszName, szAmmoname) == 0)
-		{
-			return true;
-		}
-	}
-
-	if (iAmmoIndex >= MAX_AMMO_SLOTS)
-	{
-		return false;
-	}
-
-	m_pAmmoInfoArray[iAmmoIndex].pszName = STRING(ALLOC_STRING(szAmmoname));
-	return true;
-}
-
-int CItems::Weapon_RegisterWeapon(AMX *amx, cell *params)
-{
-	const char *szWeaponName = STRING(ALLOC_STRING(MF_GetAmxString(amx, params[1], 0, NULL)));
-	printf2("!!!! WpnMod_RegisterWeapon: %s\n", szWeaponName);
-
-	int iId = Weapon_Exists(szWeaponName);
-
-	if (iId)
-	{
-		WPNMOD_LOG("Error: \"%s\" already registered!\n", szWeaponName);
-		return 0;
-	}
-
 	for (int i = 1; i < MAX_WEAPONS; i++)
 	{
-		if (!Weapon_GetpszName(i))
+		if (Weapon_GetpszName(i) && !_stricmp(Weapon_GetpszName(i), szName))
 		{
-			iId = i;
-			break;
+			return i;
 		}
 	}
 
-	if (!iId)
-	{
-		WPNMOD_LOG("Warning: maximum weapon limit reached, \"%s\" was not registered!\n", szWeaponName);
-		return 0;
-	}
-
-	m_pItemInfoArray[iId].iId = iId;
-	m_pItemInfoArray[iId].pszName = szWeaponName;
-	m_pItemInfoArray[iId].iSlot = params[2] - 1;
-	m_pItemInfoArray[iId].iPosition = params[3] - 1;
-
-	const char *szAmmo1 = MF_GetAmxString(amx, params[4], 0, NULL);
-	if (*szAmmo1)
-	{
-		if (!AddAmmoNameToAmmoRegistry(szAmmo1))
-		{
-			// Error
-		}
-
-		m_pItemInfoArray[iId].pszAmmo1 = STRING(ALLOC_STRING(szAmmo1));
-	}
-
-	const char *szAmmo2 = MF_GetAmxString(amx, params[6], 0, NULL);
-	if (*szAmmo2)
-	{
-		if (!AddAmmoNameToAmmoRegistry(szAmmo2))
-		{
-			// Error
-		}
-
-		m_pItemInfoArray[iId].pszAmmo2 = STRING(ALLOC_STRING(szAmmo2));
-	}
-
-	m_pItemInfoArray[iId].iMaxAmmo1 = params[5];
-	m_pItemInfoArray[iId].iMaxAmmo2 = params[7];
-	m_pItemInfoArray[iId].iMaxClip = params[8];
-	m_pItemInfoArray[iId].iFlags = params[9];
-	m_pItemInfoArray[iId].iWeight = params[10];
-
-	if (!CheckSlots(iId))
-	{
-		// Do Something
-	}
-
-	WEAPON_MAKE_CUSTOM(iId);
-
-	//WeaponInfoArray[iId].title.assign(plugin->title.c_str());
-	//WeaponInfoArray[iId].author.assign(plugin->author.c_str());
-	//WeaponInfoArray[iId].version.assign(plugin->version.c_str());
-
-	if (!m_bCrowbarHooked)
-	{
-		m_bCrowbarHooked = true;
-
-		for (int k = 0; k < WeaponRefHook_End; k++)
-		{
-			SetHookVirtual(&g_CrowbarHooks[k]);
-		}
-	}
-
-	return iId;
+	return 0;
 }
 
+void CItems::Weapon_ResetInfo(int iId)
+{
+	memset(&m_pItemInfoArray[iId], 0, sizeof(ItemInfo));
+	memset(&WeaponInfoArray[iId], 0, sizeof(WeaponData));
+}
 
