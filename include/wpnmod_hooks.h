@@ -167,32 +167,36 @@
 		classname, offset, (void*)call, NULL, NULL,		\
 	}													\
 
-	#define VHOOK_CROWBAR(call)											\
+	#define VHOOK_WEAPON_REF(call)										\
 	{																	\
 		gWeaponReference, VO_##call, (void*)Weapon_##call, NULL, NULL,	\
 	}																	\
 
-	enum VirtualCrowbarHooks
-	{
-		CrowbarHook_Spawn,
-		CrowbarHook_Respawn,
-		CrowbarHook_AddToPlayer,
-		CrowbarHook_GetItemInfo,
-		CrowbarHook_CanDeploy,
-		CrowbarHook_Deploy,
-		CrowbarHook_CanHolster,
-		CrowbarHook_Holster,
-		CrowbarHook_ItemPostFrame,
-		CrowbarHook_ItemSlot,
-		CrowbarHook_IsUseable,
+	#define VHOOK_AMMOBOX_REF(call)											\
+	{																		\
+		gAmmoBoxReference, VO_##call, (void*)Ammobox_##call, NULL, NULL,	\
+	}																		\
 
-		CrowbarHook_End
+	enum WeaponRefHooks
+	{
+		WeaponRefHook_Spawn,
+		WeaponRefHook_Respawn,
+		WeaponRefHook_AddToPlayer,
+		WeaponRefHook_CanDeploy,
+		WeaponRefHook_Deploy,
+		WeaponRefHook_CanHolster,
+		WeaponRefHook_Holster,
+		WeaponRefHook_ItemPostFrame,
+		WeaponRefHook_ItemSlot,
+		WeaponRefHook_IsUseable,
+
+		WeaponRefHook_End
 	};
 
 	extern VirtualHookData g_RpgAddAmmo_Hook;
 	extern VirtualHookData g_PlayerSpawn_Hook;
 	extern VirtualHookData g_PlayerPostThink_Hook;
-	extern VirtualHookData g_CrowbarHooks[CrowbarHook_End];
+	extern VirtualHookData g_CrowbarHooks[WeaponRefHook_End];
 
 #ifdef WIN32
 
@@ -215,7 +219,6 @@
 	typedef int		(__fastcall *FuncTakeDamage)		(void*, DUMMY, entvars_t *, entvars_t *, float, int);
 
 	void	__fastcall Weapon_Spawn			(void* pvItem);
-	int		__fastcall Weapon_GetItemInfo	(void* pvItem, DUMMY, ItemInfo* p);
 	BOOL	__fastcall Weapon_CanDeploy		(void* pvItem);
 	BOOL	__fastcall Weapon_Deploy		(void* pvItem);
 	BOOL	__fastcall Weapon_CanHolster	(void* pvItem);
@@ -234,7 +237,7 @@
 	//
 		inline BOOL CAN_DEPLOY(void* pvItem)
 		{
-			return reinterpret_cast<FuncCanDeploy>(g_CrowbarHooks[CrowbarHook_CanDeploy].address)(pvItem, DUMMY_VAL);
+			return reinterpret_cast<FuncCanDeploy>(g_CrowbarHooks[WeaponRefHook_CanDeploy].address)(pvItem, DUMMY_VAL);
 		}
 
 		inline BOOL CAN_DEPLOY(edict_t* pentItem)
@@ -246,7 +249,7 @@
 	//
 		inline BOOL DEPLOY(void* pvItem)
 		{
-			return reinterpret_cast<FuncDeploy>(g_CrowbarHooks[CrowbarHook_Deploy].address)(pvItem, DUMMY_VAL);
+			return reinterpret_cast<FuncDeploy>(g_CrowbarHooks[WeaponRefHook_Deploy].address)(pvItem, DUMMY_VAL);
 		}
 
 		inline BOOL DEPLOY(edict_t* pentItem)
@@ -258,7 +261,7 @@
 	//
 		inline BOOL CAN_HOLSTER( void* pvItem )
 		{
-			return reinterpret_cast<FuncCanHolster>(g_CrowbarHooks[CrowbarHook_CanHolster].address)(pvItem, DUMMY_VAL);
+			return reinterpret_cast<FuncCanHolster>(g_CrowbarHooks[WeaponRefHook_CanHolster].address)(pvItem, DUMMY_VAL);
 		}
 
 		inline BOOL CAN_HOLSTER( edict_t* pentItem )
@@ -270,7 +273,7 @@
 	//
 		inline void HOLSTER(void* pvItem)
 		{
-			reinterpret_cast<FuncHolster>(g_CrowbarHooks[CrowbarHook_Holster].address)(pvItem, DUMMY_VAL, 0);
+			reinterpret_cast<FuncHolster>(g_CrowbarHooks[WeaponRefHook_Holster].address)(pvItem, DUMMY_VAL, 0);
 		}
 
 		inline void HOLSTER(edict_t* pentItem)
@@ -282,7 +285,7 @@
 	//
 		inline void ITEM_POST_FRAME(void* pvItem)
 		{
-			reinterpret_cast<FuncItemPostFrame>(g_CrowbarHooks[CrowbarHook_ItemPostFrame].address)(pvItem, DUMMY_VAL);
+			reinterpret_cast<FuncItemPostFrame>(g_CrowbarHooks[WeaponRefHook_ItemPostFrame].address)(pvItem, DUMMY_VAL);
 		}
 
 		inline void ITEM_POST_FRAME(edict_t* pentItem)
@@ -294,7 +297,7 @@
 	//
 		inline BOOL IS_USEABLE(void* pvItem)
 		{
-			return reinterpret_cast<FuncIsUseable>(g_CrowbarHooks[CrowbarHook_IsUseable].address)(pvItem, DUMMY_VAL);
+			return reinterpret_cast<FuncIsUseable>(g_CrowbarHooks[WeaponRefHook_IsUseable].address)(pvItem, DUMMY_VAL);
 		}
 
 		inline BOOL IS_USEABLE(edict_t* pentItem)
@@ -306,7 +309,7 @@
 	//
 		inline int ADD_TO_PLAYER(void* pvItem, void* pvPlayer)
 		{
-			return reinterpret_cast<FuncAddToPlayer>(g_CrowbarHooks[CrowbarHook_AddToPlayer].address)(pvItem, DUMMY_VAL, pvPlayer);
+			return reinterpret_cast<FuncAddToPlayer>(g_CrowbarHooks[WeaponRefHook_AddToPlayer].address)(pvItem, DUMMY_VAL, pvPlayer);
 		}
 
 		inline int ADD_TO_PLAYER(edict_t* pentItem, edict_t* pentPlayer)
@@ -318,7 +321,7 @@
 	//
 		inline int ITEM_SLOT(void* pvItem)
 		{
-			return reinterpret_cast<FuncItemSlot>(g_CrowbarHooks[CrowbarHook_ItemSlot].address)(pvItem, DUMMY_VAL);
+			return reinterpret_cast<FuncItemSlot>(g_CrowbarHooks[WeaponRefHook_ItemSlot].address)(pvItem, DUMMY_VAL);
 		}
 
 		inline int ITEM_SLOT(edict_t* pentItem)
@@ -330,7 +333,7 @@
 	//
 		inline void* RESPAWN(void* pvItem)
 		{
-			return reinterpret_cast<FuncRespawn>(g_CrowbarHooks[CrowbarHook_Respawn].address)(pvItem, DUMMY_VAL);
+			return reinterpret_cast<FuncRespawn>(g_CrowbarHooks[WeaponRefHook_Respawn].address)(pvItem, DUMMY_VAL);
 		}
 
 		inline void* RESPAWN(edict_t* pentItem)
@@ -354,7 +357,7 @@
 	// 
 		inline void WEAPON_SPAWN(void* pvItem)
 		{
-			reinterpret_cast<FuncSpawn>(g_CrowbarHooks[CrowbarHook_Spawn].address)(pvItem, DUMMY_VAL);
+			reinterpret_cast<FuncSpawn>(g_CrowbarHooks[WeaponRefHook_Spawn].address)(pvItem, DUMMY_VAL);
 		}
 
 	// void Spawn(void);
@@ -420,7 +423,6 @@
 	typedef int		(*FuncTakeDamage)		(void*, entvars_t *, entvars_t *, float, int);
 
 	void	Weapon_Spawn			(void* pvItem);
-	int		Weapon_GetItemInfo		(void* pvItem, ItemInfo* p);
 	BOOL	Weapon_CanDeploy		(void* pvItem);
 	BOOL	Weapon_Deploy			(void* pvItem);
 	BOOL	Weapon_CanHolster		(void* pvItem);
@@ -439,7 +441,7 @@
 	//
 		inline BOOL CAN_DEPLOY(void* pvItem)
 		{
-			return reinterpret_cast<FuncCanDeploy>(g_CrowbarHooks[CrowbarHook_CanDeploy].address)(pvItem);
+			return reinterpret_cast<FuncCanDeploy>(g_CrowbarHooks[WeaponRefHook_CanDeploy].address)(pvItem);
 		}
 
 		inline BOOL CAN_DEPLOY(edict_t* pentItem)
@@ -451,7 +453,7 @@
 	//
 		inline BOOL DEPLOY(void* pvItem)
 		{
-			return reinterpret_cast<FuncDeploy>(g_CrowbarHooks[CrowbarHook_Deploy].address)(pvItem);
+			return reinterpret_cast<FuncDeploy>(g_CrowbarHooks[WeaponRefHook_Deploy].address)(pvItem);
 		}
 
 		inline BOOL DEPLOY(edict_t* pentItem)
@@ -463,7 +465,7 @@
 	//
 		inline BOOL CAN_HOLSTER(void* pvItem)
 		{
-			return reinterpret_cast<FuncCanHolster>(g_CrowbarHooks[CrowbarHook_CanHolster].address)(pvItem);
+			return reinterpret_cast<FuncCanHolster>(g_CrowbarHooks[WeaponRefHook_CanHolster].address)(pvItem);
 		}
 
 		inline BOOL CAN_HOLSTER(edict_t* pentItem)
@@ -475,7 +477,7 @@
 	//
 		inline void HOLSTER(void* pvItem)
 		{
-			reinterpret_cast<FuncHolster>(g_CrowbarHooks[CrowbarHook_Holster].address)(pvItem, 0);
+			reinterpret_cast<FuncHolster>(g_CrowbarHooks[WeaponRefHook_Holster].address)(pvItem, 0);
 		}
 
 		inline void HOLSTER(edict_t* pentItem)
@@ -487,7 +489,7 @@
 	//
 		inline void ITEM_POST_FRAME(void* pvItem)
 		{
-			reinterpret_cast<FuncItemPostFrame>(g_CrowbarHooks[CrowbarHook_ItemPostFrame].address)(pvItem);
+			reinterpret_cast<FuncItemPostFrame>(g_CrowbarHooks[WeaponRefHook_ItemPostFrame].address)(pvItem);
 		}
 
 		inline void ITEM_POST_FRAME(edict_t* pentItem)
@@ -499,7 +501,7 @@
 	//
 		inline BOOL IS_USEABLE(void* pvItem)
 		{
-			return reinterpret_cast<FuncIsUseable>(g_CrowbarHooks[CrowbarHook_IsUseable].address)(pvItem);
+			return reinterpret_cast<FuncIsUseable>(g_CrowbarHooks[WeaponRefHook_IsUseable].address)(pvItem);
 		}
 
 		inline BOOL IS_USEABLE(edict_t* pentItem)
@@ -511,7 +513,7 @@
 	//
 		inline int ADD_TO_PLAYER(void* pvItem, void* pvPlayer)
 		{
-			return reinterpret_cast<FuncAddToPlayer>(g_CrowbarHooks[CrowbarHook_AddToPlayer].address)(pvItem, pvPlayer);
+			return reinterpret_cast<FuncAddToPlayer>(g_CrowbarHooks[WeaponRefHook_AddToPlayer].address)(pvItem, pvPlayer);
 		}
 
 		inline int ADD_TO_PLAYER(edict_t* pentItem, edict_t* pentPlayer)
@@ -523,7 +525,7 @@
 	//
 		inline int ITEM_SLOT(void* pvItem)
 		{
-			return reinterpret_cast<FuncItemSlot>(g_CrowbarHooks[CrowbarHook_ItemSlot].address)(pvItem);
+			return reinterpret_cast<FuncItemSlot>(g_CrowbarHooks[WeaponRefHook_ItemSlot].address)(pvItem);
 		}
 
 		inline int ITEM_SLOT(edict_t* pentItem)
@@ -535,7 +537,7 @@
 	//
 		inline void* RESPAWN(void* pvItem)
 		{
-			return reinterpret_cast<FuncRespawn>(g_CrowbarHooks[CrowbarHook_Respawn].address)(pvItem);
+			return reinterpret_cast<FuncRespawn>(g_CrowbarHooks[WeaponRefHook_Respawn].address)(pvItem);
 		}
 
 		inline void* RESPAWN(edict_t* pentItem)
@@ -559,7 +561,7 @@
 	// 
 		inline void WEAPON_SPAWN(void* pvItem)
 		{
-			reinterpret_cast<FuncSpawn>(g_CrowbarHooks[CrowbarHook_Spawn].address)(pvItem);
+			reinterpret_cast<FuncSpawn>(g_CrowbarHooks[WeaponRefHook_Spawn].address)(pvItem);
 		}
 
 	// void Spawn(void);

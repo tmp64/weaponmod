@@ -156,9 +156,6 @@ void CConfig::ServerActivate(void)
 
 void CConfig::ServerDeactivate(void)
 {
-	m_bCrowbarHooked = false;
-	m_bAmmoBoxHooked = false;
-
 	memset(m_WeaponsInfo, 0, sizeof(m_WeaponsInfo));
 
 	for (int i = 0; i < (int)m_AmmoBoxesInfo.size(); i++)
@@ -205,12 +202,6 @@ void CConfig::ServerDeactivate(void)
 		memset(m_pCurrentSlots[i], 0, sizeof(int) * m_iMaxWeaponPositions);
 	}
 
-	for (int i = 0; i < CrowbarHook_End; i++)
-	{
-		UnsetHookVirtual(&g_CrowbarHooks[i]);
-	}
-
-	UnsetHookVirtual(&g_RpgAddAmmo_Hook);
 	UnsetHookVirtual(&g_PlayerSpawn_Hook);
 	UnsetHookVirtual(&g_PlayerPostThink_Hook);
 

@@ -947,7 +947,7 @@ namespace NewNatives
 				{
 					g_Config.m_bCrowbarHooked = true;
 
-					for (int k = 0; k < CrowbarHook_End; k++)
+					for (int k = 0; k < WeaponRefHook_End; k++)
 					{
 						SetHookVirtual(&g_CrowbarHooks[k]);
 					}

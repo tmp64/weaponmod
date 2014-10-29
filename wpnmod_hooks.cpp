@@ -38,19 +38,18 @@
 #include "entity_state.h"
 
 
-VirtualHookData g_CrowbarHooks[CrowbarHook_End] = 
+VirtualHookData g_CrowbarHooks[WeaponRefHook_End] =
 {
-	VHOOK_CROWBAR(Spawn),
-	VHOOK_CROWBAR(Respawn),
-	VHOOK_CROWBAR(AddToPlayer),
-	VHOOK_CROWBAR(GetItemInfo),
-	VHOOK_CROWBAR(CanDeploy),
-	VHOOK_CROWBAR(Deploy),
-	VHOOK_CROWBAR(CanHolster),
-	VHOOK_CROWBAR(Holster),
-	VHOOK_CROWBAR(ItemPostFrame),
-	VHOOK_CROWBAR(ItemSlot),
-	VHOOK_CROWBAR(IsUseable)
+	VHOOK_WEAPON_REF(Spawn),
+	VHOOK_WEAPON_REF(Respawn),
+	VHOOK_WEAPON_REF(AddToPlayer),
+	VHOOK_WEAPON_REF(CanDeploy),
+	VHOOK_WEAPON_REF(Deploy),
+	VHOOK_WEAPON_REF(CanHolster),
+	VHOOK_WEAPON_REF(Holster),
+	VHOOK_WEAPON_REF(ItemPostFrame),
+	VHOOK_WEAPON_REF(ItemSlot),
+	VHOOK_WEAPON_REF(IsUseable)
 };
 
 VirtualHookData	g_RpgAddAmmo_Hook		= VHOOK(gAmmoBoxReference,	VO_AddAmmo,				AmmoBox_AddAmmo);
@@ -89,37 +88,6 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 		SET_ORIGIN(pWeapon, pWeapon->v.origin);
 		WEAPON_FORWARD_EXECUTE(iId, Fwd_Wpn_Spawn, pWeapon, NULL);
 	}
-}
-
-
-#ifdef WIN32
-	int __fastcall Weapon_GetItemInfo(void* pvItem, DUMMY, ItemInfo* p)
-#else
-	int Weapon_GetItemInfo(void* pvItem, ItemInfo* p)
-#endif
-{
-	edict_t* pWeapon = PrivateToEdict(pvItem);
-
-	if (!IsValidPev(pWeapon))
-	{
-		return 0;
-	}
-
-	int iId = GetPrivateInt(pWeapon, pvData_iId);
-
-	p->iId			= iId;
-	p->pszName		= WEAPON_GET_NAME(iId);
-	p->iSlot		= WEAPON_GET_SLOT(iId);
-	p->iPosition	= WEAPON_GET_SLOT_POSITION(iId);
-	p->iMaxAmmo1	= WEAPON_GET_MAX_AMMO1(iId);
-	p->iMaxAmmo2	= WEAPON_GET_MAX_AMMO2(iId);
-	p->iMaxClip		= WEAPON_GET_MAX_CLIP(iId);
-	p->iFlags		= WEAPON_GET_FLAGS(iId);
-	p->iWeight		= WEAPON_GET_WEIGHT(iId);
-	p->pszAmmo1		= WEAPON_GET_AMMO1(iId);
-	p->pszAmmo2		= WEAPON_GET_AMMO2(iId);
-
-	return 1;
 }
 
 
@@ -616,6 +584,19 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 {
 	edict_t* pPlayer = PrivateToEdict(pvPlayer);
 
+	if (!IsValidPev(pPlayer))
+	{
+		return;
+	}
+
+	edict_t *pActiveItem = GetPrivateCbase(pPlayer, pvData_pActiveItem);
+
+	if (IsValidPev(pActiveItem))
+	{
+		int iId = GetPrivateInt(pActiveItem, pvData_iId);
+		SET_CLIENT_KEYVALUE(ENTINDEX(pPlayer), GET_INFOKEYBUFFER(pPlayer), "cl_lw", WEAPON_IS_CUSTOM(iId) ? "0" : "1");
+	}
+
 	// Is player alive?
 	if (IsValidPev(pPlayer) && pPlayer->v.movetype != MOVETYPE_NOCLIP && pPlayer->v.deadflag == DEAD_NO && pPlayer->v.health > 0)
 	{
@@ -965,16 +946,5 @@ qboolean CallGameEntity_HookHandler(plid_t plid, const char *entStr, entvars_t *
 
 	(*pfnEntity)(pev);
 	return(true);
-}
-
-
-void UpdateClientData_Post(const struct edict_s *ent, int sendweapons, struct clientdata_s *cd)
-{
-	if (WEAPON_IS_CUSTOM(cd->m_iId))
-	{
-		cd->m_iId = 0;
-	}
-
-	RETURN_META(MRES_IGNORED);
 }
 

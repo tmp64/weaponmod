@@ -53,7 +53,6 @@ GameOffset GameVirtualOffsets[VO_End] =
 	{47,	2},		// Respawn
 	{57,	2},		// AddAmmo
 	{58,	2},		// AddToPlayer
-	{60,	2},		// GetItemInfo
 	{61,	2},		// CanDeploy
 	{62,	2},		// Deploy
 	{63,	2},		// CanHolster
@@ -108,7 +107,6 @@ void Vtable_Init(void)
 		GameVirtualOffsets[VO_Respawn].iValue			= 48;
 		GameVirtualOffsets[VO_AddAmmo].iValue			= 59;
 		GameVirtualOffsets[VO_AddToPlayer].iValue		= 60;
-		GameVirtualOffsets[VO_GetItemInfo].iValue		= 62;
 		GameVirtualOffsets[VO_CanDeploy].iValue			= 63;
 		GameVirtualOffsets[VO_Deploy].iValue			= 64;
 		GameVirtualOffsets[VO_CanHolster].iValue		= 65;
@@ -128,7 +126,6 @@ void Vtable_Init(void)
 		GameVirtualOffsets[VO_Respawn].iValue			= 48;
 		GameVirtualOffsets[VO_AddAmmo].iValue			= 58;
 		GameVirtualOffsets[VO_AddToPlayer].iValue		= 59;
-		GameVirtualOffsets[VO_GetItemInfo].iValue		= 61;
 		GameVirtualOffsets[VO_CanDeploy].iValue			= 62;
 		GameVirtualOffsets[VO_Deploy].iValue			= 63;
 		GameVirtualOffsets[VO_CanHolster].iValue		= 64;

@@ -69,7 +69,6 @@ enum VTableOffsets
 	VO_Respawn,
 	VO_AddAmmo,
 	VO_AddToPlayer,
-	VO_GetItemInfo,
 	VO_CanDeploy,
 	VO_Deploy,
 	VO_CanHolster,

@@ -214,11 +214,11 @@
 // #define FN_PM_Init_Post						PM_Init_Post
 // #define FN_PM_FindTextureType_Post			PM_FindTextureType_Post
 // #define FN_SetupVisibility_Post				SetupVisibility_Post
-#define FN_UpdateClientData_Post				UpdateClientData_Post
+// #define FN_UpdateClientData_Post				UpdateClientData_Post
 // #define FN_AddToFullPack_Post				AddToFullPack_Post
 // #define FN_CreateBaseline_Post				CreateBaseline_Post
 // #define FN_RegisterEncoders_Post				RegisterEncoders_Post
-// #define FN_GetWeaponData_Post				GetWeaponData_Post
+// #define FN_GetWeaponData_Post					GetWeaponData_Post
 // #define FN_CmdStart_Post						CmdStart_Post
 // #define FN_CmdEnd_Post						CmdEnd_Post
 // #define FN_ConnectionlessPacket_Post			ConnectionlessPacket_Post
