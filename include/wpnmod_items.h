@@ -50,7 +50,6 @@
 #define ITEM_FLAG_LIMITINWORLD				8
 #define ITEM_FLAG_EXHAUSTIBLE				16
 
-
 #define AMMOBOX_REGISTER			g_Items.Ammobox_Register
 #define AMMOBOX_GET_ID				g_Items.Ammobox_GetId
 #define AMMOBOX_GET_NAME			g_Items.Ammobox_GetName
