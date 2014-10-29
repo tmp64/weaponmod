@@ -594,7 +594,15 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 	if (IsValidPev(pActiveItem))
 	{
 		int iId = GetPrivateInt(pActiveItem, pvData_iId);
-		SET_CLIENT_KEYVALUE(ENTINDEX(pPlayer), GET_INFOKEYBUFFER(pPlayer), "cl_lw", WEAPON_IS_CUSTOM(iId) ? "0" : "1");
+
+		if (WEAPON_IS_CUSTOM(iId))
+		{
+			SET_CLIENT_KEYVALUE(ENTINDEX(pPlayer), GET_INFOKEYBUFFER(pPlayer), "cl_lw", "0");
+		}
+		else
+		{
+			SET_CLIENT_KEYVALUE(ENTINDEX(pPlayer), GET_INFOKEYBUFFER(pPlayer), "cl_lw", "1");
+		}
 	}
 
 	// Is player alive?
