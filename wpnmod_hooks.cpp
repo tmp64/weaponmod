@@ -38,6 +38,12 @@
 #include "entity_state.h"
 
 
+VirtualHookData g_AmmoBoxRefHooks[AmmoBoxRefHook_End] =
+{
+	VHOOK_AMMOBOX_REF(Spawn),
+	VHOOK_AMMOBOX_REF(AddAmmo),
+};
+
 VirtualHookData g_CrowbarHooks[WeaponRefHook_End] =
 {
 	VHOOK_WEAPON_REF(Spawn),
@@ -52,9 +58,69 @@ VirtualHookData g_CrowbarHooks[WeaponRefHook_End] =
 	VHOOK_WEAPON_REF(IsUseable)
 };
 
-VirtualHookData	g_RpgAddAmmo_Hook		= VHOOK(gAmmoBoxReference,	VO_AddAmmo,				AmmoBox_AddAmmo);
 VirtualHookData g_PlayerSpawn_Hook		= VHOOK("player",			VO_Spawn,				Player_Spawn);
 VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	Player_PostThink);
+
+
+#ifdef WIN32
+	void __fastcall AmmoBox_Spawn(void* pvItem)
+#else
+	void AmmoBox_Spawn(void* pvItem)
+#endif
+{
+	AMMOBOX_REF_SPAWN(pvItem);
+
+	edict_t* pAmmobox = PrivateToEdict(pvItem);
+
+	if (IsValidPev(pAmmobox))
+	{
+		int iId = AMMOBOX_GET_ID(STRING(pAmmobox->v.classname));
+
+		if (iId)
+		{
+			pAmmobox->v.classname = MAKE_STRING(AMMOBOX_GET_NAME(iId));
+
+			SET_ORIGIN(pAmmobox, pAmmobox->v.origin);
+			AMMOBOX_FORWARD_EXECUTE(iId, Fwd_Ammo_Spawn, pAmmobox, NULL);
+		}
+	}
+}
+
+
+#ifdef WIN32
+	BOOL __fastcall AmmoBox_AddAmmo(void* pvAmmo, DUMMY, void* pvOther)
+#else
+	BOOL AmmoBox_AddAmmo(void* pvAmmo, void* pvOther)
+#endif
+{
+	edict_t* pAmmobox = PrivateToEdict(pvAmmo);
+	edict_t* pOther = PrivateToEdict(pvOther);
+
+	if (!IsValidPev(pAmmobox) || !IsValidPev(pOther))
+	{
+		return FALSE;
+	}
+
+	if (!stricmp(STRING(pAmmobox->v.classname), gAmmoBoxReference))
+	{
+		if (g_Config.IsItemBlocked(gAmmoBoxReference))
+		{
+			UTIL_RemoveEntity(pAmmobox);
+			return FALSE;
+		}
+
+		return AMMOBOX_REF_ADD_AMMO(pvAmmo, pvOther);
+	}
+
+	int iId = AMMOBOX_GET_ID(STRING(pAmmobox->v.classname));
+
+	if (iId)
+	{
+		return AMMOBOX_FORWARD_EXECUTE(iId, Fwd_Ammo_AddAmmo, pAmmobox, pOther);
+	}
+
+	return FALSE;
+}
 
 
 #ifdef WIN32
@@ -474,7 +540,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 		return RESPAWN(pvItem);
 	}
 	
-	edict_t* pItem = Wpnmod_SpawnItem(WEAPON_GET_NAME(iId), pWeapon->v.origin, pWeapon->v.angles);
+	edict_t* pItem = ENTITY_CREATE_ENT(WEAPON_GET_NAME(iId), pWeapon->v.origin, pWeapon->v.angles);
 
 	if (IsValidPev(pItem))
 	{
@@ -496,43 +562,6 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 	}
 
 	return pItem->pvPrivateData;
-}
-
-
-#ifdef WIN32
-	BOOL __fastcall AmmoBox_AddAmmo(void* pvAmmo, DUMMY, void* pvOther)
-#else
-	BOOL AmmoBox_AddAmmo(void* pvAmmo, void* pvOther)
-#endif
-{
-	edict_t* pAmmobox = PrivateToEdict(pvAmmo);
-	edict_t* pOther = PrivateToEdict(pvOther);
-
-	if (!IsValidPev(pAmmobox) || !IsValidPev(pOther))
-	{
-		return FALSE;
-	}
-
-	if (!stricmp(STRING(pAmmobox->v.classname), gAmmoBoxReference))
-	{
-		if (g_Config.IsItemBlocked(gAmmoBoxReference))
-		{
-			UTIL_RemoveEntity(pAmmobox);
-			return FALSE;
-		}
-
-		return ADD_AMMO(pvAmmo, pvOther);
-	}
-
-	BOOL bReturn = FALSE;
-	int iId = AMMOBOX_GET_ID(STRING(pAmmobox->v.classname));
-
-	if (iId)
-	{
-		bReturn = AMMOBOX_FORWARD_EXECUTE(iId, Fwd_Ammo_AddAmmo, pAmmobox, pOther);
-	}
-
-	return bReturn;
 }
 
 

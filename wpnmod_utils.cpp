@@ -223,7 +223,7 @@ void SendWeaponAnim(edict_t* pPlayer, edict_t* pWeapon, int iAnim)
 
 edict_t* GiveNamedItem(edict_t* pPlayer, const char* szName)
 {
-	edict_t *pItem = CreateEntity((char*)szName, pPlayer->v.origin, Vector(0, 0, 0));
+	edict_t *pItem = ENTITY_CREATE_ENT((char*)szName, pPlayer->v.origin, Vector(0, 0, 0));
 
 	if (IsValidPev(pItem))
 	{

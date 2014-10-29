@@ -37,6 +37,11 @@
 
 #include "wpnmod_config.h"
 #include "wpnmod_utils.h"
+
+
+#define ENTITY_CREATE_ENT g_Entity.CreateEntity
+
+
 /*
 #define TRIE_DATA_UNSET 	0
 #define TRIE_DATA_CELL		1
@@ -173,6 +178,22 @@ public:
 
 	//typedef std::map<int, std::map<std::string, TrieData*>> TInt2StrTrieMap;
 	//TInt2StrTrieMap m_Tries;
+
+	edict_t* CreateEntity(const char *szName, Vector vecOrigin, Vector vecAngles)
+	{
+		edict_t	*pent = CREATE_NAMED_ENTITY(MAKE_STRING(szName));
+
+		if (!IsValidPev(pent))
+		{
+			return NULL;
+		}
+
+		pent->v.origin = vecOrigin;
+		pent->v.angles = vecAngles;
+		MDLL_Spawn(pent);
+
+		return pent;
+	}
 
 	void AllocEntities(void)
 	{
@@ -356,11 +377,5 @@ public:
 };
 
 extern CEntityManager g_Entity;
-
-extern edict_t* WpnMod_Ammo_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles);
-extern edict_t* WpnMod_Weapon_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles);
-extern edict_t* Wpnmod_SpawnItem(const char* szName, Vector vecOrigin, Vector vecAngles);
-
-extern edict_t* CreateEntity(char *szName, Vector vecOrigin, Vector vecAngles);
 
 #endif // _WPNMOD_ENTITY_H

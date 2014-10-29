@@ -174,8 +174,16 @@
 
 	#define VHOOK_AMMOBOX_REF(call)											\
 	{																		\
-		gAmmoBoxReference, VO_##call, (void*)Ammobox_##call, NULL, NULL,	\
+		gAmmoBoxReference, VO_##call, (void*)AmmoBox_##call, NULL, NULL,	\
 	}																		\
+
+	enum AmmoBoxRefHooks
+	{
+		AmmoBoxRefHook_Spawn,
+		AmmoBoxRefHook_AddAmmo,
+
+		AmmoBoxRefHook_End
+	};
 
 	enum WeaponRefHooks
 	{
@@ -193,10 +201,10 @@
 		WeaponRefHook_End
 	};
 
-	extern VirtualHookData g_RpgAddAmmo_Hook;
 	extern VirtualHookData g_PlayerSpawn_Hook;
 	extern VirtualHookData g_PlayerPostThink_Hook;
 	extern VirtualHookData g_CrowbarHooks[WeaponRefHook_End];
+	extern VirtualHookData g_AmmoBoxRefHooks[AmmoBoxRefHook_End];
 
 #ifdef WIN32
 
@@ -218,6 +226,8 @@
 	typedef int		(__fastcall *FuncTraceAttack)		(void*, DUMMY, entvars_t *, float, Vector, TraceResult*, int);
 	typedef int		(__fastcall *FuncTakeDamage)		(void*, DUMMY, entvars_t *, entvars_t *, float, int);
 
+	void	__fastcall AmmoBox_Spawn		(void* pvItem);
+	BOOL	__fastcall AmmoBox_AddAmmo		(void* pvAmmo, DUMMY, void* pvOther);
 	void	__fastcall Weapon_Spawn			(void* pvItem);
 	BOOL	__fastcall Weapon_CanDeploy		(void* pvItem);
 	BOOL	__fastcall Weapon_Deploy		(void* pvItem);
@@ -228,10 +238,23 @@
 	int		__fastcall Weapon_AddToPlayer	(void* pvItem, DUMMY, void* pvPlayer);
 	int		__fastcall Weapon_ItemSlot		(void* pvItem);
 	void*	__fastcall Weapon_Respawn		(void* pvItem);
-	BOOL	__fastcall AmmoBox_AddAmmo		(void* pvAmmo, DUMMY, void* pvOther);
 	int		__fastcall Item_Block			(void* pvItem, int DUMMY, void* pvOther);
 	void	__fastcall Player_Spawn			(void* pvPlayer);
 	void	__fastcall Player_PostThink		(void* pvPlayer);
+
+	// void Spawn(void);
+	// 
+		inline void AMMOBOX_REF_SPAWN(void* pvAmmoBox)
+		{
+			reinterpret_cast<FuncSpawn>(g_AmmoBoxRefHooks[AmmoBoxRefHook_Spawn].address)(pvAmmoBox, DUMMY_VAL);
+		}
+
+	// virtual BOOL AddAmmo(CBaseEntity* pOther);
+	//
+		inline BOOL AMMOBOX_REF_ADD_AMMO(void* pvAmmo, void* pvOther)
+		{
+			return reinterpret_cast<FuncAddAmmo>(g_AmmoBoxRefHooks[AmmoBoxRefHook_AddAmmo].address)(pvAmmo, DUMMY_VAL, pvOther);
+		}
 
 	// virtual BOOL CanDeploy(void)
 	//
@@ -288,11 +311,6 @@
 			reinterpret_cast<FuncItemPostFrame>(g_CrowbarHooks[WeaponRefHook_ItemPostFrame].address)(pvItem, DUMMY_VAL);
 		}
 
-		inline void ITEM_POST_FRAME(edict_t* pentItem)
-		{
-			reinterpret_cast<FuncItemPostFrame>(GET_VTABLE_ENT(pentItem)[GET_VTABLE_OFFSET(VO_ItemPostFrame)])(pentItem->pvPrivateData, DUMMY_VAL);
-		}
-
 	// virtual BOOL IsUseable(void);
 	//
 		inline BOOL IS_USEABLE(void* pvItem)
@@ -339,18 +357,6 @@
 		inline void* RESPAWN(edict_t* pentItem)
 		{
 			return reinterpret_cast<FuncRespawn>(GET_VTABLE_ENT(pentItem)[GET_VTABLE_OFFSET(VO_Respawn)])(pentItem->pvPrivateData, DUMMY_VAL);
-		}
-
-	// virtual BOOL AddAmmo(CBaseEntity* pOther);
-	//
-		inline BOOL ADD_AMMO(void* pvAmmo, void* pvOther)
-		{
-			return reinterpret_cast<FuncAddAmmo>(g_RpgAddAmmo_Hook.address)(pvAmmo, DUMMY_VAL, pvOther);
-		}
-
-		inline BOOL ADD_AMMO(edict_t* pentAmmo, edict_t* pentOther)
-		{
-			return reinterpret_cast<FuncAddAmmo>(GET_VTABLE_ENT(pentAmmo)[GET_VTABLE_OFFSET(VO_AddAmmo)])(pentAmmo->pvPrivateData, DUMMY_VAL, pentOther->pvPrivateData);
 		}
 
 	// void Spawn(void);
@@ -422,6 +428,8 @@
 	typedef int		(*FuncTraceAttack)		(void*, entvars_t *, float, Vector, TraceResult*, int);
 	typedef int		(*FuncTakeDamage)		(void*, entvars_t *, entvars_t *, float, int);
 
+	void	AmmoBox_Spawn			(void* pvItem);
+	BOOL	AmmoBox_AddAmmo			(void* pvAmmo, void* pvOther);
 	void	Weapon_Spawn			(void* pvItem);
 	BOOL	Weapon_CanDeploy		(void* pvItem);
 	BOOL	Weapon_Deploy			(void* pvItem);
@@ -432,10 +440,23 @@
 	int		Weapon_AddToPlayer		(void* pvItem, void* pvPlayer);
 	int		Weapon_ItemSlot			(void* pvItem);
 	void*	Weapon_Respawn			(void* pvItem);
-	BOOL	AmmoBox_AddAmmo			(void* pvAmmo, void* pvOther);
 	int		Item_Block				(void* pvItem, void* pvOther);
 	void	Player_Spawn			(void* pvPlayer);
 	void	Player_PostThink		(void* pvPlayer);
+
+	// void Spawn(void);
+	// 
+		inline void AMMOBOX_REF_SPAWN(void* pvAmmoBox)
+		{
+			reinterpret_cast<FuncSpawn>(g_AmmoBoxRefHooks[AmmoBoxRefHook_Spawn].address)(pvAmmoBox);
+		}
+
+	// virtual BOOL AddAmmo(CBaseEntity* pOther);
+	//
+		inline BOOL AMMOBOX_REF_ADD_AMMO(void* pvAmmo, void* pvOther)
+		{
+			return reinterpret_cast<FuncAddAmmo>(g_AmmoBoxRefHooks[AmmoBoxRefHook_AddAmmo].address)(pvAmmo, DUMMY_VAL, pvOther);
+		}
 
 	// virtual BOOL CanDeploy(void)
 	//
@@ -492,11 +513,6 @@
 			reinterpret_cast<FuncItemPostFrame>(g_CrowbarHooks[WeaponRefHook_ItemPostFrame].address)(pvItem);
 		}
 
-		inline void ITEM_POST_FRAME(edict_t* pentItem)
-		{
-			reinterpret_cast<FuncItemPostFrame>(GET_VTABLE_ENT(pentItem)[GET_VTABLE_OFFSET(VO_ItemPostFrame)])(pentItem->pvPrivateData);
-		}
-
 	// virtual BOOL IsUseable(void);
 	//
 		inline BOOL IS_USEABLE(void* pvItem)
@@ -543,18 +559,6 @@
 		inline void* RESPAWN(edict_t* pentItem)
 		{
 			return reinterpret_cast<FuncRespawn>(GET_VTABLE_ENT(pentItem)[GET_VTABLE_OFFSET(VO_Respawn)])(pentItem->pvPrivateData);
-		}
-
-	// virtual BOOL AddAmmo(CBaseEntity* pOther);
-	//
-		inline BOOL ADD_AMMO(void* pvAmmo, void* pvOther)
-		{
-			return reinterpret_cast<FuncAddAmmo>(g_RpgAddAmmo_Hook.address)(pvAmmo, pvOther);
-		}
-
-		inline BOOL ADD_AMMO(edict_t* pentAmmo, edict_t* pentOther)
-		{
-			return reinterpret_cast<FuncAddAmmo>(GET_VTABLE_ENT(pentAmmo)[GET_VTABLE_OFFSET(VO_AddAmmo)])(pentAmmo->pvPrivateData, pentOther->pvPrivateData);
 		}
 
 	// void Spawn(void);

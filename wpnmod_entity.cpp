@@ -37,63 +37,6 @@
 CEntityManager g_Entity;
 
 
-edict_t* Wpnmod_SpawnItem(const char* szName, Vector vecOrigin, Vector vecAngles)
-{
-	if (strstr(szName, "ammo_"))
-	{
-		return WpnMod_Ammo_Spawn(szName, vecOrigin, vecAngles);
-	}
 
-	if (strstr(szName, "weapon_"))
-	{
-		return WpnMod_Weapon_Spawn(szName, vecOrigin, vecAngles);
-	}
 
-	return NULL;
-}
 
-edict_t* CreateEntity(char *szName, Vector vecOrigin, Vector vecAngles)
-{
-	edict_t	*pent = CREATE_NAMED_ENTITY(MAKE_STRING(szName));
-	
-	if (!IsValidPev(pent))
-	{
-		return NULL;
-	}
-
-	pent->v.origin = vecOrigin;
-	pent->v.angles = vecAngles;
-	MDLL_Spawn(pent);
-
-	return pent;
-}
-
-edict_t* WpnMod_Weapon_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles)
-{
-	return CreateEntity((char*)szName, vecOrigin, vecAngles);
-}
-
-edict_t* WpnMod_Ammo_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles)
-{
-	int iId = AMMOBOX_GET_ID(szName);
-
-	if (!iId)
-	{
-		return NULL;
-	}
-
-	edict_t* pAmmoBox = CREATE_NAMED_ENTITY(MAKE_STRING(gAmmoBoxReference));
-
-	if (IsValidPev(pAmmoBox))
-	{
-		MDLL_Spawn(pAmmoBox);
-		SET_ORIGIN(pAmmoBox, vecOrigin);
-
-		pAmmoBox->v.classname = MAKE_STRING(AMMOBOX_GET_NAME(iId));
-		pAmmoBox->v.angles = vecAngles;
-
-		AMMOBOX_FORWARD_EXECUTE(iId, Fwd_Ammo_Spawn, pAmmoBox, NULL);
-	}
-
-	return pAmmoBox;
-}

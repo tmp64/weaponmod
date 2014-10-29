@@ -373,7 +373,10 @@ int CConfig::Ammobox_Register(const char *name)
 	if (!m_bAmmoBoxHooked)
 	{
 		m_bAmmoBoxHooked = true;
-		SetHookVirtual(&g_RpgAddAmmo_Hook);
+		for (int k = 0; k < AmmoBoxRefHook_End; k++)
+		{
+			SetHookVirtual(&g_AmmoBoxRefHooks[k]);
+		}
 	}
 
 	return m_AmmoBoxesInfo.size();

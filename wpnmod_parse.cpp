@@ -205,32 +205,18 @@ void ParseSpawnPoints()
 				Vector vecOrigin = strlen(szData[1]) ? ParseVec(szData[1]) : Vector(0, 0, 0);
 				Vector vecAngles = strlen(szData[2]) ? ParseVec(szData[2]) : Vector(0, 0, 0);
 
+				edict_t* pItem = ENTITY_CREATE_ENT(szData[0], vecOrigin, vecAngles);
 
-				if (strstr(szData[0], "ammo_"))
+				if (IsValidPev(pItem))
 				{
-					if (WpnMod_Ammo_Spawn(szData[0], vecOrigin, vecAngles))
+					if (strstr(STRING(pItem->v.classname), "ammo_"))
 					{
 						ammoboxes++;
 					}
-				}
-				else
-				{
-
-
-					edict_t* pItem = CreateEntity(szData[0], vecOrigin, vecAngles);
-
-					if (IsValidPev(pItem))
+					else if (strstr(STRING(pItem->v.classname), "weapon_"))
 					{
-						if (strstr(STRING(pItem->v.classname), "ammo_"))
-						{
-							ammoboxes++;
-						}
-						else if (strstr(STRING(pItem->v.classname), "weapon_"))
-						{
-							wpns++;
-						}
+						wpns++;
 					}
-
 				}
 			}
 		}
@@ -308,7 +294,7 @@ void ParseBSP()
 					if (AMMOBOX_GET_ID(classname.c_str())
 						|| WEAPON_IS_CUSTOM(WEAPON_GET_ID(classname.c_str())))
 					{
-						CreateEntity((char *)classname.c_str(), vecOrigin, vecAngles);
+						ENTITY_CREATE_ENT(classname.c_str(), vecOrigin, vecAngles);
 					}
 				}
 
