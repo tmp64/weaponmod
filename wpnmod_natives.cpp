@@ -861,107 +861,15 @@ namespace NewNatives
 	*/
 	AMXX_NATIVE(WpnMod_RegisterWeapon)
 	{
-		CPlugin* plugin = GET_AMXX_PLUGIN_POINTER(amx);
-		const char *szWeaponName = STRING(ALLOC_STRING(MF_GetAmxString(amx, params[1], 0, NULL)));
+		int iId = WEAPON_REGISTER(amx, params);
 
-		printf2("!!!! WpnMod_RegisterWeapon: %s\n", szWeaponName);
-		/*
-		if (g_Config.IsItemBlocked(szWeaponName))
+		if (!iId)
 		{
-			MF_LogError(amx, AMX_ERR_NATIVE, "Item blocked.");
-			return 0;
-		}
-		*/
-		for (int iId = 1; iId < MAX_WEAPONS; iId++)
-		{
-			if (WEAPON_GET_NAME(iId))
-			{
-				if (!stricmp(WEAPON_GET_NAME(iId), szWeaponName))
-				{
-					WPNMOD_LOG("Error: \"%s\" already registered!\n", szWeaponName);
-					WPNMOD_LOG("Warning: amxx plugin \"%s\" stopped.\n", plugin->name.c_str());
-					STOP_AMXX_PLUGIN(amx);
-					return 0;
-				}
-			}
-			else
-			{
-				WEAPON_SET_NAME(iId, szWeaponName);
-
-				WEAPON_SET_ID(iId);
-				WEAPON_SET_SLOT(iId, params[2] - 1);
-				WEAPON_SET_SLOT_POSITION(iId, params[3] - 1);
-
-				const char *szAmmo1 = MF_GetAmxString(amx, params[4], 0, NULL);
-				/*if (*szAmmo1 == NULL)
-				{
-					WEAPON_SET_AMMO1(iId, NULL);
-				}
-				else*/
-				if (*szAmmo1)
-				{
-					if (!REGISTER_AMMO_INFO(szAmmo1))
-					{
-						// Error
-					}
-
-					WEAPON_SET_AMMO1(iId, STRING(ALLOC_STRING(szAmmo1)));
-				}
-
-				const char *szAmmo2 = MF_GetAmxString(amx, params[6], 0, NULL);
-				/*if (*szAmmo2 == NULL)
-				{
-					WEAPON_SET_AMMO2(iId, NULL);
-				}
-				else*/
-				if (*szAmmo2)
-				{
-					if (!REGISTER_AMMO_INFO(szAmmo2))
-					{
-						// Error
-					}
-
-					WEAPON_SET_AMMO2(iId, STRING(ALLOC_STRING(szAmmo2)));
-					
-				}
-
-				WEAPON_SET_MAX_AMMO1(iId, params[5]);
-				WEAPON_SET_MAX_AMMO2(iId, params[7]);
-				WEAPON_SET_MAX_CLIP(iId, params[8]);
-
-				WEAPON_SET_FLAGS(iId, params[9]);
-				WEAPON_SET_WEIGHT(iId, params[10]);
-
-				if (!g_Config.CheckSlots(iId))
-				{
-					// Do Something
-				}
-
-				WEAPON_MAKE_CUSTOM(iId);
-
-				WeaponInfoArray[iId].title.assign(plugin->title.c_str());
-				WeaponInfoArray[iId].author.assign(plugin->author.c_str());
-				WeaponInfoArray[iId].version.assign(plugin->version.c_str());
-
-				if (!g_Config.m_bCrowbarHooked)
-				{
-					g_Config.m_bCrowbarHooked = true;
-
-					for (int k = 0; k < WeaponRefHook_End; k++)
-					{
-						SetHookVirtual(&g_CrowbarHooks[k]);
-					}
-				}
-
-				return iId;
-			}
+			WPNMOD_LOG("Warning: amxx plugin \"%s\" stopped.\n", GET_AMXX_PLUGIN_POINTER(amx)->name.c_str());
+			STOP_AMXX_PLUGIN(amx);
 		}
 
-		WPNMOD_LOG("Warning: maximum weapon limit reached, \"%s\" was not registered!\n", szWeaponName);
-		WPNMOD_LOG("Warning: amxx plugin \"%s\" stopped.\n", plugin->name.c_str());
-		STOP_AMXX_PLUGIN(amx);
-		
-		return 0;
+		return iId;
 	}
 
 	/**

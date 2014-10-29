@@ -65,9 +65,9 @@
 	typedef void				(*FuncWorldPrecache)			(void);
 	typedef DISPATCHFUNCTION	(*FuncGetDispatch)				(char *);
 
-	DISPATCHFUNCTION	GetDispatch_HookHandler				(char *pname);
-	qboolean			CallGameEntity_HookHandler			(plid_t plid, const char *entStr, entvars_t *pev);
-	void				WorldPrecache_HookHandler			(void);
+	DISPATCHFUNCTION	GetDispatch_HookHandler			(char *pname);
+	qboolean			CallGameEntity_HookHandler		(plid_t plid, const char *entStr, entvars_t *pev);
+	void				WorldPrecache_HookHandler		(void);
 
 	// void ClearMultiDamage(void)
 	//
@@ -258,7 +258,7 @@
 
 	// virtual BOOL CanDeploy(void)
 	//
-		inline BOOL CAN_DEPLOY(void* pvItem)
+		inline BOOL WEAPON_REF_CAN_DEPLOY(void* pvItem)
 		{
 			return reinterpret_cast<FuncCanDeploy>(g_CrowbarHooks[WeaponRefHook_CanDeploy].address)(pvItem, DUMMY_VAL);
 		}
@@ -270,7 +270,7 @@
 
 	// virtual BOOL Deploy(void);
 	//
-		inline BOOL DEPLOY(void* pvItem)
+		inline BOOL WEAPON_REF_DEPLOY(void* pvItem)
 		{
 			return reinterpret_cast<FuncDeploy>(g_CrowbarHooks[WeaponRefHook_Deploy].address)(pvItem, DUMMY_VAL);
 		}
@@ -282,7 +282,7 @@
 
 	// virtual BOOL CanHolster(void);
 	//
-		inline BOOL CAN_HOLSTER( void* pvItem )
+		inline BOOL WEAPON_REF_CAN_HOLSTER(void* pvItem)
 		{
 			return reinterpret_cast<FuncCanHolster>(g_CrowbarHooks[WeaponRefHook_CanHolster].address)(pvItem, DUMMY_VAL);
 		}
@@ -294,7 +294,7 @@
 
 	// virtual void Holster(int skiplocal = 0);
 	//
-		inline void HOLSTER(void* pvItem)
+		inline void WEAPON_REF_HOLSTER(void* pvItem)
 		{
 			reinterpret_cast<FuncHolster>(g_CrowbarHooks[WeaponRefHook_Holster].address)(pvItem, DUMMY_VAL, 0);
 		}
@@ -306,14 +306,14 @@
 
 	// virtual void ItemPostFrame(void);
 	//
-		inline void ITEM_POST_FRAME(void* pvItem)
+		inline void WEAPON_REF_ITEM_POST_FRAME(void* pvItem)
 		{
 			reinterpret_cast<FuncItemPostFrame>(g_CrowbarHooks[WeaponRefHook_ItemPostFrame].address)(pvItem, DUMMY_VAL);
 		}
 
 	// virtual BOOL IsUseable(void);
 	//
-		inline BOOL IS_USEABLE(void* pvItem)
+		inline BOOL WEAPON_REF_IS_USEABLE(void* pvItem)
 		{
 			return reinterpret_cast<FuncIsUseable>(g_CrowbarHooks[WeaponRefHook_IsUseable].address)(pvItem, DUMMY_VAL);
 		}
@@ -325,7 +325,7 @@
 
 	// virtual int AddToPlayer(CBasePlayer* pPlayer);
 	//
-		inline int ADD_TO_PLAYER(void* pvItem, void* pvPlayer)
+		inline int WEAPON_REF_ADD_TO_PLAYER(void* pvItem, void* pvPlayer)
 		{
 			return reinterpret_cast<FuncAddToPlayer>(g_CrowbarHooks[WeaponRefHook_AddToPlayer].address)(pvItem, DUMMY_VAL, pvPlayer);
 		}
@@ -337,7 +337,7 @@
 
 	// virtual int ItemSlot(void);
 	//
-		inline int ITEM_SLOT(void* pvItem)
+		inline int WEAPON_REF_ITEM_SLOT(void* pvItem)
 		{
 			return reinterpret_cast<FuncItemSlot>(g_CrowbarHooks[WeaponRefHook_ItemSlot].address)(pvItem, DUMMY_VAL);
 		}
@@ -349,7 +349,7 @@
 
 	// virtual CBaseEntity* Respawn(void);
 	//
-		inline void* RESPAWN(void* pvItem)
+		inline void* WEAPON_REF_RESPAWN(void* pvItem)
 		{
 			return reinterpret_cast<FuncRespawn>(g_CrowbarHooks[WeaponRefHook_Respawn].address)(pvItem, DUMMY_VAL);
 		}
@@ -361,7 +361,7 @@
 
 	// void Spawn(void);
 	// 
-		inline void WEAPON_SPAWN(void* pvItem)
+		inline void WEAPON_REF_SPAWN(void* pvItem)
 		{
 			reinterpret_cast<FuncSpawn>(g_CrowbarHooks[WeaponRefHook_Spawn].address)(pvItem, DUMMY_VAL);
 		}
@@ -460,7 +460,7 @@
 
 	// virtual BOOL CanDeploy(void)
 	//
-		inline BOOL CAN_DEPLOY(void* pvItem)
+		inline BOOL WEAPON_REF_CAN_DEPLOY(void* pvItem)
 		{
 			return reinterpret_cast<FuncCanDeploy>(g_CrowbarHooks[WeaponRefHook_CanDeploy].address)(pvItem);
 		}
@@ -472,7 +472,7 @@
 
 	// virtual BOOL Deploy(void);
 	//
-		inline BOOL DEPLOY(void* pvItem)
+		inline BOOL WEAPON_REF_DEPLOY(void* pvItem)
 		{
 			return reinterpret_cast<FuncDeploy>(g_CrowbarHooks[WeaponRefHook_Deploy].address)(pvItem);
 		}
@@ -484,7 +484,7 @@
 
 	// virtual BOOL CanHolster(void);
 	//
-		inline BOOL CAN_HOLSTER(void* pvItem)
+		inline BOOL WEAPON_REF_CAN_HOLSTER(void* pvItem)
 		{
 			return reinterpret_cast<FuncCanHolster>(g_CrowbarHooks[WeaponRefHook_CanHolster].address)(pvItem);
 		}
@@ -496,7 +496,7 @@
 
 	// virtual void Holster(int skiplocal = 0);
 	//
-		inline void HOLSTER(void* pvItem)
+		inline void WEAPON_REF_HOLSTER(void* pvItem)
 		{
 			reinterpret_cast<FuncHolster>(g_CrowbarHooks[WeaponRefHook_Holster].address)(pvItem, 0);
 		}
@@ -508,14 +508,14 @@
 
 	// virtual void ItemPostFrame(void);
 	//
-		inline void ITEM_POST_FRAME(void* pvItem)
+		inline void WEAPON_REF_ITEM_POST_FRAME(void* pvItem)
 		{
 			reinterpret_cast<FuncItemPostFrame>(g_CrowbarHooks[WeaponRefHook_ItemPostFrame].address)(pvItem);
 		}
 
 	// virtual BOOL IsUseable(void);
 	//
-		inline BOOL IS_USEABLE(void* pvItem)
+		inline BOOL WEAPON_REF_IS_USEABLE(void* pvItem)
 		{
 			return reinterpret_cast<FuncIsUseable>(g_CrowbarHooks[WeaponRefHook_IsUseable].address)(pvItem);
 		}
@@ -527,7 +527,7 @@
 
 	// virtual int AddToPlayer(CBasePlayer* pPlayer);
 	//
-		inline int ADD_TO_PLAYER(void* pvItem, void* pvPlayer)
+		inline int WEAPON_REF_ADD_TO_PLAYER(void* pvItem, void* pvPlayer)
 		{
 			return reinterpret_cast<FuncAddToPlayer>(g_CrowbarHooks[WeaponRefHook_AddToPlayer].address)(pvItem, pvPlayer);
 		}
@@ -539,7 +539,7 @@
 
 	// virtual int ItemSlot(void);
 	//
-		inline int ITEM_SLOT(void* pvItem)
+		inline int WEAPON_REF_ITEM_SLOT(void* pvItem)
 		{
 			return reinterpret_cast<FuncItemSlot>(g_CrowbarHooks[WeaponRefHook_ItemSlot].address)(pvItem);
 		}
@@ -551,7 +551,7 @@
 
 	// virtual CBaseEntity* Respawn(void);
 	//
-		inline void* RESPAWN(void* pvItem)
+		inline void* WEAPON_REF_RESPAWN(void* pvItem)
 		{
 			return reinterpret_cast<FuncRespawn>(g_CrowbarHooks[WeaponRefHook_Respawn].address)(pvItem);
 		}
@@ -563,7 +563,7 @@
 
 	// void Spawn(void);
 	// 
-		inline void WEAPON_SPAWN(void* pvItem)
+		inline void WEAPON_REF_SPAWN(void* pvItem)
 		{
 			reinterpret_cast<FuncSpawn>(g_CrowbarHooks[WeaponRefHook_Spawn].address)(pvItem);
 		}

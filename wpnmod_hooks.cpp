@@ -129,7 +129,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 	void Weapon_Spawn(void* pvItem)
 #endif
 {
-	WEAPON_SPAWN(pvItem);
+	WEAPON_REF_SPAWN(pvItem);
 	
 	edict_t* pWeapon = PrivateToEdict(pvItem);
 
@@ -174,7 +174,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 
 	if (WEAPON_IS_DEFAULT(iId) || !WEAPON_FORWARD_IS_EXIST(iId, Fwd_Wpn_CanDeploy))
 	{
-		return CAN_DEPLOY(pvItem);
+		return WEAPON_REF_CAN_DEPLOY(pvItem);
 	}
 
 	edict_t* pPlayer = GetPrivateCbase(pWeapon, pvData_pPlayer);
@@ -205,7 +205,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 
 	if (WEAPON_IS_DEFAULT(iId))
 	{
-		return DEPLOY(pvItem);
+		return WEAPON_REF_DEPLOY(pvItem);
 	}
 
 	edict_t* pPlayer = GetPrivateCbase(pWeapon, pvData_pPlayer);
@@ -251,7 +251,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 
 	if (WEAPON_IS_DEFAULT(iId))
 	{
-		ITEM_POST_FRAME(pvItem);
+		WEAPON_REF_ITEM_POST_FRAME(pvItem);
 		return;
 	}
 
@@ -360,7 +360,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 
 	if (WEAPON_IS_DEFAULT(iId) || !WEAPON_FORWARD_IS_EXIST(iId, Fwd_Wpn_IsUseable))
 	{
-		return IS_USEABLE(pvItem);
+		return WEAPON_REF_IS_USEABLE(pvItem);
 	}
 
 	edict_t* pPlayer = GetPrivateCbase(pWeapon, pvData_pPlayer);
@@ -391,7 +391,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 
 	if (WEAPON_IS_DEFAULT(iId) || !WEAPON_FORWARD_IS_EXIST(iId, Fwd_Wpn_CanHolster))
 	{
-		return CAN_HOLSTER(pvItem);
+		return WEAPON_REF_CAN_HOLSTER(pvItem);
 	}
 
 	edict_t* pPlayer = GetPrivateCbase(pWeapon, pvData_pPlayer);
@@ -422,7 +422,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 
 	if (WEAPON_IS_DEFAULT(iId))
 	{
-		HOLSTER(pvItem);
+		WEAPON_REF_HOLSTER(pvItem);
 		return;
 	}
 
@@ -486,7 +486,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 		WEAPON_FORWARD_EXECUTE(iId, Fwd_Wpn_AddToPlayer, pWeapon, pPlayer);
 	}
 
-	return ADD_TO_PLAYER(pvItem, pvPlayer);
+	return WEAPON_REF_ADD_TO_PLAYER(pvItem, pvPlayer);
 }
 
 
@@ -516,7 +516,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 		return WEAPON_GET_SLOT(iId) + 1;
 	}
 
-	return ITEM_SLOT(pvItem);
+	return WEAPON_REF_ITEM_SLOT(pvItem);
 }
 
 
@@ -537,7 +537,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 
 	if (WEAPON_IS_DEFAULT(iId))
 	{
-		return RESPAWN(pvItem);
+		return WEAPON_REF_RESPAWN(pvItem);
 	}
 	
 	edict_t* pItem = ENTITY_CREATE_ENT(WEAPON_GET_NAME(iId), pWeapon->v.origin, pWeapon->v.angles);

@@ -50,7 +50,6 @@
 }										\
 
 #define GET_AMMO_INDEX				g_Memory.GetAmmoIndex
-#define REGISTER_AMMO_INFO			g_Memory.AddAmmoNameToAmmoRegistry
 
 #define WEAPON_RESET_INFO			g_Memory.Weapon_ResetInfo
 #define WEAPON_GET_ID				g_Memory.Weapon_Exists
@@ -66,17 +65,10 @@
 #define WEAPON_GET_SLOT				g_Memory.Weapon_GetSlot
 #define WEAPON_GET_SLOT_POSITION	g_Memory.Weapon_GetSlotPosition
 
-#define WEAPON_SET_NAME				g_Memory.Weapon_SetpszName
-#define WEAPON_SET_AMMO1			g_Memory.Weapon_SetpszAmmo1
-#define WEAPON_SET_AMMO2			g_Memory.Weapon_SetpszAmmo2
-#define WEAPON_SET_MAX_AMMO1		g_Memory.Weapon_SetMaxAmmo1
-#define WEAPON_SET_MAX_AMMO2		g_Memory.Weapon_SetMaxAmmo2
-#define WEAPON_SET_MAX_CLIP			g_Memory.Weapon_SetMaxClip
-#define WEAPON_SET_ID				g_Memory.Weapon_SetId
-#define WEAPON_SET_WEIGHT			g_Memory.Weapon_SetWeight
-#define WEAPON_SET_FLAGS			g_Memory.Weapon_SetFlags
 #define WEAPON_SET_SLOT				g_Memory.Weapon_SetSlot
 #define WEAPON_SET_SLOT_POSITION	g_Memory.Weapon_SetSlotPosition
+
+#define WEAPON_REGISTER				g_Memory.Weapon_RegisterWeapon
 
 
 typedef struct
@@ -169,15 +161,6 @@ public:
 	int			Weapon_GetSlot			(const int iId)		{ return m_pItemInfoArray[iId].iSlot; }
 	int			Weapon_GetSlotPosition	(const int iId)		{ return m_pItemInfoArray[iId].iPosition; }
 
-	void	Weapon_SetpszName		(const int iId, const char* pszName)		{ m_pItemInfoArray[iId].pszName = pszName; }
-	void	Weapon_SetpszAmmo1		(const int iId, const char* pszAmmo1)		{ m_pItemInfoArray[iId].pszAmmo1 = pszAmmo1; }
-	void	Weapon_SetpszAmmo2		(const int iId, const char* pszAmmo2)		{ m_pItemInfoArray[iId].pszAmmo2 = pszAmmo2; }
-	void	Weapon_SetMaxAmmo1		(const int iId, const int MaxAmmo1)			{ m_pItemInfoArray[iId].iMaxAmmo1 = MaxAmmo1; }
-	void	Weapon_SetMaxAmmo2		(const int iId, const int MaxAmmo2)			{ m_pItemInfoArray[iId].iMaxAmmo2 = MaxAmmo2; }
-	void	Weapon_SetMaxClip		(const int iId, const int MaxClip)			{ m_pItemInfoArray[iId].iMaxClip = MaxClip; }
-	void	Weapon_SetId			(const int iId)								{ m_pItemInfoArray[iId].iId = iId; }
-	void	Weapon_SetWeight		(const int iId, const int Weight)			{ m_pItemInfoArray[iId].iWeight = Weight; }
-	void	Weapon_SetFlags			(const int iId, const int Flags)			{ m_pItemInfoArray[iId].iFlags = Flags; }
 	void	Weapon_SetSlot			(const int iId, const int Slot)				{ m_pItemInfoArray[iId].iSlot = Slot; }
 	void	Weapon_SetSlotPosition	(const int iId, const int SlotPosition)		{ m_pItemInfoArray[iId].iPosition = SlotPosition; }
 
@@ -202,6 +185,8 @@ public:
 		memset(&m_pItemInfoArray[iId], 0, sizeof(ItemInfo));
 		//memset(&WeaponInfoArray[iId], 0, sizeof(WeaponData));
 	}
+
+	int Weapon_RegisterWeapon(AMX *amx, cell *params);
 };
 
 extern CMemory g_Memory;

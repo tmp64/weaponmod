@@ -103,7 +103,7 @@ public:
 	int status;
 };
 
-#define GET_AMXX_PLUGIN_POINTER(amx)	(CPlugin*)amx->userdata[UD_FINDPLUGIN]
+#define GET_AMXX_PLUGIN_POINTER(amx)	((CPlugin*)amx->userdata[UD_FINDPLUGIN])
 #define STOP_AMXX_PLUGIN(amx)			((CPlugin*)amx->userdata[UD_FINDPLUGIN])->status = PS_STOPPED
 
 
