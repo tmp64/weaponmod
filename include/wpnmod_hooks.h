@@ -174,6 +174,7 @@
 
 	enum VirtualCrowbarHooks
 	{
+		CrowbarHook_Spawn,
 		CrowbarHook_Respawn,
 		CrowbarHook_AddToPlayer,
 		CrowbarHook_GetItemInfo,
@@ -213,6 +214,7 @@
 	typedef int		(__fastcall *FuncTraceAttack)		(void*, DUMMY, entvars_t *, float, Vector, TraceResult*, int);
 	typedef int		(__fastcall *FuncTakeDamage)		(void*, DUMMY, entvars_t *, entvars_t *, float, int);
 
+	void	__fastcall Weapon_Spawn			(void* pvItem);
 	int		__fastcall Weapon_GetItemInfo	(void* pvItem, DUMMY, ItemInfo* p);
 	BOOL	__fastcall Weapon_CanDeploy		(void* pvItem);
 	BOOL	__fastcall Weapon_Deploy		(void* pvItem);
@@ -350,6 +352,13 @@
 
 	// void Spawn(void);
 	// 
+		inline void WEAPON_SPAWN(void* pvItem)
+		{
+			reinterpret_cast<FuncSpawn>(g_CrowbarHooks[CrowbarHook_Spawn].address)(pvItem, DUMMY_VAL);
+		}
+
+	// void Spawn(void);
+	// 
 		inline void PLAYER_SPAWN(void* pvPlayer)
 		{
 			reinterpret_cast<FuncSpawn>(g_PlayerSpawn_Hook.address)(pvPlayer, DUMMY_VAL);
@@ -410,6 +419,7 @@
 	typedef int		(*FuncTraceAttack)		(void*, entvars_t *, float, Vector, TraceResult*, int);
 	typedef int		(*FuncTakeDamage)		(void*, entvars_t *, entvars_t *, float, int);
 
+	void	Weapon_Spawn			(void* pvItem);
 	int		Weapon_GetItemInfo		(void* pvItem, ItemInfo* p);
 	BOOL	Weapon_CanDeploy		(void* pvItem);
 	BOOL	Weapon_Deploy			(void* pvItem);
@@ -543,6 +553,13 @@
 		inline BOOL ADD_AMMO(edict_t* pentAmmo, edict_t* pentOther)
 		{
 			return reinterpret_cast<FuncAddAmmo>(GET_VTABLE_ENT(pentAmmo)[GET_VTABLE_OFFSET(VO_AddAmmo)])(pentAmmo->pvPrivateData, pentOther->pvPrivateData);
+		}
+
+	// void Spawn(void);
+	// 
+		inline void WEAPON_SPAWN(void* pvItem)
+		{
+			reinterpret_cast<FuncSpawn>(g_CrowbarHooks[CrowbarHook_Spawn].address)(pvItem);
 		}
 
 	// void Spawn(void);

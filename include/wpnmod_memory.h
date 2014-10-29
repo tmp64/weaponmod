@@ -53,6 +53,7 @@
 #define REGISTER_AMMO_INFO			g_Memory.AddAmmoNameToAmmoRegistry
 
 #define WEAPON_RESET_INFO			g_Memory.Weapon_ResetInfo
+#define WEAPON_GET_ID				g_Memory.Weapon_Exists
 
 #define WEAPON_GET_NAME				g_Memory.Weapon_GetpszName
 #define WEAPON_GET_AMMO1			g_Memory.Weapon_GetpszAmmo1
@@ -60,7 +61,6 @@
 #define WEAPON_GET_MAX_AMMO1		g_Memory.Weapon_GetMaxAmmo1
 #define WEAPON_GET_MAX_AMMO2		g_Memory.Weapon_GetMaxAmmo2
 #define WEAPON_GET_MAX_CLIP			g_Memory.Weapon_GetMaxClip
-#define WEAPON_GET_ID				g_Memory.Weapon_GetId
 #define WEAPON_GET_WEIGHT			g_Memory.Weapon_GetWeight
 #define WEAPON_GET_FLAGS			g_Memory.Weapon_GetFlags
 #define WEAPON_GET_SLOT				g_Memory.Weapon_GetSlot
@@ -180,6 +180,19 @@ public:
 	void	Weapon_SetFlags			(const int iId, const int Flags)			{ m_pItemInfoArray[iId].iFlags = Flags; }
 	void	Weapon_SetSlot			(const int iId, const int Slot)				{ m_pItemInfoArray[iId].iSlot = Slot; }
 	void	Weapon_SetSlotPosition	(const int iId, const int SlotPosition)		{ m_pItemInfoArray[iId].iPosition = SlotPosition; }
+
+	int Weapon_Exists(const char* szName)
+	{
+		for (int i = 1; i < MAX_WEAPONS; i++)
+		{
+			if (Weapon_GetpszName(i) && !_stricmp(Weapon_GetpszName(i), szName))
+			{
+				return i;
+			}
+		}
+
+		return 0;
+	}
 
 	int		GetAmmoIndex				(const char *psz);
 	bool	AddAmmoNameToAmmoRegistry	(const char *szAmmoname);

@@ -39,13 +39,10 @@
 
 CConfig g_Config;
 
-int g_iAmmoBoxIndex = 0;
-
 const char* gWeaponReference = "weapon_crowbar";
 const char* gAmmoBoxReference = "ammo_rpgclip";
 
 WeaponData WeaponInfoArray[MAX_WEAPONS];
-AmmoBoxData AmmoBoxInfoArray[MAX_WEAPONS];
 
 cvar_t* cvar_sv_cheats = NULL;
 cvar_t* cvar_mp_weaponstay = NULL;
@@ -164,10 +161,22 @@ void CConfig::ServerDeactivate(void)
 
 	memset(m_WeaponsInfo, 0, sizeof(m_WeaponsInfo));
 
-	g_iAmmoBoxIndex = 0;
+	for (int i = 0; i < (int)m_AmmoBoxesInfo.size(); i++)
+	{
+		delete m_AmmoBoxesInfo[i];
+	}
+
+	m_AmmoBoxesInfo.clear();
+
+
+
+
 
 	memset(WeaponInfoArray, 0, sizeof(WeaponInfoArray));
-	memset(AmmoBoxInfoArray, 0, sizeof(AmmoBoxInfoArray));
+
+
+
+
 
 	for (int i = 0; i < (int)m_pDecalList.size(); i++)
 	{
@@ -363,6 +372,180 @@ bool CConfig::IsItemBlocked(const char *name)
 	return false;
 }
 
+int CConfig::Ammobox_Register(const char *name)
+{
+	CAmmoBoxInfo *p = new CAmmoBoxInfo;
+
+	p->m_strClassname.assign(name);
+	m_AmmoBoxesInfo.push_back(p);
+
+	if (!m_bAmmoBoxHooked)
+	{
+		m_bAmmoBoxHooked = true;
+		SetHookVirtual(&g_RpgAddAmmo_Hook);
+	}
+
+	return m_AmmoBoxesInfo.size();
+}
+
+int CConfig::Ammobox_RegisterForward(int iId, e_AmmoFwds fwdType, AMX *amx, const char *pFuncName)
+{
+	if (iId <= 0 || iId >= Ammobox_GetCount())
+	{
+		MF_LogError(amx, AMX_ERR_NATIVE, "Invalid ammobox id provided (%d).", iId);
+		return 0;
+	}
+
+	if (fwdType < 0 || fwdType >= Fwd_Ammo_End)
+	{
+		MF_LogError(amx, AMX_ERR_NATIVE, "Function out of bounds. Got: %d, Max: %d.", iId, fwdType - 1);
+		return 0;
+	}
+
+	int iRegResult = MF_RegisterSPForwardByName(amx, pFuncName, FP_CELL, FP_CELL, FP_DONE);
+
+	if (iRegResult == -1)
+	{
+		MF_LogError(amx, AMX_ERR_NATIVE, "Function not found (%d, \"%s\").", fwdType, pFuncName);
+		return 0;
+	}
+
+	m_AmmoBoxesInfo[--iId]->m_AmxxForwards[fwdType] = iRegResult;
+	return iRegResult;
+}
+
+int CConfig::Ammobox_ExecuteForward(int iId, e_AmmoFwds fwdType, edict_t* pAmmobox, edict_t* pPlayer)
+{
+	if (!m_AmmoBoxesInfo[--iId]->m_AmxxForwards[fwdType])
+	{
+		return 0;
+	}
+
+	int iPlayer = 0;
+
+	if (IsValidPev(pPlayer))
+	{
+		iPlayer = ENTINDEX(pPlayer);
+	}
+
+	return MF_ExecuteForward
+	(
+		m_AmmoBoxesInfo[iId]->m_AmxxForwards[fwdType],
+
+		static_cast<cell>(ENTINDEX(pAmmobox)),
+		static_cast<cell>(iPlayer)
+	);
+}
+
+int CConfig::Ammobox_GetCount()
+{
+	return m_AmmoBoxesInfo.size() + 1;
+}
+
+const char*	CConfig::Ammobox_GetName(int iId)
+{
+	if (iId <= 0 || iId >= Ammobox_GetCount())
+	{
+		return NULL;
+	}
+
+	return m_AmmoBoxesInfo[--iId]->m_strClassname.c_str();
+}
+
+int CConfig::Ammobox_GetId(const char *name)
+{
+	for (int i = 0; i < (int)m_AmmoBoxesInfo.size(); i++)
+	{
+		if (_stricmp(m_AmmoBoxesInfo[i]->m_strClassname.c_str(), name) == 0)
+		{
+			return i + 1;
+		}
+	}
+
+	return 0;
+}
+
+int CConfig::Weapon_RegisterForward(int iId, e_WpnFwds fwdType, AMX *amx, const char * pFuncName)
+{
+	if (iId <= 0 || iId >= MAX_WEAPONS || !Weapon_IsCustom(iId))
+	{
+		MF_LogError(amx, AMX_ERR_NATIVE, "Invalid weapon id provided (%d).", iId);
+		return 0;
+	}
+
+	if (fwdType < 0 || fwdType >= Fwd_Wpn_End)
+	{
+		MF_LogError(amx, AMX_ERR_NATIVE, "Function out of bounds. Got: %d, Max: %d.", iId, Fwd_Wpn_End - 1);
+		return 0;
+	}
+
+	int iRegResult = MF_RegisterSPForwardByName(amx, pFuncName, FP_CELL, FP_CELL, FP_CELL, FP_CELL, FP_CELL, FP_DONE);
+
+	if (iRegResult == -1)
+	{
+		MF_LogError(amx, AMX_ERR_NATIVE, "Function not found (%d, \"%s\").", fwdType, pFuncName);
+		return 0;
+	}
+
+	m_WeaponsInfo[iId].m_AmxxForwards[fwdType] = iRegResult;
+	return iRegResult;
+}
+
+int CConfig::Weapon_ExecuteForward(int iId, e_WpnFwds fwdType, edict_t* pWeapon, edict_t* pPlayer)
+{
+	if (!m_WeaponsInfo[iId].m_AmxxForwards[fwdType])
+	{
+		return 0;
+	}
+
+	int iAmmo1 = 0;
+	int iAmmo2 = 0;
+	int iPlayer = 0;
+
+	if (IsValidPev(pPlayer))
+	{
+		iPlayer = ENTINDEX(pPlayer);
+		iAmmo1 = GetAmmoInventory(pPlayer, PrimaryAmmoIndex(pWeapon));
+		iAmmo2 = GetAmmoInventory(pPlayer, SecondaryAmmoIndex(pWeapon));
+	}
+
+	return MF_ExecuteForward
+	(
+		m_WeaponsInfo[iId].m_AmxxForwards[fwdType],
+
+		static_cast<cell>(ENTINDEX(pWeapon)),
+		static_cast<cell>(iPlayer),
+		static_cast<cell>(GetPrivateInt(pWeapon, pvData_iClip)),
+		static_cast<cell>(iAmmo1),
+		static_cast<cell>(iAmmo2)
+	);
+}
+
+int CConfig::Weapon_GetForward(int iId, e_WpnFwds fwdType)
+{
+	return m_WeaponsInfo[iId].m_AmxxForwards[fwdType];
+}
+
+void CConfig::Weapon_MarkAsCustom(int iId)
+{
+	m_WeaponsInfo[iId].m_WpnType = Wpn_Custom;
+}
+
+void CConfig::Weapon_MarkAsDefault(int iId)
+{
+	m_WeaponsInfo[iId].m_WpnType = Wpn_Default;
+}
+
+bool CConfig::Weapon_IsCustom(int iId)
+{
+	return m_WeaponsInfo[iId].m_WpnType == Wpn_Custom;
+}
+
+bool CConfig::Weapon_IsDefault(int iId)
+{
+	return m_WeaponsInfo[iId].m_WpnType == Wpn_Default;
+}
+
 void CConfig::ServerCommand(void)
 {
 	const char *cmd = CMD_ARGV(1);
@@ -408,10 +591,10 @@ void CConfig::ServerCommand(void)
 
 		printf2("\nCurrently loaded ammo:\n");
 
-		for (i = 1; i <= g_iAmmoBoxIndex; i++)
+		for (i = 1; i < AMMOBOX_GET_COUNT(); i++)
 		{
 			items++;
-			printf2(" [%2d] %-23.22s\n", ++ammo, AmmoBoxInfoArray[i].classname.c_str());
+			printf2(" [%2d] %-23.22s\n", ++ammo, AMMOBOX_GET_NAME(i));
 		}
 
 		printf2("\nTotal:\n");
@@ -527,9 +710,9 @@ bool CConfig::ClientCommand(edict_t *pEntity)
 
 		CLIENT_PRINT(pEntity, print_console, "\nCurrently loaded ammo:\n");
 
-		for (i = 1; i <= g_iAmmoBoxIndex; i++)
+		for (i = 1; i < AMMOBOX_GET_COUNT(); i++)
 		{
-			sprintf(buf, " [%2d] %-23.22s\n", ++ammo, AmmoBoxInfoArray[i].classname.c_str());
+			sprintf(buf, " [%2d] %-23.22s\n", ++ammo, AMMOBOX_GET_NAME(i));
 			CLIENT_PRINT(pEntity, print_console, buf);
 		}
 

@@ -40,6 +40,7 @@
 
 VirtualHookData g_CrowbarHooks[CrowbarHook_End] = 
 {
+	VHOOK_CROWBAR(Spawn),
 	VHOOK_CROWBAR(Respawn),
 	VHOOK_CROWBAR(AddToPlayer),
 	VHOOK_CROWBAR(GetItemInfo),
@@ -55,6 +56,40 @@ VirtualHookData g_CrowbarHooks[CrowbarHook_End] =
 VirtualHookData	g_RpgAddAmmo_Hook		= VHOOK(gAmmoBoxReference,	VO_AddAmmo,				AmmoBox_AddAmmo);
 VirtualHookData g_PlayerSpawn_Hook		= VHOOK("player",			VO_Spawn,				Player_Spawn);
 VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	Player_PostThink);
+
+
+#ifdef WIN32
+	void __fastcall Weapon_Spawn(void* pvItem)
+#else
+	void Weapon_Spawn(void* pvItem)
+#endif
+{
+	WEAPON_SPAWN(pvItem);
+	
+	edict_t* pWeapon = PrivateToEdict(pvItem);
+
+	if (!IsValidPev(pWeapon))
+	{
+		return;
+	}
+
+	int iId = WEAPON_GET_ID(STRING(pWeapon->v.classname));
+
+	if (WEAPON_IS_CUSTOM(iId))
+	{
+		SetPrivateInt(pWeapon, pvData_iId, iId);
+
+		if (WEAPON_GET_MAX_CLIP(iId) != -1)
+		{
+			SetPrivateInt(pWeapon, pvData_iClip, 0);
+		}
+
+		pWeapon->v.classname = MAKE_STRING(WEAPON_GET_NAME(iId));
+
+		SET_ORIGIN(pWeapon, pWeapon->v.origin);
+		WEAPON_FORWARD_EXECUTE(iId, Fwd_Wpn_Spawn, pWeapon, NULL);
+	}
+}
 
 
 #ifdef WIN32
@@ -81,16 +116,8 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 	p->iMaxClip		= WEAPON_GET_MAX_CLIP(iId);
 	p->iFlags		= WEAPON_GET_FLAGS(iId);
 	p->iWeight		= WEAPON_GET_WEIGHT(iId);
-
-	//if (WEAPON_GET_AMMO1(iId))
-	{
-		p->pszAmmo1 = WEAPON_GET_AMMO1(iId);
-	}
-
-	//if (WEAPON_GET_AMMO2(iId))
-	{
-		p->pszAmmo2 = WEAPON_GET_AMMO2(iId);
-	}
+	p->pszAmmo1		= WEAPON_GET_AMMO1(iId);
+	p->pszAmmo2		= WEAPON_GET_AMMO2(iId);
 
 	return 1;
 }
@@ -111,7 +138,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 
 	int iId = GetPrivateInt(pWeapon, pvData_iId);
 
-	if (WEAPON_IS_DEFAULT(iId) || !WEAPON_FORWARD_EXISTS(iId, Fwd_Wpn_CanDeploy))
+	if (WEAPON_IS_DEFAULT(iId) || !WEAPON_FORWARD_IS_EXIST(iId, Fwd_Wpn_CanDeploy))
 	{
 		return CAN_DEPLOY(pvItem);
 	}
@@ -297,7 +324,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 
 	int iId = GetPrivateInt(pWeapon, pvData_iId);
 
-	if (WEAPON_IS_DEFAULT(iId) || !WEAPON_FORWARD_EXISTS(iId, Fwd_Wpn_IsUseable))
+	if (WEAPON_IS_DEFAULT(iId) || !WEAPON_FORWARD_IS_EXIST(iId, Fwd_Wpn_IsUseable))
 	{
 		return IS_USEABLE(pvItem);
 	}
@@ -328,7 +355,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 
 	int iId = GetPrivateInt(pWeapon, pvData_iId);
 
-	if (WEAPON_IS_DEFAULT(iId) || !WEAPON_FORWARD_EXISTS(iId, Fwd_Wpn_CanHolster))
+	if (WEAPON_IS_DEFAULT(iId) || !WEAPON_FORWARD_IS_EXIST(iId, Fwd_Wpn_CanHolster))
 	{
 		return CAN_HOLSTER(pvItem);
 	}
@@ -405,7 +432,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 			return 0;
 		}
 
-		if (WEAPON_FORWARD_EXISTS(iId, Fwd_Wpn_AddToPlayer2)
+		if (WEAPON_FORWARD_IS_EXIST(iId, Fwd_Wpn_AddToPlayer2)
 			&& WEAPON_FORWARD_EXECUTE(iId, Fwd_Wpn_AddToPlayer2, pWeapon, pPlayer) == 0)
 		{
 			return FALSE;
@@ -530,20 +557,11 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 	}
 
 	BOOL bReturn = FALSE;
+	int iId = AMMOBOX_GET_ID(STRING(pAmmobox->v.classname));
 
-	for (int k = 1; k <= g_iAmmoBoxIndex; k++)
+	if (iId)
 	{
-		if (!strcmp(STRING(pAmmobox->v.classname), AmmoBoxInfoArray[k].classname.c_str()) && AmmoBoxInfoArray[k].iForward[Fwd_Ammo_AddAmmo])
-		{
-			bReturn = MF_ExecuteForward
-			(
-				AmmoBoxInfoArray[k].iForward[Fwd_Ammo_AddAmmo], 
-				static_cast<cell>(ENTINDEX(pAmmobox)),
-				static_cast<cell>(ENTINDEX(pOther))
-			);
-
-			break;
-		}
+		bReturn = AMMOBOX_FORWARD_EXECUTE(iId, Fwd_Ammo_AddAmmo, pAmmobox, pOther);
 	}
 
 	return bReturn;
@@ -894,30 +912,19 @@ void* WpnMod_GetDispatch(char *pname)
 		return pDispatch;
 	}
 
-	// Try to find custom classname and link it to reference value
-	if (strstr(pname, "weapon_"))
+	// Try to find custom classname in registered weapons and ammoboxes
+	if (WEAPON_GET_ID(pname))
 	{
-		for (int i = 1; i < MAX_WEAPONS; i++)
-		{
-			if (WEAPON_GET_NAME(i) && !_stricmp(WEAPON_GET_NAME(i), pname))
-			{
-				return (void*)FindAdressInDLL(g_Memory.GetModule_GameDll(), gWeaponReference);
-			}
-		}
+		return (void*)FindAdressInDLL(g_Memory.GetModule_GameDll(), gWeaponReference);
 	}
-	else if (strstr(pname, "ammo_"))
+	else if (AMMOBOX_GET_ID(pname))
 	{
-		for (int i = 1; i <= g_iAmmoBoxIndex; i++)
-		{
-			if (!_stricmp(AmmoBoxInfoArray[i].classname.c_str(), pname))
-			{
-				return (void*)FindAdressInDLL(g_Memory.GetModule_GameDll(), gAmmoBoxReference);
-			}
-		}
+		return (void*)FindAdressInDLL(g_Memory.GetModule_GameDll(), gAmmoBoxReference);
 	}
 
 	// Try another ways here
-	// Later...
+	// But later...
+
 	return NULL;
 }
 

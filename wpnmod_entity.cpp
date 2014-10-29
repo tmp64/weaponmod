@@ -41,70 +41,41 @@ edict_t* Wpnmod_SpawnItem(const char* szName, Vector vecOrigin, Vector vecAngles
 {
 	if (strstr(szName, "ammo_"))
 	{
-		return Ammo_Spawn(szName, vecOrigin, vecAngles);
+		return WpnMod_Ammo_Spawn(szName, vecOrigin, vecAngles);
 	}
 
 	if (strstr(szName, "weapon_"))
 	{
-		return Weapon_Spawn(szName, vecOrigin, vecAngles);
+		return WpnMod_Weapon_Spawn(szName, vecOrigin, vecAngles);
 	}
 
 	return NULL;
 }
 
-edict_t* Weapon_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles)
+edict_t* CreateEntity(char *szName, Vector vecOrigin, Vector vecAngles)
 {
-	int iId = 0;
-
-	for (int i = 1; i < MAX_WEAPONS; i++)
-	{
-		if (WEAPON_IS_CUSTOM(i) && !_stricmp(WEAPON_GET_NAME(i), szName))
-		{
-			iId = i;
-			break;
-		}
-	}
-
-	if (!iId)
+	edict_t	*pent = CREATE_NAMED_ENTITY(MAKE_STRING(szName));
+	
+	if (!IsValidPev(pent))
 	{
 		return NULL;
 	}
 
-	edict_t* pItem = CREATE_NAMED_ENTITY(MAKE_STRING(gWeaponReference));
+	pent->v.origin = vecOrigin;
+	pent->v.angles = vecAngles;
+	MDLL_Spawn(pent);
 
-	if (IsValidPev(pItem))
-	{
-		MDLL_Spawn(pItem);
-		SET_ORIGIN(pItem, vecOrigin);
-
-		pItem->v.classname = MAKE_STRING(WEAPON_GET_NAME(iId));
-		pItem->v.angles = vecAngles;
-
-		SetPrivateInt(pItem, pvData_iId, iId);
-
-		if (WEAPON_GET_MAX_CLIP(iId) != -1)
-		{
-			SetPrivateInt(pItem, pvData_iClip, 0);
-		}
-
-		WEAPON_FORWARD_EXECUTE(iId, Fwd_Wpn_Spawn, pItem, NULL);
-	}
-
-	return pItem;
+	return pent;
 }
 
-edict_t* Ammo_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles)
+edict_t* WpnMod_Weapon_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles)
 {
-	int iId = 0;
+	return CreateEntity((char*)szName, vecOrigin, vecAngles);
+}
 
-	for (int i = 1; i <= g_iAmmoBoxIndex; i++)
-	{
-		if (!_stricmp(AmmoBoxInfoArray[i].classname.c_str(), szName))
-		{
-			iId = i;
-			break;
-		}
-	}
+edict_t* WpnMod_Ammo_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles)
+{
+	int iId = AMMOBOX_GET_ID(szName);
 
 	if (!iId)
 	{
@@ -118,18 +89,10 @@ edict_t* Ammo_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles)
 		MDLL_Spawn(pAmmoBox);
 		SET_ORIGIN(pAmmoBox, vecOrigin);
 
-		pAmmoBox->v.classname = MAKE_STRING(AmmoBoxInfoArray[iId].classname.c_str());
+		pAmmoBox->v.classname = MAKE_STRING(AMMOBOX_GET_NAME(iId));
 		pAmmoBox->v.angles = vecAngles;
 
-		if (AmmoBoxInfoArray[iId].iForward[Fwd_Ammo_Spawn])
-		{
-			MF_ExecuteForward
-			(
-				AmmoBoxInfoArray[iId].iForward[Fwd_Ammo_Spawn],
-				static_cast<cell>(ENTINDEX(pAmmoBox)),
-				static_cast<cell>(0)
-			);
-		}
+		AMMOBOX_FORWARD_EXECUTE(iId, Fwd_Ammo_Spawn, pAmmoBox, NULL);
 	}
 
 	return pAmmoBox;

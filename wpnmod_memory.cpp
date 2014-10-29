@@ -277,6 +277,21 @@ void CMemory::Parse_GiveNamedItem(void)
 	SetHook(&g_fh_GiveNamedItem);
 }
 
+size_t Parse_StringInModule(module *lib, unsigned char* pattern, const char *string)
+{
+	int i = 0;
+	unsigned char *ptr = &pattern[0];
+	while (*(ptr++))
+	{
+		//++ptr;
+		++i;
+	}
+
+//	printf2("!!!!!!!!!!!!!!!! Parse_StringInModule  %d\n", i);
+
+	return NULL;
+}
+
 void CMemory::Parse_SetAnimation(void)
 {
 	char funcname[] = "CBasePlayer::SetAnimation (gamedll)";
@@ -316,6 +331,8 @@ void CMemory::Parse_SetAnimation(void)
 	size_t pCandidate = NULL;
 
 	pCurrent = FindStringInDLL(m_start_gamedll, m_end_gamedll, string);
+
+	//Parse_StringInModule(GetModule_GameDll(), pattern, string);
 
 	while (pCurrent)
 	{
@@ -1010,18 +1027,7 @@ void CMemory::Parse_CallGameEntity(void)
 
 void CMemory::EnableShieldHitboxTracing(void)
 {
-	bool bShieldRegistered = false;
-
-	for (int i = 1; i < MAX_WEAPONS; i++)
-	{
-		if (WEAPON_IS_CUSTOM(i) && !stricmp(WEAPON_GET_NAME(i), "weapon_shield"))
-		{
-			bShieldRegistered = true;
-			break;
-		}
-	}
-
-	if (!bShieldRegistered)
+	if (!WEAPON_GET_ID("weapon_shield"))
 	{
 		return;
 	}

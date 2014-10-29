@@ -223,23 +223,11 @@ void SendWeaponAnim(edict_t* pPlayer, edict_t* pWeapon, int iAnim)
 
 edict_t* GiveNamedItem(edict_t* pPlayer, const char* szName)
 {
-	bool bSpawn = false;
-	edict_t *pItem = Wpnmod_SpawnItem(szName, pPlayer->v.origin, Vector(0, 0, 0));
-
-	if (!IsValidPev(pItem))
-	{
-		bSpawn = true;
-		pItem = CREATE_NAMED_ENTITY(ALLOC_STRING(szName));
-	}
+	edict_t *pItem = CreateEntity((char*)szName, pPlayer->v.origin, Vector(0, 0, 0));
 
 	if (IsValidPev(pItem))
 	{
 		pItem->v.spawnflags |= SF_NORESPAWN;
-
-		if (bSpawn)
-		{
-			MDLL_Spawn(pItem);
-		}
 
 		MDLL_Touch(pItem, pPlayer);
 

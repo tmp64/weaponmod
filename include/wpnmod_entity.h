@@ -357,8 +357,10 @@ public:
 
 extern CEntityManager g_Entity;
 
-extern edict_t* Ammo_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles);
-extern edict_t* Weapon_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles);
+extern edict_t* WpnMod_Ammo_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles);
+extern edict_t* WpnMod_Weapon_Spawn(const char* szName, Vector vecOrigin, Vector vecAngles);
 extern edict_t* Wpnmod_SpawnItem(const char* szName, Vector vecOrigin, Vector vecAngles);
+
+extern edict_t* CreateEntity(char *szName, Vector vecOrigin, Vector vecAngles);
 
 #endif // _WPNMOD_ENTITY_H

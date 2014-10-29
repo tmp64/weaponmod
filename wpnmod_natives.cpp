@@ -976,30 +976,10 @@ namespace NewNatives
 	AMXX_NATIVE(WpnMod_RegisterWeaponForward)
 	{
 		int iId = params[1];
-
-		if (iId <= 0 || iId >= MAX_WEAPONS || !WEAPON_IS_CUSTOM(iId))
-		{
-			MF_LogError(amx, AMX_ERR_NATIVE, "Invalid weapon id provided (%d).", iId);
-			return 0;
-		}
-
 		int Fwd = params[2];
-
-		if (Fwd < 0 || Fwd >= Fwd_Wpn_End)
-		{
-			MF_LogError(amx, AMX_ERR_NATIVE, "Function out of bounds. Got: %d, Max: %d.", iId, Fwd_Wpn_End - 1);
-			return 0;
-		}
-
 		const char *funcname = MF_GetAmxString(amx, params[3], 0, NULL);
 
-		if (WEAPON_FORWARD_REGISTER(iId, (e_WpnFwds)Fwd, amx, funcname) == 0)
-		{
-			MF_LogError(amx, AMX_ERR_NATIVE, "Function not found (%d, \"%s\").", Fwd, funcname);
-			return 0;
-		}
-
-		return 1;
+		return WEAPON_FORWARD_REGISTER(iId, (e_WpnFwds)Fwd, amx, funcname);
 	}
 
 	/**
@@ -1016,29 +996,13 @@ namespace NewNatives
 		CPlugin* plugin = GET_AMXX_PLUGIN_POINTER(amx);
 		const char *szAmmoboxName = STRING(ALLOC_STRING(MF_GetAmxString(amx, params[1], 0, NULL)));
 
-		if (g_iAmmoBoxIndex >= MAX_WEAPONS)
+		if (AMMOBOX_GET_ID(szAmmoboxName))
 		{
-			WPNMOD_LOG("Warning: maximum ammoboxes limit reached, \"%s\" was not registered! (\"%s\")\n", szAmmoboxName, plugin->name.c_str());
+			WPNMOD_LOG("Warning: \"%s\" already registered! (\"%s\")\n", szAmmoboxName, plugin->name.c_str());
 			return 0;
 		}
 
-		if (!g_Config.m_bAmmoBoxHooked)
-		{
-			g_Config.m_bAmmoBoxHooked = true;
-			SetHookVirtual(&g_RpgAddAmmo_Hook);
-		}
-
-		for (int i = 1; i <= g_iAmmoBoxIndex; i++)
-		{
-			if (!_stricmp(AmmoBoxInfoArray[i].classname.c_str(), szAmmoboxName))
-			{
-				WPNMOD_LOG("Warning: \"%s\" already registered! (\"%s\")\n", szAmmoboxName, plugin->name.c_str());
-				return 0;
-			}
-		}
-
-		AmmoBoxInfoArray[++g_iAmmoBoxIndex].classname.assign(szAmmoboxName);
-		return g_iAmmoBoxIndex;
+		return AMMOBOX_REGISTER(szAmmoboxName);
 	}
 
 	/**
@@ -1053,40 +1017,10 @@ namespace NewNatives
 	AMXX_NATIVE(WpnMod_RegisterAmmoForward)
 	{
 		int iId = params[1];
-
-		if (iId <= 0 || iId > g_iAmmoBoxIndex)
-		{
-			MF_LogError(amx, AMX_ERR_NATIVE, "Invalid ammobox id provided (%d).", iId);
-			return 0;
-		}
-
 		int Fwd = params[2];
-
-		if (Fwd < 0 || Fwd >= Fwd_Ammo_End)
-		{
-			MF_LogError(amx, AMX_ERR_NATIVE, "Function out of bounds. Got: %d, Max: %d.", iId, Fwd_Ammo_End - 1);
-			return 0;
-		}
-
 		const char *funcname = MF_GetAmxString(amx, params[3], 0, NULL);
 
-		AmmoBoxInfoArray[iId].iForward[Fwd] = MF_RegisterSPForwardByName
-		(
-			amx, 
-			funcname, 
-			FP_CELL,
-			FP_CELL,
-			FP_DONE
-		);
-
-		if (AmmoBoxInfoArray[iId].iForward[Fwd] == -1)
-		{
-			AmmoBoxInfoArray[iId].iForward[Fwd] = 0;
-			MF_LogError(amx, AMX_ERR_NATIVE, "Function not found (%d, \"%s\").", Fwd, funcname);
-			return 0;
-		}
-
-		return 1;
+		return AMMOBOX_FORWARD_REGISTER(iId, (e_AmmoFwds)Fwd, amx, funcname);
 	}
 
 	/**
@@ -1259,17 +1193,10 @@ namespace NewNatives
 
 		if (IsValidPev(pAmmoBox) && strstr(STRING(pAmmoBox->v.classname), "ammo_"))
 		{
-			for (int i = 1; i <= g_iAmmoBoxIndex; i++)
-			{
-				if (!_stricmp(AmmoBoxInfoArray[i].classname.c_str(), STRING(pAmmoBox->v.classname)))
-				{
-					iId = i;
-					break;
-				}
-			}
+			iId = AMMOBOX_GET_ID(STRING(pAmmoBox->v.classname));
 		}
 
-		if (iId <= 0 || iId > g_iAmmoBoxIndex)
+		if (!AMMOBOX_GET_NAME(iId))
 		{
 			MF_LogError(amx, AMX_ERR_NATIVE, "Invalid ammobox id provided (%d).", iId);
 			return 0;
@@ -1284,7 +1211,7 @@ namespace NewNatives
 			switch (iSwitch)
 			{
 			case AmmoInfo_szName:
-				szReturnValue = AmmoBoxInfoArray[iId].classname.c_str();
+				szReturnValue = AMMOBOX_GET_NAME(iId);
 				break;
 			}	
 
@@ -1321,7 +1248,7 @@ namespace NewNatives
 	*/
 	AMXX_NATIVE(WpnMod_GetAmmoBoxNum)
 	{
-		return g_iAmmoBoxIndex;
+		return AMMOBOX_GET_COUNT();
 	}
 
 	/**
