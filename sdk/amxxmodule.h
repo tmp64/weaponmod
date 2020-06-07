@@ -50,6 +50,7 @@
 #undef DLLEXPORT
 #ifndef __linux__
 #define DLLEXPORT __declspec(dllexport)
+#define HAVE_STDINT_H // Fix visual studio 2017
 #else
 #define DLLEXPORT __attribute__((visibility("default")))
 #define LINUX
