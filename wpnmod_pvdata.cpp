@@ -82,15 +82,15 @@ GameOffset GamePvDatasOffsets[pvData_End] =
 	{90,	5},		// m_LastHitGroup
 	{148,	5},		// m_flNextAttack
 
-	// CBasePlayer
-	{173,	5},		// m_iWeaponVolume
-	{175,	5},		// m_iWeaponFlash
-	{298,	5},		// m_iFOV
-	{300,	5},		// m_rgpPlayerItems
-	{306,	5},		// m_pActiveItem
-	{308,	5},		// m_pLastItem
-	{310,	5},		// m_rgAmmo
-	{387,	5}		// m_szAnimExtention
+	// CBasePlayer (Last HLDS build 8308 increases offsets by one) 
+	{174,	5},		// m_iWeaponVolume
+	{176,	5},		// m_iWeaponFlash
+	{299,	5},		// m_iFOV
+	{301,	5},		// m_rgpPlayerItems
+	{307,	5},		// m_pActiveItem
+	{309,	5},		// m_pLastItem
+	{311,	5},		// m_rgAmmo
+	{388,	5}		// m_szAnimExtention
 };
 
 void pvData_Init(void)
