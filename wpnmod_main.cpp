@@ -86,7 +86,7 @@ void WpnMod_Precache(void)
 	{
 		if (WEAPON_GET_NAME(i))
 		{
-			printf2("!!!!!! Default: %d %s\n", i, WEAPON_GET_NAME(i));
+			//printf2("!!!!!! Default: %d %s\n", i, WEAPON_GET_NAME(i));
 
 			WEAPON_MAKE_DEFAULT(i);
 
@@ -99,11 +99,11 @@ void WpnMod_Precache(void)
 
 void ServerActivate_Post(edict_t *pEdictList, int edictCount, int clientMax)
 {
-	printf2("------------------\n");
-	for (int i = 1; i < MAX_WEAPONS; i++)
-	{
-		printf2("!!!!!! Current: %d %s  %d\n", i, WEAPON_GET_NAME(i), WEAPON_GET_SLOT(i));
-	}
+	//printf2("------------------\n");
+	//for (int i = 1; i < MAX_WEAPONS; i++)
+	//{
+	//	printf2("!!!!!! Current: %d %s  %d\n", i, WEAPON_GET_NAME(i), WEAPON_GET_SLOT(i));
+	//}
 
 
 	g_Config.ServerActivate();
