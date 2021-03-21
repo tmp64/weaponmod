@@ -18,6 +18,13 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: Save Git info into variables
+      id: vars
+      shell: bash
+      run: |
+        echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+        echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v1
 
@@ -30,6 +37,7 @@ jobs:
     - name: Upload build result
       uses: actions/upload-artifact@v2
       with:
+        name: weaponmod-windows-${{ steps.vars.outputs.sha_short }}
         path: |
           msvc/Release/weaponmod_amxx.dll
           msvc/Release/weaponmod_amxx.pdb
