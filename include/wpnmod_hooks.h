@@ -80,7 +80,7 @@
 	//
 		inline void APPLY_MULTI_DAMAGE(edict_t* pentInflictor, edict_t* pentAttacker)
 		{
-			reinterpret_cast<FuncApplyMultiDamage>(g_Memory.m_pApplyMultiDamage)(VARS(pentInflictor), VARS(pentAttacker));
+			reinterpret_cast<FuncApplyMultiDamage>(g_Memory.m_pApplyMultiDamage)(&(entvars_t)pentInflictor->v, &(entvars_t)pentAttacker->v);
 		}
 
 	// void W_Precache(void)
