@@ -222,10 +222,8 @@ void CMemory::Parse_ApplyMultiDamage(void)
 
 	if (!pAdress)
 	{
-		size_t pAdress = (size_t)m_pClearMultiDamage;
-		pAdress += 32;
-		//WPNMOD_LOG("   Error: \"%s\" not found [0]\n", funcname);
-		//m_bSuccess = false;
+		WPNMOD_LOG("   Error: \"%s\" not found [0]\n", funcname);
+		m_bSuccess = false;
 		return;
 	}
 
@@ -233,9 +231,7 @@ void CMemory::Parse_ApplyMultiDamage(void)
 	
 	if (!pAdress)
 	{
-		size_t pAdress = (size_t)m_pClearMultiDamage;
-		pAdress += 32;
-		//m_bSuccess = false;
+		m_bSuccess = false;
 		return;
 	}
 
