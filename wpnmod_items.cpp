@@ -168,7 +168,7 @@ int CItems::Ammobox_Register(const char *name)
 
 int CItems::Ammobox_RegisterForward(int iId, e_AmmoFwds fwdType, AMX *amx, const char *pFuncName)
 {
-	if (iId <= 0 || iId >= Ammobox_GetCount())
+	if (iId <= 0 || iId > Ammobox_GetCount())
 	{
 		MF_LogError(amx, AMX_ERR_NATIVE, "Invalid ammobox id provided (%d).", iId);
 		return 0;
@@ -217,12 +217,12 @@ int CItems::Ammobox_ExecuteForward(int iId, e_AmmoFwds fwdType, edict_t* pAmmobo
 
 int CItems::Ammobox_GetCount()
 {
-	return m_AmmoBoxesInfo.size() + 1;
+	return m_AmmoBoxesInfo.size();
 }
 
 const char*	CItems::Ammobox_GetName(int iId)
 {
-	if (iId <= 0 || iId >= Ammobox_GetCount())
+	if (iId <= 0 || iId > Ammobox_GetCount())
 	{
 		return NULL;
 	}
