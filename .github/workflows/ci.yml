@@ -1,6 +1,13 @@
 name: CI
 
-on: [push, pull_request, workflow_dispatch]
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+  # Run GitHub Actions monthly to make sure CI isn't broken and downloads don't expire
+  schedule:
+    - cron: '0 0 1 * *'
 
 env:
   # Path to the solution file relative to the root of the project.
