@@ -1281,7 +1281,7 @@ namespace NewNatives
 			return 0;
 		}
 
-		int j = min(iClipSize - GetPrivateInt(pItem, pvData_iClip), iAmmo);
+		int j = std::min(iClipSize - GetPrivateInt(pItem, pvData_iClip), iAmmo);
 
 		if (!j)
 		{

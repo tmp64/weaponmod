@@ -34,6 +34,7 @@
 #ifndef _UTILS_H
 #define _UTILS_H
 
+#include <algorithm>
 #include "amxxmodule.h"
 
 #include "wpnmod_vtable.h"
@@ -88,14 +89,5 @@ extern	int		GetAmmoInventory	(edict_t* pPlayer, int iAmmoIndex);
 extern	int		SetAmmoInventory	(edict_t* pPlayer, int iAmmoIndex, int iAmount);
 
 extern	bool	FileExists			(const char *dir);
-
-
-#ifndef max
-#define max(a,b) (((a) > (b)) ? (a) : (b))
-#endif
-
-#ifndef min
-#define min(a,b) (((a) < (b)) ? (a) : (b))
-#endif
 
 #endif // _UTILS_H

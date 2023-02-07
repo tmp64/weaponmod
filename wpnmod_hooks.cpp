@@ -278,7 +278,7 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 	if (iInReload && flNextAttack <= gpGlobals->time)
 	{
 		// complete the reload. 
-		int j = min(WEAPON_GET_MAX_CLIP(iId) - iClip, iAmmoPrimary);
+		int j = std::min(WEAPON_GET_MAX_CLIP(iId) - iClip, iAmmoPrimary);
 
 		iClip += j;
 		iAmmoPrimary -= j;

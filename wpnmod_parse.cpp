@@ -112,7 +112,7 @@ void OnParseStartAmmos(std::string item, std::string count)
 	StartAmmo *p = new StartAmmo;
 
 	p->ammoname = STRING(ALLOC_STRING(item.c_str()));
-	p->count = max(min(atoi(count.c_str()), 254), 0);
+	p->count = std::max(std::min(atoi(count.c_str()), 254), 0);
 
 	g_Config.m_pStartAmmoList.push_back(p);
 }
