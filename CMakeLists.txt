@@ -92,9 +92,9 @@ if( COMPILER_GNU )
 	# Sanitizers
 	#-----------------------------------------------------------------
 	set( SANITIZERS "" )
-	option( SANITIZE_ADDRESS, "Enable AddressSanitizer" )
-	option( SANITIZE_UNDEFINED, "Enable UndefinedBehaviorSanitizer" )
-	option( SANITIZE_MEMORY, "Enable MemorySanitizer" )
+	option( SANITIZE_ADDRESS "Enable AddressSanitizer" )
+	option( SANITIZE_UNDEFINED "Enable UndefinedBehaviorSanitizer" )
+	option( SANITIZE_MEMORY "Enable MemorySanitizer" )
 	
 	if( SANITIZE_ADDRESS )
 		set( SANITIZERS "${SANITIZERS},address" )
