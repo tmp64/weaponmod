@@ -45,7 +45,6 @@
 	#define PATH_SEP_CHAR		'\\'
 	#define ALT_SEP_CHAR		'/'
 
-	#define	vsnprintf	_vsnprintf
 #endif
 
 #define WPNMOD_LOG		(g_log.Log)
