@@ -57,5 +57,9 @@ if( NOT WIN32 )
     set_target_properties( weaponmod_amxx PROPERTIES OUTPUT_NAME "weaponmod_amxx_i386" )
 endif()
 
+set_target_properties( weaponmod_amxx PROPERTIES
+	LINK_FLAGS "${GAME_LINKER_FLAGS}"
+)
+
 create_source_groups( "${CMAKE_SOURCE_DIR}" )
 clear_sources()
