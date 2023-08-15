@@ -213,6 +213,10 @@ elseif( COMPILER_MSVC )
 	
 endif()
 
+if ( PLATFORM_LINUX )
+	add_compile_definitions(linux __linux__)
+endif()
+
 #-----------------------------------------------------------------
 # Warning level
 #-----------------------------------------------------------------
