@@ -309,12 +309,12 @@ if( AUTO_DEPLOY )
 		if ( WIN32 )
 			add_custom_command( TARGET ${TARGET_NAME}
 				POST_BUILD
-				COMMAND ${CMAKE_SOURCE_DIR}/scripts/DeployLibs.bat "${CMAKE_BINARY_DIR}\\${PUBLISH_PATHS_FILE}" "$<TARGET_FILE:${TARGET_NAME}>" "$<TARGET_PDB_FILE:${TARGET_NAME}>"
+				COMMAND ${CMAKE_SOURCE_DIR}/scripts/deploy_libs.bat "${CMAKE_BINARY_DIR}\\${PUBLISH_PATHS_FILE}" "$<TARGET_FILE:${TARGET_NAME}>" "$<TARGET_PDB_FILE:${TARGET_NAME}>"
 			)
 		else()
 			add_custom_command( TARGET ${TARGET_NAME}
 				POST_BUILD
-				COMMAND ${CMAKE_SOURCE_DIR}/scripts/DeployLibs.sh "${CMAKE_BINARY_DIR}/${PUBLISH_PATHS_FILE}" "$<TARGET_FILE:${TARGET_NAME}>"
+				COMMAND ${CMAKE_SOURCE_DIR}/scripts/deploy_libs.sh "${CMAKE_BINARY_DIR}/${PUBLISH_PATHS_FILE}" "$<TARGET_FILE:${TARGET_NAME}>"
 			)
 		endif()
 	endmacro()
