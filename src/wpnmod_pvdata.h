@@ -34,7 +34,7 @@
 #ifndef _PVDATA_H
 #define _PVDATA_H
 
-#include "amxxmodule.h"
+#include "sdk/amxxmodule.h"
 #include "wpnmod_vtable.h"
 
 

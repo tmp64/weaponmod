@@ -32,14 +32,14 @@
 *  Description: AMX Mod X Module Interface Functions
 */
 
-#include "wpnmod_appversion.h"
+#include "appversion.h"
 
 #include <string.h>
 #include <new>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "amxxmodule.h"
+#include "sdk/amxxmodule.h"
 
 int WpnMod_Init(void);
 

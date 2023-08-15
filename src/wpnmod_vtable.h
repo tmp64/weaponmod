@@ -34,7 +34,7 @@
 #ifndef _VTABLE_H
 #define _VTABLE_H
 
-#include "amxxmodule.h"
+#include "sdk/amxxmodule.h"
 
 
 #ifdef WIN32

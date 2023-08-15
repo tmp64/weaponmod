@@ -34,7 +34,7 @@
 #ifndef _WPNMOD_MEMORY_H
 #define _WPNMOD_MEMORY_H
 
-#include "amxxmodule.h"
+#include "sdk/amxxmodule.h"
 #include "wpnmod_hooker.h"
 
 

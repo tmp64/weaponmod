@@ -34,7 +34,7 @@
 #ifndef _PARSER_H
 #define _PARSER_H
 
-#include "amxxmodule.h"
+#include "sdk/amxxmodule.h"
 #include <string>
 
 extern	void	ParseBSP				(void);

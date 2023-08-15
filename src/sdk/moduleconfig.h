@@ -36,7 +36,7 @@
 #define __MODULECONFIG_H__
 
 // version
-#include "wpnmod_appversion.h"
+#include "appversion.h"
 
 // Module info
 #define MODULE_NAME "HL Weapon Mod"

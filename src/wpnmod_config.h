@@ -34,7 +34,7 @@
 #ifndef _CONFIG_H
 #define _CONFIG_H
 
-#include "amxxmodule.h"
+#include "sdk/amxxmodule.h"
 
 #include <map>
 #include <string>

@@ -51,7 +51,7 @@
 #define WPNMOD_LOG		(g_log.Log)
 #define WPNMOD_LOG_ONLY	(g_log.LogOnly)
 
-#include "amxxmodule.h"
+#include "sdk/amxxmodule.h"
 #include <string>
 
 class CLog

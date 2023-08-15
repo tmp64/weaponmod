@@ -35,7 +35,7 @@
 #define _UTILS_H
 
 #include <algorithm>
-#include "amxxmodule.h"
+#include "sdk/amxxmodule.h"
 
 #include "wpnmod_vtable.h"
 #include "wpnmod_pvdata.h"

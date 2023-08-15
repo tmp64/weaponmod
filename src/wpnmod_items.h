@@ -34,7 +34,7 @@
 #ifndef _WPNMOD_ITEMS_H
 #define _WPNMOD_ITEMS_H
 
-#include "amxxmodule.h"
+#include "sdk/amxxmodule.h"
 
 #include <string>
 #include <vector>

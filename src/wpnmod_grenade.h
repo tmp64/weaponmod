@@ -34,7 +34,7 @@
 #ifndef _GREN_H
 #define _GREN_H
 
-#include "amxxmodule.h"
+#include "sdk/amxxmodule.h"
 #include "wpnmod_hooks.h"
 #include "wpnmod_utils.h"
 
