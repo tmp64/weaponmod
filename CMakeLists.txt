@@ -20,7 +20,7 @@ include(GetGitRevisionDescription)
 #-----------------------------------------------------------------
 # Version
 #-----------------------------------------------------------------
-# Also needs to be changed in scripts/BuildRelease.py
+# Also needs to be changed in scripts/build_release.py
 set(REPO_VERSION_MAJOR 1)
 set(REPO_VERSION_MINOR 10)
 set(REPO_VERSION_PATCH 0)
