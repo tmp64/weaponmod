@@ -320,7 +320,6 @@ class BuildScript:
             args.extend(['-S', self.repo_root])
             args.extend(['-B', self.paths.build])
             args.extend(self.platform.get_cmake_args())
-            args.extend(['-DUSE_UPDATER=TRUE'])
             args.extend(['-DVERSION_MAJOR=' + str(self.release_version_array[0])])
             args.extend(['-DVERSION_MINOR=' + str(self.release_version_array[1])])
             args.extend(['-DVERSION_PATCH=' + str(self.release_version_array[2])])
