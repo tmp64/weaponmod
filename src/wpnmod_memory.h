@@ -52,7 +52,7 @@
 
 
 
-
+class IRehldsApi;
 
 class CMemory
 {
@@ -69,6 +69,8 @@ private:
 
 	bool	m_bSuccess;
 	bool	m_bIsNewGCC;
+
+	IRehldsApi* m_pRehldsApi = nullptr;
 
 public:
 	CMemory();
@@ -90,10 +92,13 @@ public:
 	void Parse_ApplyMultiDamage(void);
 	void Parse_AmmoSpawn(void);
 	void Parse_ItemSpawn(void);
-	void Parse_GetDispatch(void);
 	void Parse_CallGameEntity(void);
 	void Parse_WorldPrecache(void);
 	void Parse_InfoArrays(void);
+
+	// Engine
+	void FindReHldsApi();
+	void Parse_GetDispatch(void);
 
 	void EnableShieldHitboxTracing(void);
 

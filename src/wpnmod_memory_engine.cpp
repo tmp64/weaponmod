@@ -31,9 +31,24 @@
  *
  */
 
+#include <tier1/interface.h>
+#include <rehlds/rehlds_api.h>
 #include "wpnmod_memory.h"
 #include "wpnmod_hooks.h"
 #include "wpnmod_items.h"
+
+void CMemory::FindReHldsApi()
+{
+	CreateInterfaceFn pfnEngineFactory = Sys_GetFactory((CSysModule*)m_EngineModule.base);
+	if (!pfnEngineFactory)
+		return;
+
+	m_pRehldsApi = static_cast<IRehldsApi*>(pfnEngineFactory(VREHLDS_HLDS_API_VERSION, nullptr));
+	if (!m_pRehldsApi)
+		return;
+
+	WPNMOD_LOG("  Found ReHLDS API v%d.%d\n", m_pRehldsApi->GetMajorVersion(), m_pRehldsApi->GetMinorVersion());
+}
 
 void CMemory::Parse_GetDispatch(void)
 {

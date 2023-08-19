@@ -90,8 +90,14 @@ bool CMemory::Init(void)
 
 	m_bSuccess = true;
 
-	Parse_GetDispatch();
+	// Metamod
 	Parse_CallGameEntity();
+
+	// Engine
+	FindReHldsApi();
+	Parse_GetDispatch();
+
+	// GameDLL
 	Parse_WorldPrecache();
 	Parse_InfoArrays();
 	Parse_ClearMultiDamage();
@@ -318,4 +324,3 @@ size_t CMemory::ParseFunc(size_t start, size_t end, char* funcname, char* string
 
 	return pAdress;
 }
-
