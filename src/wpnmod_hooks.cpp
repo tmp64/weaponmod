@@ -651,9 +651,11 @@ VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	
 
 			for (int k = 1; k < MAX_WEAPONS; k++)
 			{
-				if (WEAPON_GET_NAME(k))
+				const char* weaponName = WEAPON_GET_NAME(k);
+
+				if (weaponName)
 				{
-					GiveNamedItem(pPlayer, WEAPON_GET_NAME(k));
+					GiveNamedItem(pPlayer, weaponName);
 
 					if (WEAPON_GET_MAX_AMMO1(k) != -1)
 					{

@@ -3,6 +3,7 @@ add_sources(
     CMakeLists.txt
     sdk/amxxmodule.cpp
     sdk/amxxmodule.h
+    sdk/HLTypeConversion.h
     sdk/IGameConfigs.h
     sdk/ITextParsers.h
     sdk/moduleconfig.h
