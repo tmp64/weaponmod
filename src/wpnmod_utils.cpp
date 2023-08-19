@@ -45,7 +45,7 @@ int GetAmmoInventory(edict_t* pPlayer, int iAmmoIndex)
 		return -1;
 	}
 
-	return GetPrivateInt(pPlayer, pvData_rgAmmo, iAmmoIndex - 1);
+	return GetPrivateInt(pPlayer, pvData_rgAmmo, iAmmoIndex);
 }
 
 int SetAmmoInventory(edict_t* pPlayer, int iAmmoIndex, int iAmount)
@@ -55,7 +55,7 @@ int SetAmmoInventory(edict_t* pPlayer, int iAmmoIndex, int iAmount)
 		return 0;
 	}
 
-	SetPrivateInt(pPlayer, pvData_rgAmmo, iAmount, iAmmoIndex - 1);
+	SetPrivateInt(pPlayer, pvData_rgAmmo, iAmount, iAmmoIndex);
 	return 1;
 }
 
