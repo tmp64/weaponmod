@@ -103,7 +103,7 @@ public:
 	module* GetModule_Engine(void) { return &m_EngineModule; };
 	module* GetModule_Metamod(void) { return &m_MetamodModule; };
 
-	char* GetDllNameByModule(void* base);
+	char* GetDllNameByModule(void* base, char* buf, size_t bufSize);
 
 	size_t ParseFunc(size_t start, size_t end, char* funcname, unsigned char* pattern, char* mask, size_t bytes);
 	size_t ParseFunc(size_t start, size_t end, char* funcname, char* string, unsigned char* pattern, char* mask, size_t bytes);

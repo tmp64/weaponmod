@@ -58,6 +58,8 @@ CMemory::CMemory()
 
 bool CMemory::Init(void)
 {
+	char moduleNameBuf[512];
+
 	if (!FindModuleByAddr((void*)g_engfuncs.pfnAlertMessage, &m_EngineModule))
 	{
 		WPNMOD_LOG("  Failed to locate game engine!\n");
@@ -76,8 +78,8 @@ bool CMemory::Init(void)
 		return false;
 	}
 
-	WPNMOD_LOG("  Found %s at %p\n", GetDllNameByModule(m_EngineModule.base), m_EngineModule.base);
-	WPNMOD_LOG("  Found %s at %p\n", GetDllNameByModule(m_MetamodModule.base), m_MetamodModule.base);
+	WPNMOD_LOG("  Found %s at %p\n", GetDllNameByModule(m_EngineModule.base, moduleNameBuf, sizeof(moduleNameBuf)), m_EngineModule.base);
+	WPNMOD_LOG("  Found %s at %p\n", GetDllNameByModule(m_MetamodModule.base, moduleNameBuf, sizeof(moduleNameBuf)), m_MetamodModule.base);
 	WPNMOD_LOG("  Found %s at %p\n", GET_GAME_INFO(PLID, GINFO_DLL_FILENAME), m_GameDllModule.base);
 
 	m_start_gamedll = (size_t)m_GameDllModule.base;
@@ -1126,10 +1128,8 @@ void CMemory::EnableShieldHitboxTracing(void)
 	}
 }
 
-char* CMemory::GetDllNameByModule(void* base)
+char* CMemory::GetDllNameByModule(void* base, char* lp, size_t bufSize)
 {
-	char lp[1536];
-
 #ifdef __linux__
 
 	Dl_info addrInfo;
@@ -1140,7 +1140,7 @@ char* CMemory::GetDllNameByModule(void* base)
 
 #else
 
-	GetModuleFileName((HMODULE)base, lp, 1536);
+	GetModuleFileName((HMODULE)base, lp, bufSize);
 
 #endif
 
