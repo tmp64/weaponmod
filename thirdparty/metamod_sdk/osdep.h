@@ -207,8 +207,8 @@ mBOOL os_safe_call(REG_CMD_FN pfn);
     	#define O_BINARY 0
 	#endif	
 #elif defined(_WIN32)
-	#define snprintf	_snprintf
-	#define vsnprintf	_vsnprintf
+	// #define snprintf	_snprintf
+	// #define vsnprintf	_vsnprintf
 	#define sleep(x)	Sleep(x*1000)
 	#define strcasecmp	_stricmp
 	#define strncasecmp	_strnicmp
