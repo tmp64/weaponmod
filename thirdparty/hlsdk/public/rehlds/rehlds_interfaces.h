@@ -47,7 +47,9 @@ class IGameClient;
 class INetChan;
 class IGameClient;
 
-typedef enum server_state_e server_state_t;
+typedef enum server_state_e
+{
+} server_state_t;
 
 class IGameClient {
 public:

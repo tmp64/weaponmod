@@ -46,6 +46,8 @@ typedef struct model_s model_t;
 
 using cvar_callback_t = void (*)(const char* pszNewValue);
 
+enum sv_delta_s {};
+
 //Steam_NotifyClientConnect hook
 typedef IHookChain<qboolean, IGameClient*, const void*, unsigned int> IRehldsHook_Steam_NotifyClientConnect;
 typedef IHookChainRegistry<qboolean, IGameClient*, const void*, unsigned int> IRehldsHookRegistry_Steam_NotifyClientConnect;

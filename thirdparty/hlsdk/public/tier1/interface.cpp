@@ -27,6 +27,10 @@
 #define _getcwd getcwd
 #endif
 
+#ifdef POSIX
+using HMODULE = void*;
+#endif
+
 // ------------------------------------------------------------------------------------ //
 // InterfaceReg.
 // ------------------------------------------------------------------------------------ //
@@ -182,7 +186,7 @@ CreateInterfaceFn Sys_GetFactory( CSysModule *pModule )
 	//pointer-to-function and pointer-to-object
 	//
 	// so lets get around it :)
-	return (CreateInterfaceFn)(GetProcAddress( (void *)hDLL, CREATEINTERFACE_PROCNAME ));
+	return (CreateInterfaceFn)(Sys_GetProcAddress( (void *)hDLL, CREATEINTERFACE_PROCNAME ));
 #endif
 }
 
