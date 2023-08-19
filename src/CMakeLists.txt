@@ -28,6 +28,8 @@ add_sources(
     wpnmod_main.cpp
     wpnmod_memory.cpp
     wpnmod_memory.h
+    wpnmod_memory_engine.cpp
+    wpnmod_memory_gamedll.cpp
     wpnmod_natives.cpp
     wpnmod_parse.cpp
     wpnmod_parse.h
