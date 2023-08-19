@@ -49,7 +49,7 @@ static DISPATCHFUNCTION ReHldsGetDispatch(IRehldsHook_GetDispatch* pHook, char* 
 			return pDispatch;
 	}
 
-	pHook->callNext(pszName);
+	return pHook->callNext(pszName);
 }
 
 void CMemory::FindReHldsApi()
