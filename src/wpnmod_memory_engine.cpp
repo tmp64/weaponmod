@@ -37,6 +37,21 @@
 #include "wpnmod_hooks.h"
 #include "wpnmod_items.h"
 
+void* WpnMod_GetDispatch(char* pname);
+
+static DISPATCHFUNCTION ReHldsGetDispatch(IRehldsHook_GetDispatch* pHook, char* pszName)
+{
+	if (g_Config.IsInited())
+	{
+		auto pDispatch = (DISPATCHFUNCTION)WpnMod_GetDispatch(pszName);
+
+		if (pDispatch)
+			return pDispatch;
+	}
+
+	pHook->callNext(pszName);
+}
+
 void CMemory::FindReHldsApi()
 {
 	CreateInterfaceFn pfnEngineFactory = Sys_GetFactory((CSysModule*)m_EngineModule.base);
@@ -47,12 +62,36 @@ void CMemory::FindReHldsApi()
 	if (!m_pRehldsApi)
 		return;
 
+	int major = m_pRehldsApi->GetMajorVersion();
+	int minor = m_pRehldsApi->GetMinorVersion();
 	WPNMOD_LOG("  Found ReHLDS API v%d.%d\n", m_pRehldsApi->GetMajorVersion(), m_pRehldsApi->GetMinorVersion());
+
+	// Check version
+	if (major != REHLDS_API_VERSION_MAJOR || minor < REHLDS_API_VERSION_MINOR)
+	{
+		WPNMOD_LOG("    Unsupported ReHLDS API version. Minimum: v%d.%d\n", REHLDS_API_VERSION_MAJOR, REHLDS_API_VERSION_MINOR);
+		m_pRehldsApi = nullptr;
+	}
+}
+
+void CMemory::UnsetReHldsHooks()
+{
+	if (m_pRehldsApi)
+	{
+		m_pRehldsApi->GetHookchains()->GetDispatch()->unregisterHook(ReHldsGetDispatch);
+	}
 }
 
 void CMemory::Parse_GetDispatch(void)
 {
 	char* funcname = "GetDispatch (engine)";
+
+	if (m_pRehldsApi)
+	{
+		// Use ReHLDS hookchain system
+		m_pRehldsApi->GetHookchains()->GetDispatch()->registerHook(ReHldsGetDispatch);
+		return;
+	}
 
 #ifdef __linux__
 

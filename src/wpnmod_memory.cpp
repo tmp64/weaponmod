@@ -123,6 +123,7 @@ bool CMemory::Init(void)
 
 void CMemory::UnsetHooks(void)
 {
+	UnsetReHldsHooks();
 	UnsetHook(&g_fh_GiveNamedItem);
 	UnsetHook(&g_fh_FallThink);
 	UnsetHook(&g_fh_AmmoSpawn);

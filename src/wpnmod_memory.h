@@ -98,6 +98,7 @@ public:
 
 	// Engine
 	void FindReHldsApi();
+	void UnsetReHldsHooks();
 	void Parse_GetDispatch(void);
 
 	void EnableShieldHitboxTracing(void);
