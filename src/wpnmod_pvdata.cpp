@@ -37,6 +37,9 @@
 #include "wpnmod_config.h"
 #include "wpnmod_utils.h"
 
+//! List of offsets.
+TypeDescription GamePvDatasOffsets[pvData_End];
+
 namespace
 {
 
@@ -51,10 +54,6 @@ struct OffsetInitializer
 OffsetInitializer g_OffsetInitializers[pvData_End];
 
 } // namespace
-
-//! List of offsets.
-TypeDescription GamePvDatasOffsets[pvData_End];
-
 
 void pvData_Init(void)
 {

@@ -1,0 +1,11 @@
+"Game Master"
+{
+    //
+	// Half-Life: Deathmatch
+	//
+
+	"valve/offsets-vtable.txt"
+	{
+		"game"  "valve"
+	}
+}

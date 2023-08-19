@@ -40,7 +40,6 @@
 #ifdef WIN32
 
 	#define DUMMY_VAL 0
-	#define GET_VTABLE_OFFSET(x) GameVirtualOffsets[x].iValue
 
 	typedef int DUMMY;
 
@@ -52,7 +51,6 @@
 	#include <unistd.h>
 
 	#define ALIGN(ar)				((intptr_t)ar & ~(sysconf(_SC_PAGESIZE) - 1))
-	#define GET_VTABLE_OFFSET(x)	(GameVirtualOffsets[x].iValue + GameVirtualOffsets[x].iExtraOffset)
 
 #endif
 
@@ -95,7 +93,7 @@ struct VirtualHookData
 	bool		done;
 };
 
-extern GameOffset GameVirtualOffsets[VO_End];
+extern TypeDescription GameVirtualOffsets[VO_End];
 
 extern int g_EntityVTableOffsetPev;
 extern int g_EntityVTableOffsetBase;
@@ -108,6 +106,11 @@ extern void SetVTableOffsetBase	(int iOffset);
 extern void SetHookVirtual		(VirtualHookData* hook);
 extern void UnsetHookVirtual	(VirtualHookData* hook);
 extern bool HandleHookVirtual	(VirtualHookData* hook, bool revert);
+
+inline int GET_VTABLE_OFFSET(int x)
+{
+	return GameVirtualOffsets[x].fieldOffset;
+}
 
 inline void** GetEntityVTable(edict_t* e)
 {
