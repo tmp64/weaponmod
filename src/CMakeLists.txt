@@ -3,6 +3,8 @@ add_sources(
     CMakeLists.txt
     sdk/amxxmodule.cpp
     sdk/amxxmodule.h
+    sdk/IGameConfigs.h
+    sdk/ITextParsers.h
     sdk/moduleconfig.h
 
     CString.h
@@ -58,7 +60,7 @@ if( NOT WIN32 )
 endif()
 
 set_target_properties( weaponmod_amxx PROPERTIES
-	LINK_FLAGS "${GAME_LINKER_FLAGS}"
+	LINK_FLAGS "${GAME_LINKER_FLAGS} /EXPORT:GiveFnptrsToDll=_GiveFnptrsToDll@8,@1"
 )
 
 create_source_groups( "${CMAKE_SOURCE_DIR}" )

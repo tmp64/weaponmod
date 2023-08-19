@@ -58,6 +58,9 @@
 // metamod plugin?
 #define USE_METAMOD
 
+// Modern compilers have stdint.h
+#define HAVE_STDINT_H
+
 // use memory manager/tester?
 // note that if you use this, you cannot construct/allocate 
 // anything before the module attached (OnAmxxAttach).
