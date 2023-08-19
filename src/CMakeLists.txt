@@ -55,13 +55,16 @@ target_link_libraries( weaponmod_amxx PRIVATE
 # Remove "lib" prefix
 set_target_properties( weaponmod_amxx PROPERTIES PREFIX "" )
 
-if( NOT WIN32 )
+if( MSVC )
+    # Export GiveFnptrsToDll
+    set( GAME_LINKER_FLAGS_PLAT "/EXPORT:GiveFnptrsToDll=_GiveFnptrsToDll@8,@1" )
+else()
     # Add _i386 suffix
     set_target_properties( weaponmod_amxx PROPERTIES OUTPUT_NAME "weaponmod_amxx_i386" )
 endif()
 
 set_target_properties( weaponmod_amxx PROPERTIES
-	LINK_FLAGS "${GAME_LINKER_FLAGS} /EXPORT:GiveFnptrsToDll=_GiveFnptrsToDll@8,@1"
+	LINK_FLAGS "${GAME_LINKER_FLAGS} ${GAME_LINKER_FLAGS_PLAT}"
 )
 
 create_source_groups( "${CMAKE_SOURCE_DIR}" )
