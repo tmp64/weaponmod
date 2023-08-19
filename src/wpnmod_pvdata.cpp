@@ -31,6 +31,7 @@
  *
  */
 
+#include <memory>
 #include "sdk/IGameConfigs.h"
 #include "wpnmod_pvdata.h"
 #include "wpnmod_memory.h"
