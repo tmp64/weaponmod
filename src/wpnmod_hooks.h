@@ -265,7 +265,7 @@
 
 		inline BOOL CAN_DEPLOY(edict_t* pentItem)
 		{
-			return reinterpret_cast<FuncCanDeploy>(GetEntityVTable(pentItem)[GET_VTABLE_OFFSET(VO_CanDeploy)])(pentItem->pvPrivateData, DUMMY_VAL);
+			return GetEntityVTableFunc<FuncCanDeploy>(pentItem, VO_CanDeploy)(pentItem->pvPrivateData, DUMMY_VAL);
 		}
 
 	// virtual BOOL Deploy(void);
@@ -277,7 +277,7 @@
 
 		inline BOOL DEPLOY(edict_t* pentItem)
 		{
-				return reinterpret_cast<FuncDeploy>(GetEntityVTable(pentItem)[GET_VTABLE_OFFSET(VO_Deploy)])(pentItem->pvPrivateData, DUMMY_VAL);
+				return GetEntityVTableFunc<FuncDeploy>(pentItem, VO_Deploy)(pentItem->pvPrivateData, DUMMY_VAL);
 		}
 
 	// virtual BOOL CanHolster(void);
@@ -289,7 +289,7 @@
 
 		inline BOOL CAN_HOLSTER( edict_t* pentItem )
 		{
-			return reinterpret_cast<FuncCanHolster>(GetEntityVTable(pentItem)[GET_VTABLE_OFFSET(VO_CanHolster)])(pentItem->pvPrivateData, DUMMY_VAL);
+			return GetEntityVTableFunc<FuncCanHolster>(pentItem, VO_CanHolster)(pentItem->pvPrivateData, DUMMY_VAL);
 		}
 
 	// virtual void Holster(int skiplocal = 0);
@@ -301,7 +301,7 @@
 
 		inline void HOLSTER(edict_t* pentItem)
 		{
-			reinterpret_cast<FuncHolster>(GetEntityVTable(pentItem)[GET_VTABLE_OFFSET(VO_Holster)])(pentItem->pvPrivateData, DUMMY_VAL, 0);
+			GetEntityVTableFunc<FuncHolster>(pentItem, VO_Holster)(pentItem->pvPrivateData, DUMMY_VAL, 0);
 		}
 
 	// virtual void ItemPostFrame(void);
@@ -320,7 +320,7 @@
 
 		inline BOOL IS_USEABLE(edict_t* pentItem)
 		{
-			return reinterpret_cast<FuncIsUseable>(GetEntityVTable(pentItem)[GET_VTABLE_OFFSET(VO_IsUseable)])(pentItem->pvPrivateData, DUMMY_VAL);
+			return GetEntityVTableFunc<FuncIsUseable>(pentItem, VO_IsUseable)(pentItem->pvPrivateData, DUMMY_VAL);
 		}
 
 	// virtual int AddToPlayer(CBasePlayer* pPlayer);
@@ -332,7 +332,7 @@
 
 		inline int ADD_TO_PLAYER(edict_t* pentItem, edict_t* pentPlayer)
 		{
-			return reinterpret_cast<FuncAddToPlayer>(GetEntityVTable(pentItem)[GET_VTABLE_OFFSET(VO_AddToPlayer)])(pentItem->pvPrivateData, DUMMY_VAL, pentPlayer->pvPrivateData);
+			return GetEntityVTableFunc<FuncAddToPlayer>(pentItem, VO_AddToPlayer)(pentItem->pvPrivateData, DUMMY_VAL, pentPlayer->pvPrivateData);
 		}
 
 	// virtual int ItemSlot(void);
@@ -344,7 +344,7 @@
 
 		inline int ITEM_SLOT(edict_t* pentItem)
 		{
-			return reinterpret_cast<FuncItemSlot>(GetEntityVTable(pentItem)[GET_VTABLE_OFFSET(VO_ItemSlot)])(pentItem->pvPrivateData, DUMMY_VAL);
+			return GetEntityVTableFunc<FuncItemSlot>(pentItem, VO_ItemSlot)(pentItem->pvPrivateData, DUMMY_VAL);
 		}
 
 	// virtual CBaseEntity* Respawn(void);
@@ -356,7 +356,7 @@
 
 		inline void* RESPAWN(edict_t* pentItem)
 		{
-			return reinterpret_cast<FuncRespawn>(GetEntityVTable(pentItem)[GET_VTABLE_OFFSET(VO_Respawn)])(pentItem->pvPrivateData, DUMMY_VAL);
+			return GetEntityVTableFunc<FuncRespawn>(pentItem, VO_Respawn)(pentItem->pvPrivateData, DUMMY_VAL);
 		}
 
 	// void Spawn(void);
@@ -384,28 +384,28 @@
 	//
 		inline int GET_DAMAGE_DECAL(edict_t* pentEntity)
 		{
-			return reinterpret_cast<FuncDamageDecal>(GetEntityVTable(pentEntity)[GET_VTABLE_OFFSET(VO_DamageDecal)])(pentEntity->pvPrivateData, DUMMY_VAL, 0);
+			return GetEntityVTableFunc<FuncDamageDecal>(pentEntity, VO_DamageDecal)(pentEntity->pvPrivateData, DUMMY_VAL, 0);
 		}
 
 	// int Classify( void );
 	//
 		inline int CLASSIFY(edict_t* pentEntity)
 		{
-			return reinterpret_cast<FuncClassify>(GetEntityVTable(pentEntity)[GET_VTABLE_OFFSET(VO_Classify)])(pentEntity->pvPrivateData, DUMMY_VAL);
+			return GetEntityVTableFunc<FuncClassify>(pentEntity, VO_Classify)(pentEntity->pvPrivateData, DUMMY_VAL);
 		}
 
 	// virtual void TraceAttack(entvars_t* pevAttacker, float flDamage, Vector vecDir, TraceResult* ptr, int bitsDamageType);
 	//
 		inline void TRACE_ATTACK(edict_t* pentVictim, edict_t* pentAttacker, float damage, Vector vecDir, TraceResult tr, int bitsDamageType)
 		{
-			reinterpret_cast<FuncTraceAttack>(GetEntityVTable(pentVictim)[GET_VTABLE_OFFSET(VO_TraceAttack)])(pentVictim->pvPrivateData, DUMMY_VAL, VARS(pentAttacker), damage, vecDir, &tr, bitsDamageType);
+			GetEntityVTableFunc<FuncTraceAttack>(pentVictim, VO_TraceAttack)(pentVictim->pvPrivateData, DUMMY_VAL, VARS(pentAttacker), damage, vecDir, &tr, bitsDamageType);
 		}
 
 	// virtual int TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType);
 	//
 		inline int TAKE_DAMAGE(edict_t* pentVictim, edict_t* pentInflictor, edict_t* pentAttacker, float damage, int bitsDamageType)
 		{
-			return reinterpret_cast<FuncTakeDamage>(GetEntityVTable(pentVictim)[GET_VTABLE_OFFSET(VO_TakeDamage)])(pentVictim->pvPrivateData, DUMMY_VAL, VARS(pentInflictor), VARS(pentAttacker), damage, bitsDamageType);
+			return GetEntityVTableFunc<FuncTakeDamage>(pentVictim, VO_TakeDamage)(pentVictim->pvPrivateData, DUMMY_VAL, VARS(pentInflictor), VARS(pentAttacker), damage, bitsDamageType);
 		}
 
 #else
@@ -467,7 +467,7 @@
 
 		inline BOOL CAN_DEPLOY(edict_t* pentItem)
 		{
-			return reinterpret_cast<FuncCanDeploy>(GetEntityVTable(pentItem)[GET_VTABLE_OFFSET(VO_CanDeploy)])(pentItem->pvPrivateData);
+			return GetEntityVTableFunc<FuncCanDeploy>(pentItem, VO_CanDeploy)(pentItem->pvPrivateData);
 		}
 
 	// virtual BOOL Deploy(void);
@@ -479,7 +479,7 @@
 
 		inline BOOL DEPLOY(edict_t* pentItem)
 		{
-			return reinterpret_cast<FuncDeploy>(GetEntityVTable(pentItem)[GET_VTABLE_OFFSET(VO_Deploy)])(pentItem->pvPrivateData);
+			return GetEntityVTableFunc<FuncDeploy>(pentItem, VO_Deploy)(pentItem->pvPrivateData);
 		}
 
 	// virtual BOOL CanHolster(void);
@@ -491,7 +491,7 @@
 
 		inline BOOL CAN_HOLSTER(edict_t* pentItem)
 		{
-			return reinterpret_cast<FuncCanHolster>(GetEntityVTable(pentItem)[GET_VTABLE_OFFSET(VO_CanHolster)])(pentItem->pvPrivateData);
+			return GetEntityVTableFunc<FuncCanHolster>(pentItem, VO_CanHolster)(pentItem->pvPrivateData);
 		}
 
 	// virtual void Holster(int skiplocal = 0);
@@ -503,7 +503,7 @@
 
 		inline void HOLSTER(edict_t* pentItem)
 		{
-			reinterpret_cast<FuncHolster>(GetEntityVTable(pentItem)[GET_VTABLE_OFFSET(VO_Holster)])(pentItem->pvPrivateData, 0);
+			GetEntityVTableFunc<FuncHolster>(pentItem, VO_Holster)(pentItem->pvPrivateData, 0);
 		}
 
 	// virtual void ItemPostFrame(void);
@@ -522,7 +522,7 @@
 
 		inline BOOL IS_USEABLE(edict_t* pentItem)
 		{
-			return reinterpret_cast<FuncIsUseable>(GetEntityVTable(pentItem)[GET_VTABLE_OFFSET(VO_IsUseable)])(pentItem->pvPrivateData);
+			return GetEntityVTableFunc<FuncIsUseable>(pentItem, VO_IsUseable)(pentItem->pvPrivateData);
 		}
 
 	// virtual int AddToPlayer(CBasePlayer* pPlayer);
@@ -534,7 +534,7 @@
 
 		inline int ADD_TO_PLAYER(edict_t* pentItem, edict_t* pentPlayer)
 		{
-			return reinterpret_cast<FuncAddToPlayer>(GetEntityVTable(pentItem)[GET_VTABLE_OFFSET(VO_AddToPlayer)])(pentItem->pvPrivateData, pentPlayer->pvPrivateData);
+			return GetEntityVTableFunc<FuncAddToPlayer>(pentItem, VO_AddToPlayer)(pentItem->pvPrivateData, pentPlayer->pvPrivateData);
 		}
 
 	// virtual int ItemSlot(void);
@@ -546,7 +546,7 @@
 
 		inline int ITEM_SLOT(edict_t* pentItem)
 		{
-			return reinterpret_cast<FuncItemSlot>(GetEntityVTable(pentItem)[GET_VTABLE_OFFSET(VO_ItemSlot)])(pentItem->pvPrivateData);
+			return GetEntityVTableFunc<FuncItemSlot>(pentItem, VO_ItemSlot)(pentItem->pvPrivateData);
 		}
 
 	// virtual CBaseEntity* Respawn(void);
@@ -558,7 +558,7 @@
 
 		inline void* RESPAWN(edict_t* pentItem)
 		{
-			return reinterpret_cast<FuncRespawn>(GetEntityVTable(pentItem)[GET_VTABLE_OFFSET(VO_Respawn)])(pentItem->pvPrivateData);
+			return GetEntityVTableFunc<FuncRespawn>(pentItem, VO_Respawn)(pentItem->pvPrivateData);
 		}
 
 	// void Spawn(void);
@@ -586,28 +586,28 @@
 	//
 		inline int GET_DAMAGE_DECAL(edict_t* pentEntity)
 		{
-			return reinterpret_cast<FuncDamageDecal>(GetEntityVTable(pentEntity)[GET_VTABLE_OFFSET(VO_DamageDecal)])(pentEntity->pvPrivateData, 0);
+			return GetEntityVTableFunc<FuncDamageDecal>(pentEntity, VO_DamageDecal)(pentEntity->pvPrivateData, 0);
 		}
 	
 	// int Classify( void );
 	//
 		inline int CLASSIFY(edict_t* pentEntity)
 		{
-			return reinterpret_cast<FuncClassify>(GetEntityVTable(pentEntity)[GET_VTABLE_OFFSET(VO_Classify)])(pentEntity->pvPrivateData);
+			return GetEntityVTableFunc<FuncClassify>(pentEntity, VO_Classify)(pentEntity->pvPrivateData);
 		}
 
 	// virtual void TraceAttack(entvars_t* pevAttacker, float flDamage, Vector vecDir, TraceResult* ptr, int bitsDamageType);
 	//
 		inline void TRACE_ATTACK(edict_t* pentVictim, edict_t* pentAttacker, float damage, Vector vecDir, TraceResult tr, int bitsDamageType)
 		{
-			reinterpret_cast<FuncTraceAttack>(GetEntityVTable(pentVictim)[GET_VTABLE_OFFSET(VO_TraceAttack)])(pentVictim->pvPrivateData, VARS(pentAttacker), damage, vecDir, &tr, bitsDamageType);
+			GetEntityVTableFunc<FuncTraceAttack>(pentVictim, VO_TraceAttack)(pentVictim->pvPrivateData, VARS(pentAttacker), damage, vecDir, &tr, bitsDamageType);
 		}
 
 	// virtual int TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType);
 	//
 		inline int TAKE_DAMAGE(edict_t* pentVictim, edict_t* pentInflictor, edict_t* pentAttacker, float damage, int bitsDamageType)
 		{
-			return reinterpret_cast<FuncTakeDamage>(GetEntityVTable(pentVictim)[GET_VTABLE_OFFSET(VO_TakeDamage)])(pentVictim->pvPrivateData, VARS(pentInflictor), VARS(pentAttacker), damage, bitsDamageType);
+			return GetEntityVTableFunc<FuncTakeDamage>(pentVictim, VO_TakeDamage)(pentVictim->pvPrivateData, VARS(pentInflictor), VARS(pentAttacker), damage, bitsDamageType);
 		}
 
 #endif

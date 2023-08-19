@@ -114,4 +114,10 @@ inline void** GetEntityVTable(edict_t* e)
 	return *((void***)(((char*)e->pvPrivateData) + g_EntityVTableOffsetBase));
 }
 
+template <typename TFuncPtr>
+inline TFuncPtr GetEntityVTableFunc(edict_t* e, VTableOffsets offset)
+{
+	return reinterpret_cast<TFuncPtr>(GetEntityVTable(e)[GET_VTABLE_OFFSET(offset)]);
+}
+
 #endif  // _VTABLE_H
