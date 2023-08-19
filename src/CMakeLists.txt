@@ -35,8 +35,6 @@ add_sources(
     wpnmod_pvdata.h
     wpnmod_utils.cpp
     wpnmod_utils.h
-    wpnmod_version.cpp
-    wpnmod_version.h
     wpnmod_vtable.cpp
     wpnmod_vtable.h
 )
