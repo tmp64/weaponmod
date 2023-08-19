@@ -1,0 +1,62 @@
+"Games"
+{
+    "#default"
+    {
+        "Offsets"
+        {
+            "AddAmmo"
+            {
+                "windows"  "57"
+                "linux"    "59"
+            }
+            
+            "AddToPlayer"
+            {
+                "windows"  "58"
+                "linux"    "60"
+            }
+
+            "CanDeploy"
+            {
+                "windows"  "61"
+                "linux"    "63"
+            }
+
+            "Deploy"
+            {
+                "windows"  "62"
+                "linux"    "64"
+            }
+
+            "CanHolster"
+            {
+                "windows"  "63"
+                "linux"    "65"
+            }
+
+            "Holster"
+            {
+                "windows"  "64"
+                "linux"    "66"
+            }
+
+            "ItemPostFrame"
+            {
+                "windows"  "67"
+                "linux"    "69"
+            }
+
+            "ItemSlot"
+            {
+                "windows"  "75"
+                "linux"    "77"
+            }
+            
+            "IsUseable"
+            {
+                "windows"  "82"
+                "linux"    "84"
+            }
+        }
+    }
+}

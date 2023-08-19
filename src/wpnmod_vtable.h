@@ -40,7 +40,6 @@
 #ifdef WIN32
 
 	#define DUMMY_VAL 0
-	#define GET_VTABLE_OFFSET(x) GameVirtualOffsets[x].iValue
 
 	typedef int DUMMY;
 
@@ -52,11 +51,8 @@
 	#include <unistd.h>
 
 	#define ALIGN(ar)				((intptr_t)ar & ~(sysconf(_SC_PAGESIZE) - 1))
-	#define GET_VTABLE_OFFSET(x)	(GameVirtualOffsets[x].iValue + GameVirtualOffsets[x].iExtraOffset)
 
 #endif
-
-#define GET_VTABLE_ENT(e)	(*((void***)(((char*)e->pvPrivateData) + g_EntityVTableOffsetBase)))
 
 enum VTableOffsets 
 {
@@ -97,7 +93,7 @@ struct VirtualHookData
 	bool		done;
 };
 
-extern GameOffset GameVirtualOffsets[VO_End];
+extern TypeDescription GameVirtualOffsets[VO_End];
 
 extern int g_EntityVTableOffsetPev;
 extern int g_EntityVTableOffsetBase;
@@ -110,5 +106,21 @@ extern void SetVTableOffsetBase	(int iOffset);
 extern void SetHookVirtual		(VirtualHookData* hook);
 extern void UnsetHookVirtual	(VirtualHookData* hook);
 extern bool HandleHookVirtual	(VirtualHookData* hook, bool revert);
+
+inline int GET_VTABLE_OFFSET(int x)
+{
+	return GameVirtualOffsets[x].fieldOffset;
+}
+
+inline void** GetEntityVTable(edict_t* e)
+{
+	return *((void***)(((char*)e->pvPrivateData) + g_EntityVTableOffsetBase));
+}
+
+template <typename TFuncPtr>
+inline TFuncPtr GetEntityVTableFunc(edict_t* e, VTableOffsets offset)
+{
+	return reinterpret_cast<TFuncPtr>(GetEntityVTable(e)[GET_VTABLE_OFFSET(offset)]);
+}
 
 #endif  // _VTABLE_H

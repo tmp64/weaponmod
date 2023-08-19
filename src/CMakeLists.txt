@@ -1,4 +1,5 @@
 add_sources(
+    sdk/amxx_gameconfigs.h
     sdk/amxxmodule.cpp
     sdk/amxxmodule.h
     sdk/HLTypeConversion.h

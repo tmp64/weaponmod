@@ -31,51 +31,29 @@
  *
  */
 
-#include <memory>
-#include "sdk/IGameConfigs.h"
+#include "sdk/amxx_gameconfigs.h"
 #include "wpnmod_pvdata.h"
 #include "wpnmod_memory.h"
 #include "wpnmod_config.h"
 #include "wpnmod_utils.h"
 
+//! List of offsets.
+TypeDescription GamePvDatasOffsets[pvData_End];
+
+namespace
+{
+
+//! Class and field for which an offset must be loaded.
 struct OffsetInitializer
 {
 	const char* szClassName;
 	const char* szFieldName;
 };
 
-//! List of offsets.
-TypeDescription GamePvDatasOffsets[pvData_End];
-
 //! List class and field name for each offset.
-static OffsetInitializer g_OffsetInitializers[pvData_End];
+OffsetInitializer g_OffsetInitializers[pvData_End];
 
-//! Deleter for IGameConfig pointers.
-struct GameConfigDeleter
-{
-	void operator()(IGameConfig* pCfg)
-	{
-		MF_GetConfigManager()->CloseGameConfigFile(pCfg);
-	}
-};
-
-//! Smart pointer for IGameConfig.
-using IGameConfigPtr = std::unique_ptr<IGameConfig, GameConfigDeleter>;
-
-//! Loads a game config file. Crashes if fails.
-static IGameConfigPtr LoadGameConfigFile(const char* file)
-{
-	IGameConfig* pCfg = nullptr;
-	char error[256] = "";
-	
-	if (!MF_GetConfigManager()->LoadGameConfigFile(file, &pCfg, error, sizeof(error)))
-	{
-		WPNMOD_LOG("Failed to load game config '%s': %s\n", file, error);
-		std::abort();
-	}
-
-	return IGameConfigPtr(pCfg, GameConfigDeleter());
-}
+} // namespace
 
 void pvData_Init(void)
 {
@@ -130,7 +108,7 @@ void pvData_Init(void)
 	g_OffsetInitializers[pvData_szAnimExtention] = { "CBasePlayer", "m_szAnimExtention" };
 
 	// Load offsets
-	IGameConfigPtr pCfg = LoadGameConfigFile("common.games");
+	IGameConfigPtr pCfg = WpnMod_LoadGameConfigFile("common.games");
 	bool anyNotFound = false;
 
 	for (int i = 0; i < std::size(g_OffsetInitializers); i++)

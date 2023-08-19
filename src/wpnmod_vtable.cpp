@@ -31,6 +31,8 @@
  *
  */
 
+#include <string>
+#include "sdk/amxx_gameconfigs.h"
 #include "wpnmod_vtable.h"
 #include "wpnmod_memory.h"
 #include "wpnmod_config.h"
@@ -39,102 +41,88 @@
 int g_EntityVTableOffsetPev = NULL;
 int g_EntityVTableOffsetBase = NULL;
 
-//
-// Default vtbl offsets for Bugfixed and improved HL release.
-//
-GameOffset GameVirtualOffsets[VO_End] = 
+//! List of VTable offsets.
+TypeDescription GameVirtualOffsets[VO_End];
+
+namespace
 {
-	{0,		2},		// Spawn
-	{1,		2},		// Precache
-	{8,		2},		// Classify
-	{10,	2},		// TraceAttack
-	{11,	2},		// TakeDamage
-	{28,	2},		// DamageDecal
-	{47,	2},		// Respawn
-	{57,	2},		// AddAmmo
-	{58,	2},		// AddToPlayer
-	{61,	2},		// CanDeploy
-	{62,	2},		// Deploy
-	{63,	2},		// CanHolster
-	{64,	2},		// Holster
-	{67,	2},		// ItemPostFrame
-	{75,	2},		// ItemSlot
-	{82,	2},		// IsUseable
-	{128,	2}		// Player_PostThink
+
+//! Method name which a VTable offset must be loaded.
+struct OffsetInitializer
+{
+	const char* szMethodName;
 };
+
+//! List class and field name for each offset.
+OffsetInitializer g_OffsetInitializers[VO_End];
+
+} // namespace
 
 void Vtable_Init(void)
 {
+	g_OffsetInitializers[VO_Spawn] = { "Spawn" };
+	g_OffsetInitializers[VO_Precache] = { "Precache" };
+	g_OffsetInitializers[VO_Classify] = { "Classify" };
+	g_OffsetInitializers[VO_TraceAttack] = { "TraceAttack" };
+	g_OffsetInitializers[VO_TakeDamage] = { "TakeDamage" };
+	g_OffsetInitializers[VO_DamageDecal] = { "DamageDecal" };
+	g_OffsetInitializers[VO_Respawn] = { "Respawn" };
+	g_OffsetInitializers[VO_AddAmmo] = { "AddAmmo" };
+	g_OffsetInitializers[VO_AddToPlayer] = { "AddToPlayer" };
+	g_OffsetInitializers[VO_CanDeploy] = { "CanDeploy" };
+	g_OffsetInitializers[VO_Deploy] = { "Deploy" };
+	g_OffsetInitializers[VO_CanHolster] = { "CanHolster" };
+	g_OffsetInitializers[VO_Holster] = { "Holster" };
+	g_OffsetInitializers[VO_ItemPostFrame] = { "ItemPostFrame" };
+	g_OffsetInitializers[VO_ItemSlot] = { "ItemSlot" };
+	g_OffsetInitializers[VO_IsUseable] = { "IsUseable" };
+	g_OffsetInitializers[VO_Player_PostThink] = { "Player_PostThink" };
+
+	// Load offsets
+	IGameConfigPtr pWpnModCfg = WpnMod_LoadGameConfigFile("weaponmod.games");
+	IGameConfigPtr pAmxxCfg = WpnMod_LoadGameConfigFile("common.games");
+	bool anyNotFound = false;
+
+	for (int i = 0; i < std::size(g_OffsetInitializers); i++)
+	{
+		const OffsetInitializer& init = g_OffsetInitializers[i];
+		TypeDescription& offset = GameVirtualOffsets[i];
+
+		// Convert to lower case
+		std::string methodNameLower = init.szMethodName;
+		std::for_each(methodNameLower.begin(), methodNameLower.end(), [](char& c) { c = tolower(c); });
+
+		bool isFound =
+			pWpnModCfg->GetOffset(init.szMethodName, &offset) ||
+			pAmxxCfg->GetOffset(methodNameLower.c_str(), &offset);
+
+		if (!isFound)
+		{
+			WPNMOD_LOG("VTable Offset not found: %s\n", init.szMethodName);
+			anyNotFound = true;
+			continue;
+		}
+	}
+
+	if (anyNotFound)
+	{
+		WPNMOD_LOG("Failed to find some VTable offsets. The server will now crash. Goodbye.\n");
+		std::abort();
+	}
+
+	// Load pev offset
+	IGameConfigPtr pEntityCfg = WpnMod_LoadGameConfigFile("common.games");
+	TypeDescription pevOffset;
+
+	if (!pEntityCfg->GetOffsetByClass("CBaseEntity", "pev", &pevOffset))
+	{
+		WPNMOD_LOG("CBaseEntity::pev offset not found\n");
+		std::abort();
+	}
+
 	// Default PEV and BASE offsets.
-	SetVTableOffsetPev(4);
+	SetVTableOffsetPev(pevOffset.fieldOffset);
 	SetVTableOffsetBase(0x0);
-
-#ifdef __linux__
-	if (g_Memory.IsNewGCC())
-	{
-		for (int i = 0; i < VO_End; i++)
-		{
-			GameVirtualOffsets[i].iExtraOffset = 0;
-		}
-	}
-#endif 
-
-	// Bugfixed and improved HL release.
-	// Or usual Half-Life.
-	if (g_Config.GetSubMod() == SUBMOD_AGHLRU || g_Config.GetSubMod() == SUBMOD_VALVE)
-	{
-#ifdef __linux__
-		if (!g_Memory.IsNewGCC())
-		{
-			SetVTableOffsetPev(0);
-			SetVTableOffsetBase(0x60);
-		}
-#endif 
-	}
-	// Opposing Force.
-	else if (g_Config.GetSubMod() == SUBMOD_GEARBOX)
-	{
-#ifdef __linux__
-		if (!g_Memory.IsNewGCC())
-		{
-			SetVTableOffsetPev(0);
-			SetVTableOffsetBase(0x6C);
-		}
-#endif 
-
-		// Override vtable offsets.
-		GameVirtualOffsets[VO_DamageDecal].iValue		= 29;
-		GameVirtualOffsets[VO_Respawn].iValue			= 48;
-		GameVirtualOffsets[VO_AddAmmo].iValue			= 59;
-		GameVirtualOffsets[VO_AddToPlayer].iValue		= 60;
-		GameVirtualOffsets[VO_CanDeploy].iValue			= 63;
-		GameVirtualOffsets[VO_Deploy].iValue			= 64;
-		GameVirtualOffsets[VO_CanHolster].iValue		= 65;
-		GameVirtualOffsets[VO_Holster].iValue			= 66;
-		GameVirtualOffsets[VO_ItemPostFrame].iValue		= 69;
-		GameVirtualOffsets[VO_ItemSlot].iValue			= 78;
-		GameVirtualOffsets[VO_IsUseable].iValue			= 85;
-		GameVirtualOffsets[VO_Player_PostThink].iValue	= 130;
-	}
-	else if (g_Config.GetSubMod() == SUBMOD_AG || g_Config.GetSubMod() == SUBMOD_MINIAG)
-	{
-#ifdef __linux__
-		SetVTableOffsetPev(0);
-		SetVTableOffsetBase(0x60);
-#endif 
-		// Override vtable offsets.
-		GameVirtualOffsets[VO_Respawn].iValue			= 48;
-		GameVirtualOffsets[VO_AddAmmo].iValue			= 58;
-		GameVirtualOffsets[VO_AddToPlayer].iValue		= 59;
-		GameVirtualOffsets[VO_CanDeploy].iValue			= 62;
-		GameVirtualOffsets[VO_Deploy].iValue			= 63;
-		GameVirtualOffsets[VO_CanHolster].iValue		= 64;
-		GameVirtualOffsets[VO_Holster].iValue			= 65;
-		GameVirtualOffsets[VO_ItemPostFrame].iValue		= 68;
-		GameVirtualOffsets[VO_ItemSlot].iValue			= 76;
-		GameVirtualOffsets[VO_IsUseable].iValue			= 83;
-		GameVirtualOffsets[VO_Player_PostThink].iValue	= 130;
-	}
 }
 
 void SetVTableOffsetPev(int iOffset)
@@ -175,7 +163,7 @@ bool HandleHookVirtual(VirtualHookData* hook, bool bRevert)
 		return (hook->done = false);
 	}
 
-	void** vtable = GET_VTABLE_ENT(pEdict);
+	void** vtable = GetEntityVTable(pEdict);
 
 	if (vtable == NULL)
 	{
