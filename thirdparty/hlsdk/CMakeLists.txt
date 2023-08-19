@@ -20,7 +20,6 @@ add_sources(
     common/event_flags.h
     common/exefuncs.h
     common/hltv.h
-    common/interface.h
     common/in_buttons.h
     common/ivoicetweak.h
     common/mathlib.h
@@ -97,6 +96,19 @@ add_sources(
     pm_shared/pm_movevars.h
     pm_shared/pm_shared.h
 
+    public/rehlds/cmd_rehlds.h
+    public/rehlds/common_rehlds.h
+    public/rehlds/FlightRecorder.h
+    public/rehlds/hookchains.h
+    public/rehlds/pr_dlls.h
+    public/rehlds/qlimits.h
+    public/rehlds/rehlds_api.h
+    public/rehlds/rehlds_interfaces.h
+    public/rehlds/userid_rehlds.h
+
+    public/tier1/interface.cpp
+    public/tier1/interface.h
+
     Dummy.cpp
 )
 
@@ -105,11 +117,12 @@ add_library( hlsdk STATIC ${PREP_SRCS} )
 check_winxp_support( hlsdk )
 
 target_include_directories( hlsdk PUBLIC
-    # TODO: Only leave common and .
+    # TODO: Only leave common, public and .
     common
     dlls
     engine
     pm_shared
+    public
 )
 
 create_source_groups( "${CMAKE_SOURCE_DIR}" )
