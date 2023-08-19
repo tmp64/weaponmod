@@ -175,7 +175,7 @@ bool HandleHookVirtual(VirtualHookData* hook, bool bRevert)
 		return (hook->done = false);
 	}
 
-	void** vtable = GET_VTABLE_ENT(pEdict);
+	void** vtable = GetEntityVTable(pEdict);
 
 	if (vtable == NULL)
 	{

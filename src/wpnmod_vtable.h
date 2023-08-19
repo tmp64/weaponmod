@@ -56,8 +56,6 @@
 
 #endif
 
-#define GET_VTABLE_ENT(e)	(*((void***)(((char*)e->pvPrivateData) + g_EntityVTableOffsetBase)))
-
 enum VTableOffsets 
 {
 	VO_Spawn,
@@ -110,5 +108,10 @@ extern void SetVTableOffsetBase	(int iOffset);
 extern void SetHookVirtual		(VirtualHookData* hook);
 extern void UnsetHookVirtual	(VirtualHookData* hook);
 extern bool HandleHookVirtual	(VirtualHookData* hook, bool revert);
+
+inline void** GetEntityVTable(edict_t* e)
+{
+	return *((void***)(((char*)e->pvPrivateData) + g_EntityVTableOffsetBase));
+}
 
 #endif  // _VTABLE_H
