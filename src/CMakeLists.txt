@@ -1,14 +1,15 @@
 add_sources(
-    appversion.h.in
-    CMakeLists.txt
     sdk/amxxmodule.cpp
     sdk/amxxmodule.h
     sdk/HLTypeConversion.h
     sdk/IGameConfigs.h
     sdk/ITextParsers.h
     sdk/moduleconfig.h
-
+    
+    appversion.h.in
+    CMakeLists.txt
     CString.h
+    weaponmod.rc
     wpnmod_config.cpp
     wpnmod_config.h
     wpnmod_entity.cpp
