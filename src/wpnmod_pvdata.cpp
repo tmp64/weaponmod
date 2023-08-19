@@ -31,112 +31,123 @@
  *
  */
 
+#include <memory>
+#include "sdk/IGameConfigs.h"
 #include "wpnmod_pvdata.h"
 #include "wpnmod_memory.h"
 #include "wpnmod_config.h"
 #include "wpnmod_utils.h"
 
-
-//
-// Default pvdata offsets for Bugfixed and improved HL release.
-//
-GameOffset GamePvDatasOffsets[pvData_End] =
+struct OffsetInitializer
 {
-	// CBaseEntity
-	{4,		0},		// m_pfnThink
-	{5,		0},		// m_pfnTouch
-	{8,		3},		// ammo_9mm
-	{9,		3},		// ammo_357
-	{10,	3},		// ammo_bolts
-	{11,	3},		// ammo_buckshot
-	{12,	3},		// ammo_rockets
-	{13,	3},		// ammo_uranium
-	{14,	3},		// ammo_hornets
-	{15,	3},		// ammo_argrens
-	{16,	3},		// m_flStartThrow
-	{17,	3},		// m_flReleaseThrow
-	{18,	3},		// m_chargeReady
-	{19,	3},		// m_fInAttack
-	{20,	3},		// m_fireState
-
-	// CBasePlayerItem
-	{28,	4},		// m_pPlayer
-	{29,	4},		// m_pNext
-	{30,	4},		// m_iId
-
-	// CBasePlayerWeapon
-	{31,	4},		// m_iPlayEmptySound
-	{32,	4},		// m_fFireOnEmpty
-	{33,	4},		// m_flPumpTime
-	{34,	4},		// m_fInSpecialReload
-	{35,	4},		// m_flNextPrimaryAttack
-	{36,	4},		// m_flNextSecondaryAttack
-	{37,	4},		// m_flTimeWeaponIdle
-	{38,	4},		// m_iPrimaryAmmoType
-	{39,	4},		// m_iSecondaryAmmoType
-	{40,	4},		// m_iClip
-	{43,	4},		// m_fInReload
-	{44,	4},		// m_iDefaultAmmo
-
-	// CBaseMonster
-	{90,	5},		// m_LastHitGroup
-	{148,	5},		// m_flNextAttack
-
-	// CBasePlayer (Last HLDS build 8308 increases offsets by one) 
-	{174,	5},		// m_iWeaponVolume
-	{176,	5},		// m_iWeaponFlash
-	{299,	5},		// m_iFOV
-	{301,	5},		// m_rgpPlayerItems
-	{307,	5},		// m_pActiveItem
-	{309,	5},		// m_pLastItem
-	{311,	5},		// m_rgAmmo
-	{388,	5}		// m_szAnimExtention
+	const char* szClassName;
+	const char* szFieldName;
 };
+
+//! List of offsets.
+TypeDescription GamePvDatasOffsets[pvData_End];
+
+//! List class and field name for each offset.
+static OffsetInitializer g_OffsetInitializers[pvData_End];
+
+//! Deleter for IGameConfig pointers.
+struct GameConfigDeleter
+{
+	void operator()(IGameConfig* pCfg)
+	{
+		MF_GetConfigManager()->CloseGameConfigFile(pCfg);
+	}
+};
+
+//! Smart pointer for IGameConfig.
+using IGameConfigPtr = std::unique_ptr<IGameConfig, GameConfigDeleter>;
+
+//! Loads a game config file. Crashes if fails.
+static IGameConfigPtr LoadGameConfigFile(const char* file)
+{
+	IGameConfig* pCfg = nullptr;
+	char error[256] = "";
+	
+	if (!MF_GetConfigManager()->LoadGameConfigFile(file, &pCfg, error, sizeof(error)))
+	{
+		WPNMOD_LOG("Failed to load game config '%s': %s\n", file, error);
+		std::abort();
+	}
+
+	return IGameConfigPtr(pCfg, GameConfigDeleter());
+}
 
 void pvData_Init(void)
 {
-#ifdef __linux__
-	if (g_Memory.IsNewGCC())
+	// CBaseEntity
+	g_OffsetInitializers[pvData_pfnThink] = { "CBaseEntity", "m_pfnThink" };
+	g_OffsetInitializers[pvData_pfnTouch] = { "CBaseEntity", "m_pfnTouch" };
+	g_OffsetInitializers[pvData_ammo_9mm] = { "CBaseEntity", "ammo_9mm" };
+	g_OffsetInitializers[pvData_ammo_357] = { "CBaseEntity", "ammo_357" };
+	g_OffsetInitializers[pvData_ammo_bolts] = { "CBaseEntity", "ammo_bolts" };
+	g_OffsetInitializers[pvData_ammo_buckshot] = { "CBaseEntity", "ammo_buckshot" };
+	g_OffsetInitializers[pvData_ammo_rockets] = { "CBaseEntity", "ammo_rockets" };
+	g_OffsetInitializers[pvData_ammo_uranium] = { "CBaseEntity", "ammo_uranium" };
+	g_OffsetInitializers[pvData_ammo_hornets] = { "CBaseEntity", "ammo_hornets" };
+	g_OffsetInitializers[pvData_ammo_argrens] = { "CBaseEntity", "ammo_argrens" };
+	g_OffsetInitializers[pvData_flStartThrow] = { "CBaseEntity", "m_flStartThrow" };
+	g_OffsetInitializers[pvData_flReleaseThrow] = { "CBaseEntity", "m_flReleaseThrow" };
+	g_OffsetInitializers[pvData_chargeReady] = { "CBaseEntity", "m_chargeReady" };
+	g_OffsetInitializers[pvData_fInAttack] = { "CBaseEntity", "m_fInAttack" };
+	g_OffsetInitializers[pvData_fireState] = { "CBaseEntity", "m_fireState" };
+
+	// CBasePlayerItem
+	g_OffsetInitializers[pvData_pPlayer] = { "CBasePlayerItem", "m_pPlayer" };
+	g_OffsetInitializers[pvData_pNext] = { "CBasePlayerItem", "m_pNext" };
+	g_OffsetInitializers[pvData_iId] = { "CBasePlayerItem", "m_iId" };
+
+	// CBasePlayerWeapon
+	g_OffsetInitializers[pvData_iPlayEmptySound] = { "CBasePlayerWeapon", "m_iPlayEmptySound" };
+	g_OffsetInitializers[pvData_fFireOnEmpty] = { "CBasePlayerWeapon", "m_fFireOnEmpty" };
+	g_OffsetInitializers[pvData_flPumpTime] = { "CBasePlayerWeapon", "m_flPumpTime" };
+	g_OffsetInitializers[pvData_fInSpecialReload] = { "CBasePlayerWeapon", "m_fInSpecialReload" };
+	g_OffsetInitializers[pvData_flNextPrimaryAttack] = { "CBasePlayerWeapon", "m_flNextPrimaryAttack" };
+	g_OffsetInitializers[pvData_flNextSecondaryAttack] = { "CBasePlayerWeapon", "m_flNextSecondaryAttack" };
+	g_OffsetInitializers[pvData_flTimeWeaponIdle] = { "CBasePlayerWeapon", "m_flTimeWeaponIdle" };
+	g_OffsetInitializers[pvData_iPrimaryAmmoType] = { "CBasePlayerWeapon", "m_iPrimaryAmmoType" };
+	g_OffsetInitializers[pvData_iSecondaryAmmoType] = { "CBasePlayerWeapon", "m_iSecondaryAmmoType" };
+	g_OffsetInitializers[pvData_iClip] = { "CBasePlayerWeapon", "m_iClip" };
+	g_OffsetInitializers[pvData_fInReload] = { "CBasePlayerWeapon", "m_fInReload" };
+	g_OffsetInitializers[pvData_iDefaultAmmo] = { "CBasePlayerWeapon", "m_iDefaultAmmo" };
+	
+	// CBaseMonster
+	g_OffsetInitializers[pvData_LastHitGroup] = { "CBaseMonster", "m_LastHitGroup" };
+	g_OffsetInitializers[pvData_flNextAttack] = { "CBaseMonster", "m_flNextAttack" };
+
+	// CBasePlayer
+	g_OffsetInitializers[pvData_iWeaponVolume] = { "CBasePlayer", "m_iWeaponVolume" };
+	g_OffsetInitializers[pvData_iWeaponFlash] = { "CBasePlayer", "m_iWeaponFlash" };
+	g_OffsetInitializers[pvData_iFOV] = { "CBasePlayer", "m_iFOV" };
+	g_OffsetInitializers[pvData_rgpPlayerItems] = { "CBasePlayer", "m_rgpPlayerItems" };
+	g_OffsetInitializers[pvData_pActiveItem] = { "CBasePlayer", "m_pActiveItem" };
+	g_OffsetInitializers[pvData_pLastItem] = { "CBasePlayer", "m_pLastItem" };
+	g_OffsetInitializers[pvData_rgAmmo] = { "CBasePlayer", "m_rgAmmo" };
+	g_OffsetInitializers[pvData_szAnimExtention] = { "CBasePlayer", "m_szAnimExtention" };
+
+	// Load offsets
+	IGameConfigPtr pCfg = LoadGameConfigFile("common.games");
+	bool anyNotFound = false;
+
+	for (int i = 0; i < std::size(g_OffsetInitializers); i++)
 	{
-		for (int i = pvData_ammo_9mm; i < pvData_pPlayer; i++)
+		const OffsetInitializer& init = g_OffsetInitializers[i];
+		
+		if (!pCfg->GetOffsetByClass(init.szClassName, init.szFieldName, &GamePvDatasOffsets[i]))
 		{
-			GamePvDatasOffsets[i].iExtraOffset = 4;
+			WPNMOD_LOG("Offset not found: %s::%s\n", init.szClassName, init.szFieldName);
+			anyNotFound = true;
 		}
 	}
-#endif 
-	// Adrenaline Gamer and Adrenaline Gamer mini.
-	if (g_Config.GetSubMod() == SUBMOD_AG || g_Config.GetSubMod() == SUBMOD_MINIAG)
+
+	if (anyNotFound)
 	{
-		for (int i = pvData_iWeaponVolume; i < pvData_End; i++)
-		{
-			GamePvDatasOffsets[i].iValue -= 5;
-		}
-	}
-	// Opposing Force.
-	else if (g_Config.GetSubMod() == SUBMOD_GEARBOX)
-	{
-		// Override pvdata offsets.
-		GamePvDatasOffsets[pvData_pfnThink].iValue = 5;
-		GamePvDatasOffsets[pvData_pfnTouch].iValue = 6;
-
-		for (int i = pvData_ammo_9mm; i < pvData_flStartThrow; i++)
-		{
-			GamePvDatasOffsets[i].iValue += 1;
-		}
-
-		for (int i = pvData_flStartThrow; i < pvData_iWeaponVolume; i++)
-		{
-			GamePvDatasOffsets[i].iValue += 3;
-		}
-
-		GamePvDatasOffsets[pvData_iWeaponVolume].iValue		= 184;
-		GamePvDatasOffsets[pvData_iWeaponFlash].iValue		= 186;
-		GamePvDatasOffsets[pvData_iFOV].iValue				= 311;
-		GamePvDatasOffsets[pvData_rgpPlayerItems].iValue	= 343;
-		GamePvDatasOffsets[pvData_pActiveItem].iValue		= 350;
-		GamePvDatasOffsets[pvData_pLastItem].iValue			= 352;
-		GamePvDatasOffsets[pvData_rgAmmo].iValue			= 354;
-		GamePvDatasOffsets[pvData_szAnimExtention].iValue	= 431;
+		WPNMOD_LOG("Failed to find some offsets. The server will now crash. Goodbye.\n");
+		std::abort();
 	}
 }
 
@@ -166,7 +177,7 @@ edict_t* PrivateToEdict(const void* pvPrivateData)
 
 edict_t *GetPrivateCbase(edict_t *pEntity, int iOffset)
 {
-	void *pPrivate = *((void **)((int *)(edict_t *)(INDEXENT2(0) + ENTINDEX(pEntity))->pvPrivateData + GET_PVDATA_OFFSET(iOffset)));
+	void* pPrivate = get_pdata<void*>(pEntity, GET_PVDATA_OFFSET(iOffset));
 
 	if (!pPrivate)
 	{
@@ -178,7 +189,7 @@ edict_t *GetPrivateCbase(edict_t *pEntity, int iOffset)
 
 edict_t *GetPrivateCbase(edict_t *pEntity, int iOffset, int iExtraRealOffset)
 {
-	void *pPrivate = *((void **)((int *)(edict_t *)(INDEXENT2(0) + ENTINDEX(pEntity))->pvPrivateData + GET_PVDATA_OFFSET(iOffset) + iExtraRealOffset));
+	void* pPrivate = get_pdata<void*>(pEntity, GET_PVDATA_OFFSET(iOffset), iExtraRealOffset);
 
 	if (!pPrivate)
 	{
@@ -190,17 +201,17 @@ edict_t *GetPrivateCbase(edict_t *pEntity, int iOffset, int iExtraRealOffset)
 
 void SetPrivateCbase(edict_t *pEntity, int iOffset, edict_t* pValue)
 {
-	*((void**)((int*)(edict_t*)(INDEXENT2(0) + ENTINDEX(pEntity))->pvPrivateData + GET_PVDATA_OFFSET(iOffset))) = (INDEXENT2(0) + ENTINDEX(pValue))->pvPrivateData;
+	get_pdata<void*>(pEntity, GET_PVDATA_OFFSET(iOffset)) = (INDEXENT2(0) + ENTINDEX(pValue))->pvPrivateData;
 }
 
 void SetPrivateCbase(edict_t *pEntity, int iOffset, edict_t* pValue, int iExtraRealOffset)
 {
-	*((void**)((int*)(edict_t*)(INDEXENT2(0) + ENTINDEX(pEntity))->pvPrivateData + GET_PVDATA_OFFSET(iOffset) + iExtraRealOffset)) = (INDEXENT2(0) + ENTINDEX(pValue))->pvPrivateData;
+	get_pdata<void*>(pEntity, GET_PVDATA_OFFSET(iOffset), iExtraRealOffset) = (INDEXENT2(0) + ENTINDEX(pValue))->pvPrivateData;
 }
 
 void SetPrivateString(edict_t* pEntity, int iOffset, const char* pValue)
 {
-	char* data = (char*)pEntity->pvPrivateData + (GET_PVDATA_OFFSET(iOffset) * 4);
+	char* data = get_pdata<char*>(pEntity, GET_PVDATA_OFFSET(iOffset));
 
 	#if defined WIN32
 		if (!IsBadWritePtr(data, 1))
@@ -214,37 +225,11 @@ void SetPrivateString(edict_t* pEntity, int iOffset, const char* pValue)
 
 void Dll_SetTouch(edict_t* pEntity, void* funcAddress)
 {
-#ifdef __linux__
-
-	if (!g_Memory.IsNewGCC())
-	{
-		*((long*)pEntity->pvPrivateData + GET_PVDATA_OFFSET(pvData_pfnTouch)) = funcAddress == NULL ? NULL : 0xFFFF0000;
-	}
-
-	*((long*)pEntity->pvPrivateData + GET_PVDATA_OFFSET(pvData_pfnTouch) + 1) = (long)(funcAddress);
-
-#else
-
-	*((long*)pEntity->pvPrivateData + GET_PVDATA_OFFSET(pvData_pfnTouch)) = (long)(funcAddress);
-
-#endif
+	get_pdata<void*>(pEntity, GET_PVDATA_OFFSET(pvData_pfnTouch)) = funcAddress;
 }
 
 void Dll_SetThink(edict_t* pEntity, void* funcAddress)
 {
-#ifdef __linux__
-
-	if (!g_Memory.IsNewGCC())
-	{
-		*((long*)pEntity->pvPrivateData + GET_PVDATA_OFFSET(pvData_pfnThink) - 1) = funcAddress == NULL ? NULL : 0xFFFF0000;
-	}
-
-	*((long*)pEntity->pvPrivateData + GET_PVDATA_OFFSET(pvData_pfnThink)) = (long)(funcAddress);
-
-#else
-
-	*((long*)pEntity->pvPrivateData + GET_PVDATA_OFFSET(pvData_pfnThink)) = (long)(funcAddress);
-
-#endif
+	get_pdata<void*>(pEntity, GET_PVDATA_OFFSET(pvData_pfnThink)) = funcAddress;
 }
 

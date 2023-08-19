@@ -1,45 +1,23 @@
-/* AMX Mod X
-*
-* by the AMX Mod X Development Team
-*  originally developed by OLO
-*
-* Parts Copyright (C) 2001-2003 Will Day <willday@hpgx.net>
-*
-*  This program is free software; you can redistribute it and/or modify it
-*  under the terms of the GNU General Public License as published by the
-*  Free Software Foundation; either version 2 of the License, or (at
-*  your option) any later version.
-*
-*  This program is distributed in the hope that it will be useful, but
-*  WITHOUT ANY WARRANTY; without even the implied warranty of
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-*  General Public License for more details.
-*
-*  You should have received a copy of the GNU General Public License
-*  along with this program; if not, write to the Free Software Foundation,
-*  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-*
-*  In addition, as a special exception, the author gives permission to
-*  link the code of this program with the Half-Life Game Engine ("HL
-*  Engine") and Modified Game Libraries ("MODs") developed by Valve,
-*  L.L.C ("Valve"). You must obey the GNU General Public License in all
-*  respects for all of the code used other than the HL Engine and MODs
-*  from Valve. If you modify this file, you may extend this exception
-*  to your version of the file, but you are not obligated to do so. If
-*  you do not wish to do so, delete this exception statement from your
-*  version.
-*
-*  Description: AMX Mod X Module Interface Functions
-*/
+// vim: set ts=4 sw=4 tw=99 noet:
+//
+// AMX Mod X, based on AMX Mod by Aleksander Naszko ("OLO").
+// Copyright (C) The AMX Mod X Development Team.
+// Parts Copyright (C) 2001-2003 Will Day <willday@hpgx.net>
+//
+// This software is licensed under the GNU General Public License, version 3 or higher.
+// Additional exceptions apply. For full license details, see LICENSE.txt or visit:
+//     https://alliedmods.net/amxmodx-license
 
-#include "appversion.h"
+//
+// Module SDK
+//
 
 #include <string.h>
 #include <new>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "sdk/amxxmodule.h"
+#include "amxxmodule.h"
 
 int WpnMod_Init(void);
 
@@ -47,7 +25,7 @@ int WpnMod_Init(void);
 #ifdef USE_METAMOD
 
 enginefuncs_t g_engfuncs;
-globalvars_t *gpGlobals;
+globalvars_t  *gpGlobals;
 
 DLL_FUNCTIONS *g_pFunctionTable;
 DLL_FUNCTIONS *g_pFunctionTable_Post;
@@ -57,7 +35,7 @@ NEW_DLL_FUNCTIONS *g_pNewFunctionsTable;
 NEW_DLL_FUNCTIONS *g_pNewFunctionsTable_Post;
 
 // GetEntityAPI2 functions
-static DLL_FUNCTIONS g_EntityAPI_Table =
+static DLL_FUNCTIONS g_EntityAPI_Table = 
 {
 #ifdef FN_GameDLLInit
 	FN_GameDLLInit,
@@ -312,7 +290,7 @@ static DLL_FUNCTIONS g_EntityAPI_Table =
 }; // g_EntityAPI2_Table
 
 // GetEntityAPI2_Post functions
-static DLL_FUNCTIONS g_EntityAPI_Post_Table =
+static DLL_FUNCTIONS g_EntityAPI_Post_Table = 
 {
 #ifdef FN_GameDLLInit_Post
 	FN_GameDLLInit_Post,
@@ -566,7 +544,7 @@ static DLL_FUNCTIONS g_EntityAPI_Post_Table =
 #endif
 }; // g_EntityAPI2_Table
 
-static enginefuncs_t g_EngineFuncs_Table =
+static enginefuncs_t g_EngineFuncs_Table = 
 {
 #ifdef FN_PrecacheModel
 	FN_PrecacheModel,
@@ -2016,7 +1994,7 @@ static enginefuncs_t g_EngineFuncs_Post_Table =
 }; // g_EngineFuncs_Post_Table
 
 
-static NEW_DLL_FUNCTIONS g_NewFuncs_Table =
+static NEW_DLL_FUNCTIONS g_NewFuncs_Table = 
 {
 #ifdef FN_OnFreeEntPrivateData
 	FN_OnFreeEntPrivateData,
@@ -2036,7 +2014,7 @@ static NEW_DLL_FUNCTIONS g_NewFuncs_Table =
 };
 
 
-static NEW_DLL_FUNCTIONS g_NewFuncs_Post_Table =
+static NEW_DLL_FUNCTIONS g_NewFuncs_Post_Table = 
 {
 #ifdef FN_OnFreeEntPrivateData_Post
 	FN_OnFreeEntPrivateData_Post,
@@ -2244,7 +2222,7 @@ static META_FUNCTIONS g_MetaFunctions_Table =
 	GetEngineFunctions_Post
 };
 
-C_DLLEXPORT int Meta_Query(char	*ifvers, plugin_info_t **pPlugInfo,	mutil_funcs_t *pMetaUtilFuncs)
+C_DLLEXPORT int Meta_Query(const char *ifvers, plugin_info_t **pPlugInfo, mutil_funcs_t *pMetaUtilFuncs)
 {
 	if ((int) CVAR_GET_FLOAT("developer") != 0)
 		UTIL_LogPrintf("[%s] dev: called: Meta_Query; version=%s, ours=%s\n", 
@@ -2288,11 +2266,12 @@ C_DLLEXPORT int Meta_Query(char	*ifvers, plugin_info_t **pPlugInfo,	mutil_funcs_
 	}
 
 #ifdef FN_META_QUERY
-	return FN_META_QUERY();
+	FN_META_QUERY();
 #endif	// FN_META_QUERY
 
 	return 1;
 }
+
 
 C_DLLEXPORT int Meta_Attach(PLUG_LOADTIME now, META_FUNCTIONS *pFunctionTable, meta_globals_t *pMGlobals, gamedll_funcs_t *pGamedllFuncs)
 {
@@ -2314,6 +2293,11 @@ C_DLLEXPORT int Meta_Attach(PLUG_LOADTIME now, META_FUNCTIONS *pFunctionTable, m
 	gpGamedllFuncs=pGamedllFuncs;
 
 	// Let's go.
+
+#ifdef FN_META_ATTACH
+	FN_META_ATTACH();
+#endif	// FN_META_ATTACH
+
 	return (WpnMod_Init());
 }
 
@@ -2325,91 +2309,15 @@ C_DLLEXPORT int Meta_Detach(PLUG_LOADTIME now, PL_UNLOAD_REASON reason)
 	}
 
 #ifdef FN_META_DETACH
-	return FN_META_DETACH();
+	FN_META_DETACH();
 #endif	// FN_META_DETACH
 	return TRUE;
 }
 
-
-
-#ifdef __linux__
-// linux prototype
-C_DLLEXPORT void GiveFnptrsToDll( enginefuncs_t* pengfuncsFromEngine, globalvars_t *pGlobals ) {
-
-#else
-#ifdef _MSC_VER
-// MSVC: Simulate __stdcall calling convention
-C_DLLEXPORT __declspec(naked) void GiveFnptrsToDll( enginefuncs_t* pengfuncsFromEngine, globalvars_t *pGlobals )
+C_DLLEXPORT void WINAPI GiveFnptrsToDll(enginefuncs_t* pengfuncsFromEngine, globalvars_t *pGlobals)
 {
-	__asm			// Prolog
-	{
-		// Save ebp
-		push		ebp
-		// Set stack frame pointer
-		mov			ebp, esp
-		// Allocate space for local variables
-		// The MSVC compiler gives us the needed size in __LOCAL_SIZE.
-		sub			esp, __LOCAL_SIZE
-		// Push registers
-		push		ebx
-		push		esi
-		push		edi
-	}
-#else	// _MSC_VER
-#ifdef __GNUC__
-// GCC can also work with this
-C_DLLEXPORT void __stdcall GiveFnptrsToDll( enginefuncs_t* pengfuncsFromEngine, globalvars_t *pGlobals )
-{
-#else	// __GNUC__
-// compiler not known
-#error There is no support (yet) for your compiler. Please use MSVC or GCC compilers or contact the AMX Mod X dev team.
-#endif	// __GNUC__
-#endif // _MSC_VER
-#endif // __linux__
-
-	// ** Function core <--
 	memcpy(&g_engfuncs, pengfuncsFromEngine, sizeof(enginefuncs_t));
 	gpGlobals = pGlobals;
-	// NOTE!  Have to call logging function _after_ copying into g_engfuncs, so
-	// that g_engfuncs.pfnAlertMessage() can be resolved properly, heh. :)
-	UTIL_LogPrintf("[%s] dev: called: GiveFnptrsToDll\n", Plugin_info.logtag);
-	// --> ** Function core
-
-#ifdef _MSC_VER
-	// Epilog
-	if (sizeof(int*) == 8)
-	{	// 64 bit
-		__asm
-		{
-			// Pop registers
-			pop	edi
-			pop	esi
-			pop	ebx
-			// Restore stack frame pointer
-			mov	esp, ebp
-			// Restore ebp
-			pop	ebp
-			// 2 * sizeof(int*) = 16 on 64 bit
-			ret 16
-		}
-	}
-	else
-	{	// 32 bit
-		__asm
-		{
-			// Pop registers
-			pop	edi
-			pop	esi
-			pop	ebx
-			// Restore stack frame pointer
-			mov	esp, ebp
-			// Restore ebp
-			pop	ebp
-			// 2 * sizeof(int*) = 8 on 32 bit
-			ret 8
-		}
-	}
-#endif // #ifdef _MSC_VER
 }
 
 #endif	// #ifdef USE_METAMOD
@@ -2439,6 +2347,7 @@ PFN_ADD_NEW_NATIVES			g_fn_AddNewNatives;
 PFN_BUILD_PATHNAME			g_fn_BuildPathname;
 PFN_BUILD_PATHNAME_R		g_fn_BuildPathnameR;
 PFN_GET_AMXADDR				g_fn_GetAmxAddr;
+PFN_GET_AMXVECTOR_NULL		g_fn_GetAmxVectorNull;
 PFN_PRINT_SRVCONSOLE		g_fn_PrintSrvConsole;
 PFN_GET_MODNAME				g_fn_GetModname;
 PFN_GET_AMXSCRIPTNAME		g_fn_GetAmxScriptName;
@@ -2446,7 +2355,10 @@ PFN_GET_AMXSCRIPT			g_fn_GetAmxScript;
 PFN_FIND_AMXSCRIPT_BYAMX	g_fn_FindAmxScriptByAmx;
 PFN_FIND_AMXSCRIPT_BYNAME	g_fn_FindAmxScriptByName;
 PFN_SET_AMXSTRING			g_fn_SetAmxString;
+PFN_SET_AMXSTRING_UTF8_CHAR	g_fn_SetAmxStringUTF8Char;
+PFN_SET_AMXSTRING_UTF8_CELL	g_fn_SetAmxStringUTF8Cell;
 PFN_GET_AMXSTRING			g_fn_GetAmxString;
+PFN_GET_AMXSTRING_NULL		g_fn_GetAmxStringNull;
 PFN_GET_AMXSTRINGLEN		g_fn_GetAmxStringLen;
 PFN_FORMAT_AMXSTRING		g_fn_FormatAmxString;
 PFN_COPY_AMXMEMORY			g_fn_CopyAmxMemory;
@@ -2489,6 +2401,7 @@ PFN_AMX_EXECV				g_fn_AmxExecv;
 PFN_AMX_ALLOT				g_fn_AmxAllot;
 PFN_AMX_FINDPUBLIC			g_fn_AmxFindPublic;
 PFN_LOAD_AMXSCRIPT			g_fn_LoadAmxScript;
+PFN_LOAD_AMXSCRIPT_EX		g_fn_LoadAmxScriptEx;
 PFN_UNLOAD_AMXSCRIPT		g_fn_UnloadAmxScript;
 PFN_REAL_TO_CELL			g_fn_RealToCell;
 PFN_CELL_TO_REAL			g_fn_CellToReal;
@@ -2515,6 +2428,7 @@ PFN_GETLOCALINFO			g_fn_GetLocalInfo;
 PFN_AMX_REREGISTER			g_fn_AmxReRegister;
 PFN_REGISTERFUNCTIONEX		g_fn_RegisterFunctionEx;
 PFN_MESSAGE_BLOCK			g_fn_MessageBlock;
+PFN_GET_CONFIG_MANAGER		g_fn_GetConfigManager;
 
 // *** Exports ***
 C_DLLEXPORT int AMXX_Query(int *interfaceVersion, amxx_module_info_s *moduleInfo)
@@ -2554,7 +2468,6 @@ C_DLLEXPORT int AMXX_CheckGame(const char *game)
 	return AMXX_GAME_OK;
 #endif
 }
-
 C_DLLEXPORT int AMXX_Attach(PFN_REQ_FNPTR reqFnptrFunc)
 {
 	// Check pointer
@@ -2575,22 +2488,28 @@ C_DLLEXPORT int AMXX_Attach(PFN_REQ_FNPTR reqFnptrFunc)
 	REQFUNC("Format", g_fn_Format, PFN_FORMAT);
 	REQFUNC("RegisterFunction", g_fn_RegisterFunction, PFN_REGISTERFUNCTION);
 	REQFUNC("RegisterFunctionEx", g_fn_RegisterFunctionEx, PFN_REGISTERFUNCTIONEX);
+	REQFUNC("GetConfigManager", g_fn_GetConfigManager, PFN_GET_CONFIG_MANAGER);
 
 	// Amx scripts
 	REQFUNC("GetAmxScript", g_fn_GetAmxScript, PFN_GET_AMXSCRIPT);
 	REQFUNC("FindAmxScriptByAmx", g_fn_FindAmxScriptByAmx, PFN_FIND_AMXSCRIPT_BYAMX);
 	REQFUNC("FindAmxScriptByName", g_fn_FindAmxScriptByName, PFN_FIND_AMXSCRIPT_BYNAME);
-	REQFUNC("LoadAmxScript", g_fn_LoadAmxScript, PFN_LOAD_AMXSCRIPT);
+	REQFUNC("LoadAmxScript", g_fn_LoadAmxScript, PFN_LOAD_AMXSCRIPT); // Deprecated. Please use LoadAmxScriptEx instead.
+	REQFUNC("LoadAmxScriptEx", g_fn_LoadAmxScriptEx, PFN_LOAD_AMXSCRIPT_EX);
 	REQFUNC("UnloadAmxScript", g_fn_UnloadAmxScript, PFN_UNLOAD_AMXSCRIPT);
     REQFUNC("GetAmxScriptName", g_fn_GetAmxScriptName, PFN_GET_AMXSCRIPTNAME);
 
 	// String / mem in amx scripts support
 	REQFUNC("SetAmxString", g_fn_SetAmxString, PFN_SET_AMXSTRING);
+	REQFUNC("SetAmxStringUTF8Char", g_fn_SetAmxStringUTF8Char, PFN_SET_AMXSTRING_UTF8_CHAR);
+	REQFUNC("SetAmxStringUTF8Cell", g_fn_SetAmxStringUTF8Cell, PFN_SET_AMXSTRING_UTF8_CELL);
 	REQFUNC("GetAmxString", g_fn_GetAmxString, PFN_GET_AMXSTRING);
+	REQFUNC("GetAmxStringNull", g_fn_GetAmxStringNull, PFN_GET_AMXSTRING_NULL);
 	REQFUNC("GetAmxStringLen", g_fn_GetAmxStringLen, PFN_GET_AMXSTRINGLEN);
 	REQFUNC("FormatAmxString", g_fn_FormatAmxString, PFN_FORMAT_AMXSTRING);
 	REQFUNC("CopyAmxMemory", g_fn_CopyAmxMemory, PFN_COPY_AMXMEMORY);
 	REQFUNC("GetAmxAddr", g_fn_GetAmxAddr, PFN_GET_AMXADDR);
+	REQFUNC("GetAmxVectorNull", g_fn_GetAmxVectorNull, PFN_GET_AMXVECTOR_NULL);
 
 	REQFUNC("amx_Exec", g_fn_AmxExec, PFN_AMX_EXEC);
 	REQFUNC("amx_Execv", g_fn_AmxExecv, PFN_AMX_EXECV);
@@ -2727,10 +2646,12 @@ void MF_LogError(AMX *amx, int err, const char *fmt, ...)
 // Makes sure compiler reports errors when macros are invalid
 void ValidateMacros_DontCallThis_Smiley()
 {
+	const cell str[] = { 's', 't', 'r', '\0' };
 	MF_BuildPathname("str", "str", 0);
 	MF_BuildPathnameR(NULL, 0, "%d", 0);
 	MF_FormatAmxString(NULL, 0, 0, NULL);
 	MF_GetAmxAddr(NULL, 0);
+	MF_GetAmxVectorNull(NULL, 0);
 	MF_PrintSrvConsole("str", "str", 0);
 	MF_GetModname();
 	MF_GetScriptName(0);
@@ -2738,7 +2659,10 @@ void ValidateMacros_DontCallThis_Smiley()
 	MF_FindScriptByAmx(NULL);
 	MF_FindScriptByName("str");
 	MF_SetAmxString(NULL, 0, "str", 0);
-	MF_GetAmxString(NULL, 0, 0, 0);
+	MF_SetAmxStringUTF8Char(NULL, 0, "str", 0, 0);
+	MF_SetAmxStringUTF8Cell(NULL, 0, str, 0, 0);
+	MF_GetAmxString(NULL, 0, 0, NULL);
+	MF_GetAmxStringNull(NULL, 0, 0, NULL);
 	MF_GetAmxStringLen(NULL);
 	MF_CopyAmxMemory(NULL, NULL, 0);
 	MF_Log("str", "str", 0);
@@ -2775,6 +2699,7 @@ void ValidateMacros_DontCallThis_Smiley()
 	MF_AmxFindPublic(0, 0, 0);
 	MF_AmxAllot(0, 0, 0, 0);
 	MF_LoadAmxScript(0, 0, 0, 0, 0);
+	MF_LoadAmxScriptEx(0, 0, 0, 0, 0, 0);
 	MF_UnloadAmxScript(0, 0);
 	MF_RegisterSPForward(0, 0, 0, 0, 0, 0);
 	MF_RegisterSPForwardByName(0, 0, 0, 0, 0, 0);
@@ -2793,6 +2718,7 @@ void ValidateMacros_DontCallThis_Smiley()
 	MF_RemoveLibraries(NULL);
 	MF_OverrideNatives(NULL, NULL);
 	MF_MessageBlock(0, 0, NULL);
+	MF_GetConfigManager();
 }
 #endif
 
@@ -3032,7 +2958,7 @@ void operator delete[](void * ptr) {
 
 #include "osdep.h"			// win32 vsnprintf, etc
 
-char* UTIL_VarArgs(const char *format, ...)
+char* UTIL_VarArgs( const char *format, ... )
 {
 	va_list		argptr;
 	static char		string[1024];
@@ -3049,7 +2975,7 @@ char* UTIL_VarArgs(const char *format, ...)
 // UTIL_LogPrintf - Prints a logged message to console.
 // Preceded by LOG: ( timestamp ) < message >
 //=========================================================
-void UTIL_LogPrintf(const char *fmt, ...)
+void UTIL_LogPrintf( const char *fmt, ... )
 {
 	va_list			argptr;
 	static char		string[1024];
@@ -3063,7 +2989,8 @@ void UTIL_LogPrintf(const char *fmt, ...)
 }
 
 
-void UTIL_HudMessage(CBaseEntity *pEntity, const hudtextparms_t &textparms,  const char *pMessage)
+void UTIL_HudMessage(CBaseEntity *pEntity, const hudtextparms_t &textparms, 
+		const char *pMessage)
 {
 	if ( !pEntity )
 		return;
@@ -3135,3 +3062,27 @@ unsigned short FixedUnsigned16( float value, float scale )
 	return (unsigned short)output;
 }
 #endif // USE_METAMOD
+
+template unsigned int strncopy<char, char>(char *, const char *src, size_t count);
+template unsigned int strncopy<cell, char>(cell *, const char *src, size_t count);
+template unsigned int strncopy<cell, cell>(cell *, const cell *src, size_t count);
+
+template <typename D, typename S>
+unsigned int strncopy(D *dest, const S *src, size_t count)
+{
+	if (!count)
+	{
+		return 0;
+	}
+
+	D *start = dest;
+
+	while ((*src) && (--count))
+	{
+		*dest++ = *(unsigned char*)src++;
+	}
+
+	*dest = '\0';
+
+	return (dest - start);
+}

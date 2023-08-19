@@ -35,14 +35,10 @@
 #define _PVDATA_H
 
 #include "sdk/amxxmodule.h"
+#include "sdk/HLTypeConversion.h"
 #include "wpnmod_vtable.h"
 
-
-#ifdef WIN32
-	#define GET_PVDATA_OFFSET(x) GamePvDatasOffsets[x].iValue
-#else
-	#define GET_PVDATA_OFFSET(x) (GamePvDatasOffsets[x].iValue + GamePvDatasOffsets[x].iExtraOffset)
-#endif
+#define GET_PVDATA_OFFSET(x) GamePvDatasOffsets[x].fieldOffset
 
 enum PrivateDataOffsets
 {
@@ -94,41 +90,41 @@ enum PrivateDataOffsets
 };
 
 extern void pvData_Init(void);
-extern GameOffset GamePvDatasOffsets[pvData_End];
+extern TypeDescription GamePvDatasOffsets[pvData_End];
 
 inline int GetPrivateInt(edict_t* pEntity, int iOffset)
 {
-	return *((int*)pEntity->pvPrivateData + GET_PVDATA_OFFSET(iOffset));
+	return get_pdata<int>(pEntity, GET_PVDATA_OFFSET(iOffset));
 }
 
-inline int GetPrivateInt(edict_t* pEntity, int iOffset, int iExtraRealOffse)
+inline int GetPrivateInt(edict_t* pEntity, int iOffset, int iExtraRealOffset)
 {
-	return *((int*)pEntity->pvPrivateData + GET_PVDATA_OFFSET(iOffset) + iExtraRealOffse);
+	return get_pdata<int>(pEntity, GET_PVDATA_OFFSET(iOffset), iExtraRealOffset);
 }
 
 inline float GetPrivateFloat(edict_t* pEntity, int iOffset)
 {
-	return *((float*)pEntity->pvPrivateData + GET_PVDATA_OFFSET(iOffset));
+	return get_pdata<float>(pEntity, GET_PVDATA_OFFSET(iOffset));
 }
 
 inline char* GetPrivateString(edict_t* pEntity, int iOffset)
 {
-	return (char*)pEntity->pvPrivateData + (GET_PVDATA_OFFSET(iOffset) * 4);
+	return get_pdata<char*>(pEntity, GET_PVDATA_OFFSET(iOffset));
 }
 
 inline void SetPrivateInt(edict_t* pEntity, int iOffset, int iValue)
 {
-	*((int*)pEntity->pvPrivateData + GET_PVDATA_OFFSET(iOffset)) = iValue;
+	get_pdata<int>(pEntity, GET_PVDATA_OFFSET(iOffset)) = iValue;
 }
 
 inline void SetPrivateInt(edict_t* pEntity, int iOffset,int iValue, int iExtraRealOffset)
 {
-	*((int*)pEntity->pvPrivateData + GET_PVDATA_OFFSET(iOffset) + iExtraRealOffset) = iValue;
+	get_pdata<int>(pEntity, GET_PVDATA_OFFSET(iOffset), iExtraRealOffset) = iValue;
 }
 
 inline void SetPrivateFloat(edict_t* pEntity, int iOffset, float flValue)
 {
-	*((float*)pEntity->pvPrivateData + GET_PVDATA_OFFSET(iOffset)) = flValue;
+	get_pdata<float>(pEntity, GET_PVDATA_OFFSET(iOffset)) = flValue;
 }
 
 extern void		Dll_SetTouch		(edict_t* pEntity, void* funcAddress);
