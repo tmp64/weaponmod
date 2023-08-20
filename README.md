@@ -75,6 +75,8 @@ Basically, you need to generate `amxmodx/data/gamedata/common.games/entities.gam
 mod. [It seems that AMXX devs used some private tool for that.](https://github.com/alliedmodders/amxmodx/pull/771)
 You can copy files from `valve` and hope for the best.
 
+You may try to parse the output from `pahole` tool ([reference](https://forums.alliedmods.net/showthread.php?t=273210)).
+
 ## Generating VTable offsets
 Same as previous, but for `amxmodx/data/gamedata/common.games/virtual.games`.
 
@@ -84,6 +86,54 @@ yourself.
 
 You need to get VTable offsets for classes `CBasePlayerWeapon` and `CBasePlayerItem`.
 
+### Via `pahole`
+1.  Install `pahole` on Linux.
+2.  Pipe the output into a file. Ignore "not supported" messages.
+    ```bash
+    pahole ./hl.so > hl.so.symbols
+    ```
+3.  Open the file. Find substring `class EntityClassName :`
+    ```cpp
+    class CBasePlayerWeapon : public CBasePlayerItem {
+    public:
+
+        /* class CBasePlayerItem     <ancestor>; */      /*     0   140 */
+        virtual int Save(class CBasePlayerWeapon *, class CSave &);
+
+        virtual int Restore(class CBasePlayerWeapon *, class CRestore &);
+    ```
+4.  Scroll down to `/* vtable has XX entries:`. There's the VTable with
+    offsets Note that it isn't sorted (for some reason).
+    ```c
+    [3] = Save((null)), 
+    [4] = Restore((null)), 
+    [58] = AddToPlayer((null)), 
+    [59] = AddDuplicate((null)), 
+    [76] = ExtractAmmo((null)), 
+    [77] = ExtractClipAmmo((null)), 
+    [78] = AddWeapon((null)), 
+    [65] = UpdateItemInfo((null)), 
+    [79] = PlayEmptySound((null)), 
+    [80] = ResetEmptySound((null)), 
+    [81] = SendWeaponAnim((null)), 
+    [61] = CanDeploy((null)), 
+    [82] = IsUseable((null)), 
+    [67] = ItemPostFrame((null)), 
+    [83] = PrimaryAttack((null)), 
+    [84] = SecondaryAttack((null)), 
+    [85] = Reload((null)), 
+    [86] = WeaponIdle((null)), 
+    [73] = UpdateClientData((null)), 
+    [87] = RetireWeapon((null)), 
+    [88] = ShouldWeaponIdle((null)), 
+    [64] = Holster((null)), 
+    [89] = UseDecrement((null)), 
+    [71] = PrimaryAmmoIndex((null)), 
+    [72] = SecondaryAmmoIndex((null)), 
+    [74] = GetWeaponPtr((null)), 
+    ```
+
+### Via `gdb`
 We will use `gdb` to print vtable as an array and then use line numbers as
 offsets.
 
