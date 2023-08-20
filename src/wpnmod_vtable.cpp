@@ -50,7 +50,9 @@ namespace
 //! Method name which a VTable offset must be loaded.
 struct OffsetInitializer
 {
-	const char* szMethodName;
+	const char* szClassName = nullptr;
+	const char* szMethodName = nullptr;
+	const char* szAmxxMethodName = nullptr;
 };
 
 //! List class and field name for each offset.
@@ -60,23 +62,32 @@ OffsetInitializer g_OffsetInitializers[VO_End];
 
 void Vtable_Init(void)
 {
-	g_OffsetInitializers[VO_Spawn] = { "Spawn" };
-	g_OffsetInitializers[VO_Precache] = { "Precache" };
-	g_OffsetInitializers[VO_Classify] = { "Classify" };
-	g_OffsetInitializers[VO_TraceAttack] = { "TraceAttack" };
-	g_OffsetInitializers[VO_TakeDamage] = { "TakeDamage" };
-	g_OffsetInitializers[VO_DamageDecal] = { "DamageDecal" };
-	g_OffsetInitializers[VO_Respawn] = { "Respawn" };
-	g_OffsetInitializers[VO_AddAmmo] = { "AddAmmo" };
-	g_OffsetInitializers[VO_AddToPlayer] = { "AddToPlayer" };
-	g_OffsetInitializers[VO_CanDeploy] = { "CanDeploy" };
-	g_OffsetInitializers[VO_Deploy] = { "Deploy" };
-	g_OffsetInitializers[VO_CanHolster] = { "CanHolster" };
-	g_OffsetInitializers[VO_Holster] = { "Holster" };
-	g_OffsetInitializers[VO_ItemPostFrame] = { "ItemPostFrame" };
-	g_OffsetInitializers[VO_ItemSlot] = { "ItemSlot" };
-	g_OffsetInitializers[VO_IsUseable] = { "IsUseable" };
-	g_OffsetInitializers[VO_Player_PostThink] = { "Player_PostThink" };
+	// CBaseEntity
+	g_OffsetInitializers[VO_Spawn] =			{ "CBaseEntity",		"Spawn",		"spawn" };
+	g_OffsetInitializers[VO_Precache] =			{ "CBaseEntity",		"Precache",		"precache" };
+	g_OffsetInitializers[VO_Classify] =			{ "CBaseEntity",		"Classify",		"classify" };
+	g_OffsetInitializers[VO_TraceAttack] =		{ "CBaseEntity",		"TraceAttack",	"traceattack" };
+	g_OffsetInitializers[VO_TakeDamage] =		{ "CBaseEntity",		"TakeDamage",	"takedamage" };
+	g_OffsetInitializers[VO_DamageDecal] =		{ "CBaseEntity",		"DamageDecal",	"damagedecal" };
+	g_OffsetInitializers[VO_Respawn] =			{ "CBaseEntity",		"Respawn",		"respawn" };
+
+	// CBasePlayer
+	g_OffsetInitializers[VO_Player_PostThink] = { "CBasePlayer",		"PostThink",	"player_postthink" };
+
+	// CBasePlayerItem
+	g_OffsetInitializers[VO_AddToPlayer] =		{ "CBasePlayerItem",	"AddToPlayer",	"item_addtoplayer" };
+	g_OffsetInitializers[VO_CanDeploy] =		{ "CBasePlayerItem",	"CanDeploy",	"item_candeploy" };
+	g_OffsetInitializers[VO_Deploy] =			{ "CBasePlayerItem",	"Deploy",		"item_deploy" };
+	g_OffsetInitializers[VO_CanHolster] =		{ "CBasePlayerItem",	"CanHolster",	"item_canholster" };
+	g_OffsetInitializers[VO_Holster] =			{ "CBasePlayerItem",	"Holster",		"item_holster" };
+	g_OffsetInitializers[VO_ItemSlot] =			{ "CBasePlayerItem",	"ItemSlot",		"item_itemslot" };
+
+	// CBasePlayerWeapon
+	g_OffsetInitializers[VO_ItemPostFrame] =	{ "CBasePlayerWeapon",	"ItemPostFrame" };
+	g_OffsetInitializers[VO_IsUseable] =		{ "CBasePlayerWeapon",	"IsUseable" };
+
+	// CBasePlayerAmmo
+	g_OffsetInitializers[VO_AddAmmo] =			{ "CBasePlayerAmmo",	"AddAmmo" };
 
 	// Load offsets
 	IGameConfigPtr pWpnModCfg = WpnMod_LoadGameConfigFile("weaponmod.games");
@@ -87,18 +98,33 @@ void Vtable_Init(void)
 	{
 		const OffsetInitializer& init = g_OffsetInitializers[i];
 		TypeDescription& offset = GameVirtualOffsets[i];
+		bool isFound = false;
 
-		// Convert to lower case
-		std::string methodNameLower = init.szMethodName;
-		std::for_each(methodNameLower.begin(), methodNameLower.end(), [](char& c) { c = tolower(c); });
-
-		bool isFound =
-			pWpnModCfg->GetOffset(init.szMethodName, &offset) ||
-			pAmxxCfg->GetOffset(methodNameLower.c_str(), &offset);
+		// Try to load from WpnMod config
+		isFound = pWpnModCfg->GetOffsetByClass(init.szClassName, init.szMethodName, &offset);
 
 		if (!isFound)
 		{
-			WPNMOD_LOG("VTable Offset not found: %s\n", init.szMethodName);
+			// Try to load from AMXX config
+			std::string amxxName;
+
+			if (init.szAmxxMethodName)
+			{
+				amxxName = init.szAmxxMethodName;
+			}
+			else
+			{
+				// Convert name to lower case
+				amxxName = init.szMethodName;
+				std::for_each(amxxName.begin(), amxxName.end(), [](char& c) { c = tolower(c); });
+			}
+
+			isFound = pAmxxCfg->GetOffset(amxxName.c_str(), &offset);
+		}
+
+		if (!isFound)
+		{
+			WPNMOD_LOG("VTable Offset not found: %s::%s (amxx: %s)\n", init.szClassName, init.szMethodName, init.szAmxxMethodName);
 			anyNotFound = true;
 			continue;
 		}

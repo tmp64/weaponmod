@@ -1,0 +1,20 @@
+"Games"
+{
+	"#default"
+	{
+		"Classes"
+		{
+			"CBasePlayerAmmo"
+			{
+				"Offsets"
+				{
+					"AddAmmo"
+					{
+						"windows"  "57"
+						"linux"    "57"
+					}
+				}
+			}
+		}
+	}
+}

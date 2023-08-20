@@ -1,0 +1,26 @@
+"Games"
+{
+	"#default"
+	{
+		"Classes"
+		{
+			"CBasePlayerWeapon"
+			{
+				"Offsets"
+				{
+					"ItemPostFrame"
+					{
+						"windows"  "67"
+						"linux"    "67"
+					}
+					
+					"IsUseable"
+					{
+						"windows"  "82"
+						"linux"    "82"
+					}
+				}
+			}
+		}
+	}
+}

@@ -1,0 +1,11 @@
+"Games"
+{
+	"#default"
+	{
+		"Keys"
+		{
+			"reference_weapon"	"weapon_crowbar"
+			"reference_ammo"	"ammo_rpgclip"
+		}
+	}
+}

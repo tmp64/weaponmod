@@ -1,10 +1,26 @@
 "Game Master"
 {
-    //
+	//
 	// Half-Life: Deathmatch
 	//
 
-	"valve/offsets-vtable.txt"
+	"valve/offsets-virtual-cbaseplayerammo.txt"
+	{
+		"game"  "valve"
+	}
+
+	// Already exists in AMXX. Provided for reference.
+	// "valve/offsets-virtual-cbaseplayeritem.txt"
+	// {
+	// 	"game"  "valve"
+	// }
+
+	"valve/offsets-virtual-cbaseplayerweapon.txt"
+	{
+		"game"  "valve"
+	}
+
+	"valve/settings.txt"
 	{
 		"game"  "valve"
 	}
