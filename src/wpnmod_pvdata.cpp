@@ -189,7 +189,7 @@ void SetPrivateCbase(edict_t *pEntity, int iOffset, edict_t* pValue, int iExtraR
 
 void SetPrivateString(edict_t* pEntity, int iOffset, const char* pValue)
 {
-	char* data = get_pdata<char*>(pEntity, GET_PVDATA_OFFSET(iOffset));
+	char* data = get_pdata<char[32]>(pEntity, GET_PVDATA_OFFSET(iOffset));
 
 	#if defined WIN32
 		if (!IsBadWritePtr(data, 1))
