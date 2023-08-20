@@ -157,6 +157,12 @@ if( COMPILER_GNU )
 			add_compile_options (-fcolor-diagnostics)
 		endif ()
 	endif ()
+
+	# Force function alignment.
+	# When calling member funcitons, GCC checks if LSB bit is set.
+	# If function just happens to have an odd address, GCC will process the address as
+	# an offset into vtable. Which segfaults.
+	set( C_CXX_COMPILER_FLAGS "${C_CXX_COMPILER_FLAGS} -falign-functions=16" )
 	
 elseif( COMPILER_MSVC )
 
