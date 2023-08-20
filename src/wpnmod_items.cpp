@@ -39,8 +39,8 @@
 
 CItems g_Items;
 
-const char* gWeaponReference = "weapon_crowbar";
-const char* gAmmoBoxReference = "ammo_rpgclip";
+const char* gWeaponReference;
+const char* gAmmoBoxReference;
 
 CItems::CItems()
 {
@@ -55,6 +55,28 @@ CItems::CItems()
 	m_pAmmoInfoArray = NULL;
 
 	memset(m_WeaponsInfo, 0, sizeof(m_WeaponsInfo));
+}
+
+void CItems::LoadGameData()
+{
+	// Load reference weapons
+	IGameConfig* pCfg = g_Config.GetGameData();
+	gWeaponReference = pCfg->GetKeyValue("reference_weapon");
+	if (!gWeaponReference)
+		WPNMOD_LOG("  reference_weapon not found\n");
+
+	gAmmoBoxReference = pCfg->GetKeyValue("reference_ammobox");
+	if (!gAmmoBoxReference)
+		WPNMOD_LOG("  reference_ammobox not found\n");
+
+	if (!gWeaponReference || !gAmmoBoxReference)
+	{
+		WPNMOD_LOG("Invalid WeaponMod setup. gamedata is missing.\n");
+		WPNMOD_LOG("The server will now crash. Goodbye.\n");
+		std::abort();
+	}
+
+	Hooks_InitReferenceEntities();
 }
 
 void CItems::AllocWeaponSlots(int slots, int positions)

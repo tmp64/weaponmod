@@ -49,6 +49,11 @@ cvar_t* cvar_mp_weaponstay = NULL;
 
 
 
+void CConfig::LoadGameData(void)
+{
+	m_pAmxxGameData = WpnMod_LoadGameConfigFile("weaponmod.games");
+}
+
 void CConfig::InitGameMod(void)
 {
 	m_bInited = true;
@@ -172,6 +177,7 @@ void CConfig::ServerDeactivate(void)
 	UnsetHookVirtual(&g_PlayerPostThink_Hook);
 
 	m_pEquipEnt = NULL;
+	m_pAmxxGameData = nullptr;
 }
 
 

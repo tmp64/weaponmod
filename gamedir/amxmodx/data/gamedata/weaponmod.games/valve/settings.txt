@@ -5,7 +5,7 @@
 		"Keys"
 		{
 			"reference_weapon"	"weapon_crowbar"
-			"reference_ammo"	"ammo_rpgclip"
+			"reference_ammobox"	"ammo_rpgclip"
 		}
 	}
 }

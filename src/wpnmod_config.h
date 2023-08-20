@@ -35,6 +35,7 @@
 #define _CONFIG_H
 
 #include "sdk/amxxmodule.h"
+#include "sdk/amxx_gameconfigs.h"
 
 #include <map>
 #include <string>
@@ -142,6 +143,7 @@ private:
 	bool	m_bInited;
 	char	m_cfgpath[1024];
 	SUBMOD	m_GameMod;
+	IGameConfigPtr m_pAmxxGameData;
 
 public:
 	CConfig()
@@ -157,6 +159,7 @@ public:
 	std::vector <StartAmmo*> m_pStartAmmoList;
 	std::vector <VirtualHookData*>	m_pBlockedItemsList;
 
+	void	LoadGameData		(void);
 	void	InitGameMod			(void);
 	void	SetConfigFile		(void);
 	char*	GetConfigFile		(void)	{ return &m_cfgpath[0]; };
@@ -172,6 +175,9 @@ public:
 
 	void	DecalPushList		(const char *name);
 	bool	IsItemBlocked		(const char *name);
+
+	//! @returns the game data config. Loaded from amxmodx/data/gamedata/weaponmod.games.
+	IGameConfig* GetGameData() { return m_pAmxxGameData.get(); }
 
 	static void ServerCommand	(void);
 	static bool ClientCommand	(edict_t *pEntity);

@@ -46,6 +46,8 @@ int AmxxCheckGame(const char* game)
 void OnAmxxAttach(void)
 {
 	MF_AddNatives(Natives);
+	g_Config.LoadGameData();
+	g_Items.LoadGameData();
 }
 
 // Called by Meta_Attach.

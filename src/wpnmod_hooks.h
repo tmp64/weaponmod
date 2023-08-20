@@ -40,6 +40,7 @@
 #include "wpnmod_utils.h"
 #include "wpnmod_vtable.h"
 
+void Hooks_InitReferenceEntities();
 
 #ifdef WIN32
 
@@ -169,12 +170,12 @@
 
 	#define VHOOK_WEAPON_REF(call)										\
 	{																	\
-		gWeaponReference, VO_##call, (void*)Weapon_##call, NULL, NULL,	\
+		nullptr, VO_##call, (void*)Weapon_##call, NULL, NULL,			\
 	}																	\
 
 	#define VHOOK_AMMOBOX_REF(call)											\
 	{																		\
-		gAmmoBoxReference, VO_##call, (void*)AmmoBox_##call, NULL, NULL,	\
+		nullptr, VO_##call, (void*)AmmoBox_##call, NULL, NULL,				\
 	}																		\
 
 	enum AmmoBoxRefHooks

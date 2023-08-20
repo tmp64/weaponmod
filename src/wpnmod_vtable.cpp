@@ -32,7 +32,6 @@
  */
 
 #include <string>
-#include "sdk/amxx_gameconfigs.h"
 #include "wpnmod_vtable.h"
 #include "wpnmod_memory.h"
 #include "wpnmod_config.h"
@@ -90,7 +89,7 @@ void Vtable_Init(void)
 	g_OffsetInitializers[VO_AddAmmo] =			{ "CBasePlayerAmmo",	"AddAmmo" };
 
 	// Load offsets
-	IGameConfigPtr pWpnModCfg = WpnMod_LoadGameConfigFile("weaponmod.games");
+	IGameConfig* pWpnModCfg = g_Config.GetGameData();
 	IGameConfigPtr pAmxxCfg = WpnMod_LoadGameConfigFile("common.games");
 	bool anyNotFound = false;
 
@@ -137,10 +136,9 @@ void Vtable_Init(void)
 	}
 
 	// Load pev offset
-	IGameConfigPtr pEntityCfg = WpnMod_LoadGameConfigFile("common.games");
 	TypeDescription pevOffset;
 
-	if (!pEntityCfg->GetOffsetByClass("CBaseEntity", "pev", &pevOffset))
+	if (!pAmxxCfg->GetOffsetByClass("CBaseEntity", "pev", &pevOffset))
 	{
 		WPNMOD_LOG("CBaseEntity::pev offset not found\n");
 		std::abort();

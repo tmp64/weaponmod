@@ -31,6 +31,7 @@
  *
  */
 
+#include <cassert>
 #include "wpnmod_entity.h"
 #include "wpnmod_parse.h"
 #include "wpnmod_utils.h"
@@ -62,6 +63,20 @@ VirtualHookData g_CrowbarHooks[WeaponRefHook_End] =
 VirtualHookData g_PlayerSpawn_Hook		= VHOOK("player",			VO_Spawn,				Player_Spawn);
 VirtualHookData g_PlayerPostThink_Hook	= VHOOK("player",			VO_Player_PostThink,	Player_PostThink);
 
+
+void Hooks_InitReferenceEntities()
+{
+	auto fnInitArray = [](const char* name, auto& arr)
+	{
+		assert(name);
+
+		for (VirtualHookData& i : arr)
+			i.classname = name;
+	};
+	
+	fnInitArray(gWeaponReference, g_CrowbarHooks);
+	fnInitArray(gAmmoBoxReference, g_AmmoBoxRefHooks);
+}
 
 #ifdef WIN32
 	void __fastcall AmmoBox_Spawn(void* pvItem)

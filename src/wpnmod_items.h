@@ -179,6 +179,7 @@ public:
 	int m_iMaxWeaponSlots;
 	int m_iMaxWeaponPositions;
 
+	void LoadGameData();
 	void AllocWeaponSlots			(int slots, int positions);
 	void FreeWeaponSlots			(void);
 	bool CheckSlots					(int iWeaponID);
