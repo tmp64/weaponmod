@@ -54,7 +54,7 @@ static DISPATCHFUNCTION ReHldsGetDispatch(IRehldsHook_GetDispatch* pHook, char* 
 
 void CMemory::FindReHldsApi()
 {
-	CreateInterfaceFn pfnEngineFactory = Sys_GetFactory((CSysModule*)m_EngineModule.base);
+	CreateInterfaceFn pfnEngineFactory = Sys_GetFactory((CSysModule*)m_EngineModule.handler);
 	if (!pfnEngineFactory)
 		return;
 
