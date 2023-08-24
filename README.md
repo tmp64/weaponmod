@@ -12,7 +12,7 @@ BugfixedHL-Rebased.
 ## Requirements
 - [AMX Mod X 1.10+](https://www.amxmodx.org/downloads-new.php?branch=master)
 - ReHLDS on Linux
-  - It must support `GetDispatch` hook. See below.
+  - ~~It must support `GetDispatch` hook. See below.~~ No longer required.
 
 ## Supported games
 The module currently supports the following games. Pull requests with other
@@ -23,11 +23,7 @@ games and mods are welcome.
   - Linux requires [ReHLDS](https://github.com/dreamstalker/rehlds)
 
 ## ReHLDS support
-The module relies on ReHLDS providing a hook for `GetDispatch` function. [It has
-not been added to upstream yet.](https://github.com/dreamstalker/rehlds/pull/980)
-
-For now, you can download the version that is supported by Weapon Mod
-[here.](https://github.com/tmp64/rehlds/actions?query=branch%3Afeature%2Fgetdispatch-hook-ci)
+This version supports official ReHLDS release on Windows and Linux.
 
 ## Credits
 - Original module by KORD_12.7 & AGHL.ru Dev Team
