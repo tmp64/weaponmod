@@ -39,11 +39,11 @@
 
 void* WpnMod_GetDispatch(char* pname);
 
-static DISPATCHFUNCTION ReHldsGetDispatch(IRehldsHook_GetDispatch* pHook, char* pszName)
+static ENTITYINIT ReHldsGetEntityInit(IRehldsHook_GetEntityInit* pHook, char* pszName)
 {
 	if (g_Config.IsInited())
 	{
-		auto pDispatch = (DISPATCHFUNCTION)WpnMod_GetDispatch(pszName);
+		auto pDispatch = (ENTITYINIT)WpnMod_GetDispatch(pszName);
 
 		if (pDispatch)
 			return pDispatch;
@@ -78,7 +78,7 @@ void CMemory::UnsetReHldsHooks()
 {
 	if (m_pRehldsApi)
 	{
-		m_pRehldsApi->GetHookchains()->GetDispatch()->unregisterHook(ReHldsGetDispatch);
+		m_pRehldsApi->GetHookchains()->GetEntityInit()->unregisterHook(ReHldsGetEntityInit);
 	}
 }
 
@@ -89,7 +89,7 @@ void CMemory::Parse_GetDispatch(void)
 	if (m_pRehldsApi)
 	{
 		// Use ReHLDS hookchain system
-		m_pRehldsApi->GetHookchains()->GetDispatch()->registerHook(ReHldsGetDispatch);
+		m_pRehldsApi->GetHookchains()->GetEntityInit()->registerHook(ReHldsGetEntityInit);
 		return;
 	}
 
