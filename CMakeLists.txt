@@ -15,39 +15,9 @@ list( APPEND CMAKE_MODULE_PATH
 
 include(InputFilesList)
 include(WinXPSupport)
-include(GetGitRevisionDescription)
+include(GitVersionSemverfier)
 
-#-----------------------------------------------------------------
-# Version
-#-----------------------------------------------------------------
-# Also needs to be changed in scripts/build_release.py
-set(REPO_VERSION_MAJOR 1)
-set(REPO_VERSION_MINOR 10)
-set(REPO_VERSION_PATCH 0)
-set(REPO_VERSION_TAG "dev")
-
-if(NOT VERSION_MAJOR)
-	set( VERSION_MAJOR ${REPO_VERSION_MAJOR})
-endif()
-if(NOT VERSION_MINOR)
-	set( VERSION_MINOR ${REPO_VERSION_MINOR})
-endif()
-if(NOT VERSION_PATCH)
-	set( VERSION_PATCH ${REPO_VERSION_PATCH})
-endif()
-if(NOT VERSION_TAG )
-	set( VERSION_TAG ${REPO_VERSION_TAG})
-elseif( "${VERSION_TAG}" STREQUAL "no_tag")
-	set( VERSION_TAG "")
-endif()
-
-unset( REPO_VERSION_MAJOR )
-unset( REPO_VERSION_MINOR )
-unset( REPO_VERSION_PATCH )
-unset( REPO_VERSION_TAG )
-# Use VERSION_XXX from now on
-
-project( WeaponMod VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
+project( WeaponMod VERSION "${GIT_MAJOR}.${GIT_MINOR}.${GIT_PATCH}" )
 include( PlatformInfo )
 
 #-----------------------------------------------------------------
@@ -262,49 +232,6 @@ set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${WARNING_LEVEL_CXX} ${WARNING_LEVEL_C_
 #-----------------------------------------------------------------
 # appversion.h generator
 #-----------------------------------------------------------------
-find_package( Git )
-if( GIT_FOUND )
-	# Get branch name
-	execute_process(
-		COMMAND "${GIT_EXECUTABLE}" rev-parse --abbrev-ref HEAD
-		WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-		OUTPUT_VARIABLE GIT_BRANCH
-		OUTPUT_STRIP_TRAILING_WHITESPACE
-	)
-	
-	# Replace slash with hyphen
-	string( REPLACE "/" "-" GIT_BRANCH ${GIT_BRANCH} )
-	
-	# Get last commit hash (short)
-	execute_process(
-		COMMAND "${GIT_EXECUTABLE}" rev-parse --short HEAD
-		WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-		OUTPUT_VARIABLE GIT_COMMIT_HASH
-		OUTPUT_STRIP_TRAILING_WHITESPACE
-	)
-	
-	# Get whether worktree is dirty
-	git_local_changes( GIT_DIRTY )
-	if( GIT_DIRTY STREQUAL "CLEAN" )
-		set( GIT_DIRTY FALSE )
-	else()
-		set( GIT_DIRTY TRUE )
-	endif()
-else()
-	set( GIT_BRANCH "unknown" )
-	set( GIT_COMMIT_HASH "0000000" )
-	set( GIT_DIRTY FALSE )
-endif()
-
-# Assemble version string
-set( VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
-if( VERSION_TAG )
-	set( VERSION_STRING "${VERSION_STRING}-${VERSION_TAG}" )
-endif()
-set( VERSION_STRING "${VERSION_STRING}+${GIT_BRANCH}.${GIT_COMMIT_HASH}" )
-if( GIT_DIRTY )
-	set( VERSION_STRING "${VERSION_STRING}.m" )
-endif()
 
 # Generate version file
 set( GENERATED_INCLUDE_DIR ${CMAKE_BINARY_DIR}/generated)
