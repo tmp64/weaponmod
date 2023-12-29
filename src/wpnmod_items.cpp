@@ -31,6 +31,7 @@
 *
 */
 
+#include <cassert>
 #include "wpnmod_items.h"
 #include "wpnmod_hooks.h"
 #include "wpnmod_utils.h"
@@ -39,8 +40,8 @@
 
 CItems g_Items;
 
-const char* gWeaponReference;
-const char* gAmmoBoxReference;
+std::string gWeaponReference;
+std::string gAmmoBoxReference;
 
 CItems::CItems()
 {
@@ -59,17 +60,20 @@ CItems::CItems()
 
 void CItems::LoadGameData()
 {
+	assert(gWeaponReference.empty());
+	assert(gAmmoBoxReference.empty());
+
 	// Load reference weapons
 	IGameConfig* pCfg = g_Config.GetGameData();
 	gWeaponReference = pCfg->GetKeyValue("reference_weapon");
-	if (!gWeaponReference)
+	if (gWeaponReference.empty())
 		WPNMOD_LOG("  reference_weapon not found\n");
 
 	gAmmoBoxReference = pCfg->GetKeyValue("reference_ammobox");
-	if (!gAmmoBoxReference)
+	if (gAmmoBoxReference.empty())
 		WPNMOD_LOG("  reference_ammobox not found\n");
 
-	if (!gWeaponReference || !gAmmoBoxReference)
+	if (gWeaponReference.empty() || gAmmoBoxReference.empty())
 	{
 		WPNMOD_LOG("Invalid WeaponMod setup. gamedata is missing.\n");
 		WPNMOD_LOG("The server will now crash. Goodbye.\n");

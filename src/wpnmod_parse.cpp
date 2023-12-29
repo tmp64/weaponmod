@@ -126,7 +126,7 @@ void OnParseBlockedItems(std::string dummy, std::string BlockedItem)
 	p->address = NULL;
 	p->classname = STRING(ALLOC_STRING(BlockedItem.c_str()));
 
-	if (!stricmp(BlockedItem.c_str(), gWeaponReference) || !stricmp(BlockedItem.c_str(), gAmmoBoxReference))
+	if (!stricmp(BlockedItem.c_str(), gWeaponReference.c_str()) || !stricmp(BlockedItem.c_str(), gAmmoBoxReference.c_str()))
 	{
 		g_Config.m_pBlockedItemsList.push_back(p);
 		return;

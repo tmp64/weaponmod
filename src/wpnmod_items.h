@@ -226,8 +226,8 @@ public:
 
 extern CItems g_Items;
 
-extern const char* gWeaponReference;
-extern const char* gAmmoBoxReference;
+extern std::string gWeaponReference;
+extern std::string gAmmoBoxReference;
 
 
 #endif // _WPNMOD_ITEMS_H

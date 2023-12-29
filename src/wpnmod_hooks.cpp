@@ -74,8 +74,8 @@ void Hooks_InitReferenceEntities()
 			i.classname = name;
 	};
 	
-	fnInitArray(gWeaponReference, g_CrowbarHooks);
-	fnInitArray(gAmmoBoxReference, g_AmmoBoxRefHooks);
+	fnInitArray(gWeaponReference.c_str(), g_CrowbarHooks);
+	fnInitArray(gAmmoBoxReference.c_str(), g_AmmoBoxRefHooks);
 }
 
 #ifdef WIN32
@@ -117,9 +117,9 @@ void Hooks_InitReferenceEntities()
 		return FALSE;
 	}
 
-	if (!stricmp(STRING(pAmmobox->v.classname), gAmmoBoxReference))
+	if (!stricmp(STRING(pAmmobox->v.classname), gAmmoBoxReference.c_str()))
 	{
-		if (g_Config.IsItemBlocked(gAmmoBoxReference))
+		if (g_Config.IsItemBlocked(gAmmoBoxReference.c_str()))
 		{
 			UTIL_RemoveEntity(pAmmobox);
 			return FALSE;
@@ -476,7 +476,7 @@ void Hooks_InitReferenceEntities()
 
 	if (WEAPON_IS_CUSTOM(iId) && IsValidPev(pPlayer))
 	{
-		if (!stricmp(STRING(pWeapon->v.classname), gWeaponReference))
+		if (!stricmp(STRING(pWeapon->v.classname), gWeaponReference.c_str()))
 		{
 			UTIL_RemoveEntity(pWeapon);
 			return 0;
@@ -951,11 +951,11 @@ void* WpnMod_GetDispatch(char *pname)
 	// Try to find custom classname in registered weapons and ammoboxes
 	if (WEAPON_GET_ID(pname))
 	{
-		return (void*)FindAdressInDLL(g_Memory.GetModule_GameDll(), gWeaponReference);
+		return (void*)FindAdressInDLL(g_Memory.GetModule_GameDll(), gWeaponReference.c_str());
 	}
 	else if (AMMOBOX_GET_ID(pname))
 	{
-		return (void*)FindAdressInDLL(g_Memory.GetModule_GameDll(), gAmmoBoxReference);
+		return (void*)FindAdressInDLL(g_Memory.GetModule_GameDll(), gAmmoBoxReference.c_str());
 	}
 
 	// Try another ways here
