@@ -101,6 +101,28 @@
 
 
 
+/**
+ * Change respawn time of all weapons.
+ *
+ * @param fRespawnTime			Time in seconds before all custom weapons respawn.
+ *
+ * @return				1 if the time is greater or equals to 0.0, 0 otherwise
+ *
+ * native wpnmod_set_respawn_time(const Float: fRespawnTime = 20.0);
+*/
+AMXX_NATIVE(wpnmod_set_respawn_time)
+{
+	float fWeaponRespawnTime = amx_ctof(params[1]);
+	
+	if(fWeaponRespawnTime >= 0.0)
+	{
+		g_fNextWeaponRespawnTime = fWeaponRespawnTime;
+		
+		return 1;
+	}
+	
+	return 0;
+}
 
 /**
  * Same as wpnmod_radius_damage, but blocks 'ghost mines' and 'ghost nades'.
@@ -1974,6 +1996,7 @@ AMX_NATIVE_INFO Natives[] =
 	{ "wpnmod_get_offset_cbase",			DeprecatedNatives::wpnmod_get_offset_cbase		},
 
 	// WIP
+	{ "wpnmod_set_respawn_time", wpnmod_set_respawn_time},
 	{ "wpnmod_fire_contact_grenade", wpnmod_fire_contact_grenade},
 	{ "wpnmod_fire_timed_grenade", wpnmod_fire_timed_grenade},
 	{ "wpnmod_radius_damage", wpnmod_radius_damage},
