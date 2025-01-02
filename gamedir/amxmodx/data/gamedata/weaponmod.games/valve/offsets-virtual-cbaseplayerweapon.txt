@@ -10,14 +10,14 @@
 				{
 					"ItemPostFrame"
 					{
-						"windows"  "67"
-						"linux"    "67"
+						"windows"  "68"
+						"linux"    "68"
 					}
 					
 					"IsUseable"
 					{
-						"windows"  "82"
-						"linux"    "82"
+						"windows"  "83"
+						"linux"    "83"
 					}
 				}
 			}

@@ -10,8 +10,8 @@
 				{
 					"AddAmmo"
 					{
-						"windows"  "57"
-						"linux"    "57"
+						"windows"  "58"
+						"linux"    "58"
 					}
 				}
 			}
