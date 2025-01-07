@@ -1,6 +1,6 @@
 /*
  * Half-Life Weapon Mod
- * Copyright (c) 2012 AGHL.RU Dev Team
+ * Copyright (c) 2012 - 2014 AGHL.RU Dev Team
  * 
  * http://aghl.ru/forum/ - Russian Half-Life and Adrenaline Gamer Community
  *
@@ -30,13 +30,14 @@
  *    version.
  *
  */
-
  
 #if defined _hl_wpnmod_const_included
 	#endinput
 #endif
 
 #define _hl_wpnmod_const_included
+
+#define WPNMOD_API_VERSION 2
 
 
 // Maximum available weapons
@@ -58,25 +59,11 @@
 #define	DIM_GUN_FLASH					128
 
 // Weapon flags
-#if !defined ITEM_FLAG_SELECTONEMPTY	
 #define ITEM_FLAG_SELECTONEMPTY			1
-#endif
-
-#if !defined ITEM_FLAG_NOAUTORELOAD	
 #define ITEM_FLAG_NOAUTORELOAD			2
-#endif
-
-#if !defined ITEM_FLAG_NOAUTOSWITCHEMPTY	
 #define ITEM_FLAG_NOAUTOSWITCHEMPTY		4
-#endif
-
-#if !defined ITEM_FLAG_LIMITINWORLD
 #define ITEM_FLAG_LIMITINWORLD			8
-#endif
-
-#if !defined ITEM_FLAG_EXHAUSTIBLE
 #define ITEM_FLAG_EXHAUSTIBLE			16 // A player can totally exhaust their ammo supply and lose this weapon
-#endif
 
 // Default spreads
 #define VECTOR_CONE_1DEGREES			Float:{ 0.00873, 0.00873, 0.00873 }
@@ -198,56 +185,44 @@ enum e_ItemInfo
 	ItemInfo_End
 };
 
-enum e_CBase
+enum e_pvData
 {
-	// Weapon
-	CBase_pPlayer,
-	CBase_pNext,
+	PV_INT_iChargeReady,
+	PV_INT_iInAttack,
+	PV_INT_iFireState,
+	PV_INT_iFireOnEmpty,
+	PV_INT_iInSpecialReload,
+	PV_INT_iPrimaryAmmoType,
+	PV_INT_iSecondaryAmmoType,
+	PV_INT_iClip,
+	PV_INT_iInReload,
+	PV_INT_iDefaultAmmo,
+	PV_INT_iWeaponVolume,
+	PV_INT_iWeaponFlash,
+	PV_INT_iLastHitGroup,
+	PV_INT_iFOV,
+	PV_INT_iuser1,
+	PV_INT_iuser2,
+	PV_INT_iuser3,
+	PV_INT_iuser4,
 
-	// Player
-	CBase_rgpPlayerItems,
-	CBase_pActiveItem,
-	CBase_pLastItem,
+	PV_FL_flStartThrow,
+	PV_FL_flReleaseThrow,
+	PV_FL_flPumpTime,
+	PV_FL_flNextPrimaryAttack,
+	PV_FL_flNextSecondaryAttack,
+	PV_FL_flTimeWeaponIdle,
+	PV_FL_flNextAttack,
+	PV_FL_fuser1,
+	PV_FL_fuser2,
+	PV_FL_fuser3,
+	PV_FL_fuser4,
 
-	CBase_End
-};
+	PV_ENT_pPlayer,
+	PV_ENT_pNext,
+	PV_ENT_rgpPlayerItems,
+	PV_ENT_pActiveItem,
+	PV_ENT_pLastItem,
 
-enum e_Offsets
-{
-	// Weapon
-	Offset_flStartThrow,
-	Offset_flReleaseThrow,
-	Offset_iChargeReady,
-	Offset_iInAttack,
-	Offset_iFireState,
-	Offset_iFireOnEmpty,				// True when the gun is empty and the player is still holding down the attack key(s).
-	Offset_flPumpTime,
-	Offset_iInSpecialReload,			// Are we in the middle of a reload for the shotguns.
-	Offset_flNextPrimaryAttack,			// Soonest time ItemPostFrame will call PrimaryAttack.
-	Offset_flNextSecondaryAttack,		// Soonest time ItemPostFrame will call SecondaryAttack.
-	Offset_flTimeWeaponIdle,			// Soonest time ItemPostFrame will call WeaponIdle.
-	Offset_iPrimaryAmmoType,			// "Primary" ammo index into players m_rgAmmo[].
-	Offset_iSecondaryAmmoType,			// "Secondary" ammo index into players m_rgAmmo[].
-	Offset_iClip,						// Number of shots left in the primary weapon clip, -1 it not used.
-	Offset_iInReload,					// Are we in the middle of a reload.
-	Offset_iDefaultAmmo,				// How much ammo you get when you pick up this weapon as placed by a level designer.
-	
-	// Player
-	Offset_flNextAttack,				// Cannot attack again until this time.
-	Offset_iWeaponVolume,				// How loud the player's weapon is right now.
-	Offset_iWeaponFlash,				// Brightness of the weapon flash.
-	Offset_iLastHitGroup,				// The last body region that took damage.
-	Offset_iFOV,						// Field of view.
-
-	// Custom (for weapon and "info_target" entities only)
-	Offset_iuser1,
-	Offset_iuser2,
-	Offset_iuser3,
-	Offset_iuser4,
-	Offset_fuser1,
-	Offset_fuser2,
-	Offset_fuser3,
-	Offset_fuser4,
-	
-	Offset_End
+	PV_SZ_szAnimExtention
 };
