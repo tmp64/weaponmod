@@ -319,7 +319,7 @@ native WpnMod_SetRespawnTime(const Float: fRespawnTime = 20.0);
 * @return				true if the weapon is custom, false otherwise.
 *
 */
-native bool WpnMod_IsCustomWeapon(const iWeaponId);
+native bool: WpnMod_IsCustomWeapon(const iWeaponId);
 
 /**
 * Checks if a weapon is default or not, by providing it's id.
