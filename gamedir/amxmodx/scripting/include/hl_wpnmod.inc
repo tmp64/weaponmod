@@ -300,3 +300,33 @@ native WpnMod_SetTouch(const iEntity, const szCallBack[], const szToucher[] = ""
  * @param iTracerFreq      Tracer frequancy.
  */
 native WpnMod_FireBullets(const iPlayer, const iAttacker, const iShotsCount, const Float: vecSpread[3], const Float: flDistance, const Float: flDamage, const bitsDamageType, const iTracerFreq);
+
+/**
+ * Change respawn time of all weapons.
+ *
+ * @param fRespawnTime			Time in seconds before all custom weapons respawn.
+ *
+ * @return				1 if the time is greater or equals to 0.0, 0 otherwise
+ *
+*/
+native WpnMod_SetRespawnTime(const Float: fRespawnTime = 20.0);
+
+/**
+* Checks if a weapon is custom or not, by providing it's id.
+*
+* @param iWeaponId		Weapon identifier.
+*
+* @return				true if the weapon is custom, false otherwise.
+*
+*/
+native bool: WpnMod_IsCustomWeapon(const iWeaponId);
+
+/**
+* Checks if a weapon is default or not, by providing it's id.
+*
+* @param iWeaponId		Weapon identifier.
+*
+* @return				true if the weapon is default, false otherwise.
+*
+*/
+native bool: WpnMod_IsDefaultWeapon(const iWeaponId);

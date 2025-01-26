@@ -195,5 +195,6 @@ extern AMX_NATIVE_INFO Natives[];
 extern void WpnMod_Init_GameMod(void);
 extern void WpnMod_Precache(void);
 
+extern float g_fNextWeaponRespawnTime;
 
 #endif // _CONFIG_H

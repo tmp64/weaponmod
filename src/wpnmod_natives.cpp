@@ -101,7 +101,6 @@
 
 
 
-
 /**
  * Same as wpnmod_radius_damage, but blocks 'ghost mines' and 'ghost nades'.
  *
@@ -1909,6 +1908,61 @@ namespace NewNatives
 
 		return 1;
 	}
+
+	/**
+	* Change respawn time of all weapons.
+	*
+	* @param fRespawnTime			Time in seconds before all custom weapons respawn.
+	*
+	* @return				1 if the time is greater or equals to 0.0, 0 otherwise
+	*
+	* native WpnMod_SetRespawnTime(const Float: fRespawnTime = 20.0);
+	*/
+	AMXX_NATIVE(WpnMod_SetRespawnTime)
+	{
+		float fWeaponRespawnTime = amx_ctof(params[1]);
+
+		if (fWeaponRespawnTime >= 0.0)
+		{
+			g_fNextWeaponRespawnTime = fWeaponRespawnTime;
+
+			return 1;
+		}
+
+		return 0;
+	}
+
+	/**
+	* Checks if a weapon is custom or not, by providing it's id.
+	*
+	* @param iWeaponId		Weapon identifier.
+	*
+	* @return				true if the weapon is custom, false otherwise.
+	*
+	* native bool: WpnMod_IsCustomWeapon(const iWeaponId);
+	*/
+	AMXX_NATIVE(WpnMod_IsCustomWeapon)
+	{
+		cell iWeaponId = params[1];
+
+		return WEAPON_IS_CUSTOM(iWeaponId);
+	}
+
+	/**
+	* Checks if a weapon is default or not, by providing it's id.
+	*
+	* @param iWeaponId		Weapon identifier.
+	*
+	* @return				true if the weapon is default, false otherwise.
+	*
+	* native bool: WpnMod_IsDefaultWeapon(const iWeaponId);
+	*/
+	AMXX_NATIVE(WpnMod_IsDefaultWeapon)
+	{
+		cell iWeaponId = params[1];
+
+		return WEAPON_IS_DEFAULT(iWeaponId);
+	}
 } // namespace NewNatives
 
 AMX_NATIVE_INFO Natives[] = 
@@ -1940,6 +1994,9 @@ AMX_NATIVE_INFO Natives[] =
 	{ "WpnMod_FireBullets",					NewNatives::WpnMod_FireBullets					},
 	{ "WpnMod_GiveItem",					NewNatives::WpnMod_GiveItem						},
 	{ "WpnMod_GiveEquip",					NewNatives::WpnMod_GiveEquip					},
+	{ "WpnMod_SetRespawnTime",				NewNatives::WpnMod_SetRespawnTime               },
+	{ "WpnMod_IsCustomWeapon",				NewNatives::WpnMod_IsCustomWeapon               },
+	{ "WpnMod_IsDefaultWeapon",				NewNatives::WpnMod_IsDefaultWeapon              },
 	// { "WpnMod_VelocityByAim",				NewNatives::WpnMod_VelocityByAim				},
 	// { "wpnmod_precache_model_sequences",	wpnmod_precache_model_sequences					},
 

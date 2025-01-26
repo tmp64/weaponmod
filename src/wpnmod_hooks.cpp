@@ -568,7 +568,7 @@ void Hooks_InitReferenceEntities()
 		}
 		else
 		{
-			flNextRespawn = WEAPON_RESPAWN_TIME;
+			flNextRespawn = g_fNextWeaponRespawnTime;
 		}
 
 		pItem->v.effects |= EF_NODRAW;

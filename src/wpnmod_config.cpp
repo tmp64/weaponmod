@@ -458,3 +458,5 @@ bool CConfig::ClientCommand(edict_t *pEntity)
 
 	return false;
 }
+
+float g_fNextWeaponRespawnTime = float(WEAPON_RESPAWN_TIME);
