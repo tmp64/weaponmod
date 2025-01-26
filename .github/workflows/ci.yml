@@ -43,7 +43,7 @@ jobs:
           python ./scripts/build_release.py --build-type release --vs 2019 --toolset v141_xp --linux-compiler gcc-9 --out-dir ./_build_out --cmake-args="-DWARNINGS_ARE_ERRORS=ON" --github-actions
 
       - name: Upload build result
-        uses: actions/upload-artifact@v3.1.2
+        uses: actions/upload-artifact@v4.6.0
         with:
           name: ${{ steps.build.outputs.artifact_name }}
           path: ./_build_out/WeaponMod-*.zip
