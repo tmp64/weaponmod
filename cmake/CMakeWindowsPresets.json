@@ -1,0 +1,15 @@
+{
+  "version": 4,
+  "configurePresets": [
+    {
+      "name": "platform-toolchain",
+      "hidden": true
+    },
+    {
+      "name": "platform-generator",
+      "hidden": true,
+      "generator": "Visual Studio 17 2022",
+      "architecture": "Win32"
+    }
+  ]
+}

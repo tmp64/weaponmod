@@ -1,0 +1,26 @@
+{
+  "version": 4,
+  "configurePresets": [
+    {
+      "name": "user",
+      "inherits": ["base", "platform-generator"],
+      "cacheVariables": {
+        "AUTO_DEPLOY": true
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "user-debug",
+      "configurePreset": "user",
+      "inheritConfigureEnvironment": true,
+      "configuration": "Debug"
+    },
+    {
+      "name": "user-release",
+      "configurePreset": "user",
+      "inheritConfigureEnvironment": true,
+      "configuration": "RelWithDebInfo"
+    }
+  ]
+}

@@ -42,6 +42,9 @@ if(GIT_FOUND AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.git")
                     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
                     OUTPUT_VARIABLE GIT_HASH
                     OUTPUT_STRIP_TRAILING_WHITESPACE)
+    # Replace slash in Git branch name
+    string( REPLACE "/" "-" GIT_BRANCH ${GIT_BRANCH} )
+
     if(NOT _git_code EQUAL 128)
         string(REGEX MATCH "(.*)-([0-9]+)-g(.+)" _git_result "${_git_result}")
         set(GIT_TAG ${CMAKE_MATCH_1})
@@ -65,9 +68,10 @@ if(GIT_FOUND AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.git")
     if(GIT_SKIP GREATER 0)
         math(EXPR GIT_MINOR "${GIT_MINOR} + 1" OUTPUT_FORMAT DECIMAL)
         string(REGEX REPLACE "(v[0-9]+\.)([0-9]+)(\.[0-9]+)(.*)" "\\1${GIT_MINOR}.0\\4" GIT_TAG "${GIT_TAG}")
-        set(GIT_SEM_VERSION "${GIT_TAG}${_git_delimiter}dev.${GIT_SKIP}+${GIT_HASH}.${GIT_BRANCH}")
+        set(GIT_SEM_VERSION "${GIT_TAG}${_git_delimiter}dev.${GIT_SKIP}+${GIT_BRANCH}.${GIT_HASH}")
+        set(GIT_PATCH 0)
     else()
-        set(GIT_SEM_VERSION "${GIT_TAG}+${GIT_HASH}.${GIT_BRANCH}")
+        set(GIT_SEM_VERSION "${GIT_TAG}+${GIT_BRANCH}.${GIT_HASH}")
     endif()
     
     execute_process(COMMAND "${GIT_EXECUTABLE}" diff-index --quiet HEAD --
@@ -77,6 +81,7 @@ if(GIT_FOUND AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.git")
 		OUTPUT_STRIP_TRAILING_WHITESPACE)
     if(_git_dirty EQUAL 1)
         set(GIT_SEM_VERSION "${GIT_SEM_VERSION}.m")
+        message("Git working tree is dirty!")
     endif()
     
     #if(CMAKE_SCRIPT_MODE_FILE)
@@ -87,13 +92,13 @@ if(GIT_FOUND AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.git")
     #endif()
 
     string(REGEX REPLACE "v(.*)" "\\1" GIT_SEM_VERSION "${GIT_SEM_VERSION}")
+    set(GIT_SUCCESS TRUE)
 else()
     set(GIT_MAJOR 0)
     set(GIT_MINOR 0)
     set(GIT_PATCH 0)
     set(GIT_SKIP 0)
     set(GIT_TAG "v0.0.0")
-    set(GIT_SEM_VERSION "0.0.0+0000000.error")
+    set(GIT_SEM_VERSION "0.0.0+error.0000000")
+    set(GIT_SUCCESS FALSE)
 endif()
-
-message("Version: ${GIT_SEM_VERSION}")

@@ -17,6 +17,11 @@ include(InputFilesList)
 include(WinXPSupport)
 include(GitVersionSemverfier)
 
+# This will be used by CI build scripts
+file( WRITE ${CMAKE_BINARY_DIR}/version.txt ${GIT_SEM_VERSION} )
+
+message( "Version: ${GIT_SEM_VERSION} (from Git)" )
+
 project( WeaponMod VERSION "${GIT_MAJOR}.${GIT_MINOR}.${GIT_PATCH}" )
 include( PlatformInfo )
 
@@ -242,18 +247,18 @@ include_directories( ${GENERATED_INCLUDE_DIR} )
 # Autodeploy macro
 #-----------------------------------------------------------------
 if( AUTO_DEPLOY )
-	macro( add_auto_deploy TARGET_NAME PUBLISH_PATHS_FILE )
-		if ( WIN32 )
-			add_custom_command( TARGET ${TARGET_NAME}
-				POST_BUILD
-				COMMAND ${CMAKE_SOURCE_DIR}/scripts/deploy_libs.bat "${CMAKE_BINARY_DIR}\\${PUBLISH_PATHS_FILE}" "$<TARGET_FILE:${TARGET_NAME}>" "$<TARGET_PDB_FILE:${TARGET_NAME}>"
-			)
-		else()
-			add_custom_command( TARGET ${TARGET_NAME}
-				POST_BUILD
-				COMMAND ${CMAKE_SOURCE_DIR}/scripts/deploy_libs.sh "${CMAKE_BINARY_DIR}/${PUBLISH_PATHS_FILE}" "$<TARGET_FILE:${TARGET_NAME}>"
-			)
-		endif()
+	macro( add_auto_deploy target_name publish_paths_file )
+		add_custom_command( TARGET ${target_name}
+			POST_BUILD
+			COMMAND
+				${CMAKE_COMMAND}
+				-P
+				${CMAKE_SOURCE_DIR}/cmake/DeployLibs.cmake
+				--
+				${CMAKE_BINARY_DIR}
+				"$<CONFIG>"
+				${CMAKE_BINARY_DIR}/${publish_paths_file}
+		)
 	endmacro()
 else()
 	macro( add_auto_deploy )
@@ -266,5 +271,6 @@ endif()
 set( THREADS_PREFER_PTHREAD_FLAG ON )
 find_package( Threads REQUIRED )
 
-add_subdirectory( thirdparty )
+add_subdirectory( gamedir )
 add_subdirectory( src )
+add_subdirectory( thirdparty )
