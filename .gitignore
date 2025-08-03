@@ -1,2 +1,13 @@
-/_build*
-/.build*
+# CMake build directory
+/build
+/build_*
+/_build
+/_build_*
+CMakeUserPresets.json
+
+# macOS garbage
+.DS_Store
+
+# Ignore .vscode but allow examples
+.vscode/*
+!.vscode/**/*.example.*
