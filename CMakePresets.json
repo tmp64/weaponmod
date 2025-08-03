@@ -22,8 +22,7 @@
     },
     {
       "name": "github-actions",
-      "inherits": ["base"],
-      "generator": "Ninja Multi-Config",
+      "inherits": ["platform-generator", "base"],
       "cacheVariables": {
         "GNU_FORCE_COLORED_OUTPUT": false,
         "WARNINGS_ARE_ERRORS": true

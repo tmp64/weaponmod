@@ -17,6 +17,11 @@ include(InputFilesList)
 include(WinXPSupport)
 include(GitVersionSemverfier)
 
+# This will be used by CI build scripts
+file( WRITE ${CMAKE_BINARY_DIR}/version.txt ${GIT_SEM_VERSION} )
+
+message( "Version: ${GIT_SEM_VERSION} (from Git)" )
+
 project( WeaponMod VERSION "${GIT_MAJOR}.${GIT_MINOR}.${GIT_PATCH}" )
 include( PlatformInfo )
 
