@@ -60,3 +60,43 @@ jobs:
         with:
           name: ${{ steps.prepare_artifact.outputs.artifact_name }}
           path: ${{github.workspace}}/_build/ci-artifact
+
+  merge-artifacts:
+    name: "Merge Artifacts"
+    needs: build
+    runs-on: ubuntu-latest
+
+    env:
+      # Must also be updated in src/game/server/CMakeLists.txt
+      AMXX_OFFSET_GENERATOR_VERSION: "1.0.1"
+
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v4
+        with:
+          submodules: false # Only need scripts folder
+
+      # Download artifacts
+      - uses: actions/download-artifact@v4
+        with:
+          path: ${{github.workspace}}/_build/ci-artifacts
+          pattern: "*-ci-*"
+          merge-multiple: true
+
+      # Merge them
+      - name: Merge artifacts
+        id: merge_artifacts
+        run: >
+          python scripts/merge_artifacts.py
+          --artifact-dir ${{github.workspace}}/_build/ci-artifacts
+          --out-dir ${{github.workspace}}/_build/ci-out-artifact
+          ci-linux
+          ci-windows
+
+      # Upload merged artifact
+      - name: Upload merged artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.merge_artifacts.outputs.artifact_name }}
+          path: ${{github.workspace}}/_build/ci-out-artifact
+

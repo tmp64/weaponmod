@@ -38,7 +38,7 @@ def main():
     print(f'artifact_name = {artifact_name}')
 
     # Copy install files to artifact dir
-    artifact_inner_dir = artifact_dir / artifact_name / 'valve_addon'
+    artifact_inner_dir = artifact_dir / artifact_name
     artifact_inner_dir.parent.mkdir(parents=True, exist_ok=True)
     shutil.copytree(install_dir, artifact_inner_dir)
 
