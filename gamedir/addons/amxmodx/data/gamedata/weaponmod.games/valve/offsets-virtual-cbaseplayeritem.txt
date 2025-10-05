@@ -44,7 +44,7 @@
 						"linux"    "68"
 					}
 
-					"ItemSlot"
+					"iItemSlot"
 					{
 						"windows"  "76"
 						"linux"    "76"

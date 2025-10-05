@@ -79,7 +79,7 @@ void Vtable_Init(void)
 	g_OffsetInitializers[VO_Deploy] =			{ "CBasePlayerItem",	"Deploy",		"item_deploy" };
 	g_OffsetInitializers[VO_CanHolster] =		{ "CBasePlayerItem",	"CanHolster",	"item_canholster" };
 	g_OffsetInitializers[VO_Holster] =			{ "CBasePlayerItem",	"Holster",		"item_holster" };
-	g_OffsetInitializers[VO_ItemSlot] =			{ "CBasePlayerItem",	"ItemSlot",		"item_itemslot" };
+	g_OffsetInitializers[VO_ItemSlot] =			{ "CBasePlayerItem",	"iItemSlot",		"item_iitemslot" };
 
 	// CBasePlayerWeapon
 	g_OffsetInitializers[VO_ItemPostFrame] =	{ "CBasePlayerWeapon",	"ItemPostFrame" };
